@@ -99,6 +99,15 @@ export default {
     purchase: true,
   },
 
+  /** Filtres collection — passer une clé à `false` pour masquer la section dans le tiroir. */
+  collection: {
+    filters: {
+      price: true,
+      brand: true,
+      audience: true,
+    },
+  },
+
   /**
    * Menu principal (header) et liens colonne « Navigation » du footer.
    * Les clés absentes du bloc `features` héritent des défauts du socle (voir siteFeatures.js).
@@ -163,6 +172,15 @@ export default {
     },
   },
 
+  /** Bandeaux /collection/marque/:slug — clés = libellé exact du champ `brand` en base. */
+  brandHero: {},
+
+  /**
+   * Logos couleur — grille /collection/marques (clés = libellé exact `brand` en base).
+   * Si absent, la tuile utilise l’image `brandHero` ou un libellé texte.
+   */
+  brandLogos: {},
+
   seo: {
     /** Static shell before Vue hydrates @vueuse/head (fallback / crawlers). */
     indexHtml: {
@@ -218,6 +236,25 @@ export default {
       twitterTitle: 'Collection de Montres de Luxe | Sauvage',
       twitterDescription:
         'Découvrez notre collection complète de montres de luxe garanties 1 an.',
+    },
+    brandsIndex: {
+      h1: 'Toutes les marques',
+      title: 'Marques de montres de luxe | Sauvage',
+      metaDescription:
+        'Explorez les maisons horlogères présentes dans notre sélection et accédez à chaque collection : pièces authentifiées, garantie un an, expertise Sauvage.',
+      ogTitle: 'Marques | Sauvage',
+      ogDescription:
+        'Une sélection exigeante par marque : parcourez les collections et trouvez votre montre.',
+      twitterTitle: 'Marques | Sauvage',
+      twitterDescription:
+        'Les grandes maisons et nos collections — montres de luxe authentifiées.',
+    },
+    brandCollection: {
+      title: '{brand} | Collection | Sauvage',
+      metaDescription:
+        'Montres {brand} sélectionnées : filtres par public et budget. Pièces authentifiées et garanties.',
+      titleFallback: 'Collection par marque | Sauvage',
+      metaDescriptionFallback: 'Montres de luxe par marque — filtres par public et prix.',
     },
     watchDetail: {
       titleFallback: 'Montre - Sauvage',

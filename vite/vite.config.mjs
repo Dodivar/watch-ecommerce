@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+import { mergeBasePublicPlugin } from './merge-base-public.mjs'
 import { siteFromConfigPlugin } from './site-from-config.mjs'
 import { REPO_ROOT, resolveSitePaths } from './resolve-site.mjs'
 
@@ -60,7 +61,11 @@ export default defineConfig(async ({ command }) => {
   const siteConfigHref = pathToFileURL(siteConfigPath).href
   const { default: siteConfig } = await import(siteConfigHref)
 
-  const plugins = [siteFromConfigPlugin(siteConfig), vue()]
+  const plugins = [
+    mergeBasePublicPlugin({ repoRoot: REPO_ROOT }),
+    siteFromConfigPlugin(siteConfig),
+    vue(),
+  ]
 
   if (command === 'serve') {
     ensureNodeLocalStorage()

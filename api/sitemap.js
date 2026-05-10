@@ -5,6 +5,17 @@ import { createClient } from '@supabase/supabase-js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+function slugifyBrand(str) {
+  if (!str) return ''
+  return String(str)
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+}
+
 async function loadSiteConfig() {
   const siteId =
     process.env.SITE_ID?.trim() ||
@@ -82,7 +93,7 @@ export default async function handler(req, res) {
     // Récupérer toutes les montres disponibles
     const { data: watches, error: watchesError } = await supabase
       .from('watches')
-      .select('id, updated_at')
+      .select('id, brand, updated_at')
       .eq('is_available', true)
       .eq('is_sold', false)
 
@@ -105,6 +116,7 @@ export default async function handler(req, res) {
     const staticRoutes = [
       { path: '', priority: '1.0', changefreq: 'daily' },
       { path: '/collection', priority: '0.9', changefreq: 'weekly' },
+      { path: '/collection/marques', priority: '0.85', changefreq: 'weekly' },
       { path: '/blog', priority: '0.8', changefreq: 'weekly' },
       { path: '/recherche', priority: '0.7', changefreq: 'monthly' },
       { path: '/estimation', priority: '0.7', changefreq: 'monthly' },
@@ -139,6 +151,29 @@ export default async function handler(req, res) {
   </url>
 `
       })
+    }
+
+    // Pages collection par marque (slug dérivé du libellé brand)
+    if (watches && watches.length > 0) {
+      const brandBestTs = new Map()
+      for (const w of watches) {
+        const slug = slugifyBrand(w.brand)
+        if (!slug) continue
+        const ts = w.updated_at ? new Date(w.updated_at).getTime() : 0
+        const prev = brandBestTs.get(slug) ?? -1
+        if (ts >= prev) brandBestTs.set(slug, ts)
+      }
+      for (const [slug, ts] of brandBestTs) {
+        const lastmod =
+          ts > 0 ? new Date(ts).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+        xml += `  <url>
+    <loc>${baseUrl}/collection/marque/${slug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+`
+      }
     }
 
     // Ajouter les articles de blog

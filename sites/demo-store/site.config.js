@@ -77,6 +77,18 @@ export default {
       "Chaque montre vendue est assurée pour sa valeur totale par Demo Store. Cela garantit qu'il n'y a aucun risque pour l'acheteur, même en cas de résidence à l'étranger. Votre montre est protégée de bout en bout.",
   },
 
+  /**
+   * Bandeaux des pages /collection/marque/:slug — clés = libellé `brand` exact en base.
+   * Ex. : 'Rolex': { image: '/brands/rolex.jpg', alt: 'Rolex' }
+   */
+  brandHero: {},
+
+  /**
+   * Logos couleur — grille /collection/marques (clés = libellé exact `brand` en base).
+   * Ex. : 'Rolex': { image: '/brands/rolex/logo.png', alt: 'Rolex' }
+   */
+  brandLogos: {},
+
   integrations: {
     cookieConsentStorageKey: 'demo_store_cookie_consent_v1',
     gaInitFlag: '__demo_store_ga_initialized',
@@ -109,6 +121,14 @@ export default {
     purchase: true,
     paymentReturn: true,
     admin: true,
+  },
+
+  collection: {
+    filters: {
+      price: true,
+      brand: true,
+      audience: true,
+    },
   },
 
   /**
@@ -188,6 +208,26 @@ export default {
       twitterTitle: 'Collection de Montres de Luxe | Demo Store',
       twitterDescription:
         'Découvrez notre collection complète de montres de luxe garanties 1 an.',
+    },
+    brandsIndex: {
+      h1: 'Toutes les marques',
+      title: 'Marques de montres de luxe | Demo Store',
+      metaDescription:
+        'Parcourez les marques disponibles sur Demo Store et ouvrez chaque collection : montres authentifiées, garanties et sélectionnées par nos experts.',
+      ogTitle: 'Marques | Demo Store',
+      ogDescription:
+        'Accédez aux collections par marque : Rolex, Omega, Cartier et bien d’autres références.',
+      twitterTitle: 'Marques | Demo Store',
+      twitterDescription:
+        'Découvrez nos marques et leurs collections de montres de luxe.',
+    },
+    brandCollection: {
+      title: '{brand} | Collection | Demo Store',
+      metaDescription:
+        'Montres {brand} sélectionnées : filtres par public (homme, femme, enfant) et budget. Montres garanties et authentifiées.',
+      titleFallback: 'Collection par marque | Demo Store',
+      metaDescriptionFallback:
+        'Parcourez nos montres par marque : filtres par public et prix.',
     },
     watchDetail: {
       titleFallback: 'Montre - Demo Store',

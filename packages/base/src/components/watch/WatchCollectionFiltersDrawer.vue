@@ -1,0 +1,388 @@
+<template>
+  <Teleport to="body">
+    <div
+      v-if="open"
+      class="fixed inset-0 z-[9999] flex justify-end"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="watch-filters-drawer-title"
+    >
+      <div
+        class="absolute inset-0 bg-black/50 transition-opacity"
+        aria-hidden="true"
+        @click="onClose"
+      />
+      <aside
+        class="relative flex h-full w-full max-w-full flex-col bg-white shadow-2xl sm:max-w-md md:w-[30vw] md:min-w-[320px] md:max-w-[420px] animate-drawer-in"
+      >
+        <header class="flex shrink-0 items-center gap-3 border-b border-gray-200 px-4 py-4">
+          <button
+            type="button"
+            class="rounded-lg p-2 text-gray-600 hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Fermer les filtres"
+            @click="onClose"
+          >
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+          <h2 id="watch-filters-drawer-title" class="text-lg font-bold text-text-main">
+            Filtrer les produits
+          </h2>
+        </header>
+
+        <div
+          class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-2"
+        >
+          <!-- Marque -->
+          <section v-if="sections.brand" class="border-b border-gray-100">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 py-4 text-left"
+              @click="toggleSection('brand')"
+            >
+              <span class="flex items-center gap-2 font-medium text-text-main">
+                Marque
+                <span
+                  v-if="listing.getDraftSectionCount('brand') > 0"
+                  class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
+                >
+                  {{ listing.getDraftSectionCount('brand') }}
+                </span>
+              </span>
+              <svg
+                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': expanded.brand }"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div v-show="expanded.brand" class="pb-4">
+              <div class="flex flex-wrap gap-1.5">
+                <button
+                  v-for="brand in listing.availableBrands"
+                  :key="brand"
+                  type="button"
+                  class="rounded-md border px-2 py-1 text-left text-xs transition-colors"
+                  :class="
+                    listing.tempSelectedBrands.includes(brand)
+                      ? 'border-primary bg-primary text-white'
+                      : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                  "
+                  @click="listing.toggleBrand(brand)"
+                >
+                  {{ brand }}
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Prix -->
+          <section v-if="sections.price" class="border-b border-gray-100">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 py-4 text-left"
+              @click="toggleSection('price')"
+            >
+              <span class="flex items-center gap-2 font-medium text-text-main">
+                Prix
+                <span
+                  v-if="listing.getDraftSectionCount('price') > 0"
+                  class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
+                >
+                  {{ listing.getDraftSectionCount('price') }}
+                </span>
+              </span>
+              <svg
+                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': expanded.price }"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div v-show="expanded.price" class="space-y-4 pb-4">
+              <!-- <div>
+                <label class="mb-2 block text-sm font-medium text-gray-700">Prix les plus recherchés</label>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="quickPrice in listing.quickPriceRanges"
+                    :key="quickPrice.id"
+                    type="button"
+                    class="rounded-lg border px-3 py-2 text-sm transition-colors"
+                    :class="
+                      listing.isQuickPriceSelected(quickPrice)
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                    "
+                    @click="listing.applyQuickPrice(quickPrice)"
+                  >
+                    {{ quickPrice.label }}
+                  </button>
+                </div>
+              </div> -->
+              <div class="watch-filters-price-slider mt-6 max-w-full px-8 pt-10 pb-1 sm:px-10">
+                <Slider
+                  v-model="priceRangeModel"
+                  :min="listing.priceMinLimit"
+                  :max="listing.priceMaxLimit"
+                  :step="10"
+                  :tooltips="true"
+                  :format="{ suffix: ' €', decimals: 0, thousand: ' ' }"
+                  class="w-full max-w-full min-w-0"
+                />
+                <div class="mt-2 flex justify-between text-xs text-gray-500">
+                  <span>{{ listing.priceMinLimit.toLocaleString() }} €</span>
+                  <span>{{ listing.priceMaxLimit.toLocaleString() }} €</span>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="mb-1 block text-sm font-medium text-gray-700">Minimum</label>
+                  <div class="relative">
+                    <input
+                      v-model.number="listing.tempPriceMinInput"
+                      type="number"
+                      :min="listing.priceMinLimit"
+                      :max="listing.priceMaxLimit"
+                      class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary"
+                      @blur="listing.updatePriceFromInput"
+                    />
+                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">€</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="mb-1 block text-sm font-medium text-gray-700">Maximum</label>
+                  <div class="relative">
+                    <input
+                      v-model.number="listing.tempPriceMaxInput"
+                      type="number"
+                      :min="listing.priceMinLimit"
+                      :max="listing.priceMaxLimit"
+                      class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary"
+                      @blur="listing.updatePriceFromInput"
+                    />
+                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">€</span>
+                  </div>
+                </div>
+              </div>
+              <!-- <p class="text-sm text-gray-600">
+                {{ listing.getDraftFilteredCount() }} résultat{{
+                  listing.getDraftFilteredCount() > 1 ? 's' : ''
+                }}
+              </p> -->
+            </div>
+          </section>
+
+          <!-- Public -->
+          <section v-if="sections.audience" class="border-b border-gray-100">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 py-4 text-left"
+              @click="toggleSection('audience')"
+            >
+              <span class="flex items-center gap-2 font-medium text-text-main">
+                Public
+                <span
+                  v-if="listing.getDraftSectionCount('audience') > 0"
+                  class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
+                >
+                  {{ listing.getDraftSectionCount('audience') }}
+                </span>
+              </span>
+              <svg
+                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': expanded.audience }"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div v-show="expanded.audience" class="flex flex-wrap gap-1.5 pb-4">
+              <button
+                v-for="opt in audienceOptions"
+                :key="opt.id"
+                type="button"
+                class="rounded-md border px-2 py-1 text-xs transition-colors"
+                :class="
+                  listing.tempAudience === opt.id
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                "
+                @click="listing.tempAudience = opt.id"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <footer
+          class="flex shrink-0 gap-3 border-t border-gray-200 bg-white px-4 py-4 safe-area-pb"
+        >
+          <button
+            type="button"
+            class="flex-1 rounded-lg border border-primary bg-white py-3 text-sm font-semibold uppercase tracking-wide text-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            @click="listing.clearDraftFilters"
+          >
+            Effacer
+          </button>
+          <button
+            type="button"
+            class="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            @click="handleApply"
+          >
+            Appliquer ({{ listing.draftFilterCount }})
+          </button>
+        </footer>
+      </aside>
+    </div>
+  </Teleport>
+</template>
+
+<script setup>
+import { computed, reactive, watch, onMounted, onUnmounted } from 'vue'
+import Slider from '@vueform/slider'
+import '@vueform/slider/themes/default.css'
+
+const props = defineProps({
+  open: { type: Boolean, default: false },
+  /** Réactif retourné par `useWatchListing` */
+  listing: { type: Object, required: true },
+  /** Sections affichées (depuis `getMergedCollectionFilters` + contexte route) */
+  sections: {
+    type: Object,
+    default: () => ({ price: true, brand: true, audience: true }),
+  },
+})
+
+const emit = defineEmits(['close', 'applied'])
+
+const audienceOptions = [
+  { id: 'all', label: 'Tous' },
+  { id: 'homme', label: 'Homme' },
+  { id: 'femme', label: 'Femme' },
+  { id: 'enfant', label: 'Enfant' },
+]
+
+const expanded = reactive({
+  brand: false,
+  price: false,
+  audience: false,
+})
+
+function toggleSection(key) {
+  expanded[key] = !expanded[key]
+}
+
+const priceRangeModel = computed({
+  get() {
+    return props.listing.tempPriceRange
+  },
+  set(val) {
+    if (Array.isArray(val) && val.length === 2) {
+      props.listing.tempPriceRange.splice(0, 2, val[0], val[1])
+    }
+  },
+})
+
+function onClose() {
+  emit('close')
+}
+
+function handleApply() {
+  const result = props.listing.applyDrawerFilters()
+  emit('applied', result)
+}
+
+function onEscape(e) {
+  if (e.key === 'Escape' && props.open) {
+    onClose()
+  }
+}
+
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      expanded.brand = false
+      expanded.price = false
+      expanded.audience = false
+      document.addEventListener('keydown', onEscape)
+    } else {
+      document.removeEventListener('keydown', onEscape)
+    }
+  },
+)
+
+onMounted(() => {
+  if (props.open) document.addEventListener('keydown', onEscape)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', onEscape)
+})
+</script>
+
+<style scoped>
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-drawer-in {
+  animation: drawer-slide-in 0.25s ease-out;
+}
+
+/* Espace pour les tooltips au-dessus des poignées + tooltips un peu plus compacts pour rester dans le tiroir */
+.watch-filters-price-slider {
+  --slider-tooltip-font-size: 0.75rem;
+  --slider-tooltip-line-height: 1.125rem;
+  --slider-tooltip-px: 4px;
+  --slider-tooltip-py: 2px;
+}
+
+:deep(.slider-connect) {
+  background: var(--color-primary, #0f2a1d);
+}
+
+:deep(.slider-handle) {
+  background: var(--color-primary, #0f2a1d);
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+:deep(.slider-handle:hover) {
+  background: var(--color-primary-hover, #163d2a);
+}
+
+:deep(.slider-tooltip) {
+  background: var(--color-primary, #0f2a1d);
+  border: 1px solid var(--color-primary, #0f2a1d);
+  color: white;
+}
+
+:deep(.slider-horizontal .slider-tooltip-top::before) {
+  border-top-color: var(--color-primary, #0f2a1d);
+}
+
+.safe-area-pb {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+</style>

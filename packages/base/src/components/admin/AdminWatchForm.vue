@@ -25,6 +25,7 @@ const formData = ref({
   isAvailable: true,
   isSold: false,
   saleDate: null,
+  audience: 'unisexe',
   details: {
     content: '',
     movement: '',
@@ -89,6 +90,7 @@ const loadWatch = async () => {
       isAvailable: watch.isAvailable !== undefined ? watch.isAvailable : true,
       isSold: isSoldValue,
       saleDate: watch.saleDate || null,
+      audience: watch.audience || 'unisexe',
       details: {
         content: watch.details?.content || '',
         movement: watch.details?.movement || '',
@@ -449,6 +451,18 @@ onMounted(() => {
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 required
               />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Public</label>
+              <select
+                v-model="formData.audience"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+              >
+                <option value="unisexe">Unisexe</option>
+                <option value="homme">Homme</option>
+                <option value="femme">Femme</option>
+                <option value="enfant">Enfant</option>
+              </select>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">

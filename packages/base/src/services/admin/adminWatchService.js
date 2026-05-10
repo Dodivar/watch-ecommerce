@@ -18,6 +18,7 @@ function transformWatchToDB(watchData) {
     is_available: watchData.isAvailable !== undefined ? watchData.isAvailable : true,
     is_sold: watchData.isSold !== undefined ? watchData.isSold : false,
     sale_date: watchData.saleDate || null,
+    audience: watchData.audience || 'unisexe',
   }
 }
 
@@ -695,6 +696,7 @@ export async function getWatchByIdForAdmin(watchId) {
       isSold: watch.is_sold !== undefined ? watch.is_sold : false,
       saleDate: watch.sale_date || null,
       displayOrder: watch.display_order || 0,
+      audience: watch.audience || 'unisexe',
       articles: articles || [],
       details: {
         content: details?.content || '',

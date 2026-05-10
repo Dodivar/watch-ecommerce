@@ -1,22 +1,25 @@
 <script setup>
-import { ref, useTemplateRef, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Head } from '@vueuse/head'
 import { WHATSAPP_NUMBER, EMAIL_CONTACT } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { resolveMainNavigation, resolveFooterNavigation } from '@/site/mainNavigation.js'
+import MainNavDesktop from '@/components/layout/MainNavDesktop.vue'
+import MainNavMobile from '@/components/layout/MainNavMobile.vue'
 import logoMobileMenuVerticalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB vertical/Logo SW blanc vertical RVB.png'
 import logoHeaderIconGreen from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW verte RVB.png'
 import logoFooterHorizontalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW blanc horizontal RVB.png'
-
-const site = getSiteConfig()
-const features = site.features
-const showServicesMenu = features.recherche || features.estimation
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import CookieBanner from '@/components/CookieBanner.vue'
 import { openCookiePreferences } from '@/services/cookiePreferencesUi'
 
-//const displayMobileMenu = ref(false)
-const overlay = useTemplateRef('mobile-menu-overlay')
+const site = getSiteConfig()
+const features = site.features
+const mainNavItems = resolveMainNavigation(site)
+const footerNavItems = resolveFooterNavigation(site)
+
+const mobileMenuOpen = ref(false)
 const route = useRoute()
 
 // Vérifier si on est sur la page de maintenance
@@ -33,139 +36,28 @@ onMounted(() => {
   checkAdminStatus()
 })
 
-// Re-vérifier quand la route change (au cas où l'admin se connecte/déconnecte)
+// Re-vérifier quand la route change (au cas où l'admin se connecte/déconnecte) ; fermer le menu mobile
 watch(() => route.path, () => {
   checkAdminStatus()
+  mobileMenuOpen.value = false
 })
 
 function displayMobileMenu() {
-  overlay.value.classList.remove('hidden')
-  overlay.value.classList.add('flex', 'opacity-0')
-  setTimeout(() => overlay.value.classList.add('opacity-100'), 10) // animation d'apparition
-}
-
-function closeMobileMenu() {
-  overlay.value.classList.remove('opacity-100')
-  overlay.value.classList.add('opacity-0')
-  setTimeout(() => {
-    overlay.value.classList.add('hidden')
-    overlay.value.classList.remove('flex')
-  }, 300) // correspond à duration-300
+  mobileMenuOpen.value = true
 }
 </script>
 
 <template>
   <Head />
-  <!-- Menu mobile-->
-  <div
+  <MainNavMobile
     v-if="!isMaintenancePage"
-    ref="mobile-menu-overlay"
-    class="fixed inset-0 bg-primary z-30 hidden transition-opacity duration-300"
-  >
-    <div class="absolute top-6 right-6">
-      <button
-        @click="closeMobileMenu"
-        ref="close-mobile-menu"
-        class="text-white focus:outline-none p-2"
-        aria-label="Fermer le menu"
-      >
-        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-    </div>
-    <nav
-      class="flex flex-col items-center justify-center h-screen space-y-8 text-xl font-semibold text-white w-screen"
-    >
-      <RouterLink to="/" @click="closeMobileMenu">
-        <img width="100px" :src="logoMobileMenuVerticalWhite" :alt="site.brand.logoAlt" />
-      </RouterLink>
-      <!-- Menu admin simplifié -->
-      <template v-if="isAdmin && features.admin">
-        <RouterLink
-          v-if="features.collection"
-          to="/collection"
-          @click="closeMobileMenu"
-          class="hover:text-cream-100 transition-colors"
-          >Nos montres</RouterLink
-        >
-        <RouterLink
-          to="/admin"
-          @click="closeMobileMenu"
-          class="hover:text-cream-100 transition-colors"
-          >Tableau de bord</RouterLink
-        >
-        <RouterLink
-          v-if="features.blog"
-          to="/admin/articles"
-          @click="closeMobileMenu"
-          class="hover:text-cream-100 transition-colors"
-          >Articles</RouterLink
-        >
-      </template>
-      <!-- Menu utilisateur complet -->
-      <template v-else>
-        <RouterLink to="/" @click="closeMobileMenu" class="hover:text-cream-100 transition-colors"
-          >Accueil</RouterLink
-        >
-        <RouterLink
-          v-if="features.collection"
-          to="/collection"
-          @click="closeMobileMenu"
-          class="hover:text-cream-100 transition-colors"
-          >Nos montres</RouterLink
-        >
-        <RouterLink
-          v-if="features.recherche"
-          to="/recherche"
-          @click="closeMobileMenu"
-          class="hover:text-cream-100 transition-colors"
-          >Recherche personnalisée</RouterLink
-        >
-        <RouterLink
-          v-if="features.estimation"
-          to="/estimation"
-          @click="closeMobileMenu"
-          class="hover:text-cream-100 transition-colors"
-          >Estimation</RouterLink
-        >
-        <!-- <RouterLink
-          to="/depot-vente"
-          @click="closeMobileMenu"
-          class="hover:text-cream-100 transition-colors"
-          >Dépôt-vente</RouterLink
-        > -->
-        <RouterLink
-          v-if="features.blog"
-          to="/blog"
-          @click="closeMobileMenu"
-          class="hover:text-cream-100 transition-colors"
-          >Blog</RouterLink
-        >
-        <RouterLink
-          v-if="features.about"
-          to="/a-propos"
-          @click="closeMobileMenu"
-          class="hover:text-cream-100 transition-colors"
-          >À propos</RouterLink
-        >
-        <RouterLink to="/#faq" @click="closeMobileMenu" class="hover:text-cream-100 transition-colors"
-          >FAQ</RouterLink
-        >
-        <RouterLink
-          to="/#contact"
-          @click="closeMobileMenu"
-          class="hover:text-cream-100 transition-colors"
-          >Contact</RouterLink
-        >
-      </template>
-    </nav>
-  </div>
+    v-model:open="mobileMenuOpen"
+    :features="features"
+    :is-admin="isAdmin"
+    :nav-items="mainNavItems"
+    :logo-src="logoMobileMenuVerticalWhite"
+    :logo-alt="site.brand.logoAlt"
+  />
 
   <!-- Menu desktop -->
   <header v-if="!isMaintenancePage" id="header" class="shadow-sm backdrop-blur-sm sticky top-0 z-20">
@@ -176,92 +68,12 @@ function closeMobileMenu() {
             <img width="50px" height="50px" :src="logoHeaderIconGreen" alt="" />
           </RouterLink>
         </div>
-        <div class="hidden md:block">
-          <div class="ml-10 flex items-baseline space-x-8">
-            <!-- Menu admin simplifié -->
-            <template v-if="isAdmin && features.admin">
-              <RouterLink
-                v-if="features.collection"
-                to="/collection"
-                class="text-text-main hover:text-primary transition-colors"
-                >Nos montres</RouterLink
-              >
-              <RouterLink
-                to="/admin"
-                class="text-text-main hover:text-primary transition-colors"
-                >Tableau de bord</RouterLink
-              >
-              <RouterLink
-                v-if="features.blog"
-                to="/admin/articles"
-                class="text-text-main hover:text-primary transition-colors"
-                >Articles</RouterLink
-              >
-            </template>
-            <!-- Menu utilisateur complet -->
-            <template v-else>
-              <RouterLink
-                v-if="features.collection"
-                to="/collection"
-                class="text-text-main hover:text-primary transition-colors"
-                >Nos montres</RouterLink
-              >
-              <div v-if="showServicesMenu" class="relative group">
-                <p class="text-text-main hover:text-primary transition-colors flex items-center">
-                  Nos services
-                  <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </p>
-                <div
-                  class="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
-                >
-                  <RouterLink
-                    v-if="features.recherche"
-                    to="/recherche"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:text-primary hover:bg-primary/10"
-                    >Recherche personnalisée</RouterLink
-                  >
-                  <RouterLink
-                    v-if="features.estimation"
-                    to="/estimation"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:text-primary hover:bg-primary/10"
-                    >Estimation</RouterLink
-                  >
-                  <!-- <RouterLink
-                      to="/depot-vente"
-                      class="block px-4 py-2 text-sm text-gray-700 hover:text-primary hover:bg-primary/10"
-                      >Dépôt-vente</RouterLink
-                    > -->
-                </div>
-              </div>
-              <RouterLink
-                v-if="features.blog"
-                to="/blog"
-                class="text-text-main hover:text-primary transition-colors"
-                >Blog</RouterLink
-              >
-              <RouterLink
-                v-if="features.about"
-                to="/a-propos"
-                class="text-text-main hover:text-primary transition-colors"
-                >À propos</RouterLink
-              >
-              <RouterLink to="/#faq" class="text-text-main hover:text-primary transition-colors"
-                >FAQ</RouterLink
-              >
-              <RouterLink to="/#contact" class="text-text-main hover:text-primary transition-colors"
-                >Contact</RouterLink
-              >
-            </template>
-          </div>
-        </div>
-        <button class="md:hidden" ref="mobile-menu-toggle" @click="displayMobileMenu">
+        <MainNavDesktop
+          :features="features"
+          :is-admin="isAdmin"
+          :nav-items="mainNavItems"
+        />
+        <button type="button" class="md:hidden" @click="displayMobileMenu">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="black">
             <path
               stroke-linecap="round"
@@ -327,51 +139,13 @@ function closeMobileMenu() {
         <div>
           <h3 class="text-lg font-semibold mb-4">Navigation</h3>
           <ul class="space-y-2">
-            <li>
-              <a href="#accueil" class="text-white/90 hover:text-white transition-colors"
-                >Accueil</a
-              >
-            </li>
-            <li v-if="features.collection">
+            <li v-for="(nav, fi) in footerNavItems" :key="'foot-nav-' + fi + '-' + nav.to">
               <RouterLink
-                to="/collection"
+                :to="nav.to"
                 class="text-white/90 hover:text-white transition-colors"
-                >Nos montres</RouterLink
+                >{{ nav.label }}</RouterLink
               >
             </li>
-            <li v-if="features.recherche">
-              <RouterLink to="/recherche" class="text-white/90 hover:text-white transition-colors"
-                >Recherche personnalisée</RouterLink
-              >
-            </li>
-            <li v-if="features.estimation">
-              <RouterLink
-                to="/estimation"
-                class="text-white/90 hover:text-white transition-colors"
-                >Estimation</RouterLink
-              >
-            </li>
-            <li v-if="features.blog">
-              <RouterLink
-                to="/blog"
-                class="text-white/90 hover:text-white transition-colors"
-                >Blog</RouterLink
-              >
-            </li>
-            <li v-if="features.about">
-              <RouterLink
-                to="/a-propos"
-                class="text-white/90 hover:text-white transition-colors"
-                >À propos</RouterLink
-              >
-            </li>
-            <!-- <li>
-              <RouterLink
-                to="/depot-vente"
-                class="text-white/90 hover:text-white transition-colors"
-                >Dépôt-vente</RouterLink
-              >
-            </li> -->
           </ul>
         </div>
         <div>
