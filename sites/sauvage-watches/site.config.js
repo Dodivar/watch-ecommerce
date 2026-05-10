@@ -35,6 +35,13 @@ export default {
     footerAddressHtml: '32 All. de la Robertsau<br />67000 Strasbourg, France',
   },
 
+  storeMap: {
+    enabled: true,
+    center: { lat: 48.5946, lng: 7.7769 },
+    zoom: 16,
+    markerLabel: 'Sauvage Watches',
+  },
+
   legal: {
     companyName: 'Sauvage Watches',
     address: '32 Allée de la Robertsau 67000 Strasbourg',
@@ -90,6 +97,37 @@ export default {
   features: {
     /** Achats en ligne (Stripe) sur les fiches montre ; désactiver aussi `VITE_PURCHASE_ENABLED=false` en prod si besoin. */
     purchase: true,
+  },
+
+  /**
+   * Menu principal (header) et liens colonne « Navigation » du footer.
+   * Les clés absentes du bloc `features` héritent des défauts du socle (voir siteFeatures.js).
+   */
+  navigation: {
+    main: [
+      { type: 'link', label: 'Accueil', to: '/' },
+      { type: 'link', label: 'Nos montres', to: '/collection', feature: 'collection' },
+      {
+        type: 'group',
+        label: 'Nos services',
+        items: [
+          { label: 'Recherche personnalisée', to: '/recherche', feature: 'recherche' },
+          { label: 'Estimation', to: '/estimation', feature: 'estimation' },
+        ],
+      },
+      { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
+      { type: 'link', label: 'À propos', to: '/a-propos', feature: 'about' },
+      { type: 'link', label: 'FAQ', to: '/#faq' },
+      { type: 'link', label: 'Contact', to: '/#contact' },
+    ],
+    footer: [
+      { label: 'Accueil', to: '/#accueil' },
+      { label: 'Nos montres', to: '/collection', feature: 'collection' },
+      { label: 'Recherche personnalisée', to: '/recherche', feature: 'recherche' },
+      { label: 'Estimation', to: '/estimation', feature: 'estimation' },
+      { label: 'Blog', to: '/blog', feature: 'blog' },
+      { label: 'À propos', to: '/a-propos', feature: 'about' },
+    ],
   },
 
   /**

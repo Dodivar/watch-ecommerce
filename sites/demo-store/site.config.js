@@ -34,6 +34,13 @@ export default {
     footerAddressHtml: 'Adresse fictive<br />75000 Paris, France',
   },
 
+  storeMap: {
+    enabled: true,
+    center: { lat: 48.8566, lng: 2.3522 },
+    zoom: 12,
+    markerLabel: 'Demo Store',
+  },
+
   legal: {
     companyName: 'Demo Store Watches',
     address: 'Adresse fictive 75000 Paris',

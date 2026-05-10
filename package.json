@@ -14,12 +14,15 @@
     "dev:sauvage": "cross-env SITE_ID=sauvage-watches vite --config vite/vite.config.mjs",
     "build:sauvage": "cross-env SITE_ID=sauvage-watches vite build --config vite/vite.config.mjs",
     "build:demo-store": "cross-env SITE_ID=demo-store vite build --config vite/vite.config.mjs",
+    "dev:jackned": "cross-env SITE_ID=jackned vite --config vite/vite.config.mjs",
+    "build:jackned": "cross-env SITE_ID=jackned vite build --config vite/vite.config.mjs",
     "lint": "eslint . --fix",
     "format": "prettier --write packages/base/src/",
     "mail-server": "node backend/server.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.83.0",
+    "@vue-leaflet/vue-leaflet": "^0.10.1",
     "@vueform/slider": "^2.1.10",
     "@vueuse/head": "^2.0.0",
     "chart.js": "^4.4.0",
@@ -27,6 +30,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "heic2any": "^0.0.4",
+    "leaflet": "^1.9.4",
     "marked": "^17.0.1",
     "multer": "^2.0.1",
     "nodemailer": "^7.0.3",

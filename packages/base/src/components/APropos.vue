@@ -442,6 +442,22 @@
       </div>
     </section>
 
+    <!-- Nous trouver -->
+    <section
+      v-if="storeMap?.enabled && storeMap?.center && typeof storeMap.center.lat === 'number'"
+      class="py-10 bg-cream"
+    >
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+          <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Nous trouver</h2>
+          <p class="text-lg text-gray-600">
+            {{ brandDisplayName }} — localisation de la boutique sur la carte.
+          </p>
+        </div>
+        <StoreLocationMap />
+      </div>
+    </section>
+
     <!-- Call to action -->
     <section v-if="features.collection || features.recherche" class="py-10 bg-primary text-white">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -474,11 +490,13 @@
 import { useHead } from '@vueuse/head'
 import { BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import StoreLocationMap from '@/components/StoreLocationMap.vue'
 
 const site = getSiteConfig()
 const brandDisplayName = site.brand.displayName
 const seo = site.seo.aPropos
 const features = site.features
+const storeMap = site.storeMap
 
 // SEO Meta Tags
 useHead({
