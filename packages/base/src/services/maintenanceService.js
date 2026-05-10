@@ -1,7 +1,19 @@
 // Service pour gérer l'authentification de maintenance
 
-const MAINTENANCE_PASSWORD = '@sauvagE2025!' // Mot de passe par défaut - À changer en production
-const STORAGE_KEY = 'maintenance_authenticated'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
+
+/** Si absent de `site.config.js` → `maintenance.password`. */
+const DEFAULT_MAINTENANCE_PASSWORD = '@sauvagE2025!'
+
+function getMaintenancePassword() {
+  const pwd = getSiteConfig().maintenance?.password
+  return typeof pwd === 'string' && pwd.length > 0 ? pwd : DEFAULT_MAINTENANCE_PASSWORD
+}
+
+function getStorageKey() {
+  const siteId = getSiteConfig().siteId || 'site'
+  return `maintenance_authenticated_${siteId}`
+}
 
 /**
  * Vérifie si le mot de passe de maintenance est correct
@@ -9,7 +21,7 @@ const STORAGE_KEY = 'maintenance_authenticated'
  * @returns {boolean} - True si le mot de passe est correct
  */
 export function checkMaintenancePassword(inputPassword) {
-  return inputPassword === MAINTENANCE_PASSWORD
+  return inputPassword === getMaintenancePassword()
 }
 
 /**
@@ -17,14 +29,15 @@ export function checkMaintenancePassword(inputPassword) {
  * @returns {boolean} - True si l'utilisateur est authentifié
  */
 export function isAuthenticated() {
+  const key = getStorageKey()
   // Vérifier dans sessionStorage (perdure pendant la session du navigateur)
-  const sessionAuth = sessionStorage.getItem(STORAGE_KEY)
+  const sessionAuth = sessionStorage.getItem(key)
   if (sessionAuth === 'true') {
     return true
   }
 
   // Vérifier dans localStorage (perdure même après fermeture du navigateur)
-  const localAuth = localStorage.getItem(STORAGE_KEY)
+  const localAuth = localStorage.getItem(key)
   if (localAuth === 'true') {
     return true
   }
@@ -37,10 +50,11 @@ export function isAuthenticated() {
  * @param {boolean} remember - Si true, utilise localStorage, sinon sessionStorage
  */
 export function authenticate(remember = false) {
+  const key = getStorageKey()
   if (remember) {
-    localStorage.setItem(STORAGE_KEY, 'true')
+    localStorage.setItem(key, 'true')
   } else {
-    sessionStorage.setItem(STORAGE_KEY, 'true')
+    sessionStorage.setItem(key, 'true')
   }
 }
 
@@ -48,7 +62,8 @@ export function authenticate(remember = false) {
  * Déconnecte l'utilisateur (supprime l'état d'authentification)
  */
 export function logout() {
-  localStorage.removeItem(STORAGE_KEY)
-  sessionStorage.removeItem(STORAGE_KEY)
+  const key = getStorageKey()
+  localStorage.removeItem(key)
+  sessionStorage.removeItem(key)
 }
 

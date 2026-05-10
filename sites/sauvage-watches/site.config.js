@@ -71,6 +71,11 @@ export default {
       "Chaque montre vendue est assurée pour sa valeur totale par Sauvage. Cela garantit qu'il n'y a aucun risque pour l'acheteur, même en cas de résidence à l'étranger. Votre montre est protégée de bout en bout.",
   },
 
+  /** Mot de passe page « site en construction » (voir `Maintenance.vue`). */
+  maintenance: {
+    password: '@sauvagE2025!',
+  },
+
   integrations: {
     cookieConsentStorageKey: 'sauvage_cookie_consent_v1',
     gaInitFlag: '__sauvage_ga_initialized',

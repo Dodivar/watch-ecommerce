@@ -81,6 +81,15 @@ export default {
    * Fonctionnalités et pages publiques (voir packages/base/src/site/siteFeatures.js pour les clés).
    * Passer une clé à false désactive la route et les liens de navigation associés.
    */
+  /**
+   * Page « site en construction » : mot de passe pour débloquer l’accès public.
+   * Définir `password` par client dans son `site.config.js` ; sinon le défaut du socle s’applique.
+   *
+   * maintenance: {
+   *   password: 'mot-de-passe-client',
+   * },
+   */
+
   features: {
     collection: true,
     blog: true,
