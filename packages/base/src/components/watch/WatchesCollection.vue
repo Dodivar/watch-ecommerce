@@ -30,6 +30,24 @@
                 ({{ priceMin !== null ? priceMin.toLocaleString() + ' €' : '0 €' }} - {{ priceMax !== null ? priceMax.toLocaleString() + ' €' : '∞' }})
               </span>
             </button>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-sm text-gray-600 font-medium">Public</span>
+              <button
+                v-for="opt in audienceOptions"
+                :key="opt.id"
+                type="button"
+                @click="setAudienceFilter(opt.id)"
+                :class="[
+                  'px-3 py-2 rounded-lg border text-sm transition-colors',
+                  selectedAudience === opt.id
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-gray-300 bg-white text-gray-700 hover:border-primary',
+                ]"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
           </div>
 
           <!-- Results Count and Actions -->
@@ -365,13 +383,14 @@
             <!-- All Brands -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-3">Toutes les marques</label>
-              <div class="flex flex-wrap gap-3">
+              <div class="flex flex-wrap gap-3 items-center">
                 <button
                   v-for="brand in availableBrands"
                   :key="brand"
+                  type="button"
                   @click="toggleBrand(brand)"
                   :class="[
-                    'px-4 py-2 rounded-lg border transition-colors',
+                    'px-4 py-2 rounded-lg border transition-colors text-left min-w-[8rem]',
                     tempSelectedBrands.includes(brand)
                       ? 'bg-primary text-white border-primary'
                       : 'bg-white text-gray-700 border-gray-300 hover:border-primary hover:text-primary'
@@ -396,7 +415,7 @@
                 Réinitialiser
               </button>
               <button
-                @click="applyBrandFilter"
+                @click="submitBrandFilter"
                 class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium"
               >
                 Appliquer les filtres
@@ -410,23 +429,81 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
-const router = useRouter()
 
 import WatchCard from './WatchCard.vue'
 import WatchCardSkeleton from './WatchCardSkeleton.vue'
 import { scrollAnimation } from '@/animation'
 import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL } from '@/config'
-import { getAllWatches } from '@/services/watchService'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { useWatchListing } from '@/composables/useWatchListing.js'
+import { slugifyBrand } from '@/utils/brandSlug.js'
+
+const router = useRouter()
+
+const brandSlug = ref(null)
+const listing = useWatchListing({ brandSlug })
+const {
+  selectedBrands,
+  selectedAudience,
+  priceMin,
+  priceMax,
+  sortOrder,
+  isPriceModalOpen,
+  isBrandModalOpen,
+  isSortMenuOpen,
+  tempPriceRange,
+  tempSelectedBrands,
+  tempPriceMinInput,
+  tempPriceMaxInput,
+  isLoading,
+  error,
+  priceMinLimit,
+  priceMaxLimit,
+  quickPriceRanges,
+  availableBrands,
+  hasActiveFilters,
+  filteredWatches,
+} = toRefs(listing)
+
+const {
+  getFilteredCountWithPrice,
+  getFilteredCountWithBrand,
+  openPriceModal,
+  closePriceModal,
+  openBrandModal,
+  closeBrandModal,
+  toggleSortMenu,
+  closeSortMenu,
+  selectSort,
+  applyQuickPrice,
+  isQuickPriceSelected,
+  updatePriceFromInput,
+  cancelPriceFilter,
+  applyPriceFilter,
+  toggleBrand,
+  cancelBrandFilter,
+  resetAllFilters,
+  loadWatches,
+} = listing
+
+const audienceOptions = [
+  { id: 'all', label: 'Tous' },
+  { id: 'homme', label: 'Homme' },
+  { id: 'femme', label: 'Femme' },
+  { id: 'enfant', label: 'Enfant' },
+]
+
+const setAudienceFilter = (id) => {
+  selectedAudience.value = id
+}
 
 const seo = getSiteConfig().seo.collection
 
-// SEO Meta Tags
 useHead({
   title: seo.title,
   meta: [
@@ -444,7 +521,7 @@ useHead({
     },
     {
       property: 'og:url',
-        content: `${BASE_URL}/collection`,
+      content: `${BASE_URL}/collection`,
     },
     {
       property: 'og:type',
@@ -466,435 +543,44 @@ useHead({
   link: [
     {
       rel: 'canonical',
-        href: `${BASE_URL}/collection`,
+      href: `${BASE_URL}/collection`,
     },
   ],
 })
 
-// Filters
-const selectedBrands = ref([])
-const priceMin = ref(null)
-const priceMax = ref(null)
-const sortOrder = ref('recent') // Par défaut: ajout récent
-
-// Modal states
-const isPriceModalOpen = ref(false)
-const isBrandModalOpen = ref(false)
-const isSortMenuOpen = ref(false)
-
-// Temporary filter values (before applying)
-const tempPriceRange = ref([0, 150000])
-const tempSelectedBrands = ref([])
-// Temporary values for manual price input fields (to allow typing without updating slider immediately)
-const tempPriceMinInput = ref(0)
-const tempPriceMaxInput = ref(150000)
-
-// State
-const watches = ref([])
-const isLoading = ref(true)
-const error = ref(null)
-
-// Refs for sort menu
 const sortDropdownRef = ref(null)
 const sortMenuRef = ref(null)
 
-// Price limits computed from watches
-const priceMinLimit = computed(() => {
-  if (watches.value.length === 0) return 0
-  return Math.min(...watches.value.map(w => w.price))
-})
-
-const priceMaxLimit = computed(() => {
-  if (watches.value.length === 0) return 150000
-  return Math.max(...watches.value.map(w => w.price))
-})
-
-// Helper function to round to nearest ten (dizaine supérieure)
-const roundToTen = (value) => {
-  return Math.ceil(value / 10) * 10
-}
-
-// Quick price ranges computed dynamically based on actual watch prices
-const quickPriceRanges = computed(() => {
-  if (watches.value.length === 0) {
-    return []
-  }
-
-  const min = priceMinLimit.value
-  const max = priceMaxLimit.value
-
-  // Calculate the ranges
-  const oneThirdMax = roundToTen(max / 3)
-  const halfMax = roundToTen(max / 2)
-  const quarterMax = roundToTen(max / 4)
-  const threeQuarterMax = roundToTen((max * 3) / 4)
-
-  return [
-    {
-      id: 'min-to-third',
-      label: `jusqu'à ${oneThirdMax.toLocaleString()} €`,
-      min: min,
-      max: oneThirdMax,
-    },
-    {
-      id: 'min-to-half',
-      label: `jusqu'à ${halfMax.toLocaleString()} €`,
-      min: min,
-      max: halfMax,
-    },
-    {
-      id: 'quarter-to-three-quarter',
-      label: `${quarterMax.toLocaleString()} € - ${threeQuarterMax.toLocaleString()} €`,
-      min: quarterMax,
-      max: threeQuarterMax,
-    },
-    {
-      id: 'half-to-max',
-      label: `à partir de ${halfMax.toLocaleString()} €`,
-      min: halfMax,
-      max: max,
-    },
-  ]
-})
-
-
-// Modal functions
-const openPriceModal = () => {
-  const minValue = roundToTen(priceMin.value !== null ? priceMin.value : priceMinLimit.value)
-  const maxValue = roundToTen(priceMax.value !== null ? priceMax.value : priceMaxLimit.value)
-  tempPriceRange.value = [minValue, maxValue]
-  tempPriceMinInput.value = minValue
-  tempPriceMaxInput.value = maxValue
-  isPriceModalOpen.value = true
-  document.body.style.overflow = 'hidden'
-}
-
-const closePriceModal = () => {
-  isPriceModalOpen.value = false
-  document.body.style.overflow = ''
-}
-
-const openBrandModal = () => {
-  tempSelectedBrands.value = [...selectedBrands.value]
-  isBrandModalOpen.value = true
-  document.body.style.overflow = 'hidden'
-}
-
-const closeBrandModal = () => {
-  isBrandModalOpen.value = false
-  document.body.style.overflow = ''
-}
-
-// Sort menu functions
-const toggleSortMenu = () => {
-  isSortMenuOpen.value = !isSortMenuOpen.value
-}
-
-const closeSortMenu = () => {
-  isSortMenuOpen.value = false
-}
-
 const handleClickOutsideSortMenu = (event) => {
-  if (
-    sortDropdownRef.value &&
-    !sortDropdownRef.value.contains(event.target)
-  ) {
+  if (sortDropdownRef.value && !sortDropdownRef.value.contains(event.target)) {
     closeSortMenu()
   }
 }
 
-const selectSort = (value) => {
-  sortOrder.value = value
-  closeSortMenu()
-}
-
-// Price filter functions
-const applyQuickPrice = (quickPrice) => {
-  const maxValue = quickPrice.max !== null 
-    ? Math.min(quickPrice.max, priceMaxLimit.value)
-    : priceMaxLimit.value
-  // Values are already rounded in quickPriceRanges, but ensure they're still rounded
-  tempPriceRange.value = [
-    roundToTen(Math.max(quickPrice.min, priceMinLimit.value)),
-    roundToTen(maxValue)
-  ]
-}
-
-const isQuickPriceSelected = (quickPrice) => {
-  const expectedMax = quickPrice.max !== null 
-    ? Math.min(quickPrice.max, priceMaxLimit.value)
-    : priceMaxLimit.value
-  const expectedMin = Math.max(quickPrice.min, priceMinLimit.value)
-  return Math.abs(tempPriceRange.value[0] - expectedMin) < 10 &&
-    Math.abs(tempPriceRange.value[1] - expectedMax) < 10
-}
-
-const updatePriceFromInput = () => {
-  // Round to nearest ten (dizaine supérieure)
-  let newMin = roundToTen(tempPriceMinInput.value)
-  let newMax = roundToTen(tempPriceMaxInput.value)
-  
-  // Ensure min <= max
-  if (newMin > newMax) {
-    newMin = newMax
-    tempPriceMinInput.value = newMin
-  }
-  // Clamp values
-  newMin = Math.max(priceMinLimit.value, Math.min(priceMaxLimit.value, newMin))
-  newMax = Math.max(priceMinLimit.value, Math.min(priceMaxLimit.value, newMax))
-  
-  // Update temp price range (which will trigger the watcher)
-  tempPriceRange.value = [newMin, newMax]
-  // Sync input values in case they were clamped
-  tempPriceMinInput.value = newMin
-  tempPriceMaxInput.value = newMax
-}
-
-const cancelPriceFilter = () => {
-  // Remove the price filter completely
-  priceMin.value = null
-  priceMax.value = null
-  // Reset temp values to full range limits
-  const minValue = roundToTen(priceMinLimit.value)
-  const maxValue = roundToTen(priceMaxLimit.value)
-  tempPriceRange.value = [minValue, maxValue]
-  tempPriceMinInput.value = minValue
-  tempPriceMaxInput.value = maxValue
-  closePriceModal()
-}
-
-const applyPriceFilter = () => {
-  // Only set filters if they differ from the full range
-  if (tempPriceRange.value[0] <= priceMinLimit.value && tempPriceRange.value[1] >= priceMaxLimit.value) {
-    // Full range selected, clear filters
-    priceMin.value = null
-    priceMax.value = null
-  } else {
-    priceMin.value = tempPriceRange.value[0] === priceMinLimit.value ? null : tempPriceRange.value[0]
-    priceMax.value = tempPriceRange.value[1] === priceMaxLimit.value ? null : tempPriceRange.value[1]
-  }
-  closePriceModal()
-}
-
-const getFilteredCountWithPrice = () => {
-  let filtered = watches.value
-  if (tempPriceRange.value[0] !== priceMinLimit.value || tempPriceRange.value[1] !== priceMaxLimit.value) {
-    filtered = filtered.filter(watch => {
-      return watch.price >= tempPriceRange.value[0] && watch.price <= tempPriceRange.value[1]
-    })
-  }
-  if (selectedBrands.value.length > 0) {
-    filtered = filtered.filter(watch => selectedBrands.value.includes(watch.brand))
-  }
-  return filtered.length
-}
-
-// Brand filter functions
-const toggleBrand = (brand) => {
-  const index = tempSelectedBrands.value.indexOf(brand)
-  if (index > -1) {
-    // Remove brand if already selected
-    tempSelectedBrands.value.splice(index, 1)
-  } else {
-    // Add brand if not selected
-    tempSelectedBrands.value.push(brand)
-  }
-}
-
-const cancelBrandFilter = () => {
-  // Remove the brand filter completely
-  selectedBrands.value = []
-  // Reset temp values to empty array
-  tempSelectedBrands.value = []
-  closeBrandModal()
-}
-
-const applyBrandFilter = () => {
-  selectedBrands.value = [...tempSelectedBrands.value]
-  closeBrandModal()
-}
-
-const getFilteredCountWithBrand = () => {
-  let filtered = watches.value
-  if (tempSelectedBrands.value.length > 0) {
-    filtered = filtered.filter(watch => tempSelectedBrands.value.includes(watch.brand))
-  }
-  if (priceMin.value !== null || priceMax.value !== null) {
-    filtered = filtered.filter(watch => {
-      const matchesMin = priceMin.value === null || watch.price >= priceMin.value
-      const matchesMax = priceMax.value === null || watch.price <= priceMax.value
-      return matchesMin && matchesMax
-    })
-  }
-  return filtered.length
-}
-
-// Round slider values to nearest ten (dizaine supérieure) when they change
-watch(tempPriceRange, (newValue, oldValue) => {
-  // Skip if this is the initial value or if values haven't actually changed
-  if (!oldValue || (newValue[0] === oldValue[0] && newValue[1] === oldValue[1])) {
-    return
-  }
-  
-  const roundedMin = roundToTen(newValue[0])
-  const roundedMax = roundToTen(newValue[1])
-  
-  // Sync input values when slider changes
-  tempPriceMinInput.value = roundedMin
-  tempPriceMaxInput.value = roundedMax
-  
-  // Only update if values need rounding to avoid infinite loop
-  if (roundedMin !== newValue[0] || roundedMax !== newValue[1]) {
-    // Use nextTick to avoid triggering watcher during update
-    const clampedMin = Math.max(priceMinLimit.value, Math.min(priceMaxLimit.value, roundedMin))
-    const clampedMax = Math.max(priceMinLimit.value, Math.min(priceMaxLimit.value, roundedMax))
-    
-    // Only update if the rounded values are different from current
-    if (clampedMin !== newValue[0] || clampedMax !== newValue[1]) {
-      tempPriceRange.value = [clampedMin, clampedMax]
-    }
-  }
-}, { deep: true })
-
-// Update temp price range when limits change
-watch([priceMinLimit, priceMaxLimit], () => {
-  if (tempPriceRange.value[0] < priceMinLimit.value) {
-    tempPriceRange.value[0] = roundToTen(priceMinLimit.value)
-    tempPriceMinInput.value = tempPriceRange.value[0]
-  }
-  if (tempPriceRange.value[1] > priceMaxLimit.value) {
-    tempPriceRange.value[1] = roundToTen(priceMaxLimit.value)
-    tempPriceMaxInput.value = tempPriceRange.value[1]
-  }
-})
-
-// Reset all filters
-const resetAllFilters = () => {
-  selectedBrands.value = []
-  priceMin.value = null
-  priceMax.value = null
-  sortOrder.value = 'recent'
-  
-  // Reset temp values for modals
-  if (watches.value.length > 0) {
-    const minPrice = Math.min(...watches.value.map(w => w.price))
-    const maxPrice = Math.max(...watches.value.map(w => w.price))
-    const roundedMin = roundToTen(minPrice)
-    const roundedMax = roundToTen(maxPrice)
-    tempPriceRange.value = [roundedMin, roundedMax]
-    tempPriceMinInput.value = roundedMin
-    tempPriceMaxInput.value = roundedMax
-  }
-  tempSelectedBrands.value = []
-}
-
-// Navigation method
 const handleViewDetails = (watchId) => {
   router.push(`/watch/${watchId}`)
 }
 
-// Computed properties
-const availableBrands = computed(() => {
-  const brands = [...new Set(watches.value.map((watch) => watch.brand))]
-  return brands.sort()
-})
-
-const hasActiveFilters = computed(() => {
-  return (
-    selectedBrands.value.length > 0 ||
-    priceMin.value !== null ||
-    priceMax.value !== null ||
-    sortOrder.value !== 'recent'
-  )
-})
-
-const filteredWatches = computed(() => {
-  let filtered = watches.value
-
-  // Filter by brand (multiple selection)
-  if (selectedBrands.value.length > 0) {
-    filtered = filtered.filter((watch) => selectedBrands.value.includes(watch.brand))
+/** Une seule marque → page dédiée ; plusieurs ou aucune → filtre sur la collection. */
+const submitBrandFilter = () => {
+  if (tempSelectedBrands.value.length === 1) {
+    const brand = tempSelectedBrands.value[0]
+    selectedBrands.value = []
+    tempSelectedBrands.value = []
+    closeBrandModal()
+    router.push(`/collection/marque/${slugifyBrand(brand)}`)
+    return
   }
-
-  // Filter by price range
-  if (priceMin.value !== null || priceMax.value !== null) {
-    filtered = filtered.filter((watch) => {
-      const matchesMin = priceMin.value === null || watch.price >= priceMin.value
-      const matchesMax = priceMax.value === null || watch.price <= priceMax.value
-      return matchesMin && matchesMax
-    })
-  }
-
-  // Apply sorting
-  const sorted = [...filtered]
-  switch (sortOrder.value) {
-    case 'price-asc':
-      sorted.sort((a, b) => a.price - b.price)
-      break
-    case 'price-desc':
-      sorted.sort((a, b) => b.price - a.price)
-      break
-    case 'recent':
-      // Tri par date de création décroissante (plus récentes en premier)
-      sorted.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
-        // Si pas de date, utiliser displayOrder comme fallback
-        if (dateA === 0 && dateB === 0) {
-          return (b.displayOrder || 0) - (a.displayOrder || 0)
-        }
-        return dateB - dateA
-      })
-      break
-    default:
-      // Par défaut, tri par ajout récent
-      sorted.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
-        if (dateA === 0 && dateB === 0) {
-          return (b.displayOrder || 0) - (a.displayOrder || 0)
-        }
-        return dateB - dateA
-      })
-  }
-
-  return sorted
-})
-
-// Load watches from Supabase
-const loadWatches = async () => {
-  try {
-    isLoading.value = true
-    error.value = null
-    const data = await getAllWatches()
-    watches.value = data
-    // Initialize temp price range with actual limits after loading (rounded to ten)
-    if (data.length > 0) {
-      const minPrice = Math.min(...data.map(w => w.price))
-      const maxPrice = Math.max(...data.map(w => w.price))
-      const roundedMin = roundToTen(minPrice)
-      const roundedMax = roundToTen(maxPrice)
-      tempPriceRange.value = [roundedMin, roundedMax]
-      tempPriceMinInput.value = roundedMin
-      tempPriceMaxInput.value = roundedMax
-    }
-  } catch (err) {
-    console.error('Erreur lors du chargement des montres:', err)
-    error.value = err.message || 'Une erreur est survenue lors du chargement des montres'
-  } finally {
-    isLoading.value = false
-  }
+  listing.applyBrandFilter()
 }
 
 onMounted(async () => {
   await loadWatches()
   scrollAnimation()
-  // Add click outside listener for sort menu
   document.addEventListener('click', handleClickOutsideSortMenu)
 })
 
 onUnmounted(() => {
-  // Remove click outside listener for sort menu
   document.removeEventListener('click', handleClickOutsideSortMenu)
 })
 </script>
