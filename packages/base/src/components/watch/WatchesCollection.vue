@@ -5,7 +5,7 @@
       effectiveBrandHero ? 'pt-0 pb-3 lg:pb-10' : 'py-3 lg:py-10'
     "
   >
-    <!-- Hero marque : route /collection/marque/:slug ou une seule marque sélectionnée sur /collection -->
+    <!-- Hero marque : une seule marque sélectionnée (filtre / ?marque=) -->
     <div
       v-if="effectiveBrandHero"
       class="relative w-full mb-6 lg:mb-10"
@@ -27,7 +27,7 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4">
-      <!-- Titre : collection complète, ou nom de la marque unique (filtre / URL) sans image hero -->
+      <!-- Titre : collection complète, ou nom de la marque unique (filtre) sans image hero -->
       <div
         v-if="!effectiveBrandHero"
         class="text-center mb-3 lg:mb-8"
@@ -55,7 +55,7 @@
       <template v-else>
         <!-- Barre : filtres + tri -->
         <div
-          v-if="showFilters || showSort || isBrandRoute || singleBrandLabel"
+          v-if="showFilters || showSort || singleBrandLabel"
           class="bg-white rounded-md shadow-lg p-4 mb-3 lg:mb-8"
         >
           <div class="flex flex-wrap items-center justify-between gap-4">
@@ -82,13 +82,6 @@
                   {{ listing.activeFilterCount }}
                 </span>
               </button>
-              <RouterLink
-                v-if="isBrandRoute || singleBrandLabel"
-                to="/collection"
-                class="text-sm text-primary hover:underline font-medium"
-              >
-                Toute la collection
-              </RouterLink>
             </div>
 
             <div class="flex items-center gap-4">
@@ -313,6 +306,7 @@ import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getMergedCollectionFilters } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
+import { resolveBrandFromSlug } from '@/utils/brandSlug.js'
 
 const props = defineProps({
   showFilters: { type: Boolean, default: true },
@@ -324,15 +318,25 @@ const props = defineProps({
 const route = useRoute()
 const router = useRouter()
 
-const brandSlug = computed(() => {
-  const p = route.params.brandSlug
-  const raw = Array.isArray(p) ? p[0] : p
+const marqueQuerySlug = computed(() => {
+  const q = route.query.marque
+  const raw = Array.isArray(q) ? q[0] : q
   return raw ? String(raw) : ''
 })
 
-const isBrandRoute = computed(() => Boolean(brandSlug.value))
+const listing = useWatchListing()
 
-const listing = useWatchListing({ brandSlug })
+watch(
+  () => [marqueQuerySlug.value, listing.watches.length],
+  () => {
+    if (!listing.watches?.length) return
+    const slug = marqueQuerySlug.value
+    if (!slug) return
+    const brand = resolveBrandFromSlug(listing.watches, slug)
+    listing.selectedBrands = brand ? [brand] : []
+  },
+  { immediate: true },
+)
 
 const siteConfig = getSiteConfig()
 
@@ -345,9 +349,8 @@ const filterSections = computed(() => {
   }
 })
 
-/** Marque unique affichée : URL /collection/marque/:slug ou exactement une marque cochée sur /collection */
+/** Marque unique affichée : exactement une marque cochée (filtre ou ?marque=slug). */
 const singleBrandLabel = computed(() => {
-  if (listing.resolvedFixedBrand) return listing.resolvedFixedBrand
   const brands = listing.selectedBrands
   if (Array.isArray(brands) && brands.length === 1) return brands[0]
   return null
@@ -372,9 +375,9 @@ const effectiveBrandHero = computed(
 )
 
 const unknownBrand = computed(() => {
-  if (listing.isLoading || listing.error || !brandSlug.value) return false
+  if (listing.isLoading || listing.error || !marqueQuerySlug.value) return false
   if (!listing.watches.length) return false
-  return !listing.resolvedFixedBrand
+  return !resolveBrandFromSlug(listing.watches, marqueQuerySlug.value)
 })
 
 const seoCollection = getSiteConfig().seo.collection
@@ -387,9 +390,17 @@ function fillBrand(template, brand) {
 const seoBrand = computed(() => siteConfig.seo?.brandCollection || {})
 
 watch(
-  () => [brandSlug.value, listing.resolvedFixedBrand],
+  () => [
+    singleBrandLabel.value,
+    marqueQuerySlug.value,
+    listing.isLoading,
+    listing.error,
+    listing.selectedBrands.length,
+  ],
   () => {
-    if (!brandSlug.value) {
+    if (listing.isLoading || listing.error) return
+
+    if (!singleBrandLabel.value || listing.selectedBrands.length !== 1) {
       useHead({
         title: seoCollection.title,
         meta: [
@@ -407,9 +418,10 @@ watch(
       return
     }
 
-    const brand = listing.resolvedFixedBrand
-    const slug = brandSlug.value
-    const baseUrl = `${BASE_URL}/collection/marque/${slug}`
+    const brand = singleBrandLabel.value
+    const shareUrl = marqueQuerySlug.value
+      ? `${BASE_URL}/collection?marque=${encodeURIComponent(marqueQuerySlug.value)}`
+      : `${BASE_URL}/collection`
     const title = brand
       ? fillBrand(seoBrand.value.title || '{brand} | Collection', brand)
       : seoBrand.value.titleFallback || 'Collection par marque'
@@ -427,13 +439,13 @@ watch(
         { name: 'description', content: desc },
         { property: 'og:title', content: title },
         { property: 'og:description', content: desc },
-        { property: 'og:url', content: baseUrl },
+        { property: 'og:url', content: shareUrl },
         { property: 'og:type', content: 'website' },
         { name: 'twitter:card', content: 'summary' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: desc },
       ],
-      link: [{ rel: 'canonical', href: baseUrl }],
+      link: [{ rel: 'canonical', href: `${BASE_URL}/collection` }],
     })
   },
   { immediate: true },

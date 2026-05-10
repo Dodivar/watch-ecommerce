@@ -78,7 +78,7 @@ export default {
       "Chaque montre vendue est assurée pour sa valeur totale par Sauvage. Cela garantit qu'il n'y a aucun risque pour l'acheteur, même en cas de résidence à l'étranger. Votre montre est protégée de bout en bout.",
   },
 
-  /** Mot de passe page « site en construction » (voir `Maintenance.vue`). */
+  /** Mot de passe page « site en construction » (voir `MaintenancePage.vue`). */
   maintenance: {
     password: '@sauvagE2025!',
   },
@@ -172,8 +172,10 @@ export default {
     },
   },
 
-  /** Bandeaux /collection/marque/:slug — clés = libellé exact du champ `brand` en base. */
-  brandHero: {},
+  /** Bandeaux hero — une seule marque sélectionnée sur /collection ; clés = libellé exact du champ `brand` en base. */
+  brandHero: {
+    'Oméga': { image: '/brands/omega/omega-brand.jpg', alt: 'Bracelet à maillons d’argent Montre analogique ronde' } 
+  },
 
   /**
    * Logos couleur — grille /collection/marques (clés = libellé exact `brand` en base).

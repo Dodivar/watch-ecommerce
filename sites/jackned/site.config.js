@@ -78,7 +78,7 @@ export default {
       "Nous vous informons sur les garanties et services associés à votre achat. Pour les modalités précises, adressez-vous à notre équipe en magasin.",
   },
 
-  /** Bandeaux /collection/marque/:slug — clés = libellé exact du champ `brand` en base. */
+  /** Bandeaux hero — une seule marque sélectionnée sur /collection ; clés = libellé exact du champ `brand` en base. */
   brandHero: {},
 
   /**

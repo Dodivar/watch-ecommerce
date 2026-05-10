@@ -78,7 +78,7 @@ export default {
   },
 
   /**
-   * Bandeaux des pages /collection/marque/:slug — clés = libellé `brand` exact en base.
+   * Bandeaux hero lorsque une seule marque est sélectionnée sur /collection — clés = libellé `brand` exact en base.
    * Ex. : 'Rolex': { image: '/brands/rolex.jpg', alt: 'Rolex' }
    */
   brandHero: {},

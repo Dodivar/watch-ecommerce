@@ -5,17 +5,6 @@ import { createClient } from '@supabase/supabase-js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-function slugifyBrand(str) {
-  if (!str) return ''
-  return String(str)
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-}
-
 async function loadSiteConfig() {
   const siteId =
     process.env.SITE_ID?.trim() ||
@@ -151,29 +140,6 @@ export default async function handler(req, res) {
   </url>
 `
       })
-    }
-
-    // Pages collection par marque (slug dérivé du libellé brand)
-    if (watches && watches.length > 0) {
-      const brandBestTs = new Map()
-      for (const w of watches) {
-        const slug = slugifyBrand(w.brand)
-        if (!slug) continue
-        const ts = w.updated_at ? new Date(w.updated_at).getTime() : 0
-        const prev = brandBestTs.get(slug) ?? -1
-        if (ts >= prev) brandBestTs.set(slug, ts)
-      }
-      for (const [slug, ts] of brandBestTs) {
-        const lastmod =
-          ts > 0 ? new Date(ts).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
-        xml += `  <url>
-    <loc>${baseUrl}/collection/marque/${slug}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-`
-      }
     }
 
     // Ajouter les articles de blog

@@ -36,7 +36,7 @@
         <RouterLink
           v-for="brandName in listing.availableBrands"
           :key="brandName"
-          :to="`/collection/marque/${slugifyBrand(brandName)}`"
+          :to="{ path: '/collection', query: { marque: slugifyBrand(brandName) } }"
           class="group block rounded-lg border border-cream-200 bg-white shadow-sm overflow-hidden transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           :aria-label="`Collection ${brandName}`"
         >
@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useHead } from '@vueuse/head'
 
@@ -92,8 +92,7 @@ import {
 } from '@/utils/brandSlug.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
 
-const brandSlug = ref(null)
-const listing = useWatchListing({ brandSlug })
+const listing = useWatchListing()
 const siteConfig = getSiteConfig()
 
 const seoBrands = computed(() => siteConfig.seo?.brandsIndex ?? {})

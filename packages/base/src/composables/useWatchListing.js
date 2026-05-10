@@ -1,6 +1,5 @@
 import { ref, computed, watch, reactive } from 'vue'
 import { getAllWatches } from '@/services/watchService'
-import { resolveBrandFromSlug } from '@/utils/brandSlug.js'
 
 function watchMatchesAudience(watchModel, selected) {
   if (!selected || selected === 'all') return true
@@ -9,8 +8,7 @@ function watchMatchesAudience(watchModel, selected) {
   return a === selected
 }
 
-function countAppliedBrandFilters(brandSlugRef, selectedBrands) {
-  if (brandSlugRef) return 0
+function countAppliedBrandFilters(selectedBrands) {
   return selectedBrands.length
 }
 
@@ -24,11 +22,8 @@ function countAppliedAudience(selectedAudience) {
 
 /**
  * Listing montres : chargement, filtres marque / audience / prix, tri.
- * @param {{ brandSlug?: import('vue').Ref }} options - Si `brandSlug` est renseigné, le jeu de montres est restreint à cette marque (slug URL).
  */
-export function useWatchListing(options = {}) {
-  const brandSlug = options.brandSlug != null ? options.brandSlug : ref(null)
-
+export function useWatchListing() {
   const selectedBrands = ref([])
   const selectedAudience = ref(/** @type {AudienceFilter} */ ('all'))
   const priceMin = ref(null)
@@ -51,20 +46,8 @@ export function useWatchListing(options = {}) {
 
   const roundToTen = (value) => Math.ceil(value / 10) * 10
 
-  const resolvedFixedBrand = computed(() => {
-    const slug = brandSlug?.value
-    if (!slug) return null
-    return resolveBrandFromSlug(watches.value, slug)
-  })
-
-  /** Montres de base pour cette vue (toutes, ou une marque si slug valide). */
-  const scopedWatches = computed(() => {
-    const slug = brandSlug?.value
-    if (!slug) return watches.value
-    const fb = resolvedFixedBrand.value
-    if (!fb) return []
-    return watches.value.filter((w) => w.brand === fb)
-  })
+  /** Jeu de montres pour limites de prix / filtres (toujours la collection complète chargée). */
+  const scopedWatches = computed(() => watches.value)
 
   const priceMinLimit = computed(() => {
     if (scopedWatches.value.length === 0) return 0
@@ -121,9 +104,8 @@ export function useWatchListing(options = {}) {
 
   /** Compte filtres **appliqués** (hors tri), pour le badge « Filtrer ». */
   const activeFilterCount = computed(() => {
-    const slug = brandSlug?.value
     let n = 0
-    n += countAppliedBrandFilters(slug, selectedBrands.value)
+    n += countAppliedBrandFilters(selectedBrands.value)
     n += countAppliedAudience(selectedAudience.value)
     n += countAppliedPriceActive(priceMin.value, priceMax.value)
     return n
@@ -131,9 +113,8 @@ export function useWatchListing(options = {}) {
 
   /** Compte filtres **brouillon** dans le tiroir (badge sections + APPLIQUER). */
   const draftFilterCount = computed(() => {
-    const slug = brandSlug?.value
     let n = 0
-    n += countAppliedBrandFilters(slug, tempSelectedBrands.value)
+    n += countAppliedBrandFilters(tempSelectedBrands.value)
     n += countAppliedAudience(tempAudience.value)
     const priceActive =
       tempPriceRange.value[0] > priceMinLimit.value ||
@@ -147,7 +128,7 @@ export function useWatchListing(options = {}) {
   const filteredWatches = computed(() => {
     let filtered = scopedWatches.value
 
-    if (!brandSlug?.value && selectedBrands.value.length > 0) {
+    if (selectedBrands.value.length > 0) {
       filtered = filtered.filter((watch) => selectedBrands.value.includes(watch.brand))
     }
 
@@ -189,7 +170,7 @@ export function useWatchListing(options = {}) {
   /** Nombre de montres correspondant au brouillon du tiroir (aperçu). */
   function getDraftFilteredCount() {
     let filtered = scopedWatches.value
-    if (!brandSlug?.value && tempSelectedBrands.value.length > 0) {
+    if (tempSelectedBrands.value.length > 0) {
       filtered = filtered.filter((watch) => tempSelectedBrands.value.includes(watch.brand))
     }
     if (tempAudience.value !== 'all') {
@@ -210,7 +191,6 @@ export function useWatchListing(options = {}) {
   /** Compte brouillon pour une section (pastille titre accordéon). */
   function getDraftSectionCount(section) {
     if (section === 'brand') {
-      if (brandSlug?.value) return 0
       return tempSelectedBrands.value.length
     }
     if (section === 'audience') {
@@ -276,7 +256,7 @@ export function useWatchListing(options = {}) {
     selectedBrands.value = [...tempSelectedBrands.value]
 
     closeFilterDrawer()
-    return { navigateToBrandSlug: null }
+    return {}
   }
 
   const toggleSortMenu = () => {
@@ -387,12 +367,7 @@ export function useWatchListing(options = {}) {
       error.value = null
       const data = await getAllWatches()
       watches.value = data
-      let pool = data
-      const slug = brandSlug?.value
-      if (slug && data.length > 0) {
-        const fb = resolveBrandFromSlug(data, slug)
-        if (fb) pool = data.filter((w) => w.brand === fb)
-      }
+      const pool = data
       if (pool.length > 0) {
         const minPrice = Math.min(...pool.map((w) => w.price))
         const maxPrice = Math.max(...pool.map((w) => w.price))
@@ -411,8 +386,6 @@ export function useWatchListing(options = {}) {
   }
 
   return reactive({
-    brandSlug,
-    resolvedFixedBrand,
     scopedWatches,
     selectedBrands,
     selectedAudience,

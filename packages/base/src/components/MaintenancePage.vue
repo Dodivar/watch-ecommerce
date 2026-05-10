@@ -28,7 +28,7 @@ const handleSubmit = async () => {
     } else {
       error.value = 'Mot de passe incorrect'
     }
-  } catch (err) {
+  } catch {
     error.value = 'Une erreur est survenue'
   } finally {
     isLoading.value = false

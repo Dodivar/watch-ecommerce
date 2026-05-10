@@ -11,7 +11,7 @@ import Recherche from './components/Recherche.vue'
 import WatchesCollection from './components/watch/WatchesCollection.vue'
 import BrandsIndexPage from './components/watch/BrandsIndexPage.vue'
 import WatchDetail from './components/watch/WatchDetail.vue'
-import Maintenance from './components/Maintenance.vue'
+import MaintenancePage from './components/MaintenancePage.vue'
 import EstimationPage from './components/EstimationPage.vue'
 import AdminLogin from './components/admin/AdminLogin.vue'
 import AdminDashboard from './components/admin/AdminDashboard.vue'
@@ -35,7 +35,7 @@ const { features } = getSiteConfig()
 const browseFallback = getBrowsePath(features)
 
 const routeDefinitions = [
-  { path: '/maintenance', component: Maintenance },
+  { path: '/maintenance', component: MaintenancePage },
   { path: '/', component: HomeView },
   { path: '/merci', component: Merci, feature: 'merci' },
   { path: '/recherche', component: Recherche, feature: 'recherche' },
@@ -43,7 +43,6 @@ const routeDefinitions = [
   { path: '/estimation/processus', component: EstimationProcess, feature: 'estimationProcess' },
   { path: '/collection', component: WatchesCollection, feature: 'collection' },
   { path: '/collection/marques', component: BrandsIndexPage, feature: 'collection' },
-  { path: '/collection/marque/:brandSlug', component: WatchesCollection, feature: 'collection' },
   { path: '/watch/:id', component: WatchDetail, feature: 'collection' },
   { path: '/blog', component: BlogList, feature: 'blog' },
   { path: '/blog/:id', component: BlogDetail, feature: 'blog' },
