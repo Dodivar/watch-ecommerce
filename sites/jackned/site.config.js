@@ -78,6 +78,15 @@ export default {
       "Nous vous informons sur les garanties et services associés à votre achat. Pour les modalités précises, adressez-vous à notre équipe en magasin.",
   },
 
+  /** Bandeaux /collection/marque/:slug — clés = libellé exact du champ `brand` en base. */
+  brandHero: {},
+
+  /**
+   * Logos couleur — grille /collection/marques (clés = libellé exact `brand` en base).
+   * Ex. : 'Rolex': { image: '/brands/rolex/logo.png', alt: 'Rolex' }
+   */
+  brandLogos: {},
+
   integrations: {
     cookieConsentStorageKey: 'jackned_cookie_consent_v1',
     gaInitFlag: '__jackned_ga_initialized',
@@ -101,6 +110,14 @@ export default {
     purchase: true,
     paymentReturn: true,
     admin: true,
+  },
+
+  collection: {
+    filters: {
+      price: true,
+      brand: true,
+      audience: true,
+    },
   },
 
   backend: {
@@ -166,6 +183,25 @@ export default {
       ogDescription: "Montres et bijoux — Jack'N'Ed, Strasbourg.",
       twitterTitle: "Collection Jack'N'Ed",
       twitterDescription: 'Découvrez nos montres et bijoux.',
+    },
+    brandsIndex: {
+      h1: 'Toutes les marques',
+      title: "Marques de montres | Jack'N'Ed Strasbourg",
+      metaDescription:
+        'Retrouvez les marques représentées chez Jack’N’Ed et accédez à chaque collection : filtres par public et budget, conseils en boutique.',
+      ogTitle: "Marques | Jack'N'Ed",
+      ogDescription:
+        'Découvrez les marques disponibles et parcourez les collections au pied de la cathédrale de Strasbourg.',
+      twitterTitle: "Marques | Jack'N'Ed",
+      twitterDescription:
+        'Les marques du moment — collections et disponibilité à Strasbourg.',
+    },
+    brandCollection: {
+      title: "{brand} | Collection | Jack'N'Ed",
+      metaDescription:
+        'Montres {brand} : filtres par public et budget. Conseils et retrait en boutique à Strasbourg.',
+      titleFallback: "Collection par marque | Jack'N'Ed",
+      metaDescriptionFallback: 'Montres par marque — filtres par public et prix.',
     },
     watchDetail: {
       titleFallback: "Montre - Jack'N'Ed",

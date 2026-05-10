@@ -1,0 +1,21 @@
+{
+  "name": "Jack'N'Ed — Montres Strasbourg",
+  "short_name": "Jack'N'Ed",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#3d2914",
+  "background_color": "#f7ede0",
+  "display": "standalone"
+}

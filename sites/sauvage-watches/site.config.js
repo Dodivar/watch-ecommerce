@@ -36,7 +36,7 @@ export default {
   },
 
   storeMap: {
-    enabled: true,
+    enabled: false,
     center: { lat: 48.5946, lng: 7.7769 },
     zoom: 16,
     markerLabel: 'Sauvage Watches',
