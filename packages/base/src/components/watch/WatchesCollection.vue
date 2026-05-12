@@ -84,14 +84,10 @@
               </button>
             </div>
 
-            <div class="flex items-center gap-4">
-              <div class="text-sm text-gray-600 font-light">
-                {{ listing.filteredWatches.length }} montre{{
-                  listing.filteredWatches.length > 1 ? 's' : ''
-                }}
-                disponible{{ listing.filteredWatches.length > 1 ? 's' : '' }}
-              </div>
-
+            <div
+              class="flex items-center gap-4"
+              :class="{ 'ml-auto': !showFilters && !singleBrandLabel }"
+            >
               <div
                 v-if="showSort"
                 class="relative"
@@ -172,7 +168,7 @@
           class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-8"
         >
           <WatchCardSkeleton
-            v-for="n in 8"
+            v-for="n in skeletonCardCount"
             :key="`skeleton-${n}`"
             :show-reference="true"
             :show-sold-badge="true"
@@ -209,12 +205,180 @@
           class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-8"
         >
           <WatchCard
-            v-for="watch in listing.filteredWatches"
+            v-for="watch in paginatedWatches"
             :key="watch.id"
             :watch="watch"
             class="animate-fade-in"
             @viewDetails="handleViewDetails"
           />
+        </div>
+
+        <!-- Pagination + total (discret) -->
+        <div
+          v-if="
+            collectionListingReady &&
+            !listing.isLoading &&
+            !listing.error &&
+            !unknownBrand &&
+            totalFiltered > 0
+          "
+          class="mb-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center sm:gap-8"
+        >
+          <p
+            class="order-2 text-center text-sm text-gray-500 sm:order-1 sm:text-center"
+          >
+            {{ totalFiltered }} montre{{ totalFiltered > 1 ? 's' : '' }}
+          </p>
+          <nav
+            v-if="totalPages > 1"
+            class="order-1 flex w-full max-w-full justify-center overflow-x-auto overflow-y-hidden py-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:order-2 sm:overflow-visible sm:py-0 [&::-webkit-scrollbar]:hidden"
+            aria-label="Pagination de la collection"
+          >
+            <div
+              class="flex max-w-full shrink-0 items-center gap-0 sm:gap-1.5"
+            >
+              <button
+                type="button"
+                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
+                :class="
+                  currentPage === 1
+                    ? 'cursor-not-allowed bg-cream-200 text-gray-400'
+                    : ''
+                "
+                :disabled="currentPage === 1"
+                aria-label="Aller à la première page"
+                @click="goToPage(1)"
+              >
+                <svg
+                  class="h-5 w-5 shrink-0 sm:h-5 sm:w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15l-7.5-7.5 7.5-7.5"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
+                :class="
+                  currentPage === 1
+                    ? 'cursor-not-allowed bg-cream-200 text-gray-400'
+                    : ''
+                "
+                :disabled="currentPage === 1"
+                aria-label="Page précédente"
+                @click="goToPage(currentPage - 1)"
+              >
+                <svg
+                  class="h-5 w-5 shrink-0 sm:h-5 sm:w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15.75 19.5l-7.5-7.5 7.5-7.5"
+                  />
+                </svg>
+              </button>
+              <ul
+                class="m-0 grid w-[13.75rem] shrink-0 list-none grid-cols-5 gap-0 p-0 sm:w-[13.5rem] sm:gap-1"
+                aria-label="Sélection de page"
+              >
+                <li
+                  v-for="(slot, slotIdx) in collectionPaginationFiveSlots"
+                  :key="`slot-${slotIdx}`"
+                  class="m-0 flex h-11 w-11 items-center justify-center p-0 sm:h-10 sm:w-10"
+                >
+                  <span
+                    v-if="slot.type === 'spacer'"
+                    class="box-border h-11 w-11 shrink-0 rounded-lg border border-transparent bg-transparent sm:h-10 sm:w-10"
+                    aria-hidden="true"
+                  />
+                  <span
+                    v-else-if="slot.type === 'page' && slot.n === currentPage"
+                    class="box-border inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-primary bg-primary text-sm font-semibold text-white sm:h-10 sm:w-10 sm:text-sm"
+                    aria-current="page"
+                  >
+                    {{ slot.n }}
+                  </span>
+                  <button
+                    v-else-if="slot.type === 'page'"
+                    type="button"
+                    class="box-border inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10 sm:text-sm"
+                    :aria-label="`Page ${slot.n}`"
+                    @click="goToPage(slot.n)"
+                  >
+                    {{ slot.n }}
+                  </button>
+                </li>
+              </ul>
+              <button
+                type="button"
+                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
+                :class="
+                  currentPage === totalPages
+                    ? 'cursor-not-allowed bg-cream-200 text-gray-400'
+                    : ''
+                "
+                :disabled="currentPage === totalPages"
+                aria-label="Page suivante"
+                @click="goToPage(currentPage + 1)"
+              >
+                <svg
+                  class="h-5 w-5 shrink-0 sm:h-5 sm:w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
+                :class="
+                  currentPage === totalPages
+                    ? 'cursor-not-allowed bg-cream-200 text-gray-400'
+                    : ''
+                "
+                :disabled="currentPage === totalPages"
+                aria-label="Aller à la dernière page"
+                @click="goToPage(totalPages)"
+              >
+                <svg
+                  class="h-5 w-5 shrink-0 sm:h-5 sm:w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5.25 4.5l7.5 7.5-7.5 7.5m6-15l7.5 7.5-7.5 7.5"
+                  />
+                </svg>
+              </button>
+            </div>
+          </nav>
         </div>
 
         <!-- Vide -->
@@ -294,7 +458,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useHead } from '@vueuse/head'
 
@@ -304,7 +468,7 @@ import WatchCollectionFiltersDrawer from './WatchCollectionFiltersDrawer.vue'
 import { scrollAnimation } from '@/animation'
 import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
-import { getMergedCollectionFilters } from '@/site/collectionFilters.js'
+import { getMergedCollectionFilters, getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
 import { resolveBrandFromSlug } from '@/utils/brandSlug.js'
 
@@ -339,6 +503,136 @@ watch(
 )
 
 const siteConfig = getSiteConfig()
+
+const collectionPageSize = getResolvedCollectionPageSize(siteConfig)
+
+const currentPage = ref(1)
+const collectionListingReady = ref(false)
+
+const totalFiltered = computed(() => listing.filteredWatches.length)
+
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(totalFiltered.value / collectionPageSize)),
+)
+
+const paginatedWatches = computed(() => {
+  const start = (currentPage.value - 1) * collectionPageSize
+  return listing.filteredWatches.slice(start, start + collectionPageSize)
+})
+
+const skeletonCardCount = computed(() => Math.min(collectionPageSize, 12))
+
+/**
+ * Cinq emplacements fixes : fenêtre de 5 pages qui glisse.
+ * — Début (current ≤ 3) : alignée à gauche (1 … 5).
+ * — Milieu : page courante centrée (current−2 … current+2).
+ * — Fin (current ≥ last − 2) : alignée à droite (last−4 … last), sans trou avant les flèches.
+ * — Peu de pages (last ≤ 5) : 1 … last puis espaces.
+ */
+function buildCollectionPaginationFiveSlots(current, last) {
+  if (last <= 1) return []
+
+  /** @type {Array<{ type: 'page'; n: number } | { type: 'spacer' }>} */
+  const slots = []
+
+  if (last <= 5) {
+    for (let i = 0; i < 5; i += 1) {
+      const p = i + 1
+      slots.push(p <= last ? { type: 'page', n: p } : { type: 'spacer' })
+    }
+    return slots
+  }
+
+  if (current <= 3) {
+    for (let p = 1; p <= 5; p += 1) {
+      slots.push({ type: 'page', n: p })
+    }
+    return slots
+  }
+
+  if (current >= last - 2) {
+    const start = Math.max(1, last - 4)
+    for (let i = 0; i < 5; i += 1) {
+      const p = start + i
+      slots.push(p <= last ? { type: 'page', n: p } : { type: 'spacer' })
+    }
+    return slots
+  }
+
+  for (let i = -2; i <= 2; i += 1) {
+    slots.push({ type: 'page', n: current + i })
+  }
+  return slots
+}
+
+const collectionPaginationFiveSlots = computed(() =>
+  buildCollectionPaginationFiveSlots(currentPage.value, totalPages.value),
+)
+
+const collectionFilterFingerprint = computed(() =>
+  [
+    listing.sortOrder,
+    listing.selectedAudience,
+    listing.priceMin,
+    listing.priceMax,
+    [...listing.selectedBrands].slice().sort().join('\u0000'),
+    marqueQuerySlug.value,
+  ].join('|'),
+)
+
+function updateCollectionPageQuery(page) {
+  const next = { ...route.query }
+  if (page > 1) next.page = String(page)
+  else delete next.page
+  router.replace({ query: next })
+}
+
+function syncCollectionPageFromRoute() {
+  const raw = route.query.page
+  const parsed = parseInt(Array.isArray(raw) ? raw[0] : raw, 10)
+  const p = Number.isFinite(parsed) && parsed >= 1 ? parsed : 1
+  const tp = totalPages.value
+  const clamped = Math.min(Math.max(1, p), tp)
+  currentPage.value = clamped
+  if (clamped !== p) updateCollectionPageQuery(clamped)
+}
+
+function goToPage(page) {
+  const tp = totalPages.value
+  const p = Math.min(Math.max(1, page), tp)
+  currentPage.value = p
+  updateCollectionPageQuery(p)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+watch(
+  () => route.query.page,
+  () => {
+    if (!collectionListingReady.value) return
+    const before = currentPage.value
+    syncCollectionPageFromRoute()
+    if (currentPage.value !== before) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  },
+)
+
+watch(totalPages, (tp) => {
+  if (!collectionListingReady.value) return
+  if (currentPage.value > tp) {
+    currentPage.value = Math.max(1, tp)
+    updateCollectionPageQuery(currentPage.value)
+  }
+})
+
+watch(collectionFilterFingerprint, (next, prev) => {
+  if (!collectionListingReady.value || prev === undefined) return
+  if (next === prev) return
+  if (currentPage.value !== 1) {
+    currentPage.value = 1
+    updateCollectionPageQuery(1)
+  }
+})
 
 const filterSections = computed(() => {
   const cfg = getMergedCollectionFilters(siteConfig)
@@ -465,6 +759,10 @@ const handleViewDetails = (watchId) => {
 
 onMounted(async () => {
   await listing.loadWatches()
+  await nextTick()
+  await nextTick()
+  collectionListingReady.value = true
+  syncCollectionPageFromRoute()
   scrollAnimation()
   document.addEventListener('click', handleClickOutsideSortMenu)
 })
