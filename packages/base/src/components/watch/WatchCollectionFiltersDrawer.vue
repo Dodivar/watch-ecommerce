@@ -253,7 +253,8 @@
 </template>
 
 <script setup>
-import { computed, reactive, watch, onMounted, onUnmounted } from 'vue'
+import { computed, reactive, ref, watch, onMounted, onUnmounted } from 'vue'
+import { getWatchAudiencesForCollectionFilter } from '@/services/watchService'
 import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
 
@@ -270,12 +271,13 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'applied'])
 
-const audienceOptions = [
-  { id: 'all', label: 'Tous' },
-  { id: 'homme', label: 'Homme' },
-  { id: 'femme', label: 'Femme' },
-  { id: 'enfant', label: 'Enfant' },
-]
+/** @type {import('vue').Ref<Array<{ id: string, label: string }>>} */
+const audienceOptions = ref([{ id: 'all', label: 'Tous' }])
+
+async function loadAudienceFilterOptions() {
+  const rows = await getWatchAudiencesForCollectionFilter()
+  audienceOptions.value = [{ id: 'all', label: 'Tous' }, ...rows]
+}
 
 const expanded = reactive({
   brand: false,
@@ -328,6 +330,7 @@ watch(
 )
 
 onMounted(() => {
+  loadAudienceFilterOptions()
   if (props.open) document.addEventListener('keydown', onEscape)
 })
 

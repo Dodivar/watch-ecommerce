@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="__SITE_LANG__">
+  <head>
+    <!-- Google Analytics : chargé dynamiquement après consentement (packages/base/src/services/googleAnalytics.js). -->
+    <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light dark" />
+    
+    <!-- Favicon par défaut (navigateurs sans support media) -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <!-- Favicon pour le thème clair -->
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: light)"/>
+    <link rel="shortcut icon" href="/favicon.ico" media="(prefers-color-scheme: light)"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="__APPLE_MOBILE_TITLE__" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Favicon pour le thème sombre -->
+    <link rel="icon" type="image/png" href="/favicon-96x96-dark.png" sizes="96x96" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)"/>
+    <link rel="shortcut icon" href="/favicon-dark.ico" media="(prefers-color-scheme: dark)"/>
+  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    
+    <!-- SEO Meta Tags par défaut (remplis depuis site.config par le plugin Vite) -->
+    <title>__INDEX_HTML_TITLE__</title>
+    <meta name="description" content="__META_DESCRIPTION__" />
+    <meta name="keywords" content="__META_KEYWORDS__" />
+    <meta name="author" content="__META_AUTHOR__" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="__CANONICAL_URL__" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="__OG_URL__" />
+    <meta property="og:title" content="__OG_TITLE__" />
+    <meta property="og:description" content="__OG_DESCRIPTION__" />
+    <meta property="og:image" content="__OG_IMAGE__" />
+    <meta property="og:locale" content="__OG_LOCALE__" />
+    <meta property="og:site_name" content="__OG_SITE_NAME__" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="__TWITTER_CARD__" />
+    <meta name="twitter:url" content="__TWITTER_URL__" />
+    <meta name="twitter:title" content="__TWITTER_TITLE__" />
+    <meta name="twitter:description" content="__TWITTER_DESCRIPTION__" />
+    <meta name="twitter:image" content="__TWITTER_IMAGE__" />
+  </head>
+
+  <!-- Cookie banner -->
+  <!-- <script type="text/javascript" src="https://embeds.iubenda.com/widgets/b4f05f4a-80f5-409d-b1a5-922e7a23f3cf.js"></script> -->
+  
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

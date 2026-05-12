@@ -123,7 +123,7 @@ export default {
   /** Filtres collection — passer une clé à `false` pour masquer la section dans le tiroir. */
   collection: {
     /** Nombre de montres par page sur `/collection` (défaut socle : 12, bornes 4–96). */
-    pageSize: 1,
+    pageSize: 12,
     filters: {
       price: true,
       brand: true,

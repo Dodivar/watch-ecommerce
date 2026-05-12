@@ -16,6 +16,8 @@
     "build:demo-store": "cross-env SITE_ID=demo-store vite build --config vite/vite.config.mjs",
     "dev:jackned": "cross-env SITE_ID=jackned vite --config vite/vite.config.mjs",
     "build:jackned": "cross-env SITE_ID=jackned vite build --config vite/vite.config.mjs",
+    "dev:place-des-montres": "cross-env SITE_ID=place-des-montres vite --config vite/vite.config.mjs",
+    "build:place-des-montres": "cross-env SITE_ID=place-des-montres vite build --config vite/vite.config.mjs",
     "lint": "eslint . --fix",
     "format": "prettier --write packages/base/src/",
     "mail-server": "node backend/server.js"

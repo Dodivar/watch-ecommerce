@@ -1,5 +1,51 @@
 import { supabase } from './supabase'
 import { getWatchArticles } from './watchArticleService'
+import {
+  getStaticWatchAudienceAdminOptions,
+  getStaticWatchAudienceFilterOptions,
+} from '@/constants/watchAudiences'
+
+/**
+ * Slugs affichés comme filtres sur la page collection (table watch_audiences).
+ * Repli sur les constantes si la table est absente ou erreur réseau.
+ * @returns {Promise<Array<{ id: string, label: string }>>}
+ */
+export async function getWatchAudiencesForCollectionFilter() {
+  try {
+    const { data, error } = await supabase
+      .from('watch_audiences')
+      .select('slug, label_fr, sort_order')
+      .eq('show_in_collection_filter', true)
+      .order('sort_order', { ascending: true })
+
+    if (error || !data?.length) {
+      return getStaticWatchAudienceFilterOptions()
+    }
+    return data.map((r) => ({ id: r.slug, label: r.label_fr }))
+  } catch {
+    return getStaticWatchAudienceFilterOptions()
+  }
+}
+
+/**
+ * Toutes les valeurs possibles pour le champ « Public » (admin).
+ * @returns {Promise<Array<{ value: string, label: string }>>}
+ */
+export async function getWatchAudiencesForAdminForm() {
+  try {
+    const { data, error } = await supabase
+      .from('watch_audiences')
+      .select('slug, label_fr, sort_order')
+      .order('sort_order', { ascending: true })
+
+    if (error || !data?.length) {
+      return getStaticWatchAudienceAdminOptions()
+    }
+    return data.map((r) => ({ value: r.slug, label: r.label_fr }))
+  } catch {
+    return getStaticWatchAudienceAdminOptions()
+  }
+}
 
 /**
  * Transforme les données de la base de données en format attendu par les composants

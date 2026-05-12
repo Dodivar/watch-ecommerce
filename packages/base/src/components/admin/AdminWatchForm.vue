@@ -2,6 +2,8 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { createWatch, updateWatch, uploadWatchImage, deleteWatchImage, reorderWatchImages, getWatchByIdForAdmin, duplicateWatch } from '@/services/admin/adminWatchService'
+import { getWatchAudiencesForAdminForm } from '@/services/watchService'
+import { DEFAULT_WATCH_AUDIENCE_SLUG, getStaticWatchAudienceAdminOptions } from '@/constants/watchAudiences'
 import AdminHeader from './AdminHeader.vue'
 import AdminWatchArticleSelector from './AdminWatchArticleSelector.vue'
 
@@ -66,6 +68,13 @@ const newAccessoryIncluded = ref(false)
 const showArticleSelector = ref(false)
 const linkedArticles = ref([])
 
+/** @type {import('vue').Ref<Array<{ value: string, label: string }>>} */
+const audienceFormOptions = ref(getStaticWatchAudienceAdminOptions())
+
+async function loadWatchAudienceOptions() {
+  audienceFormOptions.value = await getWatchAudiencesForAdminForm()
+}
+
 // Methods
 const loadWatch = async () => {
   if (!isEditMode.value) return
@@ -110,6 +119,11 @@ const loadWatch = async () => {
         guarantee: watch.details?.guarantee || '',
         accessories: watch.details?.accessories || [],
       },
+    }
+
+    const audienceOk = audienceFormOptions.value.some((o) => o.value === formData.value.audience)
+    if (!audienceOk) {
+      formData.value.audience = DEFAULT_WATCH_AUDIENCE_SLUG
     }
 
     // Load images (getWatchByIdForAdmin retourne déjà les images avec leurs IDs)
@@ -370,9 +384,10 @@ const handleArticlesSaved = () => {
   }, 3000)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadWatchAudienceOptions()
   if (isEditMode.value) {
-    loadWatch()
+    await loadWatch()
   }
 })
 </script>
@@ -458,10 +473,9 @@ onMounted(() => {
                 v-model="formData.audience"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
               >
-                <option value="unisexe">Unisexe</option>
-                <option value="homme">Homme</option>
-                <option value="femme">Femme</option>
-                <option value="enfant">Enfant</option>
+                <option v-for="opt in audienceFormOptions" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </option>
               </select>
             </div>
             <div>

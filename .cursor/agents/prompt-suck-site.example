@@ -1,0 +1,33 @@
+You are working inside a monorepo for a luxury watch ecommerce website generator.
+
+The goal is to create a personalized demo website for a potential client based on their existing public ecommerce website URL.
+
+Very important:
+- The client configuration file must always be named exactly `site.config.js`.
+- Do not create `client.config.js`, `theme.json`, `content.json` or other separate config files unless explicitly requested.
+- Any client content, feature or business requirement that exists on the source website but is not yet implemented in the current project must be added to a clear TODO list.
+- The objective is not to clone the original website, but to rebuild a modern, premium, SEO-friendly and conversion-oriented version using the existing monorepo components.
+- Inspire the developement from sauvage-watches folder if necessary
+
+Workflow:
+1. Use   to analyze the source URL.
+2. Use  extractor to extract public reusable business content.
+3. Use  generator to generate or update `site.config.js`.
+4. Use  -feature-tracker to list unsupported content or features.
+5. Use  generator to generate the client demo using existing components.
+6. Use  to improve metadata, local SEO, brand pages and content strategy.
+7. Use  -agent to prepare the final client presentation version.
+
+Expected final result:
+- A generated client demo website.
+- A complete `site.config.js`.
+- A clear list of files created or modified.
+- A clear TODO list of missing project-side features.
+- A short summary explaining why the new version is better than the original website.
+
+When unsure:
+- Make reasonable assumptions.
+- Document assumptions clearly.
+- Never block the workflow unless a critical technical detail is missing.
+
+Website url of existing ecommerce : http://www.placedesmontres.fr
