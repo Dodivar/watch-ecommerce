@@ -81,7 +81,8 @@ function close() {
               class="hover:text-cream-100 transition-colors text-center"
               >{{ item.label }}</RouterLink
             >
-            <div
+            <!-- N'AFFICHE PAS LES GROUPES DE LIENS, uniquement les liens simples -->
+            <!-- <div
               v-else-if="item.type === 'group'"
               class="flex flex-col items-center gap-6 w-full max-w-sm"
             >
@@ -105,7 +106,7 @@ function close() {
                 class="hover:text-cream-100 transition-colors text-lg text-center"
                 >{{ sub.label }}</RouterLink
               >
-            </div>
+            </div> -->
           </template>
         </template>
       </nav>

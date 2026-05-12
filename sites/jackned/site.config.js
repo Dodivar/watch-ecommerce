@@ -3,8 +3,12 @@
  * Données publiques issues du site vitrine : adresse, horaires, contact, texte « À propos ».
  * SIRET : à renseigner depuis les mentions légales officielles du client.
  */
+import faq from './faq.config.js'
+
 export default {
   siteId: 'jackned',
+
+  faq,
 
   locale: 'fr',
 

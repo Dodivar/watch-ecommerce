@@ -1,28 +1,39 @@
 <script setup>
-import { onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { scrollAnimation } from '@/animation'
 import { BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { filterHomeSectionsByFeatures } from '@/site/homeSections.js'
+
+import CarouselNouvelles from './CarouselNouvelles.vue'
+import CarouselVentes from './CarouselVentes.vue'
+import SuivezNous from './SuivezNous.vue'
+import FaqSection from './Faq.vue'
+import HomeHeroSection from './home/HomeHeroSection.vue'
+import HomeTrustSection from './home/HomeTrustSection.vue'
+import HomeServicesSection from './home/HomeServicesSection.vue'
+
+const SECTION_COMPONENTS = {
+  hero: HomeHeroSection,
+  nouvelles: CarouselNouvelles,
+  trust: HomeTrustSection,
+  ventes: CarouselVentes,
+  suivezNous: SuivezNous,
+  services: HomeServicesSection,
+  faq: FaqSection,
+}
 
 const site = getSiteConfig()
 const seo = site.seo.home
-const features = site.features
-import navitimerImg from '@site/assets/hero section img/navitimer-b01-chronograph-43.png'
-import parallaxImg1 from '@site/assets/hero section img/montre-tag-heuer-monaco-calibre-11.png'
-import parallaxImg2 from '@site/assets/hero section img/Rolex.png'
-import parallaxImg3 from '@site/assets/hero section img/cartier-santos.png'
-import parallaxImg4 from '@site/assets/hero section img/image-Photoroom (2).png'
-import ParallaxImage from './ParallaxImage.vue'
-import FaqSection from './Faq.vue'
-import CarouselVentes from './CarouselVentes.vue'
-import CarouselNouvelles from './CarouselNouvelles.vue'
-import SuivezNous from './SuivezNous.vue'
+
+const resolvedSections = computed(() =>
+  filterHomeSectionsByFeatures(site.home.sections, site.features),
+)
 
 const route = useRoute()
 
-// SEO Meta Tags
 useHead({
   title: seo.title,
   meta: [
@@ -40,7 +51,7 @@ useHead({
     },
     {
       property: 'og:url',
-        content: BASE_URL,
+      content: BASE_URL,
     },
     {
       property: 'og:type',
@@ -62,17 +73,15 @@ useHead({
   link: [
     {
       rel: 'canonical',
-        href: BASE_URL,
+      href: BASE_URL,
     },
   ],
 })
 
-// Fonction pour scroller vers une ancre
 const scrollToHash = async () => {
   if (route.hash) {
-    // Attendre que le DOM soit mis à jour
     await nextTick()
-    
+
     const element = document.querySelector(route.hash)
     if (element) {
       const yOffset = -20
@@ -82,13 +91,11 @@ const scrollToHash = async () => {
   }
 }
 
-// Fonction pour forcer le scroll vers une ancre même si elle est déjà dans l'URL
 const forceScrollToHash = async (hash) => {
   if (!hash) return
-  
-  // Attendre que le DOM soit mis à jour
+
   await nextTick()
-  
+
   const element = document.querySelector(hash)
   if (element) {
     const yOffset = -20
@@ -97,39 +104,33 @@ const forceScrollToHash = async (hash) => {
   }
 }
 
-// Gestionnaire de clic pour les liens d'ancres
 let handleAnchorClick = null
+
+function parallaxOnScroll() {
+  const parallaxElements = document.querySelectorAll('.parallax-object')
+  parallaxElements.forEach(function (element) {
+    const scrollPosition = window.scrollY
+    const speed = Number(element.dataset.scrollSpeed)
+    element.style.transform = 'translateY(' + scrollPosition * 0.5 * speed + 'px)'
+  })
+}
 
 onMounted(async () => {
   scrollAnimation()
 
-  // Add JavaScript to handle parallax effect on scroll
-  window.addEventListener('scroll', function () {
-    const parallaxElements = document.querySelectorAll('.parallax-object')
-    parallaxElements.forEach(function (element) {
-      let scrollPosition = window.scrollY
-      const speed = Number(element.dataset.scrollSpeed)
-      element.style.transform = 'translateY(' + scrollPosition * 0.5 * speed + 'px)'
-    })
-  })
-  
-  // Scroller vers l'ancre si présente dans l'URL
+  window.addEventListener('scroll', parallaxOnScroll)
+
   await scrollToHash()
-  
-  // Écouter les clics sur tous les liens d'ancres pour forcer le scroll
+
   handleAnchorClick = (e) => {
-    // Chercher le lien parent (peut être un <a> ou un RouterLink)
     const target = e.target.closest('a')
     if (!target) return
-    
-    // Récupérer l'attribut href ou le to (pour RouterLink)
+
     const href = target.getAttribute('href') || target.getAttribute('to')
     if (!href) return
-    
-    // Vérifier si c'est un lien d'ancre (commence par # ou /#)
+
     if (!href.includes('#')) return
-    
-    // Extraire le hash de l'URL
+
     let hash = null
     if (href.startsWith('#')) {
       hash = href
@@ -138,12 +139,10 @@ onMounted(async () => {
     } else if (href.includes('#')) {
       hash = '#' + href.split('#')[1]
     }
-    
+
     if (!hash) return
-    
-    // Vérifier si on est sur la page d'accueil
+
     if (route.path === '/') {
-      // Si le hash est déjà dans l'URL, forcer le scroll
       if (route.hash === hash) {
         e.preventDefault()
         e.stopPropagation()
@@ -151,19 +150,17 @@ onMounted(async () => {
       }
     }
   }
-  
-  // Ajouter l'écouteur d'événements
+
   document.addEventListener('click', handleAnchorClick)
 })
 
 onUnmounted(() => {
-  // Nettoyer l'écouteur lors du démontage
+  window.removeEventListener('scroll', parallaxOnScroll)
   if (handleAnchorClick) {
     document.removeEventListener('click', handleAnchorClick)
   }
 })
 
-// Surveiller les changements de hash dans l'URL
 watch(() => route.hash, async () => {
   await scrollToHash()
 })
@@ -171,330 +168,11 @@ watch(() => route.hash, async () => {
 
 <template>
   <div>
-    <!-- Hero Section -->
-    <section id="accueil" class="gradient-bg py-12 lg:py-20 h-screen">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center relative z-10">
-          <h1 class="text-4xl lg:text-6xl font-bold text-text-main mb-4 leading-tight">
-            Découvrez nos <span class="text-primary">montres disponibles</span> dès maintenant
-            <svg class="inline-block w-10 h-10 text-primary align-middle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
-              <rect x="9.5" y="1.5" width="5" height="3" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
-              <rect x="9.5" y="19.5" width="5" height="3" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </h1>
-          <p class="text-xl text-gray-600 mb-6 leading-relaxed">
-            Consultez notre sélection de montres en stock garanties 1 an.
-          </p>
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <RouterLink
-              v-if="features.collection"
-              to="/collection"
-              class="inline-flex items-center bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-hover transition-all shadow-lg"
-            >
-              Voir les montres en stock
-            </RouterLink>
-            <RouterLink
-              v-if="features.recherche"
-              to="/recherche"
-              class="inline-flex items-center px-8 py-4 rounded-lg text-lg font-semibold border-2 border-primary text-primary hover:bg-green-50 transition-all shadow"
-            >
-              Recherche personnalisée
-            </RouterLink>
-          </div>
-        </div>
-      </div>
-      <!-- PARALLAX OBJECTS -->
-      <div class="fixed top-0 h-full w-full overflow-hidden">
-        <ParallaxImage
-          :src="navitimerImg"
-          alt="Breitling Navitimer"
-          initial-x="0%"
-          initial-y="45%"
-          mobile-initial-x="-10%"
-          mobile-initial-y="58%"
-          size="large"
-          :scroll-speed="0.4"
-          :float-speed="0.4"
-          :float-amplitude="12"
-          :vertical-speed="0.7"
-          :vertical-amplitude="15"
-          :rotation-speed="1"
-          :rotation-amplitude="2"
-          :scale-value="0.85"
-        />
-        <ParallaxImage
-          :src="parallaxImg4"
-          alt="Montre de luxe"
-          initial-x="20%"
-          initial-y="40%"
-          mobile-initial-x="15%"
-          mobile-initial-y="60%"
-          :scroll-speed="0.3"
-          :float-speed="0.55"
-          :float-amplitude="20"
-          :vertical-speed="0.4"
-          :vertical-amplitude="15"
-          :rotation-speed="0.3"
-          :rotation-amplitude="5"
-          :scale-value="0.7"
-        />
-        <ParallaxImage
-          :src="parallaxImg1"
-          alt="Montre de luxe"
-          initial-x="40%"
-          initial-y="50%"
-          mobile-initial-x="30%"
-          mobile-initial-y="65%"
-          size="large"
-          :scroll-speed="0.2"
-          :float-speed="0.6"
-          :float-amplitude="18"
-          :vertical-speed="0.35"
-          :vertical-amplitude="12"
-          :rotation-speed="0.25"
-          :rotation-amplitude="4"
-          :scale-value="0.75"
-        />
-        <ParallaxImage
-          :src="parallaxImg2"
-          alt="Montre de luxe"
-          initial-x="60%"
-          initial-y="50%"
-          mobile-initial-x="50%"
-          mobile-initial-y="62%"
-          size="large"
-          :scroll-speed="0.3"
-          :float-speed="0.45"
-          :float-amplitude="15"
-          :vertical-speed="0.3"
-          :vertical-amplitude="10"
-          :rotation-speed="0.2"
-          :rotation-amplitude="3"
-          :scale-value="0.8"
-        />
-        <ParallaxImage
-          :src="parallaxImg3"
-          alt="Montre de luxe"
-          initial-x="80%"
-          initial-y="40%"
-          mobile-initial-x="70%"
-          mobile-initial-y="60%"
-          size="large"
-          :initial-rotation="300"
-          :scroll-speed="0.50"
-          :float-speed="0.45"
-          :float-amplitude="20"
-          :vertical-speed="0.4"
-          :vertical-amplitude="15"
-          :rotation-speed="0.3"
-          :rotation-amplitude="5"
-          :scale-value="0.7"
-        />
-      </div>
-    </section>
-
-    <!-- Nouvelles arrivées -->
-    <CarouselNouvelles />
-
-    <!-- Sécurité et avantages pour ACHETER ou rechercher une montre -->
-    <section class="py-12 bg-cream">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-10">
-          <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
-            Achetez ou recherchez votre montre en toute confiance
-          </h2>
-          <p class="text-xl text-gray-600">
-            Profitez d'un accompagnement personnalisé, d'une sécurité totale et de tous les avantages de notre réseau d'experts pour un achat serein ou la quête du modèle qui vous fait rêver.
-          </p>
-        </div>
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- Service personnalisé -->
-          <div class="text-center p-6 rounded-md bg-white shadow-lg transition-colors">
-            <div
-              class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3"
-            >
-              <!-- icône personne/user -->
-              <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <!-- Tête -->
-                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" />
-                <!-- Epaules et buste -->
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20c0-2.209 3.134-4 8-4s8 1.791 8 4"/>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold mb-2">Accompagnement personnalisé</h3>
-            <p class="text-gray-600">
-              Conseils, sourcing sur-mesure et suivi tout au long de votre projet d'achat ou de recherche de montre.
-            </p>
-          </div>
-          <!-- Authenticité et sécurité des transactions -->
-          <div class="text-center p-6 rounded-md bg-white shadow-lg transition-colors">
-            <div
-              class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3"
-            >
-              <!-- shield sécurité -->
-              <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4l7 4v6a9 9 0 01-7 8 9 9 0 01-7-8V8l7-4z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold mb-2">Authenticité & sécurité</h3>
-            <p class="text-gray-600">
-              Chaque montre est minutieusement vérifiée : authenticité certifiée, paiement sécurisé, transaction protégée.
-            </p>
-          </div>
-          <!-- Accès à un large réseau et sourcing -->
-          <div class="text-center p-6 rounded-md bg-white shadow-lg transition-colors">
-            <div
-              class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3"
-            >
-              <!-- globe icône FontAwesome style (remplacement) -->
-              <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
-                <ellipse cx="12" cy="12" rx="4" ry="10" stroke="currentColor" stroke-width="2" fill="none"/>
-                <ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="2" fill="none"/>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold mb-2">Sourcing & réseau international</h3>
-            <p class="text-gray-600">
-              Profitez de notre réseau français et européen pour accéder à des modèles rares, exclusifs ou au meilleur rapport qualité/prix.
-            </p>
-          </div>
-          <!-- Transparence et sérénité -->
-          <div class="text-center p-6 rounded-md bg-white shadow-lg transition-colors">
-            <div
-              class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3"
-            >
-              <!-- file-check (document validé/sérénité) -->
-              <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <rect x="4" y="4" width="16" height="16" rx="2" stroke-width="2"/>
-                <!-- Checkmark recentrée dans le carré -->
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 13.5l2.2 2.2 4.8-4.8"/>
-              </svg>
-            </div>
-            <h3 class="text-lg font-semibold mb-2">Transparence & satisfaction</h3>
-            <p class="text-gray-600">
-              Processus limpide, aucune commission cachée, votre tranquillité est notre priorité.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Dernières ventes -->
-    <CarouselVentes />
-    
-    <SuivezNous />
-    
-    <!-- Services -->
-    <section
-      v-if="features.recherche || features.collection || features.estimation"
-      id="services"
-      class="py-12 bg-white"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-10">
-          <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Nos services exclusifs</h2>
-          <p class="text-xl text-gray-600">
-            Une expertise complète pour répondre à tous vos besoins horlogers
-          </p>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-6">
-
-          <!-- Recherche personnalisée -->
-          <div
-            v-if="features.recherche"
-            class="bg-white rounded-md p-6 text-center hover:shadow-lg transition-all shadow-lg"
-          >
-            <div class="text-primary text-4xl mb-3 flex justify-center">
-              <!-- SVG search icon -->
-              <svg class="h-10 w-10 text-primary mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Recherche personnalisée</h3>
-            <p class="text-gray-600 mb-3">
-              Dites-nous ce que vous cherchez, nous le trouvons pour vous. Rareté, budget, état : on
-              s'occupe de tout.
-            </p>
-
-            <RouterLink to="/recherche" class="text-primary font-semibold hover:underline">
-              Demander une recherche</RouterLink
-            >
-          </div>
-         
-          <!-- Vente de montre -->
-          <div
-            v-if="features.collection"
-            class="bg-white rounded-md p-6 text-center hover:shadow-lg transition-all shadow-lg"
-          >
-            <div class="text-primary text-4xl mb-3 flex justify-center">
-              <!-- SVG montre (watch) icon -->
-              <svg class="h-10 w-10 text-primary mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
-                <rect x="9.5" y="1.5" width="5" height="3" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
-                <rect x="9.5" y="19.5" width="5" height="3" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
-                <path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Collection de montres</h3>
-            <p class="text-gray-600 mb-3">
-              Découvrez notre sélection de montres disponibles en stock.
-            </p>
-            <a href="/collection" class="text-primary font-semibold hover:underline">
-              Voir nos montres en stock
-            </a>
-          </div>
-
-          <!-- Estimation gratuite -->
-          <div
-            v-if="features.estimation"
-            class="bg-white rounded-md p-6 text-center hover:shadow-lg transition-all shadow-lg"
-          >
-            <div class="text-primary text-4xl mb-3 flex justify-center">
-              <!-- SVG calculator icon -->
-              <svg class="h-10 w-10 text-primary mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-                <rect x="8" y="7" width="8" height="2" rx="1" fill="currentColor" class="opacity-30"/>
-                <circle cx="8" cy="13" r="1" fill="currentColor"/>
-                <circle cx="12" cy="13" r="1" fill="currentColor"/>
-                <circle cx="16" cy="13" r="1" fill="currentColor"/>
-                <circle cx="8" cy="17" r="1" fill="currentColor"/>
-                <circle cx="12" cy="17" r="1" fill="currentColor"/>
-                <circle cx="16" cy="17" r="1" fill="currentColor"/>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Estimation gratuite</h3>
-            <p class="text-gray-600 mb-3">
-              Obtenez une évaluation fiable de votre montre en moins de 24h, sans engagement.
-            </p>
-            <RouterLink to="/estimation" class="text-primary font-semibold hover:underline">
-              Faire estimer ma montre
-            </RouterLink>
-          </div>
-          <!-- Dépôt-vente -->
-          <!-- <div class="bg-white rounded-md p-6 text-center hover:shadow-lg transition-all shadow-lg">
-            <div class="text-primary text-4xl mb-4">
-              <i class="fas fa-store"></i>
-            </div>
-            <h3 class="text-xl font-semibold mb-3">Dépôt-vente</h3>
-            <p class="text-gray-600 mb-4">
-              Confiez-nous votre montre : nous activons notre réseau pour trouver un acheteur
-              sérieux.
-            </p>
-            <RouterLink to="/depot-vente" class="text-primary font-semibold hover:underline">
-              En savoir plus
-            </RouterLink>
-          </div> -->
-        </div>
-      </div>
-    </section>
-
-    <FaqSection />
-
+    <component
+      :is="SECTION_COMPONENTS[id]"
+      v-for="id in resolvedSections"
+      :key="id"
+    />
   </div>
 </template>
 

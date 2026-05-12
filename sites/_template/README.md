@@ -9,6 +9,7 @@ Ce dossier **n’est pas** un site buildable : il sert de référence pour crée
 
 2. **Renommer et éditer** `site.config.js`  
    - `siteId`, `brand`, `contact`, `legal`, `urls`, `social`, `copy`, `integrations`, `seo` (toutes les sections utilisées par le socle `packages/base`).
+   - **Page d’accueil** : sans `home.sections` (ou tableau vide), la route `/` n’affiche aucun bloc ; renseigner explicitement les ids dans `home.sections` pour composer l’accueil (voir [documentation/multi-client.md](../../documentation/multi-client.md) section « Page d’accueil » et `packages/base/src/site/homeSections.js`).
 
 3. **Assets marque**  
    Placer logos et visuels sous `sites/<SITE_ID>/src/assets/` en respectant les chemins attendus par les imports `@site/*` dans `packages/base` (voir grep `@site/` dans le socle).

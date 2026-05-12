@@ -2,8 +2,12 @@
  * First-site manifest: current production storefront (Sauvage).
  * Template extraction — all brand-specific defaults for `sites/sauvage-watches` live here.
  */
+import faq from './faq.config.js'
+
 export default {
   siteId: 'sauvage-watches',
+
+  faq,
 
   locale: 'fr',
 
@@ -99,6 +103,23 @@ export default {
     purchase: true,
   },
 
+  /**
+   * Sections affichées sur la page d’accueil et leur ordre.
+   * Ids reconnus : voir `packages/base/src/site/homeSections.js` (`KNOWN_HOME_SECTION_IDS`).
+   * Sans clé `home` ou sans `sections`, l’accueil est vide (pas de défaut dans le socle).
+   */
+  home: {
+    sections: [
+      'hero',
+      'nouvelles',
+      'trust',
+      'ventes',
+      'suivezNous',
+      'services',
+      'faq',
+    ],
+  },
+
   /** Filtres collection — passer une clé à `false` pour masquer la section dans le tiroir. */
   collection: {
     filters: {
@@ -126,7 +147,7 @@ export default {
       },
       { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
       { type: 'link', label: 'À propos', to: '/a-propos', feature: 'about' },
-      { type: 'link', label: 'FAQ', to: '/#faq' },
+      { type: 'link', label: 'FAQ', to: '/#faq', feature: 'faq' },
       { type: 'link', label: 'Contact', to: '/#contact' },
     ],
     footer: [

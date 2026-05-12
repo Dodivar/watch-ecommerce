@@ -1,8 +1,12 @@
 /**
  * Démo multi-site : même socle que Demo Store, identité et URLs fictives pour valider SITE_ID / build.
  */
+import faq from './faq.config.js'
+
 export default {
   siteId: 'demo-store',
+
+  faq,
 
   locale: 'fr',
 
