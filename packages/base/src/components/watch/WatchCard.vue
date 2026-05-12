@@ -101,7 +101,7 @@
         </span>
         <span 
           v-if="watch.contenu || watch.details?.content" 
-          class="hidden md:inline bg-cream-200 px-1.5 md:px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs"
+          class="hidden md:inline bg-cream-200 px-1.5 md:px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs text-black"
         >
           {{ watch.contenu || watch.details?.content }}
         </span>
