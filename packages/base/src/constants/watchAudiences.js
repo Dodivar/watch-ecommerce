@@ -24,6 +24,15 @@ export function getStaticWatchAudienceFilterOptions() {
     .map((r) => ({ id: r.slug, label: r.label_fr }))
 }
 
+const COLLECTION_PUBLIC_QUERY_SLUGS = new Set(
+  getStaticWatchAudienceFilterOptions().map((o) => o.id),
+)
+
+/** Slug `public` valide pour `?public=` (collection, cartes home sélections). */
+export function isValidCollectionPublicQuerySlug(slug) {
+  return typeof slug === 'string' && COLLECTION_PUBLIC_QUERY_SLUGS.has(slug)
+}
+
 /** Options `<select>` admin : toutes les lignes du référentiel. */
 export function getStaticWatchAudienceAdminOptions() {
   return STATIC_WATCH_AUDIENCE_ROWS.slice()

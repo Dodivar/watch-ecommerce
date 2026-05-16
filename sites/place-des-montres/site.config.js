@@ -1,3 +1,5 @@
+import homeSelectionCards from './homeSelections.config.js'
+
 /**
  * Manifest client — Place des Montres (placedesmontres.fr), horlogerie e-commerce à Strasbourg.
  * Données publiques issues du site vitrine (PrestaShop) : contact, adresse magasin, livraison, réseaux.
@@ -158,11 +160,26 @@ export default {
       price: true,
       brand: true,
       audience: true,
+      caseSize: true,
     },
   },
 
   home: {
-    sections: ['hero', 'nouvelles', 'trust', 'ventes', 'suivezNous', 'services', 'faq'],
+    sections: [
+      'hero',
+      'nouvelles',
+      'selections',
+      'trust',
+      'ventes',
+      'suivezNous',
+      'services',
+      'faq',
+    ],
+    selections: {
+      title: 'Nos sélections du moment',
+      /** Visuels : voir `public/home-selections/README.md` et `homeSelections.config.js`. */
+      cards: homeSelectionCards,
+    },
   },
 
   navigation: {
@@ -173,9 +190,9 @@ export default {
         type: 'group',
         label: 'Univers',
         items: [
-          { label: 'Homme', to: '/collection', feature: 'collection' },
-          { label: 'Femme', to: '/collection', feature: 'collection' },
-          { label: 'Enfant', to: '/collection', feature: 'collection' },
+          { label: 'Homme', to: '/collection?public=homme', feature: 'collection' },
+          { label: 'Femme', to: '/collection?public=femme', feature: 'collection' },
+          { label: 'Enfant', to: '/collection?public=enfant', feature: 'collection' },
         ],
       },
       { type: 'link', label: 'Marques', to: '/collection/marques', feature: 'collection' },

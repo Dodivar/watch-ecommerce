@@ -1,7 +1,10 @@
+import { resolveHomeSelectionsConfig } from './homeSelections.js'
+
 /** Identifiants de sections reconnus pour `site.config.js` → `home.sections`. */
 export const KNOWN_HOME_SECTION_IDS = [
   'hero',
   'nouvelles',
+  'selections',
   'trust',
   'ventes',
   'suivezNous',
@@ -39,11 +42,23 @@ export function resolveHomeSections(siteConfig) {
  *
  * @param {string[]} sections
  * @param {Record<string, boolean>} features
+ * @param {Record<string, unknown>} [siteConfig]
  * @returns {string[]}
  */
-export function filterHomeSectionsByFeatures(sections, features) {
+export function filterHomeSectionsByFeatures(sections, features, siteConfig) {
+  const resolvedCards = siteConfig?.home?.selections?.cards
+  const selectionsCards =
+    Array.isArray(resolvedCards)
+      ? resolvedCards.length
+      : siteConfig
+        ? resolveHomeSelectionsConfig(siteConfig).cards.length
+        : 0
+
   return sections.filter((id) => {
     if (id === 'faq') return Boolean(features.faq)
+    if (id === 'selections') {
+      return Boolean(features.collection && selectionsCards > 0)
+    }
     if (id === 'services') {
       return Boolean(
         features.recherche || features.collection || features.estimation,

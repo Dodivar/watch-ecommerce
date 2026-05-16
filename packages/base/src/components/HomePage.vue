@@ -14,10 +14,12 @@ import FaqSection from './Faq.vue'
 import HomeHeroSection from './home/HomeHeroSection.vue'
 import HomeTrustSection from './home/HomeTrustSection.vue'
 import HomeServicesSection from './home/HomeServicesSection.vue'
+import HomeSelectionsSection from './home/HomeSelectionsSection.vue'
 
 const SECTION_COMPONENTS = {
   hero: HomeHeroSection,
   nouvelles: CarouselNouvelles,
+  selections: HomeSelectionsSection,
   trust: HomeTrustSection,
   ventes: CarouselVentes,
   suivezNous: SuivezNous,
@@ -29,7 +31,7 @@ const site = getSiteConfig()
 const seo = site.seo.home
 
 const resolvedSections = computed(() =>
-  filterHomeSectionsByFeatures(site.home.sections, site.features),
+  filterHomeSectionsByFeatures(site.home.sections, site.features, site),
 )
 
 const route = useRoute()

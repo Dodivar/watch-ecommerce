@@ -30,7 +30,7 @@ export function normalizeCaseSizeValue(value) {
     return trimmed.replace(/\s*mm\s*/gi, '').trim()
   }
 
-  return Number.isInteger(mm) ? String(mm) : String(mm)
+  return String(mm)
 }
 
 /**
@@ -42,8 +42,7 @@ export function formatCaseSizeDisplay(value) {
   if (!normalized) return ''
   const mm = parseCaseSizeMm(normalized)
   if (mm === null) return normalized
-  const display = Number.isInteger(mm) ? String(mm) : String(mm)
-  return `${display} mm`
+  return `${String(mm)} mm`
 }
 
 /**

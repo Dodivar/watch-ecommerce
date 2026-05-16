@@ -5,6 +5,7 @@ import {
   normalizeCaseSizeValue,
   watchMatchesCaseSize,
 } from '@/utils/caseSize'
+import { compareWatchesByRecent } from '@/utils/watchSort.js'
 
 function watchMatchesAudience(watchModel, selected) {
   if (!selected || selected === 'all') return true
@@ -27,6 +28,70 @@ function countAppliedAudience(selectedAudience) {
 
 function countAppliedCaseSizes(selectedCaseSizes) {
   return selectedCaseSizes.length
+}
+
+/**
+ * Filtre facettes collection (marque, public, diamètre, prix).
+ * Prix appliqués : `priceMin` / `priceMax` (null = pas de borne).
+ * Prix brouillon : `priceRange` + limites ; filtre si la plage diffère des limites catalogue.
+ *
+ * @param {Array<{ brand: string, price: number, audience?: string, details?: { caseSize?: string } }>} watchList
+ * @param {{
+ *   selectedBrands: string[],
+ *   selectedAudience: string,
+ *   selectedCaseSizes: string[],
+ *   priceMin?: number | null,
+ *   priceMax?: number | null,
+ *   priceRange?: [number, number],
+ *   priceMinLimit?: number,
+ *   priceMaxLimit?: number,
+ * }} options
+ */
+function filterWatchesForListing(watchList, options) {
+  let filtered = watchList
+  const {
+    selectedBrands,
+    selectedAudience,
+    selectedCaseSizes,
+    priceMin,
+    priceMax,
+    priceRange,
+    priceMinLimit,
+    priceMaxLimit,
+  } = options
+
+  if (selectedBrands.length > 0) {
+    filtered = filtered.filter((watch) => selectedBrands.includes(watch.brand))
+  }
+
+  if (selectedAudience !== 'all') {
+    filtered = filtered.filter((w) => watchMatchesAudience(w, selectedAudience))
+  }
+
+  if (selectedCaseSizes.length > 0) {
+    filtered = filtered.filter((w) => watchMatchesCaseSize(w, selectedCaseSizes))
+  }
+
+  if (
+    priceRange != null &&
+    priceMinLimit != null &&
+    priceMaxLimit != null &&
+    (priceRange[0] !== priceMinLimit || priceRange[1] !== priceMaxLimit)
+  ) {
+    filtered = filtered.filter(
+      (watch) => watch.price >= priceRange[0] && watch.price <= priceRange[1],
+    )
+  } else if (priceMin !== undefined || priceMax !== undefined) {
+    if (priceMin !== null || priceMax !== null) {
+      filtered = filtered.filter((watch) => {
+        const matchesMin = priceMin === null || watch.price >= priceMin
+        const matchesMax = priceMax === null || watch.price <= priceMax
+        return matchesMin && matchesMax
+      })
+    }
+  }
+
+  return filtered
 }
 
 /**
@@ -148,27 +213,13 @@ export function useWatchListing() {
   const hasActiveFilters = computed(() => activeFilterCount.value > 0)
 
   const filteredWatches = computed(() => {
-    let filtered = scopedWatches.value
-
-    if (selectedBrands.value.length > 0) {
-      filtered = filtered.filter((watch) => selectedBrands.value.includes(watch.brand))
-    }
-
-    if (selectedAudience.value !== 'all') {
-      filtered = filtered.filter((w) => watchMatchesAudience(w, selectedAudience.value))
-    }
-
-    if (selectedCaseSizes.value.length > 0) {
-      filtered = filtered.filter((w) => watchMatchesCaseSize(w, selectedCaseSizes.value))
-    }
-
-    if (priceMin.value !== null || priceMax.value !== null) {
-      filtered = filtered.filter((watch) => {
-        const matchesMin = priceMin.value === null || watch.price >= priceMin.value
-        const matchesMax = priceMax.value === null || watch.price <= priceMax.value
-        return matchesMin && matchesMax
-      })
-    }
+    const filtered = filterWatchesForListing(scopedWatches.value, {
+      selectedBrands: selectedBrands.value,
+      selectedAudience: selectedAudience.value,
+      selectedCaseSizes: selectedCaseSizes.value,
+      priceMin: priceMin.value,
+      priceMax: priceMax.value,
+    })
 
     const sorted = [...filtered]
     switch (sortOrder.value) {
@@ -180,14 +231,7 @@ export function useWatchListing() {
         break
       case 'recent':
       default:
-        sorted.sort((a, b) => {
-          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
-          if (dateA === 0 && dateB === 0) {
-            return (b.displayOrder || 0) - (a.displayOrder || 0)
-          }
-          return dateB - dateA
-        })
+        sorted.sort(compareWatchesByRecent)
     }
 
     return sorted
@@ -195,26 +239,14 @@ export function useWatchListing() {
 
   /** Nombre de montres correspondant au brouillon du tiroir (aperçu). */
   function getDraftFilteredCount() {
-    let filtered = scopedWatches.value
-    if (tempSelectedBrands.value.length > 0) {
-      filtered = filtered.filter((watch) => tempSelectedBrands.value.includes(watch.brand))
-    }
-    if (tempAudience.value !== 'all') {
-      filtered = filtered.filter((w) => watchMatchesAudience(w, tempAudience.value))
-    }
-    if (tempSelectedCaseSizes.value.length > 0) {
-      filtered = filtered.filter((w) => watchMatchesCaseSize(w, tempSelectedCaseSizes.value))
-    }
-    if (
-      tempPriceRange.value[0] !== priceMinLimit.value ||
-      tempPriceRange.value[1] !== priceMaxLimit.value
-    ) {
-      filtered = filtered.filter(
-        (watch) =>
-          watch.price >= tempPriceRange.value[0] && watch.price <= tempPriceRange.value[1],
-      )
-    }
-    return filtered.length
+    return filterWatchesForListing(scopedWatches.value, {
+      selectedBrands: tempSelectedBrands.value,
+      selectedAudience: tempAudience.value,
+      selectedCaseSizes: tempSelectedCaseSizes.value,
+      priceRange: tempPriceRange.value,
+      priceMinLimit: priceMinLimit.value,
+      priceMaxLimit: priceMaxLimit.value,
+    }).length
   }
 
   /** Compte brouillon pour une section (pastille titre accordéon). */

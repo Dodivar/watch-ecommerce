@@ -1,6 +1,7 @@
 import siteConfig from '@site-config'
 
 import { resolveHomeSections } from './homeSections.js'
+import { resolveHomeSelectionsConfig } from './homeSelections.js'
 import { mergeSiteFeatures } from './siteFeatures.js'
 
 let cached
@@ -26,12 +27,14 @@ export function getSiteConfig() {
       siteConfig.home != null && typeof siteConfig.home === 'object'
         ? siteConfig.home
         : {}
+    const selections = resolveHomeSelectionsConfig(siteConfig)
     cached = {
       ...siteConfig,
       features,
       home: {
         ...homeRest,
         sections: resolveHomeSections(siteConfig),
+        selections,
       },
     }
   }

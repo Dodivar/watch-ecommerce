@@ -4,7 +4,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { createWatch, updateWatch, uploadWatchImage, deleteWatchImage, reorderWatchImages, getWatchByIdForAdmin, duplicateWatch } from '@/services/admin/adminWatchService'
 import { getWatchAudiencesForAdminForm } from '@/services/watchService'
 import { DEFAULT_WATCH_AUDIENCE_SLUG, getStaticWatchAudienceAdminOptions } from '@/constants/watchAudiences'
-import { normalizeCaseSizeValue } from '@/utils/caseSize'
 import AdminHeader from './AdminHeader.vue'
 import AdminWatchArticleSelector from './AdminWatchArticleSelector.vue'
 
@@ -106,7 +105,7 @@ const loadWatch = async () => {
         movement: watch.details?.movement || '',
         caseMaterial: watch.details?.caseMaterial || '',
         braceletMaterial: watch.details?.braceletMaterial || '',
-        caseSize: normalizeCaseSizeValue(watch.details?.caseSize || ''),
+        caseSize: watch.details?.caseSize || '',
         thickness: watch.details?.thickness || '',
         dialColor: watch.details?.dialColor || '',
         crystal: watch.details?.crystal || '',

@@ -222,6 +222,11 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
 import { parseSearchQuery, watchMatchesSearchQuery } from '@/utils/watchSearch.js'
+import {
+  COLLECTION_PAGINATION_MOBILE_MQ,
+  buildCollectionPaginationItems,
+} from '@/utils/collectionPagination.js'
+import { compareWatchesByRecent } from '@/utils/watchSort.js'
 
 defineOptions({ name: 'WatchSearchResultsPage' })
 
@@ -235,12 +240,12 @@ const collectionPageSize = getResolvedCollectionPageSize(siteConfig)
 const currentPage = ref(1)
 const listingReady = ref(false)
 
-const COLLECTION_PAGINATION_MOBILE_MQ = '(max-width: 639px)'
 const isPaginationCompact = ref(false)
 let paginationMq = null
 
 const searchQuery = computed(() => parseSearchQuery(route.query.q))
 
+// Catalogue complet (pas filteredWatches) : la recherche ignore les facettes collection.
 const searchResults = computed(() => {
   const q = searchQuery.value
   if (!q) return []
@@ -248,16 +253,7 @@ const searchResults = computed(() => {
 })
 
 const sortedResults = computed(() => {
-  const sorted = [...searchResults.value]
-  sorted.sort((a, b) => {
-    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
-    if (dateA === 0 && dateB === 0) {
-      return (b.displayOrder || 0) - (a.displayOrder || 0)
-    }
-    return dateB - dateA
-  })
-  return sorted
+  return [...searchResults.value].sort(compareWatchesByRecent)
 })
 
 const totalFiltered = computed(() => sortedResults.value.length)
@@ -272,50 +268,6 @@ const paginatedWatches = computed(() => {
 })
 
 const skeletonCardCount = computed(() => Math.min(collectionPageSize, 12))
-
-function buildCollectionPaginationItems(current, last, compact) {
-  if (last <= 1) return []
-
-  const pages = new Set([1, last])
-
-  if (last <= 5) {
-    for (let p = 1; p <= last; p += 1) pages.add(p)
-  } else if (compact) {
-    if (current <= 2) {
-      pages.add(2)
-      pages.add(3)
-    } else if (current >= last - 1) {
-      pages.add(last - 2)
-      pages.add(last - 1)
-    } else {
-      pages.add(current - 1)
-      pages.add(current)
-      pages.add(current + 1)
-    }
-  } else {
-    for (let p = Math.max(2, current - 2); p <= Math.min(last - 1, current + 2); p += 1) {
-      pages.add(p)
-    }
-    if (current <= 4) {
-      for (let p = 2; p <= Math.min(5, last - 1); p += 1) pages.add(p)
-    }
-    if (current >= last - 3) {
-      for (let p = Math.max(2, last - 4); p < last; p += 1) pages.add(p)
-    }
-  }
-
-  const sorted = [...pages].sort((a, b) => a - b)
-  const items = []
-
-  for (let i = 0; i < sorted.length; i += 1) {
-    if (!compact && i > 0 && sorted[i] - sorted[i - 1] > 1) {
-      items.push({ type: 'ellipsis' })
-    }
-    items.push({ type: 'page', n: sorted[i] })
-  }
-
-  return items
-}
 
 const paginationItems = computed(() =>
   buildCollectionPaginationItems(
@@ -363,6 +315,7 @@ function syncPaginationViewport() {
   isPaginationCompact.value = window.matchMedia(COLLECTION_PAGINATION_MOBILE_MQ).matches
 }
 
+// Redirect immédiat si q invalide ; onMounted empêche aussi loadWatches dans ce cas.
 watch(
   () => route.query.q,
   (q) => {
