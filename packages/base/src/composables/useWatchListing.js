@@ -312,24 +312,23 @@ export function useWatchListing() {
   }
 
   watch(
-    tempPriceRange,
-    (newValue, oldValue) => {
-      if (!oldValue || (newValue[0] === oldValue[0] && newValue[1] === oldValue[1])) return
+    () => [tempPriceRange.value[0], tempPriceRange.value[1]],
+    ([min, max], [prevMin, prevMax]) => {
+      if (min === prevMin && max === prevMax) return
 
-      const roundedMin = roundToTen(newValue[0])
-      const roundedMax = roundToTen(newValue[1])
+      const roundedMin = roundToTen(min)
+      const roundedMax = roundToTen(max)
       tempPriceMinInput.value = roundedMin
       tempPriceMaxInput.value = roundedMax
 
-      if (roundedMin !== newValue[0] || roundedMax !== newValue[1]) {
+      if (roundedMin !== min || roundedMax !== max) {
         const clampedMin = Math.max(priceMinLimit.value, Math.min(priceMaxLimit.value, roundedMin))
         const clampedMax = Math.max(priceMinLimit.value, Math.min(priceMaxLimit.value, roundedMax))
-        if (clampedMin !== newValue[0] || clampedMax !== newValue[1]) {
+        if (clampedMin !== min || clampedMax !== max) {
           tempPriceRange.value = [clampedMin, clampedMax]
         }
       }
     },
-    { deep: true },
   )
 
   watch([priceMinLimit, priceMaxLimit], () => {

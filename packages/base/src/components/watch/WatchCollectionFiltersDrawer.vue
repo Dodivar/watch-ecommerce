@@ -295,7 +295,7 @@ const priceRangeModel = computed({
   },
   set(val) {
     if (Array.isArray(val) && val.length === 2) {
-      props.listing.tempPriceRange.splice(0, 2, val[0], val[1])
+      props.listing.tempPriceRange = [val[0], val[1]]
     }
   },
 })
