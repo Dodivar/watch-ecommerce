@@ -9,6 +9,7 @@ import HomeView from './components/HomePage.vue'
 import Merci from './components/Merci.vue'
 import Recherche from './components/Recherche.vue'
 import WatchesCollection from './components/watch/WatchesCollection.vue'
+import WatchSearchResultsPage from './components/watch/WatchSearchResultsPage.vue'
 import BrandsIndexPage from './components/watch/BrandsIndexPage.vue'
 import WatchDetail from './components/watch/WatchDetail.vue'
 import MaintenancePage from './components/MaintenancePage.vue'
@@ -42,8 +43,9 @@ const routeDefinitions = [
   { path: '/recherche', component: Recherche, feature: 'recherche' },
   { path: '/estimation', component: EstimationPage, feature: 'estimation' },
   { path: '/estimation/processus', component: EstimationProcess, feature: 'estimationProcess' },
-  { path: '/collection', component: WatchesCollection, feature: 'collection' },
+  { path: '/collection/recherche', component: WatchSearchResultsPage, feature: 'collection' },
   { path: '/collection/marques', component: BrandsIndexPage, feature: 'collection' },
+  { path: '/collection', component: WatchesCollection, feature: 'collection' },
   { path: '/watch/:id', component: WatchDetail, feature: 'collection' },
   { path: '/blog', component: BlogList, feature: 'blog' },
   { path: '/blog/:id', component: BlogDetail, feature: 'blog' },

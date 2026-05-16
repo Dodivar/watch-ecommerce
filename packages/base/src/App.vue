@@ -7,6 +7,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { resolveMainNavigation, resolveFooterNavigation } from '@/site/mainNavigation.js'
 import MainNavDesktop from '@/components/layout/MainNavDesktop.vue'
 import MainNavMobile from '@/components/layout/MainNavMobile.vue'
+import HeaderQuickSearch from '@/components/layout/HeaderQuickSearch.vue'
 import logoMobileMenuVerticalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB vertical/Logo SW blanc vertical RVB.png'
 import logoHeaderIconGreen from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW verte RVB.png'
 import logoFooterHorizontalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW blanc horizontal RVB.png'
@@ -22,6 +23,7 @@ const mainNavItems = resolveMainNavigation(site)
 const footerNavItems = resolveFooterNavigation(site)
 
 const mobileMenuOpen = ref(false)
+const catalogSearchOpen = ref(false)
 const route = useRoute()
 
 const { badgeLabel, toggleDrawer, closeDrawer: closeCartDrawer } = useCart()
@@ -44,6 +46,7 @@ onMounted(() => {
 watch(() => route.path, () => {
   checkAdminStatus()
   mobileMenuOpen.value = false
+  catalogSearchOpen.value = false
   closeCartDrawer()
 })
 
@@ -66,10 +69,14 @@ function displayMobileMenu() {
   />
 
   <!-- Menu desktop -->
-  <header v-if="!isMaintenancePage" id="header" class="shadow-sm backdrop-blur-sm sticky top-0 z-20">
+  <header
+    v-if="!isMaintenancePage"
+    id="header"
+    class="relative shadow-sm backdrop-blur-sm sticky top-0 z-20"
+  >
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex items-center">
+      <div class="flex justify-between items-center h-16 gap-2">
+        <div class="flex items-center shrink-0">
           <RouterLink to="/">
             <img width="50px" height="50px" :src="logoHeaderIconGreen" alt="" />
           </RouterLink>
@@ -80,6 +87,11 @@ function displayMobileMenu() {
           :nav-items="mainNavItems"
         />
         <div class="flex items-center gap-1 shrink-0">
+          <HeaderQuickSearch
+            v-if="features.collection"
+            v-model:open="catalogSearchOpen"
+            variant="header-trigger"
+          />
           <button
             v-if="PURCHASE_ENABLED"
             type="button"
@@ -115,6 +127,11 @@ function displayMobileMenu() {
         </div>
       </div>
     </nav>
+    <HeaderQuickSearch
+      v-if="features.collection"
+      v-model:open="catalogSearchOpen"
+      variant="header-panel"
+    />
   </header>
 
   <main>

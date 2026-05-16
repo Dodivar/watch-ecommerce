@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { getWatchArticlesForAdmin } from '../watchArticleService'
+import { normalizeCaseSizeValue } from '@/utils/caseSize'
 
 /**
  * Transforme les données du formulaire en format base de données
@@ -32,7 +33,7 @@ function transformDetailsToDB(watchId, details) {
     movement: details.movement || null,
     case_material: details.caseMaterial || null,
     bracelet_material: details.braceletMaterial || null,
-    case_size: details.caseSize || null,
+    case_size: details.caseSize ? normalizeCaseSizeValue(details.caseSize) : null,
     thickness: details.thickness || null,
     dial_color: details.dialColor || null,
     crystal: details.crystal || null,
@@ -703,7 +704,7 @@ export async function getWatchByIdForAdmin(watchId) {
         movement: details?.movement || '',
         caseMaterial: details?.case_material || '',
         braceletMaterial: details?.bracelet_material || '',
-        caseSize: details?.case_size || '',
+        caseSize: normalizeCaseSizeValue(details?.case_size || ''),
         thickness: details?.thickness || '',
         dialColor: details?.dial_color || '',
         crystal: details?.crystal || '',

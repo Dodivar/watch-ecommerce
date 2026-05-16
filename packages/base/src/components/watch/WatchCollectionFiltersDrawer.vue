@@ -184,6 +184,55 @@
             </div>
           </section>
 
+          <!-- Diamètre du boîtier -->
+          <section v-if="sections.caseSize" class="border-b border-gray-100">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 py-4 text-left"
+              @click="toggleSection('caseSize')"
+            >
+              <span class="flex items-center gap-2 font-medium text-text-main">
+                Diamètre du boîtier
+                <span
+                  v-if="listing.getDraftSectionCount('caseSize') > 0"
+                  class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
+                >
+                  {{ listing.getDraftSectionCount('caseSize') }}
+                </span>
+              </span>
+              <svg
+                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': expanded.caseSize }"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div v-show="expanded.caseSize" class="pb-4">
+              <p v-if="listing.availableCaseSizes.length === 0" class="text-sm text-gray-500">
+                Aucun diamètre renseigné sur les montres en stock.
+              </p>
+              <div v-else class="flex flex-wrap gap-1.5">
+                <button
+                  v-for="size in listing.availableCaseSizes"
+                  :key="size"
+                  type="button"
+                  class="rounded-md border px-2 py-1 text-left text-xs transition-colors"
+                  :class="
+                    listing.tempSelectedCaseSizes.includes(size)
+                      ? 'border-primary bg-primary text-white'
+                      : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                  "
+                  @click="listing.toggleCaseSize(size)"
+                >
+                  {{ formatCaseSizeLabel(size) }}
+                </button>
+              </div>
+            </div>
+          </section>
+
           <!-- Public -->
           <section v-if="sections.audience" class="border-b border-gray-100">
             <button
@@ -255,6 +304,7 @@
 <script setup>
 import { computed, reactive, ref, watch, onMounted, onUnmounted } from 'vue'
 import { getWatchAudiencesForCollectionFilter } from '@/services/watchService'
+import { formatCaseSizeDisplay } from '@/utils/caseSize'
 import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
 
@@ -265,9 +315,13 @@ const props = defineProps({
   /** Sections affichées (depuis `getMergedCollectionFilters` + contexte route) */
   sections: {
     type: Object,
-    default: () => ({ price: true, brand: true, audience: true }),
+    default: () => ({ price: true, brand: true, audience: true, caseSize: true }),
   },
 })
+
+function formatCaseSizeLabel(size) {
+  return formatCaseSizeDisplay(size)
+}
 
 const emit = defineEmits(['close', 'applied'])
 
@@ -282,6 +336,7 @@ async function loadAudienceFilterOptions() {
 const expanded = reactive({
   brand: false,
   price: false,
+  caseSize: false,
   audience: false,
 })
 
@@ -321,6 +376,7 @@ watch(
     if (isOpen) {
       expanded.brand = false
       expanded.price = false
+      expanded.caseSize = false
       expanded.audience = false
       document.addEventListener('keydown', onEscape)
     } else {

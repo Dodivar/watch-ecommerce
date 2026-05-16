@@ -121,6 +121,7 @@ export default {
       price: true,
       brand: true,
       audience: true,
+      caseSize: true,
     },
   },
 

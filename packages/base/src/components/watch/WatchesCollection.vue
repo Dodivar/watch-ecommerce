@@ -246,33 +246,6 @@
                     : ''
                 "
                 :disabled="currentPage === 1"
-                aria-label="Aller à la première page"
-                @click="goToPage(1)"
-              >
-                <svg
-                  class="h-5 w-5 shrink-0 sm:h-5 sm:w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15l-7.5-7.5 7.5-7.5"
-                  />
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
-                :class="
-                  currentPage === 1
-                    ? 'cursor-not-allowed bg-cream-200 text-gray-400'
-                    : ''
-                "
-                :disabled="currentPage === 1"
                 aria-label="Page précédente"
                 @click="goToPage(currentPage - 1)"
               >
@@ -292,34 +265,36 @@
                 </svg>
               </button>
               <ul
-                class="m-0 grid w-[13.75rem] shrink-0 list-none grid-cols-5 gap-0 p-0 sm:w-[13.5rem] sm:gap-1"
+                class="m-0 flex shrink-0 list-none flex-wrap items-center justify-center gap-0 p-0 sm:gap-1"
                 aria-label="Sélection de page"
               >
                 <li
-                  v-for="(slot, slotIdx) in collectionPaginationFiveSlots"
-                  :key="`slot-${slotIdx}`"
+                  v-for="(item, itemIdx) in collectionPaginationItems"
+                  :key="`page-${itemIdx}-${item.type === 'page' ? item.n : 'ellipsis'}`"
                   class="m-0 flex h-11 w-11 items-center justify-center p-0 sm:h-10 sm:w-10"
                 >
                   <span
-                    v-if="slot.type === 'spacer'"
-                    class="box-border h-11 w-11 shrink-0 rounded-lg border border-transparent bg-transparent sm:h-10 sm:w-10"
+                    v-if="item.type === 'ellipsis'"
+                    class="box-border inline-flex h-11 w-11 shrink-0 items-center justify-center text-sm font-medium text-gray-500 sm:h-10 sm:w-10"
                     aria-hidden="true"
-                  />
+                  >
+                    …
+                  </span>
                   <span
-                    v-else-if="slot.type === 'page' && slot.n === currentPage"
+                    v-else-if="item.type === 'page' && item.n === currentPage"
                     class="box-border inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-primary bg-primary text-sm font-semibold text-white sm:h-10 sm:w-10 sm:text-sm"
                     aria-current="page"
                   >
-                    {{ slot.n }}
+                    {{ item.n }}
                   </span>
                   <button
-                    v-else-if="slot.type === 'page'"
+                    v-else-if="item.type === 'page'"
                     type="button"
                     class="box-border inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10 sm:text-sm"
-                    :aria-label="`Page ${slot.n}`"
-                    @click="goToPage(slot.n)"
+                    :aria-label="`Page ${item.n}`"
+                    @click="goToPage(item.n)"
                   >
-                    {{ slot.n }}
+                    {{ item.n }}
                   </button>
                 </li>
               </ul>
@@ -347,33 +322,6 @@
                     stroke-linejoin="round"
                     stroke-width="2"
                     d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                  />
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
-                :class="
-                  currentPage === totalPages
-                    ? 'cursor-not-allowed bg-cream-200 text-gray-400'
-                    : ''
-                "
-                :disabled="currentPage === totalPages"
-                aria-label="Aller à la dernière page"
-                @click="goToPage(totalPages)"
-              >
-                <svg
-                  class="h-5 w-5 shrink-0 sm:h-5 sm:w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5.25 4.5l7.5 7.5-7.5 7.5m6-15l7.5 7.5-7.5 7.5"
                   />
                 </svg>
               </button>
@@ -453,6 +401,7 @@
       :listing="listing"
       :sections="filterSections"
       @close="listing.closeFilterDrawer"
+      @applied="onFiltersApplied"
     />
   </section>
 </template>
@@ -470,7 +419,12 @@ import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getMergedCollectionFilters, getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
-import { resolveBrandFromSlug } from '@/utils/brandSlug.js'
+import { getStaticWatchAudienceFilterOptions } from '@/constants/watchAudiences.js'
+import { resolveBrandFromSlug, slugifyBrand } from '@/utils/brandSlug.js'
+
+const VALID_PUBLIC_SLUGS = new Set(
+  getStaticWatchAudienceFilterOptions().map((o) => o.id),
+)
 
 const props = defineProps({
   showFilters: { type: Boolean, default: true },
@@ -488,6 +442,13 @@ const marqueQuerySlug = computed(() => {
   return raw ? String(raw) : ''
 })
 
+const publicQuerySlug = computed(() => {
+  const q = route.query.public
+  const raw = Array.isArray(q) ? q[0] : q
+  const slug = raw ? String(raw) : ''
+  return VALID_PUBLIC_SLUGS.has(slug) ? slug : ''
+})
+
 const listing = useWatchListing()
 
 watch(
@@ -495,9 +456,20 @@ watch(
   () => {
     if (!listing.watches?.length) return
     const slug = marqueQuerySlug.value
-    if (!slug) return
+    if (!slug) {
+      listing.selectedBrands = []
+      return
+    }
     const brand = resolveBrandFromSlug(listing.watches, slug)
     listing.selectedBrands = brand ? [brand] : []
+  },
+  { immediate: true },
+)
+
+watch(
+  publicQuerySlug,
+  (slug) => {
+    listing.selectedAudience = slug || 'all'
   },
   { immediate: true },
 )
@@ -522,69 +494,116 @@ const paginatedWatches = computed(() => {
 
 const skeletonCardCount = computed(() => Math.min(collectionPageSize, 12))
 
+const COLLECTION_PAGINATION_MOBILE_MQ = '(max-width: 639px)'
+
+const isCollectionPaginationCompact = ref(false)
+let collectionPaginationMq = null
+
 /**
- * Cinq emplacements fixes : fenêtre de 5 pages qui glisse.
- * — Début (current ≤ 3) : alignée à gauche (1 … 5).
- * — Milieu : page courante centrée (current−2 … current+2).
- * — Fin (current ≥ last − 2) : alignée à droite (last−4 … last), sans trou avant les flèches.
- * — Peu de pages (last ≤ 5) : 1 … last puis espaces.
+ * Pages affichées : 1 et dernière toujours visibles.
+ * — Desktop : fenêtre autour de la page courante + ellipses entre les trous.
+ * — Mobile : pas d’ellipses, ensemble réduit (ex. 1, 2, 3, 337).
  */
-function buildCollectionPaginationFiveSlots(current, last) {
+function buildCollectionPaginationItems(current, last, compact) {
   if (last <= 1) return []
 
-  /** @type {Array<{ type: 'page'; n: number } | { type: 'spacer' }>} */
-  const slots = []
+  /** @type {Set<number>} */
+  const pages = new Set([1, last])
 
   if (last <= 5) {
-    for (let i = 0; i < 5; i += 1) {
-      const p = i + 1
-      slots.push(p <= last ? { type: 'page', n: p } : { type: 'spacer' })
+    for (let p = 1; p <= last; p += 1) pages.add(p)
+  } else if (compact) {
+    if (current <= 2) {
+      pages.add(2)
+      pages.add(3)
+    } else if (current >= last - 1) {
+      pages.add(last - 2)
+      pages.add(last - 1)
+    } else {
+      pages.add(current - 1)
+      pages.add(current)
+      pages.add(current + 1)
     }
-    return slots
+  } else {
+    for (let p = Math.max(2, current - 2); p <= Math.min(last - 1, current + 2); p += 1) {
+      pages.add(p)
+    }
+    if (current <= 4) {
+      for (let p = 2; p <= Math.min(5, last - 1); p += 1) pages.add(p)
+    }
+    if (current >= last - 3) {
+      for (let p = Math.max(2, last - 4); p < last; p += 1) pages.add(p)
+    }
   }
 
-  if (current <= 3) {
-    for (let p = 1; p <= 5; p += 1) {
-      slots.push({ type: 'page', n: p })
+  const sorted = [...pages].sort((a, b) => a - b)
+  /** @type {Array<{ type: 'page'; n: number } | { type: 'ellipsis' }>} */
+  const items = []
+
+  for (let i = 0; i < sorted.length; i += 1) {
+    if (!compact && i > 0 && sorted[i] - sorted[i - 1] > 1) {
+      items.push({ type: 'ellipsis' })
     }
-    return slots
+    items.push({ type: 'page', n: sorted[i] })
   }
 
-  if (current >= last - 2) {
-    const start = Math.max(1, last - 4)
-    for (let i = 0; i < 5; i += 1) {
-      const p = start + i
-      slots.push(p <= last ? { type: 'page', n: p } : { type: 'spacer' })
-    }
-    return slots
-  }
-
-  for (let i = -2; i <= 2; i += 1) {
-    slots.push({ type: 'page', n: current + i })
-  }
-  return slots
+  return items
 }
 
-const collectionPaginationFiveSlots = computed(() =>
-  buildCollectionPaginationFiveSlots(currentPage.value, totalPages.value),
+const collectionPaginationItems = computed(() =>
+  buildCollectionPaginationItems(
+    currentPage.value,
+    totalPages.value,
+    isCollectionPaginationCompact.value,
+  ),
 )
 
 const collectionFilterFingerprint = computed(() =>
   [
     listing.sortOrder,
     listing.selectedAudience,
+    [...listing.selectedCaseSizes].slice().sort().join('\u0000'),
     listing.priceMin,
     listing.priceMax,
     [...listing.selectedBrands].slice().sort().join('\u0000'),
     marqueQuerySlug.value,
+    publicQuerySlug.value,
   ].join('|'),
 )
 
-function updateCollectionPageQuery(page) {
+function buildCollectionQueryFromListing(page) {
   const next = { ...route.query }
+
+  if (listing.selectedBrands.length === 1) {
+    next.marque = slugifyBrand(listing.selectedBrands[0])
+  } else {
+    delete next.marque
+  }
+
+  if (listing.selectedAudience !== 'all') {
+    next.public = listing.selectedAudience
+  } else {
+    delete next.public
+  }
+
   if (page > 1) next.page = String(page)
   else delete next.page
-  router.replace({ query: next })
+
+  return next
+}
+
+function updateCollectionPageQuery(page) {
+  router.replace({ query: buildCollectionQueryFromListing(page) })
+}
+
+function syncCollectionFilterQuery() {
+  currentPage.value = 1
+  router.replace({ query: buildCollectionQueryFromListing(1) })
+}
+
+function onFiltersApplied() {
+  if (!collectionListingReady.value) return
+  syncCollectionFilterQuery()
 }
 
 function syncCollectionPageFromRoute() {
@@ -640,6 +659,7 @@ const filterSections = computed(() => {
     price: cfg.price,
     brand: cfg.brand,
     audience: cfg.audience,
+    caseSize: cfg.caseSize,
   }
 })
 
@@ -713,8 +733,16 @@ watch(
     }
 
     const brand = singleBrandLabel.value
-    const shareUrl = marqueQuerySlug.value
-      ? `${BASE_URL}/collection?marque=${encodeURIComponent(marqueQuerySlug.value)}`
+    const shareParams = new URLSearchParams()
+    if (marqueQuerySlug.value) {
+      shareParams.set('marque', marqueQuerySlug.value)
+    }
+    if (publicQuerySlug.value) {
+      shareParams.set('public', publicQuerySlug.value)
+    }
+    const shareQuery = shareParams.toString()
+    const shareUrl = shareQuery
+      ? `${BASE_URL}/collection?${shareQuery}`
       : `${BASE_URL}/collection`
     const title = brand
       ? fillBrand(seoBrand.value.title || '{brand} | Collection', brand)
@@ -757,7 +785,17 @@ const handleViewDetails = (watchId) => {
   router.push(`/watch/${watchId}`)
 }
 
+function syncCollectionPaginationViewport() {
+  isCollectionPaginationCompact.value = window.matchMedia(
+    COLLECTION_PAGINATION_MOBILE_MQ,
+  ).matches
+}
+
 onMounted(async () => {
+  collectionPaginationMq = window.matchMedia(COLLECTION_PAGINATION_MOBILE_MQ)
+  syncCollectionPaginationViewport()
+  collectionPaginationMq.addEventListener('change', syncCollectionPaginationViewport)
+
   await listing.loadWatches()
   await nextTick()
   await nextTick()
@@ -768,6 +806,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  collectionPaginationMq?.removeEventListener('change', syncCollectionPaginationViewport)
   document.removeEventListener('click', handleClickOutsideSortMenu)
 })
 </script>

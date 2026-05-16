@@ -1,5 +1,10 @@
 import { ref, computed, watch, reactive } from 'vue'
 import { getAllWatches } from '@/services/watchService'
+import {
+  compareCaseSizeValues,
+  normalizeCaseSizeValue,
+  watchMatchesCaseSize,
+} from '@/utils/caseSize'
 
 function watchMatchesAudience(watchModel, selected) {
   if (!selected || selected === 'all') return true
@@ -20,11 +25,16 @@ function countAppliedAudience(selectedAudience) {
   return selectedAudience !== 'all' ? 1 : 0
 }
 
+function countAppliedCaseSizes(selectedCaseSizes) {
+  return selectedCaseSizes.length
+}
+
 /**
  * Listing montres : chargement, filtres marque / audience / prix, tri.
  */
 export function useWatchListing() {
   const selectedBrands = ref([])
+  const selectedCaseSizes = ref(/** @type {string[]} */ ([]))
   const selectedAudience = ref(/** @type {AudienceFilter} */ ('all'))
   const priceMin = ref(null)
   const priceMax = ref(null)
@@ -35,6 +45,7 @@ export function useWatchListing() {
 
   const tempPriceRange = ref([0, 150000])
   const tempSelectedBrands = ref([])
+  const tempSelectedCaseSizes = ref(/** @type {string[]} */ ([]))
   const tempPriceMinInput = ref(0)
   const tempPriceMaxInput = ref(150000)
   /** Brouillon « Public » dans le tiroir ; validé via `applyDrawerFilters`. */
@@ -102,10 +113,20 @@ export function useWatchListing() {
     return brands.sort()
   })
 
+  const availableCaseSizes = computed(() => {
+    const sizes = new Set()
+    for (const watch of scopedWatches.value) {
+      const normalized = normalizeCaseSizeValue(watch.details?.caseSize)
+      if (normalized) sizes.add(normalized)
+    }
+    return [...sizes].sort(compareCaseSizeValues)
+  })
+
   /** Compte filtres **appliqués** (hors tri), pour le badge « Filtrer ». */
   const activeFilterCount = computed(() => {
     let n = 0
     n += countAppliedBrandFilters(selectedBrands.value)
+    n += countAppliedCaseSizes(selectedCaseSizes.value)
     n += countAppliedAudience(selectedAudience.value)
     n += countAppliedPriceActive(priceMin.value, priceMax.value)
     return n
@@ -115,6 +136,7 @@ export function useWatchListing() {
   const draftFilterCount = computed(() => {
     let n = 0
     n += countAppliedBrandFilters(tempSelectedBrands.value)
+    n += countAppliedCaseSizes(tempSelectedCaseSizes.value)
     n += countAppliedAudience(tempAudience.value)
     const priceActive =
       tempPriceRange.value[0] > priceMinLimit.value ||
@@ -134,6 +156,10 @@ export function useWatchListing() {
 
     if (selectedAudience.value !== 'all') {
       filtered = filtered.filter((w) => watchMatchesAudience(w, selectedAudience.value))
+    }
+
+    if (selectedCaseSizes.value.length > 0) {
+      filtered = filtered.filter((w) => watchMatchesCaseSize(w, selectedCaseSizes.value))
     }
 
     if (priceMin.value !== null || priceMax.value !== null) {
@@ -176,6 +202,9 @@ export function useWatchListing() {
     if (tempAudience.value !== 'all') {
       filtered = filtered.filter((w) => watchMatchesAudience(w, tempAudience.value))
     }
+    if (tempSelectedCaseSizes.value.length > 0) {
+      filtered = filtered.filter((w) => watchMatchesCaseSize(w, tempSelectedCaseSizes.value))
+    }
     if (
       tempPriceRange.value[0] !== priceMinLimit.value ||
       tempPriceRange.value[1] !== priceMaxLimit.value
@@ -196,6 +225,9 @@ export function useWatchListing() {
     if (section === 'audience') {
       return tempAudience.value !== 'all' ? 1 : 0
     }
+    if (section === 'caseSize') {
+      return tempSelectedCaseSizes.value.length
+    }
     if (section === 'price') {
       const narrowed =
         tempPriceRange.value[0] > priceMinLimit.value ||
@@ -212,6 +244,7 @@ export function useWatchListing() {
     tempPriceMinInput.value = minValue
     tempPriceMaxInput.value = maxValue
     tempSelectedBrands.value = [...selectedBrands.value]
+    tempSelectedCaseSizes.value = [...selectedCaseSizes.value]
     tempAudience.value = selectedAudience.value
     isFilterDrawerOpen.value = true
     document.body.style.overflow = 'hidden'
@@ -224,6 +257,7 @@ export function useWatchListing() {
 
   const clearDraftFilters = () => {
     tempSelectedBrands.value = []
+    tempSelectedCaseSizes.value = []
     tempAudience.value = 'all'
     if (scopedWatches.value.length > 0) {
       const minPrice = Math.min(...scopedWatches.value.map((w) => w.price))
@@ -252,7 +286,7 @@ export function useWatchListing() {
     }
 
     selectedAudience.value = tempAudience.value
-
+    selectedCaseSizes.value = [...tempSelectedCaseSizes.value]
     selectedBrands.value = [...tempSelectedBrands.value]
 
     closeFilterDrawer()
@@ -311,6 +345,12 @@ export function useWatchListing() {
     else tempSelectedBrands.value.push(brand)
   }
 
+  const toggleCaseSize = (size) => {
+    const index = tempSelectedCaseSizes.value.indexOf(size)
+    if (index > -1) tempSelectedCaseSizes.value.splice(index, 1)
+    else tempSelectedCaseSizes.value.push(size)
+  }
+
   watch(
     () => [tempPriceRange.value[0], tempPriceRange.value[1]],
     ([min, max], [prevMin, prevMax]) => {
@@ -344,6 +384,7 @@ export function useWatchListing() {
 
   const resetAllFilters = () => {
     selectedBrands.value = []
+    selectedCaseSizes.value = []
     selectedAudience.value = 'all'
     priceMin.value = null
     priceMax.value = null
@@ -357,6 +398,7 @@ export function useWatchListing() {
       tempPriceMaxInput.value = roundedMax
     }
     tempSelectedBrands.value = []
+    tempSelectedCaseSizes.value = []
     tempAudience.value = 'all'
   }
 
@@ -387,6 +429,7 @@ export function useWatchListing() {
   return reactive({
     scopedWatches,
     selectedBrands,
+    selectedCaseSizes,
     selectedAudience,
     priceMin,
     priceMax,
@@ -395,6 +438,7 @@ export function useWatchListing() {
     isSortMenuOpen,
     tempPriceRange,
     tempSelectedBrands,
+    tempSelectedCaseSizes,
     tempPriceMinInput,
     tempPriceMaxInput,
     tempAudience,
@@ -405,6 +449,7 @@ export function useWatchListing() {
     priceMaxLimit,
     quickPriceRanges,
     availableBrands,
+    availableCaseSizes,
     hasActiveFilters,
     activeFilterCount,
     draftFilterCount,
@@ -423,6 +468,7 @@ export function useWatchListing() {
     isQuickPriceSelected,
     updatePriceFromInput,
     toggleBrand,
+    toggleCaseSize,
     resetAllFilters,
     loadWatches,
   })

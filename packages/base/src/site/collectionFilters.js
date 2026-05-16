@@ -3,6 +3,7 @@ export const DEFAULT_COLLECTION_FILTERS = {
   price: true,
   brand: true,
   audience: true,
+  caseSize: true,
 }
 
 /** Nombre de montres par page sur `/collection` si `collection.pageSize` est absent. */

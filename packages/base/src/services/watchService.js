@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { getWatchArticles } from './watchArticleService'
+import { normalizeCaseSizeValue } from '@/utils/caseSize'
 import {
   getStaticWatchAudienceAdminOptions,
   getStaticWatchAudienceFilterOptions,
@@ -76,7 +77,7 @@ function transformWatchData(watchData, details, accessories, images, articles = 
       movement: details?.movement || '',
       caseMaterial: details?.case_material || '',
       braceletMaterial: details?.bracelet_material || '',
-      caseSize: details?.case_size || '',
+      caseSize: normalizeCaseSizeValue(details?.case_size || ''),
       thickness: details?.thickness || '',
       dialColor: details?.dial_color || '',
       crystal: details?.crystal || '',

@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { createWatch, updateWatch, uploadWatchImage, deleteWatchImage, reorderWatchImages, getWatchByIdForAdmin, duplicateWatch } from '@/services/admin/adminWatchService'
 import { getWatchAudiencesForAdminForm } from '@/services/watchService'
 import { DEFAULT_WATCH_AUDIENCE_SLUG, getStaticWatchAudienceAdminOptions } from '@/constants/watchAudiences'
+import { normalizeCaseSizeValue } from '@/utils/caseSize'
 import AdminHeader from './AdminHeader.vue'
 import AdminWatchArticleSelector from './AdminWatchArticleSelector.vue'
 
@@ -105,7 +106,7 @@ const loadWatch = async () => {
         movement: watch.details?.movement || '',
         caseMaterial: watch.details?.caseMaterial || '',
         braceletMaterial: watch.details?.braceletMaterial || '',
-        caseSize: watch.details?.caseSize || '',
+        caseSize: normalizeCaseSizeValue(watch.details?.caseSize || ''),
         thickness: watch.details?.thickness || '',
         dialColor: watch.details?.dialColor || '',
         crystal: watch.details?.crystal || '',
@@ -599,13 +600,17 @@ onMounted(async () => {
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Taille boîtier</label>
-              <input
-                v-model="formData.details.caseSize"
-                type="text"
-                placeholder="Ex: 40 mm"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
+              <label class="block text-sm font-medium text-gray-700 mb-2">Diamètre du boîtier</label>
+              <div class="relative">
+                <input
+                  v-model="formData.details.caseSize"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="Ex: 40"
+                  class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">mm</span>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Épaisseur</label>

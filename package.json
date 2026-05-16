@@ -20,7 +20,9 @@
     "build:place-des-montres": "cross-env SITE_ID=place-des-montres vite build --config vite/vite.config.mjs",
     "lint": "eslint . --fix",
     "format": "prettier --write packages/base/src/",
-    "mail-server": "node backend/server.js"
+    "mail-server": "node backend/server.js",
+    "db:strip-case-size-mm": "node scripts/strip-case-size-mm.mjs",
+    "db:strip-case-size-mm:apply": "node scripts/strip-case-size-mm.mjs --apply"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.83.0",

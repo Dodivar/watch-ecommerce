@@ -372,7 +372,7 @@
             <div class="space-y-3">
               <div v-if="hasValue(watchItem.details?.caseSize)" class="flex gap-4 py-2 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[140px] flex-shrink-0">Diamètre du boîtier</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.caseSize }}</span>
+                <span class="font-medium text-gray-900 flex-1">{{ formatCaseSizeDisplay(watchItem.details.caseSize) }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.thickness)" class="flex gap-4 py-2 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[140px] flex-shrink-0">Épaisseur</span>
@@ -891,6 +891,7 @@ import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, PURCHASE_ENABLED } from '@/co
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
 import { getWatchById } from '@/services/watchService'
+import { formatCaseSizeDisplay } from '@/utils/caseSize'
 
 const site = getSiteConfig()
 const siteCopy = site.copy
