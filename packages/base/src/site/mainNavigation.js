@@ -30,7 +30,7 @@
  * - `feature` (optionnel) sur un lien ou sur un groupe : masque l’entrée (ou tout le groupe) si `site.features[feature]` est faux.
  * - Sur un `group`, `to` (optionnel) rend le libellé du groupe cliquable (`RouterLink`) en plus du sous-menu.
  * - Si `navigation.main` est absent ou vide, un menu principal par défaut est utilisé.
- * - Si `navigation.footer` est absent ou vide, la colonne footer reprend le comportement historique du template (sans FAQ/Contact).
+ * - Si `navigation.footer` est absent ou vide, la colonne footer reprend le comportement historique du template (sans lien FAQ ; Contact vers `/contact` si `features.contact`).
  */
 
 /**
@@ -136,7 +136,9 @@ function getDefaultMainNavigation(features) {
   if (features.faq) {
     items.push({ type: 'link', label: 'FAQ', to: '/#faq' })
   }
-  items.push({ type: 'link', label: 'Contact', to: '/#contact' })
+  if (features.contact) {
+    items.push({ type: 'link', label: 'Contact', to: '/contact' })
+  }
 
   return items
 }
@@ -196,6 +198,9 @@ function getDefaultFooterNavigation(features) {
   }
   if (features.about) {
     items.push({ label: 'À propos', to: '/a-propos' })
+  }
+  if (features.contact) {
+    items.push({ label: 'Contact', to: '/contact' })
   }
 
   return items

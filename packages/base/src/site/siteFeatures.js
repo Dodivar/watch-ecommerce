@@ -11,6 +11,8 @@ export const DEFAULT_SITE_FEATURES = {
   estimationProcess: true,
   merci: true,
   about: true,
+  /** Page dédiée `/contact` (formulaire + récapitulatif des coordonnées). */
+  contact: true,
   legal: true,
   /** Section #faq sur l’accueil et lien « FAQ » — activé si `site.config` exporte `faq` avec entrées (voir getSiteConfig). */
   faq: false,
@@ -18,6 +20,11 @@ export const DEFAULT_SITE_FEATURES = {
   purchase: true,
   paymentReturn: true,
   admin: true,
+  /**
+   * Panier : permettre plusieurs exemplaires d’une même montre (quantité + / − dans le tiroir).
+   * Nécessite que le flux checkout envoie `lines` avec quantités (voir `createCheckoutSessionFromCart`).
+   */
+  cartMultiQuantity: false,
 }
 
 export function mergeSiteFeatures(partial = {}) {

@@ -3,6 +3,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { createClient } from '@supabase/supabase-js'
 
+import { mergeSiteFeatures } from '../packages/base/src/site/siteFeatures.js'
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 async function loadSiteConfig() {
@@ -57,6 +59,7 @@ export default async function handler(req, res) {
   }
   try {
     const { siteConfig } = await loadSiteConfig()
+    const mergedFeatures = mergeSiteFeatures(siteConfig.features)
     const baseUrl = resolveBaseUrl(siteConfig, req)
 
     // Récupération des variables d'environnement
@@ -110,6 +113,10 @@ export default async function handler(req, res) {
       { path: '/recherche', priority: '0.7', changefreq: 'monthly' },
       { path: '/estimation', priority: '0.7', changefreq: 'monthly' },
     ]
+
+    if (mergedFeatures.contact) {
+      staticRoutes.push({ path: '/contact', priority: '0.75', changefreq: 'monthly' })
+    }
 
     // Générer le XML
     let xml = `<?xml version="1.0" encoding="UTF-8"?>

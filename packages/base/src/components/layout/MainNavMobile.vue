@@ -1,15 +1,25 @@
 <script setup>
+import { useCart } from '@/composables/useCart.js'
+
 defineProps({
   features: { type: Object, required: true },
   isAdmin: { type: Boolean, required: true },
   navItems: { type: Array, required: true },
   logoSrc: { type: String, required: true },
   logoAlt: { type: String, required: true },
+  purchaseEnabled: { type: Boolean, default: false },
 })
 
 const open = defineModel('open', { type: Boolean, default: false })
 
+const { badgeLabel, toggleDrawer } = useCart()
+
 function close() {
+  open.value = false
+}
+
+function openCartFromMenu() {
+  toggleDrawer()
   open.value = false
 }
 </script>
@@ -30,7 +40,29 @@ function close() {
       aria-modal="true"
       aria-label="Menu principal"
     >
-      <div class="absolute top-6 right-6">
+      <div class="absolute top-6 right-6 flex items-center gap-2">
+        <button
+          v-if="purchaseEnabled"
+          type="button"
+          class="relative p-2 text-white hover:bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/80"
+          aria-label="Ouvrir le panier"
+          @click="openCartFromMenu"
+        >
+          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+            />
+          </svg>
+          <span
+            v-if="badgeLabel"
+            class="absolute -top-0.5 -right-0.5 min-h-[1.125rem] min-w-[1.125rem] px-1 flex items-center justify-center rounded-full bg-white text-[10px] font-bold text-primary leading-none"
+          >
+            {{ badgeLabel }}
+          </span>
+        </button>
         <button
           type="button"
           @click="close"

@@ -123,34 +123,41 @@
       </div>
 
       <!-- Watch Image - Display -->
-      <div v-else-if="watch && watch.images && watch.images.length > 0" class="mb-6">
-        <div class="bg-white rounded-xl p-6 shadow-lg">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4 text-center">Votre montre</h2>
-          <div class="flex flex-col sm:flex-row items-center gap-6">
-            <!-- Image Container -->
+      <div v-else-if="displayWatches.length > 0" class="mb-6 space-y-6">
+        <h2 v-if="displayWatches.length > 1" class="text-xl font-semibold text-gray-900 text-center mb-2">
+          Vos montres
+        </h2>
+        <div
+          v-for="w in displayWatches"
+          :key="w.id"
+          class="bg-white rounded-xl p-6 shadow-lg"
+        >
+          <h3 v-if="displayWatches.length === 1" class="text-xl font-semibold text-gray-900 mb-4 text-center">
+            Votre montre
+          </h3>
+          <div v-if="w.images && w.images.length > 0" class="flex flex-col sm:flex-row items-center gap-6">
             <div class="w-full sm:w-64 h-64 bg-white rounded-xl overflow-hidden shadow-xl flex-shrink-0">
               <img
-                :src="watch.images[0]"
-                :alt="watch.name"
+                :src="w.images[0]"
+                :alt="w.name"
                 class="w-full h-full object-cover"
                 @error="handleImageError"
               />
             </div>
-            <!-- Watch Details -->
             <div class="flex-1 text-left w-full">
-              <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ watch.name }}</h3>
-              <p v-if="watch.reference" class="text-lg font-semibold text-primary mb-3">
-                Réf. {{ watch.reference }}
+              <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ w.name }}</h3>
+              <p v-if="w.reference" class="text-lg font-semibold text-primary mb-3">
+                Réf. {{ w.reference }}
               </p>
               <div class="space-y-2">
-                <p v-if="watch.brand" class="text-gray-700">
-                  <span class="font-semibold text-gray-900">Marque :</span> {{ watch.brand }}
+                <p v-if="w.brand" class="text-gray-700">
+                  <span class="font-semibold text-gray-900">Marque :</span> {{ w.brand }}
                 </p>
-                <p v-if="watch.model" class="text-gray-700">
-                  <span class="font-semibold text-gray-900">Modèle :</span> {{ watch.model }}
+                <p v-if="w.model" class="text-gray-700">
+                  <span class="font-semibold text-gray-900">Modèle :</span> {{ w.model }}
                 </p>
-                <p v-if="watch.price" class="text-lg font-bold text-primary mt-3">
-                  {{ new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(watch.price) }}
+                <p v-if="w.price" class="text-lg font-bold text-primary mt-3">
+                  {{ new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(w.price) }}
                 </p>
               </div>
             </div>
@@ -168,20 +175,21 @@
       </div>
 
       <!-- Order Details -->
-      <div v-if="sessionId || watchId || watch" class="bg-white rounded-lg p-6 mb-6 shadow-lg">
+      <div v-if="sessionId || watchId || displayWatches.length" class="bg-white rounded-lg p-6 mb-6 shadow-lg">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">Détails de la commande</h2>
         <div class="space-y-3 text-left">
-          <div v-if="watch && watch.name" class="pb-3 border-b border-gray-200">
-            <span class="text-gray-600 block mb-1">Nom de la montre :</span>
-            <span class="font-semibold text-lg text-gray-900">{{ watch.name }}</span>
+          <div
+            v-for="w in displayWatches"
+            :key="'ord-' + w.id"
+            class="pb-3 border-b border-gray-200 last:border-0 last:pb-0"
+          >
+            <span class="text-gray-600 block mb-1">Montre :</span>
+            <span class="font-semibold text-lg text-gray-900">{{ w.name }}</span>
+            <p v-if="w.reference" class="text-sm text-gray-600 mt-1">Réf. {{ w.reference }}</p>
           </div>
-          <div v-if="watch && watch.reference" class="pb-3 border-b border-gray-200">
-            <span class="text-gray-600 block mb-1">Référence :</span>
-            <span class="font-medium text-gray-900">{{ watch.reference }}</span>
-          </div>
-          <div v-if="sessionId" class="flex justify-between">
-            <span class="text-gray-600">Numéro de commande :</span>
-            <span class="font-medium text-gray-900">{{ sessionId.substring(0, 20) }}...</span>
+          <div v-if="sessionId" class="flex justify-between pt-2">
+            <span class="text-gray-600">Référence de paiement :</span>
+            <span class="font-medium text-gray-900 text-right break-all max-w-[60%]">{{ sessionId }}</span>
           </div>
         </div>
       </div>
@@ -223,12 +231,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getWatchById } from '@/services/watchService'
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
+import { verifyPaymentSession } from '@/services/stripeService'
+import { useCart } from '@/composables/useCart.js'
 
 const features = getSiteConfig().features
 const browsePath = getBrowsePath(features)
@@ -237,23 +247,67 @@ const route = useRoute()
 const sessionId = ref(null)
 const watchId = ref(null)
 const watch = ref(null)
+const purchasedWatches = ref([])
 const isLoadingWatch = ref(false)
 const watchError = ref(null)
 const isAdmin = ref(false)
 const adminWatchId = ref('')
 const isPreviewMode = ref(false)
 
+const displayWatches = computed(() => {
+  if (purchasedWatches.value.length > 0) {
+    return purchasedWatches.value
+  }
+  if (watch.value) {
+    return [watch.value]
+  }
+  return []
+})
+
 onMounted(async () => {
-  // Vérifier si l'utilisateur est admin
   isAdmin.value = await isAdminAuthenticated()
 
-  // Récupérer les paramètres de l'URL
   sessionId.value = route.query.session_id || null
   watchId.value = route.query.watch_id || null
 
-  // Récupérer les données de la montre si watchId est présent
+  if (!isAdmin.value) {
+    const { clear: clearCart } = useCart()
+    clearCart()
+  }
+
   if (watchId.value) {
     await loadWatch()
+    if (watch.value) {
+      purchasedWatches.value = [watch.value]
+    }
+  } else if (sessionId.value && !isAdmin.value) {
+    isLoadingWatch.value = true
+    watchError.value = null
+    try {
+      const v = await verifyPaymentSession(sessionId.value, null, null)
+      if (!v.valid || !Array.isArray(v.watchIds) || v.watchIds.length === 0) {
+        watchError.value = v.reason || 'Session invalide'
+        return
+      }
+      const list = []
+      for (const id of v.watchIds) {
+        try {
+          const w = await getWatchById(id, true)
+          list.push(w)
+        } catch (e) {
+          console.warn('Montre introuvable après paiement:', id, e)
+        }
+      }
+      purchasedWatches.value = list
+      if (list.length === 1) {
+        watch.value = list[0]
+      }
+    } catch (e) {
+      console.error(e)
+      watchError.value = e.message || 'Erreur lors du chargement'
+    } finally {
+      isLoadingWatch.value = false
+    }
   }
 })
 
@@ -286,6 +340,7 @@ async function loadWatchForPreview() {
     // Utiliser allowUnavailable = true pour permettre de voir toutes les montres
     const watchData = await getWatchById(adminWatchId.value.trim(), true)
     watch.value = watchData
+    purchasedWatches.value = [watchData]
     // Mettre à jour watchId pour l'affichage
     watchId.value = adminWatchId.value.trim()
     // Générer un sessionId fictif pour l'affichage
@@ -302,6 +357,7 @@ async function loadWatchForPreview() {
 
 function clearPreview() {
   watch.value = null
+  purchasedWatches.value = []
   watchId.value = route.query.watch_id || null
   sessionId.value = route.query.session_id || null
   adminWatchId.value = ''

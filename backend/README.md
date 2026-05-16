@@ -152,6 +152,7 @@ Les variables historiques (`STRIPE_SECRET_KEY`, `MAILJET_API_KEY`, `BASE_URL`, e
 | GET     | `/api/test-mailjet`                   | Origin                  |
 | POST    | `/api/n8n/generate-article`           | Origin                  |
 | POST    | `/api/stripe/create-checkout-session` | Origin                  |
+| POST    | `/api/stripe/create-checkout-session-cart` | Origin            |
 | GET     | `/api/stripe/verify-session`          | Origin                  |
 | POST    | `/api/stripe/webhook/:siteId`         | Param `:siteId`         |
 | POST    | `/api/stripe/webhook` (legacy)        | Forcé `sauvage-watches` |
@@ -205,7 +206,7 @@ find uploads/ -type f -mtime +1 -delete
 
 ### Migration SQL Stripe
 
-Avant de déployer, appliquer côté Supabase de chaque client la migration `supabase/migrations/20260429120000_stripe_integration_hardening.sql` (table `stripe_processed_events`, colonnes `watches`, fonction `reserve_watch_for_checkout`).
+Avant de déployer, appliquer côté Supabase de chaque client la migration `supabase/migrations/20260429120000_stripe_integration_hardening.sql` (table `stripe_processed_events`, colonnes `watches`, fonction `reserve_watch_for_checkout`) **ainsi que** `supabase/migrations/20260514120000_reserve_watches_for_checkout.sql` (fonction `reserve_watches_for_checkout` pour le panier multi-montres).
 
 ## Dépendances principales
 

@@ -27,6 +27,7 @@ import APropos from './components/APropos.vue'
 import PolitiqueConfidentialite from './components/PolitiqueConfidentialite.vue'
 import MentionsLegales from './components/MentionsLegales.vue'
 import ConditionsGeneralesUtilisation from './components/ConditionsGeneralesUtilisation.vue'
+import ContactPage from './components/ContactPage.vue'
 import NotFound from './components/NotFound.vue'
 import PaymentSuccess from './components/payment/PaymentSuccess.vue'
 import PaymentCancel from './components/payment/PaymentCancel.vue'
@@ -47,6 +48,7 @@ const routeDefinitions = [
   { path: '/blog', component: BlogList, feature: 'blog' },
   { path: '/blog/:id', component: BlogDetail, feature: 'blog' },
   { path: '/a-propos', component: APropos, feature: 'about' },
+  { path: '/contact', component: ContactPage, feature: 'contact' },
   { path: '/politique-confidentialite', component: PolitiqueConfidentialite, feature: 'legal' },
   { path: '/mentions-legales', component: MentionsLegales, feature: 'legal' },
   { path: '/conditions-generales-utilisation', component: ConditionsGeneralesUtilisation, feature: 'legal' },
@@ -158,19 +160,24 @@ router.beforeEach(async (to, from, next) => {
     const watchId = to.query.watch_id || null
     const token = to.query.token || null
 
-    // Pour PaymentSuccess, session_id et watch_id sont requis
+    // Pour PaymentSuccess : session_id requis ; watch_id optionnel (panier multi-montres)
     if (to.path === '/paiement-succes') {
-      if (!sessionId || !watchId) {
-        console.warn('⚠️  Tentative d\'accès non autorisée à /paiement-succes sans session_id ou watch_id')
+      if (!sessionId) {
+        console.warn(
+          "⚠️  Tentative d'accès non autorisée à /paiement-succes sans session_id",
+        )
         next(browseFallback)
         return
       }
 
-      // Vérifier la session avec le backend
-      const verification = await verifyPaymentSession(sessionId, watchId, null)
-      
+      const verification = watchId
+        ? await verifyPaymentSession(sessionId, watchId, null)
+        : await verifyPaymentSession(sessionId, null, null)
+
       if (!verification.valid) {
-        console.warn(`⚠️  Tentative d'accès non autorisée à /paiement-succes: ${verification.reason || 'Session invalide'}`)
+        console.warn(
+          `⚠️  Tentative d'accès non autorisée à /paiement-succes: ${verification.reason || 'Session invalide'}`,
+        )
         next(browseFallback)
         return
       }
@@ -180,19 +187,20 @@ router.beforeEach(async (to, from, next) => {
       return
     }
 
-    // Pour PaymentCancel, watch_id et token sont requis
+    // Pour PaymentCancel : token requis ; watch_id optionnel (annulation panier)
     if (to.path === '/paiement-annule') {
-      if (!watchId || !token) {
-        console.warn('⚠️  Tentative d\'accès non autorisée à /paiement-annule sans watch_id ou token')
+      if (!token) {
+        console.warn("⚠️  Tentative d'accès non autorisée à /paiement-annule sans token")
         next(browseFallback)
         return
       }
 
-      // Vérifier le token avec le backend
       const verification = await verifyPaymentSession(null, watchId, token)
-      
+
       if (!verification.valid) {
-        console.warn(`⚠️  Tentative d'accès non autorisée à /paiement-annule: ${verification.reason || 'Token invalide'}`)
+        console.warn(
+          `⚠️  Tentative d'accès non autorisée à /paiement-annule: ${verification.reason || 'Token invalide'}`,
+        )
         next(browseFallback)
         return
       }

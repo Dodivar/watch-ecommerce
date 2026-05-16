@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Head } from '@vueuse/head'
-import { WHATSAPP_NUMBER, EMAIL_CONTACT } from '@/config'
+import { WHATSAPP_NUMBER, EMAIL_CONTACT, PURCHASE_ENABLED } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { resolveMainNavigation, resolveFooterNavigation } from '@/site/mainNavigation.js'
 import MainNavDesktop from '@/components/layout/MainNavDesktop.vue'
@@ -12,7 +12,9 @@ import logoHeaderIconGreen from '@site/assets/logos/Logos RVB (web)/Icône RVB/
 import logoFooterHorizontalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW blanc horizontal RVB.png'
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import CookieBanner from '@/components/CookieBanner.vue'
+import CartDrawer from '@/components/cart/CartDrawer.vue'
 import { openCookiePreferences } from '@/services/cookiePreferencesUi'
+import { useCart } from '@/composables/useCart.js'
 
 const site = getSiteConfig()
 const features = site.features
@@ -21,6 +23,8 @@ const footerNavItems = resolveFooterNavigation(site)
 
 const mobileMenuOpen = ref(false)
 const route = useRoute()
+
+const { badgeLabel, toggleDrawer, closeDrawer: closeCartDrawer } = useCart()
 
 // Vérifier si on est sur la page de maintenance
 const isMaintenancePage = computed(() => route.path === '/maintenance')
@@ -40,6 +44,7 @@ onMounted(() => {
 watch(() => route.path, () => {
   checkAdminStatus()
   mobileMenuOpen.value = false
+  closeCartDrawer()
 })
 
 function displayMobileMenu() {
@@ -57,6 +62,7 @@ function displayMobileMenu() {
     :nav-items="mainNavItems"
     :logo-src="logoMobileMenuVerticalWhite"
     :logo-alt="site.brand.logoAlt"
+    :purchase-enabled="PURCHASE_ENABLED"
   />
 
   <!-- Menu desktop -->
@@ -73,16 +79,40 @@ function displayMobileMenu() {
           :is-admin="isAdmin"
           :nav-items="mainNavItems"
         />
-        <button type="button" class="md:hidden" @click="displayMobileMenu">
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="black">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
+        <div class="flex items-center gap-1 shrink-0">
+          <button
+            v-if="PURCHASE_ENABLED"
+            type="button"
+            class="relative p-2 rounded-lg text-text-main hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Ouvrir le panier"
+            @click="toggleDrawer"
+          >
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
+            </svg>
+            <span
+              v-if="badgeLabel"
+              class="absolute -top-0.5 -right-0.5 min-h-[1.125rem] min-w-[1.125rem] px-1 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white leading-none"
+            >
+              {{ badgeLabel }}
+            </span>
+          </button>
+          <button type="button" class="md:hidden p-2" @click="displayMobileMenu" aria-label="Ouvrir le menu">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="black">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </nav>
   </header>
@@ -228,6 +258,11 @@ function displayMobileMenu() {
                 >À propos</RouterLink
               >
             </li>
+            <li v-if="features.contact">
+              <RouterLink to="/contact" class="text-white/90 hover:text-white transition-colors"
+                >Contact</RouterLink
+              >
+            </li>
             <li v-if="features.paymentReturn">
               <RouterLink to="/paiement-succes" class="text-white/90 hover:text-white transition-colors"
                 >Paiement Succès</RouterLink
@@ -311,6 +346,7 @@ function displayMobileMenu() {
     </div>
   </footer>
 
+  <CartDrawer v-if="PURCHASE_ENABLED && !isMaintenancePage" />
   <CookieBanner />
 </template>
 

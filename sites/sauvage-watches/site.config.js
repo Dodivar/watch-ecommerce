@@ -150,7 +150,7 @@ export default {
       { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
       { type: 'link', label: 'À propos', to: '/a-propos', feature: 'about' },
       { type: 'link', label: 'FAQ', to: '/#faq', feature: 'faq' },
-      { type: 'link', label: 'Contact', to: '/#contact' },
+      { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
     ],
     footer: [
       { label: 'Accueil', to: '/#accueil' },
@@ -159,6 +159,7 @@ export default {
       { label: 'Estimation', to: '/estimation', feature: 'estimation' },
       { label: 'Blog', to: '/blog', feature: 'blog' },
       { label: 'À propos', to: '/a-propos', feature: 'about' },
+      { label: 'Contact', to: '/contact', feature: 'contact' },
     ],
   },
 

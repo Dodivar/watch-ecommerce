@@ -262,12 +262,10 @@
           <!-- Buy Now Button -->
             <div v-if="PURCHASE_ENABLED && watchItem && watchItem.isAvailable && !watchItem.isSold" class="hidden lg:block">
               <button
-                @click="handleBuyNow"
-                :disabled="isCreatingCheckout"
-                class="w-full inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg mb-3"
+                @click="handleAddToCart"
+                class="w-full inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200 shadow-md hover:shadow-lg mb-3"
               >
                 <svg
-                  v-if="!isCreatingCheckout"
                   class="w-6 h-6 mr-3"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -280,27 +278,7 @@
                     d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                   />
                 </svg>
-                <svg
-                  v-else
-                  class="w-6 h-6 mr-3 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                {{ isCreatingCheckout ? 'Traitement...' : 'Acheter cette montre' }}
+                Ajouter au panier
               </button>
               
               <!-- Payment Icons -->
@@ -714,12 +692,10 @@
       </div>
       <!-- Buy Button -->
       <button
-        @click="handleBuyNow"
-        :disabled="isCreatingCheckout"
-        class="flex-shrink-0 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+        @click="handleAddToCart"
+        class="flex-shrink-0 inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200 shadow-md"
       >
         <svg
-          v-if="!isCreatingCheckout"
           class="w-5 h-5 mr-2"
           fill="none"
           viewBox="0 0 24 24"
@@ -732,27 +708,7 @@
             d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
           />
         </svg>
-        <svg
-          v-else
-          class="w-5 h-5 mr-2 animate-spin"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-        {{ isCreatingCheckout ? 'Traitement...' : 'Acheter' }}
+        Ajouter au panier
       </button>
     </div>
   </div>
@@ -941,7 +897,7 @@ const siteCopy = site.copy
 const seoWatch = site.seo.watchDetail
 const browsePath = getBrowsePath(site.features)
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
-import { createCheckoutSession } from '@/services/stripeService'
+import { useCart } from '@/composables/useCart.js'
 import WatchDetailSkeleton from '@/components/watch/WatchDetailSkeleton.vue'
 import PaymentIcons from '@/components/payment/PaymentIcons.vue'
 
@@ -975,11 +931,11 @@ const minSwipeDistance = 50 // Distance minimale en pixels pour déclencher un s
 
 // State
 const watchItem = ref(null)
+const { add: addToCart, openDrawer: openCartDrawer } = useCart()
 const isLoading = ref(true)
 const error = ref(null)
 const isUnavailable = ref(false)
 const isAdmin = ref(false)
-const isCreatingCheckout = ref(false)
 const activeTab = ref('details')
 const isDescriptionExpanded = ref(false)
 
@@ -1398,22 +1354,23 @@ const goToArticle = (articleId) => {
   })
 }
 
-// Handle buy now button click
-const handleBuyNow = async () => {
+// Add to cart from product page
+const handleAddToCart = () => {
   if (!watchItem.value || !watchItem.value.id) {
     return
   }
-
-  try {
-    isCreatingCheckout.value = true
-    await createCheckoutSession(watchItem.value.id)
-    // La redirection se fait dans createCheckoutSession
-  } catch (err) {
-    console.error('Erreur lors de la création de la session de paiement:', err)
-    alert(err.message || 'Une erreur est survenue lors de la création de la session de paiement. Veuillez réessayer.')
-  } finally {
-    isCreatingCheckout.value = false
+  const result = addToCart({
+    watchId: watchItem.value.id,
+    name: watchItem.value.name,
+    reference: watchItem.value.reference,
+    price: watchItem.value.price,
+    imageUrl: watchItem.value.images?.[0] ?? null,
+  })
+  if (!result.ok) {
+    alert(result.reason || 'Impossible d’ajouter au panier')
+    return
   }
+  openCartDrawer()
 }
 
 // SEO Meta Tags and Structured Data

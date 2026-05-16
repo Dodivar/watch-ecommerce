@@ -176,12 +176,12 @@
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a
             :href="
-              watchId
+              primaryWatchId
                 ? 'https://wa.me/' +
                   WHATSAPP_NUMBER +
                   '?text=' +
                   encodeURIComponent(
-                    `Bonjour, je souhaite finaliser l'achat de la montre (ID: ${watchId})`,
+                    `Bonjour, je souhaite finaliser l'achat de la montre (ID: ${primaryWatchId})`,
                   )
                 : `https://wa.me/${WHATSAPP_NUMBER}`
             "
@@ -201,8 +201,8 @@
       <!-- Action Buttons -->
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <router-link
-          v-if="watchId"
-          :to="`/watch/${watchId}`"
+          v-if="primaryWatchId"
+          :to="`/watch/${primaryWatchId}`"
           class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
         >
           <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -234,7 +234,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { WHATSAPP_NUMBER } from '@/config'
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
@@ -247,6 +247,7 @@ const browsePath = getBrowsePath(features)
 
 const route = useRoute()
 const watchId = ref(null)
+const cancelWatchIds = ref([])
 const isAdmin = ref(false)
 const adminWatchId = ref('')
 const isPreviewMode = ref(false)
@@ -254,12 +255,48 @@ const watch = ref(null)
 const isLoadingWatch = ref(false)
 const watchError = ref(null)
 
+const primaryWatchId = computed(() => {
+  if (watchId.value) return watchId.value
+  if (cancelWatchIds.value.length > 0) return cancelWatchIds.value[0]
+  return null
+})
+
+async function loadWatch() {
+  if (!watchId.value) return
+
+  isLoadingWatch.value = true
+  watchError.value = null
+
+  try {
+    const watchData = await getWatchById(watchId.value, true)
+    watch.value = watchData
+  } catch (error) {
+    console.error('Erreur lors du chargement de la montre:', error)
+    watchError.value = error.message || 'Erreur lors du chargement de la montre'
+  } finally {
+    isLoadingWatch.value = false
+  }
+}
+
 onMounted(async () => {
-  // Vérifier si l'utilisateur est admin
   isAdmin.value = await isAdminAuthenticated()
 
-  // Récupérer les paramètres de l'URL
   watchId.value = route.query.watch_id || null
+  const rawIds = route.query.watch_ids
+  if (typeof rawIds === 'string' && rawIds.trim()) {
+    cancelWatchIds.value = rawIds
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+  }
+
+  if (!watchId.value && cancelWatchIds.value.length > 0) {
+    watchId.value = cancelWatchIds.value[0]
+  }
+
+  if (watchId.value) {
+    await loadWatch()
+  }
 })
 
 async function loadWatchForPreview() {
@@ -286,6 +323,14 @@ async function loadWatchForPreview() {
 function clearPreview() {
   watch.value = null
   watchId.value = route.query.watch_id || null
+  const rawIds = route.query.watch_ids
+  cancelWatchIds.value =
+    typeof rawIds === 'string' && rawIds.trim()
+      ? rawIds.split(',').map((s) => s.trim()).filter(Boolean)
+      : []
+  if (!watchId.value && cancelWatchIds.value.length > 0) {
+    watchId.value = cancelWatchIds.value[0]
+  }
   adminWatchId.value = ''
   watchError.value = null
   isPreviewMode.value = false
