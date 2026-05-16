@@ -26,6 +26,17 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
     const { type, ...formData } = req.body
     console.log(`[${site.id}] Type de formulaire:`, type)
     console.log(`[${site.id}] Données reçues:`, JSON.stringify(formData, null, 2))
+
+    if (type === 'contact') {
+      const missing = ['name', 'email', 'message'].filter((field) => !formData[field]?.trim())
+      if (missing.length > 0) {
+        cleanupFiles(files)
+        return res.status(400).json({
+          success: false,
+          message: `Champs obligatoires manquants : ${missing.join(', ')}`,
+        })
+      }
+    }
     console.log(
       `[${site.id}] Fichiers reçus:`,
       files.map((f) => f.originalname),
@@ -87,7 +98,9 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
           Subject:
             type === 'estimation'
               ? `Nouvelle demande d'estimation - ${formData.brand || ''} ${formData.model || ''}`.trim()
-              : 'Nouvelle recherche personnalisée',
+              : type === 'contact'
+                ? `Nouveau message de contact — ${formData.name || 'visiteur'}`.trim()
+                : 'Nouvelle recherche personnalisée',
           TextPart: formatEmailContent({ type, ...formData }),
           HTMLPart: createEmailTemplate(site, { type, ...formData }),
           Attachments: attachments,

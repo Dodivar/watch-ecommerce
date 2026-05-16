@@ -38,7 +38,9 @@ onMounted(() => {
         {{
           $route.query.from == 'estimation'
             ? "Nous avons bien reçu votre demande d'estimation. Un membre de notre équipe vous contactera sous 24h pour répondre à votre demande."
-            : 'Nous avons bien reçu votre recherche personnalisée. Un membre de notre équipe vous contactera sous 24h pour discuter de vos critères et commencer les recherches.'
+            : $route.query.from == 'contact'
+              ? 'Nous avons bien reçu votre message. Un membre de notre équipe vous répondra dans les meilleurs délais.'
+              : 'Nous avons bien reçu votre recherche personnalisée. Un membre de notre équipe vous contactera sous 24h pour discuter de vos critères et commencer les recherches.'
         }}
       </p>
       <a

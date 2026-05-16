@@ -37,6 +37,14 @@ function onOverlayClick() {
   closeDrawer()
 }
 
+function watchPath(watchId) {
+  return `/watch/${watchId}`
+}
+
+function onLineNavigate() {
+  closeDrawer()
+}
+
 function onEscape(e) {
   if (e.key === 'Escape' && drawerOpen.value) {
     closeDrawer()
@@ -132,8 +140,11 @@ async function onCheckout() {
               :key="line.watchId"
               class="flex gap-3 border-b border-gray-100 pb-4"
             >
-              <div
-                class="h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-cream-100 flex items-center justify-center sm:h-32 sm:w-32"
+              <router-link
+                :to="watchPath(line.watchId)"
+                class="h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-cream-100 flex items-center justify-center sm:h-32 sm:w-32 focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 transition-opacity"
+                :aria-label="'Voir ' + line.name"
+                @click="onLineNavigate"
               >
                 <img
                   v-if="line.imageUrl"
@@ -155,12 +166,16 @@ async function onCheckout() {
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-              </div>
+              </router-link>
               <div class="min-w-0 flex-1">
                 <div class="flex justify-between gap-2">
-                  <p class="font-medium text-text-main leading-snug line-clamp-2">
+                  <router-link
+                    :to="watchPath(line.watchId)"
+                    class="font-medium text-text-main leading-snug line-clamp-2 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary rounded"
+                    @click="onLineNavigate"
+                  >
                     {{ line.name }}
-                  </p>
+                  </router-link>
                   <button
                     type="button"
                     class="shrink-0 rounded p-1 text-gray-400 hover:text-red-600 hover:bg-red-50"

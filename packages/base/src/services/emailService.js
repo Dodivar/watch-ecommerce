@@ -110,6 +110,17 @@ export function prepareSearchFormData(form) {
 }
 
 /**
+ * Prépare les données du formulaire de contact
+ * @param {HTMLFormElement} form - Le formulaire de contact
+ * @returns {FormData} Les données du formulaire formatées
+ */
+export function prepareContactFormData(form) {
+  const formData = new FormData(form)
+  formData.append('type', 'contact')
+  return formData
+}
+
+/**
  * Gère la soumission d'un formulaire
  * @param {HTMLFormElement} form - Le formulaire à soumettre
  * @param {Function} prepareFormData - Fonction pour préparer les données du formulaire

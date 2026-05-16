@@ -5,7 +5,7 @@
         <div class="text-center mb-10">
           <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Contact</h1>
           <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            Une question, un projet de montre ou besoin d’un conseil ? Écrivez-nous ou passez nous voir.
+            Une question, un projet de montre ou besoin d'un conseil ? Écrivez-nous<span v-if="showStoreMap"> ou passez nous voir</span>.
           </p>
         </div>
 
@@ -114,15 +114,7 @@
               </div>
             </div>
 
-            <div
-              v-if="
-                storeMap?.enabled &&
-                storeMap?.center &&
-                typeof storeMap.center.lat === 'number' &&
-                typeof storeMap.center.lng === 'number'
-              "
-              class="bg-white rounded-lg shadow-md p-6 border border-cream-300"
-            >
+            <div v-if="showStoreMap" class="bg-white rounded-lg shadow-md p-6 border border-cream-300">
               <h2 class="text-lg font-semibold text-text-main mb-4">Nous trouver</h2>
               <StoreLocationMap />
             </div>
@@ -132,13 +124,15 @@
           <div class="bg-white rounded-lg shadow-lg p-8 border border-cream-300">
             <h2 class="text-xl font-semibold text-text-main mb-2">Envoyer un message</h2>
             <p class="text-gray-600 text-sm mb-6">
-              Renseignez le formulaire : votre messagerie s’ouvrira avec un message prérempli à l’attention de
+              Renseignez le formulaire ci-dessous : votre message sera transmis directement à
               {{ brandDisplayName }}.
             </p>
 
-            <form class="space-y-5" @submit.prevent="submitByMail">
+            <form class="space-y-5" @submit="submitContactForm">
               <div>
-                <label for="contact-name" class="block text-sm font-medium text-text-main mb-1">Nom</label>
+                <label for="contact-name" class="block text-sm font-medium text-text-main mb-1"
+                  >Nom *</label
+                >
                 <input
                   id="contact-name"
                   v-model.trim="form.name"
@@ -151,7 +145,9 @@
                 />
               </div>
               <div>
-                <label for="contact-email" class="block text-sm font-medium text-text-main mb-1">E-mail</label>
+                <label for="contact-email" class="block text-sm font-medium text-text-main mb-1"
+                  >E-mail *</label
+                >
                 <input
                   id="contact-email"
                   v-model.trim="form.email"
@@ -164,20 +160,23 @@
                 />
               </div>
               <div>
-                <label for="contact-phone" class="block text-sm font-medium text-text-main mb-1">Téléphone</label>
+                <label for="contact-tel" class="block text-sm font-medium text-text-main mb-1"
+                  >Téléphone</label
+                >
                 <input
-                  id="contact-phone"
-                  v-model.trim="form.phone"
+                  id="contact-tel"
+                  v-model.trim="form.tel"
                   type="tel"
-                  name="phone"
+                  name="tel"
                   autocomplete="tel"
-                  required
                   maxlength="40"
                   class="w-full rounded-md border border-cream-300 px-3 py-2 text-text-main focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
               <div>
-                <label for="contact-message" class="block text-sm font-medium text-text-main mb-1">Message</label>
+                <label for="contact-message" class="block text-sm font-medium text-text-main mb-1"
+                  >Message *</label
+                >
                 <textarea
                   id="contact-message"
                   v-model.trim="form.message"
@@ -188,11 +187,21 @@
                   class="w-full rounded-md border border-cream-300 px-3 py-2 text-text-main focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y min-h-[120px]"
                 />
               </div>
+
+              <p class="text-sm text-gray-600 italic">
+                * Les champs marqués d'un astérisque sont obligatoires
+              </p>
+
+              <div v-if="errorMessage" class="text-red-500 text-sm">
+                {{ errorMessage }}
+              </div>
+
               <button
                 type="submit"
-                class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 rounded-md bg-primary text-white font-semibold hover:bg-primaryHover transition-colors"
+                :disabled="isSubmitting"
+                class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 rounded-md bg-primary text-white font-semibold hover:bg-primaryHover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Ouvrir l’e-mail
+                {{ isSubmitting ? `Envoi en cours${loadingDots}` : 'Envoyer le message' }}
               </button>
             </form>
           </div>
@@ -203,16 +212,37 @@
 </template>
 
 <script setup>
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { BASE_URL, EMAIL_CONTACT, WHATSAPP_NUMBER } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import StoreLocationMap from '@/components/StoreLocationMap.vue'
+import { handleFormSubmit, prepareContactFormData } from '@/services/emailService'
 
+const router = useRouter()
 const site = getSiteConfig()
 const brandDisplayName = site.brand.displayName || site.brand.legalName
 const storeMap = site.storeMap
 const suivezNous = site.social?.suivezNous
+
+const isSubmitting = ref(false)
+const errorMessage = ref('')
+const loadingDots = ref('')
+let loadingInterval = null
+
+watch(isSubmitting, (val) => {
+  if (val) {
+    let count = 0
+    loadingInterval = setInterval(() => {
+      count = (count + 1) % 4
+      loadingDots.value = '.'.repeat(count)
+    }, 400)
+  } else {
+    loadingDots.value = ''
+    if (loadingInterval) clearInterval(loadingInterval)
+  }
+})
 
 const hasSocialLinks = computed(() => {
   const tik = Boolean(site.social?.footerTiktokUrl)
@@ -220,10 +250,20 @@ const hasSocialLinks = computed(() => {
   return tik || ig
 })
 
+const showStoreMap = computed(() => {
+  const center = storeMap?.center
+  return (
+    Boolean(storeMap?.enabled) &&
+    center != null &&
+    typeof center.lat === 'number' &&
+    typeof center.lng === 'number'
+  )
+})
+
 const form = reactive({
   name: '',
   email: '',
-  phone: '',
+  tel: '',
   message: '',
 })
 
@@ -244,12 +284,24 @@ useHead({
   ],
 })
 
-function submitByMail() {
-  const subject = encodeURIComponent(`Message depuis le site — ${form.name}`)
-  const phoneLine = `Téléphone : ${form.phone}\n`
-  const body = encodeURIComponent(
-    `Nom : ${form.name}\nE-mail : ${form.email}\n${phoneLine}\nMessage :\n${form.message}\n`,
-  )
-  window.location.href = `mailto:${EMAIL_CONTACT}?subject=${subject}&body=${body}`
+async function submitContactForm(event) {
+  event.preventDefault()
+  isSubmitting.value = true
+  errorMessage.value = ''
+
+  await handleFormSubmit(
+    event.target,
+    prepareContactFormData,
+    () => {
+      router.push({ path: '/merci', query: { from: 'contact' } })
+    },
+    (error) => {
+      errorMessage.value =
+        "Une erreur s'est produite lors de l'envoi du formulaire. Veuillez réessayer."
+      console.error('Erreur:', error)
+    },
+  ).finally(() => {
+    isSubmitting.value = false
+  })
 }
 </script>

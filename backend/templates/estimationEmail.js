@@ -23,14 +23,140 @@ function escapeHtml(value) {
  * @returns {string} HTML
  */
 function createEmailTemplate(site, formData) {
+  const isContact = formData.type === 'contact'
   const isEstimation = formData.type === 'estimation'
-  const title = isEstimation ? "Nouvelle demande d'estimation" : 'Nouvelle recherche personnalisée'
+  const title = isContact
+    ? 'Nouveau message de contact'
+    : isEstimation
+      ? "Nouvelle demande d'estimation"
+      : 'Nouvelle recherche personnalisée'
 
   const accent = site.config.backend.email.template.accentColor
   const logoText = site.config.backend.email.template.logoText
   const brandName = site.config.backend.email.fromName
 
   const f = (v) => escapeHtml(v)
+
+  const contactInfoHtml = isContact
+    ? `
+                <div class="field">
+                    <span class="field-label">Nom:</span>
+                    <span class="field-value">${f(formData.name || 'Non renseigné')}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Email:</span>
+                    <span class="field-value">${f(formData.email || 'Non renseigné')}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Téléphone:</span>
+                    <span class="field-value">${f(formData.tel || 'Non renseigné')}</span>
+                </div>
+    `
+    : `
+                <div class="field">
+                    <span class="field-label">Prénom:</span>
+                    <span class="field-value">${f(formData.nickname || 'Non renseigné')}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Nom:</span>
+                    <span class="field-value">${f(formData.name || 'Non renseigné')}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Email:</span>
+                    <span class="field-value">${f(formData.email || 'Non renseigné')}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Téléphone:</span>
+                    <span class="field-value">${f(formData.tel || 'Non renseigné')}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Préférence de contact:</span>
+                    <span class="field-value">${f(formData.contact_mode || 'Pas de préférence')}</span>
+                </div>
+    `
+
+  const watchDetailsHtml = isContact
+    ? ''
+    : `
+            <div class="section">
+                <div class="section-title">Détails de la montre</div>
+                <div class="field">
+                    <span class="field-label">Marque:</span>
+                    <span class="field-value">${f(formData.brand || 'Non renseigné')}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Modèle:</span>
+                    <span class="field-value">${f(formData.model || 'Non renseigné')}</span>
+                </div>
+                ${
+                  isEstimation
+                    ? `
+                    <div class="field">
+                        <span class="field-label">Numéro de série:</span>
+                        <span class="field-value">${f(formData.serienumber || 'Non renseigné')}</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">Année:</span>
+                        <span class="field-value">${f(formData.year || 'Non renseigné')}</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">État général:</span>
+                        <span class="field-value">${f(formData.etat || formData.condition || 'Non renseigné')}</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-label">État de possession:</span>
+                        <span class="field-value">${f(formData.possession || 'Non renseigné')}</span>
+                    </div>
+                `
+                    : `
+                    ${
+                      formData.budget_min && formData.budget_max
+                        ? `
+                        <div class="field">
+                            <span class="field-label">Budget:</span>
+                            <span class="field-value">${f(formData.budget_min)} € à ${f(formData.budget_max)} €</span>
+                        </div>
+                    `
+                        : ''
+                    }
+                    ${
+                      formData.budget_min && !formData.budget_max
+                        ? `
+                        <div class="field">
+                            <span class="field-label">Budget minimum:</span>
+                            <span class="field-value">${f(formData.budget_min)} €</span>
+                        </div>
+                    `
+                        : ''
+                    }
+                    ${
+                      formData.budget_max && !formData.budget_min
+                        ? `
+                        <div class="field">
+                            <span class="field-label">Budget maximum:</span>
+                            <span class="field-value">${f(formData.budget_max)} €</span>
+                        </div>
+                    `
+                        : ''
+                    }
+                    <div class="field">
+                        <span class="field-label">État souhaité:</span>
+                        <span class="field-value">${f(formData.condition || 'Non renseigné')}</span>
+                    </div>
+                    ${
+                      formData.delai
+                        ? `
+                        <div class="field">
+                            <span class="field-label">Délai souhaité:</span>
+                            <span class="field-value">${f(formData.delai)}</span>
+                        </div>
+                    `
+                        : ''
+                    }
+                `
+                }
+            </div>
+    `
 
   return `
     <!DOCTYPE html>
@@ -133,106 +259,10 @@ function createEmailTemplate(site, formData) {
 
             <div class="section">
                 <div class="section-title">Informations de contact</div>
-                <div class="field">
-                    <span class="field-label">Prénom:</span>
-                    <span class="field-value">${f(formData.nickname || 'Non renseigné')}</span>
-                </div>
-                <div class="field">
-                    <span class="field-label">Nom:</span>
-                    <span class="field-value">${f(formData.name || 'Non renseigné')}</span>
-                </div>
-                <div class="field">
-                    <span class="field-label">Email:</span>
-                    <span class="field-value">${f(formData.email || 'Non renseigné')}</span>
-                </div>
-                <div class="field">
-                    <span class="field-label">Téléphone:</span>
-                    <span class="field-value">${f(formData.tel || 'Non renseigné')}</span>
-                </div>
-                <div class="field">
-                    <span class="field-label">Préférence de contact:</span>
-                    <span class="field-value">${f(formData.contact_mode || 'Pas de préférence')}</span>
-                </div>
+                ${contactInfoHtml}
             </div>
 
-            <div class="section">
-                <div class="section-title">Détails de la montre</div>
-                <div class="field">
-                    <span class="field-label">Marque:</span>
-                    <span class="field-value">${f(formData.brand || 'Non renseigné')}</span>
-                </div>
-                <div class="field">
-                    <span class="field-label">Modèle:</span>
-                    <span class="field-value">${f(formData.model || 'Non renseigné')}</span>
-                </div>
-                ${
-                  isEstimation
-                    ? `
-                    <div class="field">
-                        <span class="field-label">Numéro de série:</span>
-                        <span class="field-value">${f(formData.serienumber || 'Non renseigné')}</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">Année:</span>
-                        <span class="field-value">${f(formData.year || 'Non renseigné')}</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">État général:</span>
-                        <span class="field-value">${f(formData.etat || formData.condition || 'Non renseigné')}</span>
-                    </div>
-                    <div class="field">
-                        <span class="field-label">État de possession:</span>
-                        <span class="field-value">${f(formData.possession || 'Non renseigné')}</span>
-                    </div>
-                `
-                    : `
-                    ${
-                      formData.budget_min && formData.budget_max
-                        ? `
-                        <div class="field">
-                            <span class="field-label">Budget:</span>
-                            <span class="field-value">${f(formData.budget_min)} € à ${f(formData.budget_max)} €</span>
-                        </div>
-                    `
-                        : ''
-                    }
-                    ${
-                      formData.budget_min && !formData.budget_max
-                        ? `
-                        <div class="field">
-                            <span class="field-label">Budget minimum:</span>
-                            <span class="field-value">${f(formData.budget_min)} €</span>
-                        </div>
-                    `
-                        : ''
-                    }
-                    ${
-                      formData.budget_max && !formData.budget_min
-                        ? `
-                        <div class="field">
-                            <span class="field-label">Budget maximum:</span>
-                            <span class="field-value">${f(formData.budget_max)} €</span>
-                        </div>
-                    `
-                        : ''
-                    }
-                    <div class="field">
-                        <span class="field-label">État souhaité:</span>
-                        <span class="field-value">${f(formData.condition || 'Non renseigné')}</span>
-                    </div>
-                    ${
-                      formData.delai
-                        ? `
-                        <div class="field">
-                            <span class="field-label">Délai souhaité:</span>
-                            <span class="field-value">${f(formData.delai)}</span>
-                        </div>
-                    `
-                        : ''
-                    }
-                `
-                }
-            </div>
+            ${watchDetailsHtml}
 
             ${
               formData.message
@@ -259,6 +289,15 @@ function createEmailTemplate(site, formData) {
  * Pendant texte du template HTML (fallback).
  */
 function formatEmailContent(formData) {
+  if (formData.type === 'contact') {
+    let content = ''
+    content += `Nom: ${formData.name}\n`
+    content += `Email: ${formData.email}\n`
+    content += `Téléphone: ${formData.tel || 'Non renseigné'}\n`
+    content += `\nMessage: ${formData.message}\n`
+    return content
+  }
+
   let content = ''
   content += `Prénom: ${formData.nickname}\n`
   content += `Nom: ${formData.name}\n`
