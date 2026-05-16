@@ -1,5 +1,5 @@
 import { ref, computed, watch, reactive } from 'vue'
-import { getAllWatches } from '@/services/watchService'
+import { getAllWatchesForListing } from '@/services/watchService'
 import {
   compareCaseSizeValues,
   normalizeCaseSizeValue,
@@ -438,7 +438,7 @@ export function useWatchListing() {
     try {
       isLoading.value = true
       error.value = null
-      const data = await getAllWatches()
+      const data = await getAllWatchesForListing()
       watches.value = data
       const pool = data
       if (pool.length > 0) {

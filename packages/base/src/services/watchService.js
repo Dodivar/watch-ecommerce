@@ -6,6 +6,9 @@ import {
   getStaticWatchAudienceFilterOptions,
 } from '@/constants/watchAudiences'
 
+/** Images par montre en listing : 2 pour l’aperçu au survol (desktop) sur la collection. */
+const LISTING_IMAGES_PER_WATCH = 2
+
 /**
  * Slugs affichés comme filtres sur la page collection (table watch_audiences).
  * Repli sur les constantes si la table est absente ou erreur réseau.
@@ -98,12 +101,139 @@ function transformWatchData(watchData, details, accessories, images, articles = 
 }
 
 /**
- * Récupère toutes les montres avec leurs détails
- * @returns {Promise<Array>} Liste des montres
+ * Résout l’URL publique d’un enregistrement watch_images.
+ * @param {{ image_url?: string | null, image_path?: string | null }} record
+ * @returns {string | null}
  */
-export async function getAllWatches() {
+function resolveImageRecordUrl(record) {
+  if (record.image_url) return record.image_url
+  if (record.image_path) {
+    const { data } = supabase.storage.from('watch-images').getPublicUrl(record.image_path)
+    return data.publicUrl
+  }
+  return null
+}
+
+/**
+ * @param {string[]} watchIds
+ * @param {number | null} [maxPerWatch]
+ * @returns {Promise<Map<string, Array<{ image_url: string }>>>}
+ */
+async function getImagesGroupedByWatchId(watchIds, maxPerWatch = null) {
+  const map = new Map()
+  if (!watchIds.length) return map
+
+  const { data, error } = await supabase
+    .from('watch_images')
+    .select('watch_id, image_url, image_path, image_order')
+    .in('watch_id', watchIds)
+    .order('image_order', { ascending: true })
+
+  if (error || !data) {
+    console.error('Erreur lors de la récupération des images:', error)
+    return map
+  }
+
+  for (const record of data) {
+    const url = resolveImageRecordUrl(record)
+    if (!url) continue
+
+    const list = map.get(record.watch_id) ?? []
+    if (maxPerWatch != null && list.length >= maxPerWatch) continue
+
+    list.push({ image_url: url })
+    map.set(record.watch_id, list)
+  }
+
+  return map
+}
+
+/**
+ * @param {string[]} watchIds
+ * @returns {Promise<Map<string, object | null>>}
+ */
+async function getWatchDetailsByWatchIds(watchIds) {
+  const map = new Map()
+  if (!watchIds.length) return map
+
+  const { data, error } = await supabase
+    .from('watch_details')
+    .select('*')
+    .in('watch_id', watchIds)
+
+  if (error) {
+    console.error('Erreur lors de la récupération des détails:', error)
+    return map
+  }
+
+  for (const row of data ?? []) {
+    map.set(row.watch_id, row)
+  }
+
+  return map
+}
+
+/**
+ * @param {string[]} watchIds
+ * @returns {Promise<Map<string, Array<object>>>}
+ */
+async function getWatchAccessoriesByWatchIds(watchIds) {
+  const map = new Map()
+  if (!watchIds.length) return map
+
+  const { data, error } = await supabase
+    .from('watch_accessories')
+    .select('*')
+    .in('watch_id', watchIds)
+    .order('name', { ascending: true })
+
+  if (error) {
+    console.error('Erreur lors de la récupération des accessoires:', error)
+    return map
+  }
+
+  for (const row of data ?? []) {
+    const list = map.get(row.watch_id) ?? []
+    list.push(row)
+    map.set(row.watch_id, list)
+  }
+
+  return map
+}
+
+/**
+ * Assemble des montres avec détails, accessoires et images (requêtes groupées).
+ *
+ * @param {Array<object>} watches
+ * @param {number | null} imagesPerWatch
+ */
+async function assembleWatchesWithRelations(watches, imagesPerWatch = LISTING_IMAGES_PER_WATCH) {
+  const watchIds = watches.map((w) => w.id)
+
+  const [detailsById, accessoriesById, imagesById] = await Promise.all([
+    getWatchDetailsByWatchIds(watchIds),
+    getWatchAccessoriesByWatchIds(watchIds),
+    getImagesGroupedByWatchId(watchIds, imagesPerWatch),
+  ])
+
+  return watches.map((watch) =>
+    transformWatchData(
+      watch,
+      detailsById.get(watch.id) ?? null,
+      accessoriesById.get(watch.id) ?? [],
+      imagesById.get(watch.id) ?? [],
+    ),
+  )
+}
+
+/**
+ * Récupère toutes les montres disponibles pour le listing (collection, filtres, recherche).
+ * Une seule image par montre ; requêtes groupées (pas de N+1).
+ *
+ * @returns {Promise<Array>}
+ */
+export async function getAllWatchesForListing() {
   try {
-    // Récupérer uniquement les montres disponibles (en vente)
     const { data: watches, error: watchesError } = await supabase
       .from('watches')
       .select('*')
@@ -114,28 +244,21 @@ export async function getAllWatches() {
       throw new Error(`Erreur lors de la récupération des montres: ${watchesError.message}`)
     }
 
-    if (!watches || watches.length === 0) {
-      return []
-    }
+    if (!watches?.length) return []
 
-    // Pour chaque montre, récupérer les détails, accessoires et images
-    const watchesWithDetails = await Promise.all(
-      watches.map(async (watch) => {
-        const [details, accessories, images] = await Promise.all([
-          getWatchDetails(watch.id),
-          getWatchAccessories(watch.id),
-          getWatchImages(watch.id),
-        ])
-
-        return transformWatchData(watch, details, accessories, images)
-      }),
-    )
-
-    return watchesWithDetails
+    return assembleWatchesWithRelations(watches, LISTING_IMAGES_PER_WATCH)
   } catch (error) {
-    console.error('Erreur dans getAllWatches:', error)
+    console.error('Erreur dans getAllWatchesForListing:', error)
     throw error
   }
+}
+
+/**
+ * @deprecated Préférer `getAllWatchesForListing`. Alias conservé pour compatibilité.
+ * @returns {Promise<Array>}
+ */
+export async function getAllWatches() {
+  return getAllWatchesForListing()
 }
 
 /**
@@ -245,36 +368,19 @@ export async function getSoldWatches(limit = 7) {
       return []
     }
 
-    // Pour chaque montre, récupérer uniquement la première image
-    const watchesWithImages = await Promise.all(
-      watches.map(async (watch) => {
-        const { data: firstImage } = await supabase
-          .from('watch_images')
-          .select('image_url, image_path')
-          .eq('watch_id', watch.id)
-          .order('image_order', { ascending: true })
-          .limit(1)
-          .single()
-
-        let imageUrl = null
-        if (firstImage) {
-          if (firstImage.image_url) {
-            imageUrl = firstImage.image_url
-          } else if (firstImage.image_path) {
-            const { data } = supabase.storage.from('watch-images').getPublicUrl(firstImage.image_path)
-            imageUrl = data.publicUrl
-          }
-        }
-
-        return {
-          id: watch.id,
-          name: watch.name,
-          imageUrl: imageUrl,
-        }
-      }),
+    const imagesById = await getImagesGroupedByWatchId(
+      watches.map((w) => w.id),
+      1,
     )
 
-    return watchesWithImages
+    return watches.map((watch) => {
+      const first = imagesById.get(watch.id)?.[0]
+      return {
+        id: watch.id,
+        name: watch.name,
+        imageUrl: first?.image_url ?? null,
+      }
+    })
   } catch (error) {
     console.error('Erreur dans getSoldWatches:', error)
     return []
@@ -305,20 +411,7 @@ export async function getLatestAvailableWatches(limit = 7) {
       return []
     }
 
-    // Pour chaque montre, récupérer les détails, accessoires et uniquement la première image
-    const watchesWithDetails = await Promise.all(
-      watches.map(async (watch) => {
-        const [details, accessories, images] = await Promise.all([
-          getWatchDetails(watch.id),
-          getWatchAccessories(watch.id),
-          getWatchImages(watch.id, 1), // Limiter à la première image uniquement
-        ])
-
-        return transformWatchData(watch, details, accessories, images)
-      }),
-    )
-
-    return watchesWithDetails
+    return assembleWatchesWithRelations(watches, 1)
   } catch (error) {
     console.error('Erreur dans getLatestAvailableWatches:', error)
     throw error
@@ -357,31 +450,12 @@ export async function getWatchImages(watchId, limit = null) {
       return []
     }
 
-    // Si les URLs sont déjà stockées, les utiliser directement
-    // Sinon, générer les URLs depuis Supabase Storage
-    const imagesWithUrls = await Promise.all(
-      imageRecords.map(async (record) => {
-        if (record.image_url) {
-          return {
-            ...record,
-            image_url: record.image_url,
-          }
-        }
-
-        // Générer l'URL publique depuis Supabase Storage
-        if (record.image_path) {
-          const { data } = supabase.storage.from('watch-images').getPublicUrl(record.image_path)
-          return {
-            ...record,
-            image_url: data.publicUrl,
-          }
-        }
-
-        return record
-      }),
-    )
-
-    return imagesWithUrls
+    return imageRecords
+      .map((record) => {
+        const image_url = resolveImageRecordUrl(record)
+        return image_url ? { ...record, image_url } : null
+      })
+      .filter(Boolean)
   } catch (error) {
     console.error('Erreur dans getWatchImages:', error)
     return []

@@ -96,9 +96,11 @@
           class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-8"
         >
           <WatchCard
-            v-for="watch in paginatedWatches"
+            v-for="(watch, index) in paginatedWatches"
             :key="watch.id"
             :watch="watch"
+            :image-loading="index < 4 ? 'eager' : 'lazy'"
+            :image-fetch-priority="index === 0 ? 'high' : 'auto'"
             class="animate-fade-in"
             @viewDetails="handleViewDetails"
           />

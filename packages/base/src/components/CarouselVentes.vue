@@ -75,6 +75,7 @@
                 :show-sold-badge="false"
                 :show-price="false"
                 :clickable="false"
+                image-loading="lazy"
               />
             </div>
           </div>

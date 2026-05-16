@@ -61,9 +61,11 @@
             <!-- Loaded Watches -->
             <template v-else v-for="(watch, i) in latestWatches" :key="`${i}-${watch.id || watch.name}`">
               <div class="flex-shrink-0 w-40 sm:w-64 md:w-80">
-                <WatchCard 
-                  :watch="watch" 
+                <WatchCard
+                  :watch="watch"
                   :show-image-navigation="false"
+                  :image-loading="i < 2 ? 'eager' : 'lazy'"
+                  :image-fetch-priority="i === 0 ? 'high' : 'auto'"
                   @viewDetails="handleViewDetails"
                 />
               </div>
