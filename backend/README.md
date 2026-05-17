@@ -138,24 +138,27 @@ Les variables historiques (`STRIPE_SECRET_KEY`, `MAILJET_API_KEY`, `BASE_URL`, e
   ```
    https://<backend-render>.onrender.com/api/stripe/webhook/<nouveau-client>
   ```
-   Inclure au minimum `checkout.session.completed` et `checkout.session.expired`.
+   Inclure au minimum `payment_intent.succeeded`, `payment_intent.payment_failed` et `payment_intent.canceled`.
 4. **Redéployer Render** : le boot charge automatiquement le nouveau `sites/<id>/site.config.js`. Aucune modification de code.
 
 ## Endpoints
 
 
-| Méthode | URL                                   | Site résolu via         |
-| ------- | ------------------------------------- | ----------------------- |
-| GET     | `/api/health`                         | (aucun)                 |
-| POST    | `/api/send-email`                     | Origin                  |
-| GET     | `/api/config-check`                   | Origin                  |
-| GET     | `/api/test-mailjet`                   | Origin                  |
-| POST    | `/api/n8n/generate-article`           | Origin                  |
-| POST    | `/api/stripe/create-checkout-session` | Origin                  |
-| POST    | `/api/stripe/create-checkout-session-cart` | Origin            |
-| GET     | `/api/stripe/verify-session`          | Origin                  |
-| POST    | `/api/stripe/webhook/:siteId`         | Param `:siteId`         |
-| POST    | `/api/stripe/webhook` (legacy)        | Forcé `sauvage-watches` |
+| Méthode | URL                            | Site résolu via         |
+| ------- | ------------------------------ | ----------------------- |
+| GET     | `/api/health`                  | (aucun)                 |
+| POST    | `/api/send-email`              | Origin                  |
+| GET     | `/api/config-check`            | Origin                  |
+| GET     | `/api/test-mailjet`            | Origin                  |
+| POST    | `/api/n8n/generate-article`    | Origin                  |
+| POST    | `/api/orders`                  | Origin                  |
+| PATCH   | `/api/orders/:id/customer`     | Origin + Bearer token   |
+| PATCH   | `/api/orders/:id/shipping`     | Origin + Bearer token   |
+| POST    | `/api/orders/:id/promo`        | Origin + Bearer token   |
+| POST    | `/api/orders/:id/pay`          | Origin + Bearer token   |
+| GET     | `/api/orders/:id/verify`       | Origin + token query    |
+| POST    | `/api/stripe/webhook/:siteId`  | Param `:siteId`         |
+| POST    | `/api/stripe/webhook` (legacy) | Forcé `sauvage-watches` |
 
 
 ## Démarrage local
@@ -204,9 +207,20 @@ Le dossier `uploads/` (multer pour les pièces jointes Mailjet) doit être netto
 find uploads/ -type f -mtime +1 -delete
 ```
 
-### Migration SQL Stripe
+### Migration SQL Stripe (historique + checkout personnalisé)
 
-Avant de déployer, appliquer côté Supabase de chaque client la migration `supabase/migrations/20260429120000_stripe_integration_hardening.sql` (table `stripe_processed_events`, colonnes `watches`, fonction `reserve_watch_for_checkout`) **ainsi que** `supabase/migrations/20260514120000_reserve_watches_for_checkout.sql` (fonction `reserve_watches_for_checkout` pour le panier multi-montres).
+Avant de déployer, appliquer côté Supabase de chaque client :
+
+1. `supabase/migrations/20260429120000_stripe_integration_hardening.sql` — `stripe_processed_events`, colonnes `watches`, `reserve_watch_for_checkout`
+2. `supabase/migrations/20260514120000_reserve_watches_for_checkout.sql` — panier multi-montres (legacy)
+3. `supabase/migrations/20260517120000_custom_checkout_orders.sql` — tables `orders*`, `promo_codes`, RPC `reserve_watches_for_order` / `fulfill_order_payment`
+
+### Checkout personnalisé (Payment Element)
+
+- API : `POST /api/orders`, `PATCH …/customer`, `PATCH …/shipping`, `POST …/promo`, `POST …/pay`, `GET …/verify`
+- Webhooks Stripe : `payment_intent.succeeded` (plus de `checkout.session.*`)
+- Front : `VITE_STRIPE_PUBLISHABLE_KEY` + parcours `/checkout` → `/commande/succes`
+- Configuration livraison / promo : bloc `checkout` dans `sites/<id>/site.config.js`
 
 ## Dépendances principales
 

@@ -13,7 +13,7 @@
         @click="onClose"
       />
       <aside
-        class="relative flex h-full w-full max-w-full flex-col bg-white shadow-2xl sm:max-w-md md:w-[30vw] md:min-w-[320px] md:max-w-[420px] animate-drawer-in"
+        class="relative flex h-full w-full max-w-full flex-col bg-white shadow-2xl sm:max-w-md md:min-w-[380px] md:max-w-lg lg:min-w-[420px] lg:max-w-xl xl:min-w-[460px] xl:max-w-2xl animate-drawer-in"
       >
         <header class="flex shrink-0 items-center gap-3 border-b border-gray-200 px-4 py-4">
           <button
@@ -66,12 +66,12 @@
               </svg>
             </button>
             <div v-show="expanded.brand" class="pb-4">
-              <div class="flex flex-wrap gap-1.5">
+              <div class="flex flex-wrap gap-2">
                 <button
                   v-for="brand in listing.availableBrands"
                   :key="brand"
                   type="button"
-                  class="rounded-md border px-2 py-1 text-left text-xs transition-colors"
+                  class="rounded-md border px-3 py-2 text-left text-sm font-medium transition-colors"
                   :class="
                     listing.tempSelectedBrands.includes(brand)
                       ? 'border-primary bg-primary text-white'
@@ -214,12 +214,12 @@
               <p v-if="listing.availableCaseSizes.length === 0" class="text-sm text-gray-500">
                 Aucun diamètre renseigné sur les montres en stock.
               </p>
-              <div v-else class="flex flex-wrap gap-1.5">
+              <div v-else class="flex flex-wrap gap-2">
                 <button
                   v-for="size in listing.availableCaseSizes"
                   :key="size"
                   type="button"
-                  class="rounded-md border px-2 py-1 text-left text-xs transition-colors"
+                  class="rounded-md border px-3 py-2 text-left text-sm font-medium transition-colors"
                   :class="
                     listing.tempSelectedCaseSizes.includes(size)
                       ? 'border-primary bg-primary text-white'
@@ -259,12 +259,12 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <div v-show="expanded.audience" class="flex flex-wrap gap-1.5 pb-4">
+            <div v-show="expanded.audience" class="flex flex-wrap gap-2 pb-4">
               <button
                 v-for="opt in audienceOptions"
                 :key="opt.id"
                 type="button"
-                class="rounded-md border px-2 py-1 text-xs transition-colors"
+                class="rounded-md border px-3 py-2 text-sm font-medium transition-colors"
                 :class="
                   listing.tempAudience === opt.id
                     ? 'border-primary bg-primary text-white'
@@ -284,7 +284,7 @@
           <button
             type="button"
             class="flex-1 rounded-lg border border-primary bg-white py-3 text-sm font-semibold uppercase tracking-wide text-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            @click="listing.clearDraftFilters"
+            @click="handleClear"
           >
             Effacer
           </button>
@@ -360,6 +360,12 @@ function onClose() {
 }
 
 function handleApply() {
+  const result = props.listing.applyDrawerFilters()
+  emit('applied', result)
+}
+
+function handleClear() {
+  props.listing.clearDraftFilters()
   const result = props.listing.applyDrawerFilters()
   emit('applied', result)
 }

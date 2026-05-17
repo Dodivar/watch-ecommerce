@@ -8,6 +8,7 @@ const { resolveSite } = require('./middleware/resolveSite')
 
 const mailjetRoutes = require('./routes/mailjet')
 const { buildStripeRouter } = require('./routes/stripe')
+const { buildOrdersRouter } = require('./routes/orders')
 const n8nRoutes = require('./routes/n8n')
 
 const isProductionBoot =
@@ -92,8 +93,11 @@ async function main() {
   app.use('/api', resolveSite(registry), mailjetRoutes)
   app.use('/api/n8n', resolveSite(registry), n8nRoutes)
 
-  // Stripe : le router applique lui-même `resolveSite` par route (le webhook utilise :siteId).
+  // Stripe webhooks (:siteId) — PaymentIntent
   app.use('/api/stripe', buildStripeRouter(registry))
+
+  // Commandes (checkout personnalisé)
+  app.use('/api/orders', buildOrdersRouter(registry))
 
   // Fallback CORS : transformer les erreurs CORS en 403 propres.
   app.use((err, req, res, next) => {

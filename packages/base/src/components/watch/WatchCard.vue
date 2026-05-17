@@ -1,6 +1,6 @@
 <template>
   <div :class="{ 'cursor-pointer': clickable }" @click="handleCardClick">
-    <div class="relative w-full aspect-square bg-white rounded-md overflow-hidden mb-2 border border-gray-100">
+    <div class="relative w-full aspect-square bg-white rounded-md overflow-hidden mb-2 border border-gray-100 group">
       <span
         v-if="showNewBadge"
         class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-primary text-white shadow-sm"
@@ -113,6 +113,41 @@
           />
         </div>
       </div>
+
+      <template v-if="showQuickAddToCart">
+        <button
+          type="button"
+          class="hidden md:inline-flex absolute bottom-2 right-2 z-20 items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          aria-label="Ajouter au panier"
+          @click.stop="handleQuickAddToCart"
+        >
+          <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+            />
+          </svg>
+          Ajouter au panier
+        </button>
+
+        <button
+          type="button"
+          class="md:hidden absolute bottom-2 right-2 z-20 inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-primary-hover active:scale-95 transition-transform"
+          aria-label="Ajouter au panier"
+          @click.stop="handleQuickAddToCart"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+            />
+          </svg>
+        </button>
+      </template>
     </div>
 
     <div>
@@ -159,6 +194,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { CARD_QUICK_ADD_ENABLED } from '@/config.js'
+import { useCart } from '@/composables/useCart.js'
 import { DESKTOP_HOVER_SECOND_IMAGE_MQ } from '@/constants/watchCardDefaults.js'
 import {
   watchCardImageUrl,
@@ -212,6 +249,16 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['viewDetails'])
+
+const { add: addToCart, openDrawer: openCartDrawer } = useCart()
+
+const showQuickAddToCart = computed(
+  () =>
+    CARD_QUICK_ADD_ENABLED &&
+    props.watch?.id &&
+    props.watch.isAvailable !== false &&
+    !props.watch.isSold,
+)
 
 const currentImageIndex = ref(0)
 const isHoveringSecond = ref(false)
@@ -274,6 +321,22 @@ const handleCardClick = () => {
   if (props.clickable) {
     emit('viewDetails', props.watch.id)
   }
+}
+
+function handleQuickAddToCart() {
+  if (!props.watch?.id) return
+  const result = addToCart({
+    watchId: props.watch.id,
+    name: props.watch.name,
+    reference: props.watch.reference,
+    price: props.watch.price,
+    imageUrl: props.watch.images?.[0] ?? null,
+  })
+  if (!result.ok) {
+    alert(result.reason || 'Impossible d’ajouter au panier')
+    return
+  }
+  openCartDrawer()
 }
 
 const nextImage = () => {

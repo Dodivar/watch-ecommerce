@@ -1,7 +1,7 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { isAuthenticated } from './services/maintenanceService'
 import { isAdminAuthenticated } from './services/admin/adminAuthService'
-import { verifyPaymentSession } from './services/stripeService'
+import { verifyOrder } from './services/orderService'
 import { getBrowsePath } from './site/siteFeatures.js'
 import { getSiteConfig } from './site/getSiteConfig.js'
 
@@ -30,8 +30,9 @@ import MentionsLegales from './components/MentionsLegales.vue'
 import ConditionsGeneralesUtilisation from './components/ConditionsGeneralesUtilisation.vue'
 import ContactPage from './components/ContactPage.vue'
 import NotFound from './components/NotFound.vue'
-import PaymentSuccess from './components/payment/PaymentSuccess.vue'
-import PaymentCancel from './components/payment/PaymentCancel.vue'
+import CheckoutPage from './components/checkout/CheckoutPage.vue'
+import OrderSuccess from './components/checkout/OrderSuccess.vue'
+import OrderCancel from './components/checkout/OrderCancel.vue'
 
 const { features } = getSiteConfig()
 const browseFallback = getBrowsePath(features)
@@ -54,8 +55,11 @@ const routeDefinitions = [
   { path: '/politique-confidentialite', component: PolitiqueConfidentialite, feature: 'legal' },
   { path: '/mentions-legales', component: MentionsLegales, feature: 'legal' },
   { path: '/conditions-generales-utilisation', component: ConditionsGeneralesUtilisation, feature: 'legal' },
-  { path: '/paiement-succes', component: PaymentSuccess, feature: 'paymentReturn' },
-  { path: '/paiement-annule', component: PaymentCancel, feature: 'paymentReturn' },
+  { path: '/checkout', component: CheckoutPage, feature: 'purchase' },
+  { path: '/commande/succes', component: OrderSuccess, feature: 'paymentReturn' },
+  { path: '/commande/annulee', component: OrderCancel, feature: 'paymentReturn' },
+  { path: '/paiement-succes', redirect: '/commande/succes' },
+  { path: '/paiement-annule', redirect: { path: '/commande/annulee' } },
   { path: '/admin/login', component: AdminLogin, feature: 'admin' },
   { path: '/admin', component: AdminDashboard, feature: 'admin' },
   { path: '/admin/watches/new', component: AdminWatchForm, feature: 'admin' },
@@ -144,73 +148,37 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Vérifier l'accès aux pages de paiement (désactivé si `features.paymentReturn` est false)
-  if (
-    features.paymentReturn &&
-    (to.path === '/paiement-succes' || to.path === '/paiement-annule')
-  ) {
-    // Vérifier si l'utilisateur est admin - les admins peuvent accéder sans vérification
+  // Pages de retour commande (désactivé si `features.paymentReturn` est false)
+  if (features.paymentReturn && to.path === '/commande/succes') {
     const isAdmin = await isAdminAuthenticated()
     if (isAdmin) {
-      // Admin authentifié, autoriser l'accès directement
       next()
       return
     }
 
-    // Pour les non-admins, vérifier les paramètres requis
-    const sessionId = to.query.session_id || null
-    const watchId = to.query.watch_id || null
+    const orderId = to.query.order || null
     const token = to.query.token || null
-
-    // Pour PaymentSuccess : session_id requis ; watch_id optionnel (panier multi-montres)
-    if (to.path === '/paiement-succes') {
-      if (!sessionId) {
-        console.warn(
-          "⚠️  Tentative d'accès non autorisée à /paiement-succes sans session_id",
-        )
-        next(browseFallback)
-        return
-      }
-
-      const verification = watchId
-        ? await verifyPaymentSession(sessionId, watchId, null)
-        : await verifyPaymentSession(sessionId, null, null)
-
-      if (!verification.valid) {
-        console.warn(
-          `⚠️  Tentative d'accès non autorisée à /paiement-succes: ${verification.reason || 'Session invalide'}`,
-        )
-        next(browseFallback)
-        return
-      }
-
-      // Session valide, autoriser l'accès
-      next()
+    if (!orderId || !token) {
+      console.warn("⚠️  Accès /commande/succes sans order ou token")
+      next(browseFallback)
       return
     }
 
-    // Pour PaymentCancel : token requis ; watch_id optionnel (annulation panier)
-    if (to.path === '/paiement-annule') {
-      if (!token) {
-        console.warn("⚠️  Tentative d'accès non autorisée à /paiement-annule sans token")
-        next(browseFallback)
-        return
-      }
-
-      const verification = await verifyPaymentSession(null, watchId, token)
-
-      if (!verification.valid) {
-        console.warn(
-          `⚠️  Tentative d'accès non autorisée à /paiement-annule: ${verification.reason || 'Token invalide'}`,
-        )
-        next(browseFallback)
-        return
-      }
-
-      // Token valide, autoriser l'accès
-      next()
+    const verification = await verifyOrder(String(orderId), String(token))
+    if (!verification.valid) {
+      console.warn(
+        `⚠️  Accès /commande/succes refusé: ${verification.reason || 'Commande invalide'}`,
+      )
+      next(browseFallback)
       return
     }
+    next()
+    return
+  }
+
+  if (features.paymentReturn && to.path === '/commande/annulee') {
+    next()
+    return
   }
 
   // Si l'utilisateur n'est pas authentifié, rediriger vers la page de maintenance

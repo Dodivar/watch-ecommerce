@@ -127,6 +127,41 @@ export default {
     admin: true,
   },
 
+  checkout: {
+    reserveMinutes: 30,
+    currency: 'EUR',
+    vatRate: 20,
+    shipping: {
+      defaultCountry: 'FR',
+      freeShippingFrom: null,
+      methods: [
+        {
+          id: 'standard_home',
+          type: 'home',
+          label: 'Livraison standard',
+          countries: ['FR'],
+          fee: { type: 'flat', amount: 9.9 },
+          estimatedDays: '3 à 7 jours ouvrés',
+        },
+        {
+          id: 'pickup_demo',
+          type: 'pickup',
+          label: 'Retrait en boutique (démo)',
+          fee: { type: 'flat', amount: 0 },
+          pickupLocation: {
+            name: 'Demo Store',
+            address: 'Adresse fictive, 75000 Paris',
+          },
+        },
+      ],
+    },
+    promo: { enabled: true },
+    legal: {
+      cgvUrl: '/conditions-generales-utilisation',
+      requireAcceptance: true,
+    },
+  },
+
   collection: {
     filters: {
       price: true,

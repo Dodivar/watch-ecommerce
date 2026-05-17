@@ -23,6 +23,13 @@ export const LEGAL_SIRET = site.legal.siret
 export const PURCHASE_ENABLED =
   site.features.purchase !== false && import.meta.env.VITE_PURCHASE_ENABLED !== 'false'
 
+/** Ajout au panier depuis les cartes montre (collection, carrousels). */
+export const CARD_QUICK_ADD_ENABLED =
+  PURCHASE_ENABLED && site.features.cardQuickAddToCart === true
+
+/** Clé publique Stripe (Payment Element) — `VITE_STRIPE_PUBLISHABLE_KEY` par déploiement. */
+export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
+
 const urlProduction = site.urls.production
 const urlStaging = site.urls.staging
 const urlDevelopment = site.urls.development

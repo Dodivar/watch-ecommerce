@@ -116,6 +116,41 @@ export default {
     admin: true,
   },
 
+  checkout: {
+    reserveMinutes: 30,
+    currency: 'EUR',
+    vatRate: 20,
+    shipping: {
+      defaultCountry: 'FR',
+      freeShippingFrom: null,
+      methods: [
+        {
+          id: 'colissimo_home',
+          type: 'home',
+          label: 'Livraison à domicile',
+          countries: ['FR', 'MC', 'BE', 'CH', 'LU'],
+          fee: { type: 'flat', amount: 12 },
+          estimatedDays: '5 à 10 jours ouvrés',
+        },
+        {
+          id: 'pickup_cathedrale',
+          type: 'pickup',
+          label: "Retrait boutique — Place de la Cathédrale",
+          fee: { type: 'flat', amount: 0 },
+          pickupLocation: {
+            name: "Jack'N'Ed",
+            address: '14 Place de la Cathédrale, 67000 Strasbourg',
+          },
+        },
+      ],
+    },
+    promo: { enabled: true },
+    legal: {
+      cgvUrl: '/conditions-generales-utilisation',
+      requireAcceptance: true,
+    },
+  },
+
   collection: {
     filters: {
       price: true,

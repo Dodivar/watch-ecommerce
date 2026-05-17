@@ -85,6 +85,63 @@ function deriveAllowedOrigins(siteConfig) {
  * @param {Record<string, unknown>} siteConfig
  * @returns {string[]}
  */
+const DEFAULT_CHECKOUT = {
+  reserveMinutes: 30,
+  currency: 'EUR',
+  shipping: {
+    defaultCountry: 'FR',
+    freeShippingFrom: null,
+    methods: [
+      {
+        id: 'standard_home',
+        type: 'home',
+        label: 'Livraison à domicile',
+        countries: ['FR'],
+        fee: { type: 'flat', amount: 0 },
+        estimatedDays: '3 à 7 jours ouvrés',
+      },
+    ],
+  },
+  promo: { enabled: true },
+  legal: {
+    cgvUrl: '/conditions-generales-utilisation',
+    requireAcceptance: true,
+  },
+}
+
+/**
+ * @param {unknown} raw
+ * @returns {typeof DEFAULT_CHECKOUT}
+ */
+function normalizeCheckout(raw) {
+  const c = raw && typeof raw === 'object' ? raw : {}
+  const shippingRaw = c.shipping && typeof c.shipping === 'object' ? c.shipping : {}
+  const methods = Array.isArray(shippingRaw.methods) ? shippingRaw.methods : DEFAULT_CHECKOUT.shipping.methods
+
+  return {
+    reserveMinutes:
+      Number.isFinite(Number(c.reserveMinutes)) && Number(c.reserveMinutes) > 0
+        ? Number(c.reserveMinutes)
+        : DEFAULT_CHECKOUT.reserveMinutes,
+    currency: typeof c.currency === 'string' && c.currency.trim() ? c.currency.trim() : 'EUR',
+    shipping: {
+      defaultCountry: shippingRaw.defaultCountry || DEFAULT_CHECKOUT.shipping.defaultCountry,
+      freeShippingFrom:
+        shippingRaw.freeShippingFrom === null || shippingRaw.freeShippingFrom === undefined
+          ? DEFAULT_CHECKOUT.shipping.freeShippingFrom
+          : Number(shippingRaw.freeShippingFrom),
+      methods: methods.filter((m) => m && m.id && m.type && m.label),
+    },
+    promo: {
+      enabled: c.promo?.enabled !== false,
+    },
+    legal: {
+      cgvUrl: c.legal?.cgvUrl || DEFAULT_CHECKOUT.legal.cgvUrl,
+      requireAcceptance: c.legal?.requireAcceptance !== false,
+    },
+  }
+}
+
 function deriveAllowedHosts(siteConfig) {
   const origins = deriveAllowedOrigins(siteConfig)
   const hosts = new Set()
@@ -144,6 +201,8 @@ function normalizeSiteConfig(rawConfig) {
     },
   }
 
+  const checkout = normalizeCheckout(rawConfig.checkout)
+
   return {
     id,
     raw: rawConfig,
@@ -151,6 +210,7 @@ function normalizeSiteConfig(rawConfig) {
     brand,
     contact,
     backend,
+    checkout,
     allowedOrigins: corsAllowedOrigins,
     allowedHosts,
   }
@@ -158,6 +218,8 @@ function normalizeSiteConfig(rawConfig) {
 
 module.exports = {
   normalizeSiteConfig,
+  normalizeCheckout,
+  DEFAULT_CHECKOUT,
   deriveAllowedOrigins,
   deriveAllowedHosts,
   expandOrigin,

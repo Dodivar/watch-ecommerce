@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useCart } from '@/composables/useCart.js'
-import { createCheckoutSessionFromCart } from '@/services/stripeService'
+import { useRouter } from 'vue-router'
 
 const {
   items,
@@ -23,6 +23,7 @@ function lineQty(line) {
   return Math.min(99, Math.floor(q))
 }
 
+const router = useRouter()
 const checkoutError = ref('')
 const isCheckingOut = ref(false)
 
@@ -65,25 +66,17 @@ onUnmounted(() => {
   document.removeEventListener('keydown', onEscape)
 })
 
-async function onCheckout() {
+function onCheckout() {
   const ids = getWatchIds()
   if (ids.length === 0) {
     return
   }
   checkoutError.value = ''
   isCheckingOut.value = true
-  try {
-    const payload = cartMultiQuantity.value
-      ? { lines: getCheckoutLines() }
-      : { watchIds: ids }
-    await createCheckoutSessionFromCart(payload)
-  } catch (err) {
-    console.error(err)
-    checkoutError.value =
-      err?.message || 'Impossible de démarrer le paiement. Veuillez réessayer.'
-  } finally {
+  closeDrawer()
+  router.push('/checkout').finally(() => {
     isCheckingOut.value = false
-  }
+  })
 }
 </script>
 

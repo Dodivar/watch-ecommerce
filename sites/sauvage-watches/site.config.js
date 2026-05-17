@@ -101,6 +101,34 @@ export default {
   features: {
     /** Achats en ligne (Stripe) sur les fiches montre ; désactiver aussi `VITE_PURCHASE_ENABLED=false` en prod si besoin. */
     purchase: true,
+    /** Bouton / icône panier sur les cartes montre (collection, carrousels). */
+    cardQuickAddToCart: true,
+    paymentReturn: true,
+  },
+
+  checkout: {
+    reserveMinutes: 30,
+    currency: 'EUR',
+    vatRate: 20,
+    shipping: {
+      defaultCountry: 'FR',
+      freeShippingFrom: null,
+      methods: [
+        {
+          id: 'colissimo_insured',
+          type: 'home',
+          label: 'Livraison assurée à domicile',
+          countries: ['FR', 'MC', 'BE', 'CH', 'LU'],
+          fee: { type: 'flat', amount: 0 },
+          estimatedDays: 'Sous 5 à 10 jours ouvrés après validation du paiement',
+        },
+      ],
+    },
+    promo: { enabled: true },
+    legal: {
+      cgvUrl: '/conditions-generales-utilisation',
+      requireAcceptance: true,
+    },
   },
 
   /**
@@ -142,7 +170,6 @@ export default {
    */
   navigation: {
     main: [
-      { type: 'link', label: 'Accueil', to: '/' },
       { type: 'link', label: 'Nos montres', to: '/collection', feature: 'collection' },
       {
         type: 'group',

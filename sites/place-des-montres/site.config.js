@@ -149,9 +149,44 @@ export default {
     legal: true,
     faq: true,
     purchase: true,
-    paymentReturn: false,
+    paymentReturn: true,
     admin: true,
     cartMultiQuantity: true,
+  },
+
+  checkout: {
+    reserveMinutes: 30,
+    currency: 'EUR',
+    vatRate: 20,
+    shipping: {
+      defaultCountry: 'FR',
+      freeShippingFrom: 80,
+      methods: [
+        {
+          id: 'colissimo_fr',
+          type: 'home',
+          label: 'Colissimo suivi — France métropolitaine',
+          countries: ['FR', 'MC'],
+          fee: { type: 'free_above', amount: 6.9, freeAbove: 80 },
+          estimatedDays: 'Expédition sous environ 48 h après réception du paiement',
+        },
+        {
+          id: 'pickup_halles',
+          type: 'pickup',
+          label: 'Retrait au magasin — Place des Halles',
+          fee: { type: 'flat', amount: 0 },
+          pickupLocation: {
+            name: 'Place des Montres',
+            address: 'Centre commercial Place des Halles, 67000 Strasbourg',
+          },
+        },
+      ],
+    },
+    promo: { enabled: true },
+    legal: {
+      cgvUrl: '/conditions-generales-utilisation',
+      requireAcceptance: true,
+    },
   },
 
   collection: {

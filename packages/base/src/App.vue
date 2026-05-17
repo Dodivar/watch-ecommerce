@@ -281,13 +281,13 @@ function displayMobileMenu() {
               >
             </li>
             <li v-if="features.paymentReturn">
-              <RouterLink to="/paiement-succes" class="text-white/90 hover:text-white transition-colors"
-                >Paiement Succès</RouterLink
+              <RouterLink to="/commande/succes" class="text-white/90 hover:text-white transition-colors"
+                >Commande succès</RouterLink
               >
             </li>
             <li v-if="features.paymentReturn">
-              <RouterLink to="/paiement-annule" class="text-white/90 hover:text-white transition-colors"
-                >Paiement Annulé</RouterLink
+              <RouterLink to="/commande/annulee" class="text-white/90 hover:text-white transition-colors"
+                >Commande annulée</RouterLink
               >
             </li>
             <li class="pt-2 border-t border-white/20">
