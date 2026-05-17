@@ -159,13 +159,12 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { DESKTOP_HOVER_SECOND_IMAGE_MQ } from '@/constants/watchCardDefaults.js'
 import {
   watchCardImageUrl,
   buildWatchCardSrcSet,
   WATCH_CARD_IMAGE_SIZES,
 } from '@/utils/watchImageUrl.js'
-
-const DESKTOP_HOVER_SECOND_IMAGE_MQ = '(min-width: 768px)'
 
 const props = defineProps({
   watch: {

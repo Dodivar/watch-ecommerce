@@ -209,9 +209,8 @@
           <WatchCard
             v-for="(watch, index) in paginatedWatches"
             :key="watch.id"
+            v-bind="WATCH_CARD_CATALOG_PROPS"
             :watch="watch"
-            hover-second-image
-            :show-image-navigation="false"
             :image-loading="index < 4 ? 'eager' : 'lazy'"
             :image-fetch-priority="index === 0 ? 'high' : 'auto'"
             class="animate-fade-in"
@@ -426,6 +425,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getMergedCollectionFilters, getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
 import { isValidCollectionPublicQuerySlug } from '@/constants/watchAudiences.js'
+import { WATCH_CARD_CATALOG_PROPS } from '@/constants/watchCardDefaults.js'
 import { resolveBrandFromSlug, slugifyBrand } from '@/utils/brandSlug.js'
 import {
   COLLECTION_PAGINATION_MOBILE_MQ,

@@ -388,7 +388,8 @@ export async function getSoldWatches(limit = 7) {
 }
 
 /**
- * Récupère les dernières montres disponibles (non vendues) avec leurs détails complets
+ * Récupère les dernières montres disponibles (non vendues) avec leurs détails complets.
+ * Inclut 2 images par montre pour l’aperçu au survol (desktop).
  * @param {number} limit - Nombre maximum de montres à récupérer (défaut: 7)
  * @returns {Promise<Array>} Liste des montres disponibles triées par date de création
  */
@@ -411,7 +412,7 @@ export async function getLatestAvailableWatches(limit = 7) {
       return []
     }
 
-    return assembleWatchesWithRelations(watches, 1)
+    return assembleWatchesWithRelations(watches, LISTING_IMAGES_PER_WATCH)
   } catch (error) {
     console.error('Erreur dans getLatestAvailableWatches:', error)
     throw error

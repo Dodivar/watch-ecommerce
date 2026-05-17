@@ -66,8 +66,8 @@
             <template v-else v-for="(watch, i) in latestWatches" :key="`${i}-${watch.id || watch.name}`">
               <div class="flex-shrink-0 w-40 sm:w-64 md:w-80">
                 <WatchCard
+                  v-bind="WATCH_CARD_CATALOG_PROPS"
                   :watch="watch"
-                  :show-image-navigation="false"
                   :show-new-badge="true"
                   :image-loading="i < 2 ? 'eager' : 'lazy'"
                   :image-fetch-priority="i === 0 ? 'high' : 'auto'"
@@ -89,6 +89,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getLatestAvailableWatches } from '@/services/watchService'
 import WatchCard from '@/components/watch/WatchCard.vue'
 import WatchCardSkeleton from '@/components/watch/WatchCardSkeleton.vue'
+import { WATCH_CARD_CATALOG_PROPS } from '@/constants/watchCardDefaults.js'
 
 const AUTO_SCROLL_DELAY_MS = 5000
 const SCROLL_SETTLE_DEBOUNCE_MS = 150
