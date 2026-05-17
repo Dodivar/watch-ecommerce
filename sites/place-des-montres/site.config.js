@@ -165,6 +165,10 @@ export default {
   },
 
   home: {
+    nouvelles: {
+      title: 'Nouvelles arrivées',
+      subtitle: 'Découvrez nos dernières pièces ajoutées à notre sélection',
+    },
     sections: [
       'hero',
       'nouvelles',

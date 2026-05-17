@@ -1,7 +1,12 @@
 <template>
   <div>
     <!-- Image Slider Skeleton -->
-    <div class="relative w-full aspect-square bg-cream-300 rounded-md overflow-hidden mb-3 md:mb-4 lg:mb-6 shimmer-bg"></div>
+    <div class="relative w-full aspect-square bg-cream-300 rounded-md overflow-hidden mb-3 md:mb-4 lg:mb-6 shimmer-bg">
+      <div
+        v-if="showNewBadge"
+        class="absolute top-2 left-2 z-10 h-4 md:h-5 w-12 md:w-14 bg-cream-200 rounded-full shimmer-bg"
+      ></div>
+    </div>
 
     <!-- Watch Info Skeleton -->
     <div>
@@ -39,6 +44,10 @@ const props = defineProps({
   showSoldBadge: {
     type: Boolean,
     default: true,
+  },
+  showNewBadge: {
+    type: Boolean,
+    default: false,
   },
   showPrice: {
     type: Boolean,

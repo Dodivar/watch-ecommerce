@@ -109,6 +109,10 @@ export default {
    * Sans clé `home` ou sans `sections`, l’accueil est vide (pas de défaut dans le socle).
    */
   home: {
+    nouvelles: {
+      title: 'Nouvelles arrivées',
+      // subtitle: 'Découvrez nos dernières pièces ajoutées à notre sélection',
+    },
     sections: [
       'hero',
       'nouvelles',

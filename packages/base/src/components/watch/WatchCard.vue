@@ -1,6 +1,12 @@
 <template>
   <div :class="{ 'cursor-pointer': clickable }" @click="handleCardClick">
     <div class="relative w-full aspect-square bg-white rounded-md overflow-hidden mb-2 border border-gray-100">
+      <span
+        v-if="showNewBadge"
+        class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-primary text-white shadow-sm"
+      >
+        Nouveau
+      </span>
       <div
         v-if="!watch.images || watch.images.length === 0"
         class="absolute inset-0 flex items-center justify-center"
@@ -173,6 +179,10 @@ const props = defineProps({
   showSoldBadge: {
     type: Boolean,
     default: true,
+  },
+  showNewBadge: {
+    type: Boolean,
+    default: false,
   },
   showPrice: {
     type: Boolean,
