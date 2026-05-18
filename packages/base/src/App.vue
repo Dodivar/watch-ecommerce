@@ -13,6 +13,7 @@ import logoHeaderIconGreen from '@site/assets/logos/Logos RVB (web)/Icône RVB/
 import logoFooterHorizontalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW blanc horizontal RVB.png'
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import CookieBanner from '@/components/CookieBanner.vue'
+import LegalPageLinks from '@/components/legal/LegalPageLinks.vue'
 import CartDrawer from '@/components/cart/CartDrawer.vue'
 import { openCookiePreferences } from '@/services/cookiePreferencesUi'
 import { useCart } from '@/composables/useCart.js'
@@ -30,6 +31,10 @@ const { badgeLabel, toggleDrawer, closeDrawer: closeCartDrawer } = useCart()
 
 // Vérifier si on est sur la page de maintenance
 const isMaintenancePage = computed(() => route.path === '/maintenance')
+
+// Bloquer l'accès au panier pendant le checkout
+const isCheckoutPage = computed(() => route.path === '/checkout')
+const cartAccessible = computed(() => PURCHASE_ENABLED && !isCheckoutPage.value)
 
 // Vérifier si un admin est connecté
 const isAdmin = ref(false)
@@ -65,7 +70,7 @@ function displayMobileMenu() {
     :nav-items="mainNavItems"
     :logo-src="logoMobileMenuVerticalWhite"
     :logo-alt="site.brand.logoAlt"
-    :purchase-enabled="PURCHASE_ENABLED"
+    :purchase-enabled="cartAccessible"
   />
 
   <!-- Menu desktop -->
@@ -93,7 +98,7 @@ function displayMobileMenu() {
             variant="header-trigger"
           />
           <button
-            v-if="PURCHASE_ENABLED"
+            v-if="cartAccessible"
             type="button"
             class="relative p-2 rounded-lg text-text-main hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Ouvrir le panier"
@@ -332,24 +337,7 @@ function displayMobileMenu() {
         <div class="flex flex-col md:flex-row justify-between items-center">
           <p class="text-white/90 text-sm">{{ site.copy.copyrightLine }}</p>
           <div class="flex flex-wrap gap-x-6 gap-y-2 mt-4 md:mt-0">
-            <RouterLink
-              v-if="features.legal"
-              to="/mentions-legales"
-              class="text-white/90 hover:text-white text-sm transition-colors"
-              >Mentions légales</RouterLink
-            >
-            <RouterLink
-              v-if="features.legal"
-              to="/politique-confidentialite"
-              class="text-white/90 hover:text-white text-sm transition-colors"
-              >Politique de confidentialité</RouterLink
-            >
-            <RouterLink
-              v-if="features.legal"
-              to="/conditions-generales-utilisation"
-              class="text-white/90 hover:text-white text-sm transition-colors"
-              >CGU</RouterLink
-            >
+            <LegalPageLinks variant="footer" />
             <button
               type="button"
               class="text-white/90 hover:text-white text-sm transition-colors bg-transparent border-0 cursor-pointer p-0 font-inherit text-left md:text-center"
@@ -363,7 +351,7 @@ function displayMobileMenu() {
     </div>
   </footer>
 
-  <CartDrawer v-if="PURCHASE_ENABLED && !isMaintenancePage" />
+  <CartDrawer v-if="cartAccessible && !isMaintenancePage" />
   <CookieBanner />
 </template>
 

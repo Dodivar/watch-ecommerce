@@ -58,7 +58,7 @@ function corsFromRegistry(registry) {
       if (allowed.has(key)) return callback(null, true)
       return callback(new Error(`CORS: origin "${origin}" non autorisée`))
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
       'Accept',

@@ -25,6 +25,7 @@
     "db:strip-case-size-mm:apply": "node scripts/strip-case-size-mm.mjs --apply"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^2.0.2",
     "@stripe/stripe-js": "^5.10.0",
     "@supabase/supabase-js": "^2.83.0",
     "@vue-leaflet/vue-leaflet": "^0.10.1",

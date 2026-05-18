@@ -16,6 +16,16 @@ import {
   cancelOrder,
 } from '@/services/orderService.js'
 import CheckoutOrderSummary from './CheckoutOrderSummary.vue'
+import AddressAutocompleteInput from './AddressAutocompleteInput.vue'
+import LegalPageLinks from '@/components/legal/LegalPageLinks.vue'
+
+const COUNTRY_LABELS = {
+  FR: 'France',
+  MC: 'Monaco',
+  BE: 'Belgique',
+  CH: 'Suisse',
+  LU: 'Luxembourg',
+}
 
 const router = useRouter()
 const site = getSiteConfig()
@@ -53,6 +63,7 @@ const shippingAddress = ref({
 
 const promoInput = ref('')
 const promoMessage = ref('')
+const promoMessageType = ref('')
 const cgvAccepted = ref(false)
 
 const paymentLoading = ref(false)
@@ -61,11 +72,31 @@ let stripeInstance = null
 let elementsInstance = null
 let paymentElement = null
 let syncDebounceTimer = null
+let syncInFlight = false
+let syncQueued = false
 let lastPaymentTotalCents = null
 let lastClientSecret = null
 
 const homeMethodsAll = computed(() => shippingMethods.filter((m) => m.type === 'home'))
 const pickupMethodsAll = computed(() => shippingMethods.filter((m) => m.type === 'pickup'))
+
+const allowedShippingCountries = computed(() => {
+  const set = new Set()
+  for (const method of homeMethodsAll.value) {
+    if (!Array.isArray(method.countries)) continue
+    for (const code of method.countries) {
+      set.add(String(code).trim().toUpperCase())
+    }
+  }
+  if (set.size === 0) {
+    set.add(String(checkoutConfig.shipping?.defaultCountry || 'FR').toUpperCase())
+  }
+  return [...set]
+})
+
+function countryLabel(code) {
+  return COUNTRY_LABELS[code] || code
+}
 const showFulfillmentToggle = computed(
   () => homeMethodsAll.value.length > 0 && pickupMethodsAll.value.length > 0,
 )
@@ -153,6 +184,73 @@ function clearSession() {
   sessionStorage.removeItem(storageKey())
 }
 
+function buildCartLinesPayload() {
+  return cartMultiQuantity.value
+    ? getCheckoutLines()
+    : items.value.map((i) => ({ watchId: i.watchId, quantity: 1 }))
+}
+
+function normalizeCheckoutLines(lines) {
+  return [...lines]
+    .map((line) => ({
+      watchId: String(line.watchId),
+      quantity: Math.max(1, Number(line.quantity) || 1),
+    }))
+    .sort((a, b) => a.watchId.localeCompare(b.watchId))
+}
+
+function cartMatchesOrder(cartLines, orderLines) {
+  const normalizedCart = normalizeCheckoutLines(cartLines)
+  const normalizedOrder = normalizeCheckoutLines(orderLines)
+  if (normalizedCart.length !== normalizedOrder.length) return false
+  return normalizedCart.every(
+    (line, index) =>
+      line.watchId === normalizedOrder[index].watchId &&
+      line.quantity === normalizedOrder[index].quantity,
+  )
+}
+
+function resetPaymentState() {
+  lastPaymentTotalCents = null
+  lastClientSecret = null
+  stripeReady.value = false
+  if (paymentElement) {
+    paymentElement.destroy()
+    paymentElement = null
+  }
+  elementsInstance = null
+}
+
+async function createOrderFromCart() {
+  const lines = buildCartLinesPayload()
+  if (!lines.length && !items.value.length) {
+    router.replace('/collection')
+    return false
+  }
+
+  const created = await createOrder({ lines })
+  orderId.value = created.orderId || created.order?.id
+  accessToken.value = created.accessToken
+  orderSnapshot.value = created
+  saveSession()
+  return true
+}
+
+async function discardSavedOrder() {
+  if (orderId.value && accessToken.value) {
+    try {
+      await cancelOrder(orderId.value, accessToken.value)
+    } catch {
+      /* ignore */
+    }
+  }
+  clearSession()
+  orderId.value = ''
+  accessToken.value = ''
+  orderSnapshot.value = null
+  resetPaymentState()
+}
+
 function buildBillingAddress() {
   if (selectedMethod.value?.type === 'pickup') {
     return {
@@ -170,6 +268,16 @@ function buildBillingAddress() {
     city: shippingAddress.value.city,
     country: shippingAddress.value.country,
   }
+}
+
+function onPlaceSelected(parsed) {
+  Object.assign(shippingAddress.value, {
+    line1: parsed.line1 || shippingAddress.value.line1,
+    line2: parsed.line2 ?? '',
+    postalCode: parsed.postalCode || shippingAddress.value.postalCode,
+    city: parsed.city || shippingAddress.value.city,
+    country: parsed.country || shippingAddress.value.country,
+  })
 }
 
 function buildShippingPayload() {
@@ -198,34 +306,32 @@ async function ensureOrder() {
     accessToken.value = saved.accessToken
     try {
       await refreshOrder()
-      if (orderSnapshot.value?.order?.status === 'paid') {
+      const order = orderSnapshot.value?.order
+      if (order?.status === 'paid') {
         router.replace({
           path: '/commande/succes',
           query: { order: orderId.value, token: accessToken.value },
         })
         return
       }
+
+      const cartLines = buildCartLinesPayload()
+      const reusableStatus = order?.status === 'draft' || order?.status === 'pending_payment'
+      const linesInSync = cartMatchesOrder(cartLines, order?.lines || [])
+
+      if (reusableStatus && linesInSync) {
+        return
+      }
+
+      await discardSavedOrder()
+      await createOrderFromCart()
       return
     } catch {
-      clearSession()
+      await discardSavedOrder()
     }
   }
 
-  const lines = getCheckoutLines()
-  if (!lines.length && !items.value.length) {
-    router.replace('/collection')
-    return
-  }
-
-  const payload = cartMultiQuantity.value
-    ? { lines: getCheckoutLines() }
-    : { lines: items.value.map((i) => ({ watchId: i.watchId, quantity: 1 })) }
-
-  const created = await createOrder(payload)
-  orderId.value = created.orderId || created.order?.id
-  accessToken.value = created.accessToken
-  orderSnapshot.value = created
-  saveSession()
+  await createOrderFromCart()
 }
 
 async function updateOrderDetailsPartial() {
@@ -243,6 +349,11 @@ async function updateOrderDetailsPartial() {
 
 async function syncOrder() {
   if (!orderId.value || !accessToken.value || !canSyncOrder.value) return
+  if (syncInFlight) {
+    syncQueued = true
+    return
+  }
+  syncInFlight = true
   syncLoading.value = true
   try {
     await updateOrderDetailsPartial()
@@ -255,9 +366,14 @@ async function syncOrder() {
       }
     }
   } catch (e) {
-    error.value = e.message
+    error.value = e.message || 'Erreur lors de la mise à jour de la commande'
   } finally {
+    syncInFlight = false
     syncLoading.value = false
+    if (syncQueued) {
+      syncQueued = false
+      scheduleSync()
+    }
   }
 }
 
@@ -266,7 +382,7 @@ function scheduleSync() {
   syncDebounceTimer = setTimeout(() => {
     syncDebounceTimer = null
     syncOrder()
-  }, 500)
+  }, 1000)
 }
 
 function selectFirstMethodForMode(mode) {
@@ -280,9 +396,11 @@ function selectFirstMethodForMode(mode) {
 
 async function onApplyPromo() {
   promoMessage.value = ''
+  promoMessageType.value = ''
   error.value = ''
   if (!String(promoInput.value).trim()) {
-    error.value = 'Saisissez un code promo'
+    promoMessage.value = 'Saisissez un code promo'
+    promoMessageType.value = 'error'
     return
   }
   promoLoading.value = true
@@ -296,11 +414,13 @@ async function onApplyPromo() {
       promoInput.value,
     )
     promoMessage.value = 'Code appliqué'
+    promoMessageType.value = 'success'
     if (canInitPayment.value) {
       await initPayment(true)
     }
   } catch (e) {
-    error.value = e.message
+    promoMessage.value = e.message || 'Code promo invalide'
+    promoMessageType.value = 'error'
   } finally {
     promoLoading.value = false
   }
@@ -313,6 +433,7 @@ async function onRemovePromo() {
     orderSnapshot.value = await removeOrderPromo(orderId.value, accessToken.value)
     promoInput.value = ''
     promoMessage.value = ''
+    promoMessageType.value = ''
     if (canInitPayment.value) {
       await initPayment(true)
     }
@@ -454,6 +575,13 @@ watch(
   { deep: true },
 )
 
+watch(promoInput, () => {
+  if (promoMessageType.value === 'error') {
+    promoMessage.value = ''
+    promoMessageType.value = ''
+  }
+})
+
 onMounted(async () => {
   if (!shippingMethods.length) {
     error.value = 'Configuration livraison manquante'
@@ -524,6 +652,7 @@ onUnmounted(() => {
             :promo-enabled="promoEnabled"
             v-model:promo-input="promoInput"
             :promo-message="promoMessage"
+            :promo-message-type="promoMessageType"
             :promo-loading="promoLoading || syncLoading"
             :shipping-quote-ready="shippingQuoteReady"
             :vat-rate="vatRate"
@@ -640,20 +769,22 @@ onUnmounted(() => {
                     v-model="shippingAddress.country"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2"
                   >
-                    <option value="FR">France</option>
-                    <option value="MC">Monaco</option>
-                    <option value="BE">Belgique</option>
-                    <option value="CH">Suisse</option>
-                    <option value="LU">Luxembourg</option>
+                    <option
+                      v-for="code in allowedShippingCountries"
+                      :key="code"
+                      :value="code"
+                    >
+                      {{ countryLabel(code) }}
+                    </option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
-                  <input
+                  <AddressAutocompleteInput
                     v-model="shippingAddress.line1"
-                    required
-                    autocomplete="street-address"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    :countries="allowedShippingCountries"
+                    :enabled="isHomeDelivery"
+                    @place-selected="onPlaceSelected"
                   />
                 </div>
                 <div>
@@ -800,6 +931,8 @@ onUnmounted(() => {
               <span v-if="paymentLoading">Traitement…</span>
               <span v-else>Payer {{ quote ? formatPrice(quote.totalCents) : '' }}</span>
             </button>
+
+            <LegalPageLinks variant="checkout" />
           </section>
 
           <button

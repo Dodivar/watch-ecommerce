@@ -7,6 +7,7 @@ const props = defineProps({
   promoEnabled: { type: Boolean, default: true },
   promoInput: { type: String, default: '' },
   promoMessage: { type: String, default: '' },
+  promoMessageType: { type: String, default: '' },
   promoLoading: { type: Boolean, default: false },
   shippingQuoteReady: { type: Boolean, default: false },
   vatRate: { type: Number, default: 20 },
@@ -109,7 +110,17 @@ const shippingLabel = computed(() => {
         Valider
       </button>
     </div>
-    <p v-if="promoMessage" class="text-sm text-green-700 -mt-4">{{ promoMessage }}</p>
+    <p
+      v-if="promoMessage"
+      class="text-xs -mt-4"
+      :class="
+        promoMessageType === 'success'
+          ? 'text-green-700'
+          : 'text-gray-500'
+      "
+    >
+      {{ promoMessage }}
+    </p>
     <button
       v-if="quote?.discountCents > 0"
       type="button"

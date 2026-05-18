@@ -30,6 +30,11 @@ function buildOrdersRouter(registry) {
     max: (req) => (req.site && req.site.secrets?.stripe?.checkoutRateLimitMax) || 30,
     standardHeaders: true,
     legacyHeaders: false,
+    handler: (req, res, _next, options) => {
+      res.status(options.statusCode).json({
+        error: 'Trop de requêtes. Réessayez dans quelques instants.',
+      })
+    },
   })
 
   function getCheckoutConfig(site) {

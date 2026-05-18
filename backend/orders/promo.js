@@ -23,7 +23,10 @@ async function loadPromoCode(supabase, siteId, codeRaw) {
     console.error('loadPromoCode:', error)
     return { ok: false, error: 'Impossible de valider le code promo' }
   }
-  if (!data || !data.active) {
+  if (!data) {
+    return { ok: false, error: "Ce code promo n'existe pas" }
+  }
+  if (!data.active) {
     return { ok: false, error: 'Code promo invalide' }
   }
 

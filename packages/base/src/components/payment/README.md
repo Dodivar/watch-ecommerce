@@ -24,3 +24,15 @@ Voir `backend/routes/orders.js`, `backend/routes/stripe.js` (webhooks `payment_i
 ## Configuration site
 
 Bloc `checkout` dans `sites/<SITE_ID>/site.config.js` (livraison, promo, CGV).
+
+## Autocomplétion adresse (Google Places)
+
+Sur `/checkout`, le champ « Adresse » utilise `PlaceAutocompleteElement` (API Places recommandée) si `VITE_GOOGLE_PLACES_API_KEY` est défini (par déploiement Vercel, comme Stripe).
+
+**Google Cloud (par projet) :**
+
+1. Activer **Maps JavaScript API**, **Places API** et **Places API (New)**.
+2. Créer une clé API restreinte par **référent HTTP** (`localhost:5173`, domaines prod/recette du client).
+3. Ne pas activer **Address Validation API** (hors scope, coût supplémentaire).
+
+Sans clé, la saisie manuelle reste inchangée.

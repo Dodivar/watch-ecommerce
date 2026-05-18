@@ -16,9 +16,30 @@ function apiHeaders(accessToken) {
   return headers
 }
 
+async function readResponseBody(response) {
+  const contentType = response.headers.get('content-type') || ''
+  if (contentType.includes('application/json')) {
+    return response.json()
+  }
+  const text = (await response.text()).trim()
+  if (!text) return {}
+  try {
+    return JSON.parse(text)
+  } catch {
+    return { error: text }
+  }
+}
+
 async function parseJson(response) {
-  const data = await response.json()
+  const data = await readResponseBody(response)
   if (!response.ok) {
+    if (response.status === 429) {
+      throw new Error(
+        data.error ||
+          data.message ||
+          'Trop de requêtes. Patientez quelques instants avant de réessayer.',
+      )
+    }
     throw new Error(data.error || data.message || 'Erreur serveur')
   }
   return data

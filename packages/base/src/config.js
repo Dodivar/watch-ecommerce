@@ -30,6 +30,9 @@ export const CARD_QUICK_ADD_ENABLED =
 /** Clé publique Stripe (Payment Element) — `VITE_STRIPE_PUBLISHABLE_KEY` par déploiement. */
 export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
 
+/** Clé Google Places (autocomplétion adresse checkout) — `VITE_GOOGLE_PLACES_API_KEY` par déploiement. */
+export const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || ''
+
 const urlProduction = site.urls.production
 const urlStaging = site.urls.staging
 const urlDevelopment = site.urls.development
