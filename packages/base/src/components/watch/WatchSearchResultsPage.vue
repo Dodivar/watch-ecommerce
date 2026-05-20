@@ -98,6 +98,7 @@
           <WatchCard
             v-for="(watch, index) in paginatedWatches"
             :key="watch.id"
+            v-bind="WATCH_CARD_GRID_PROPS"
             :watch="watch"
             :image-loading="index < 4 ? 'eager' : 'lazy'"
             :image-fetch-priority="index === 0 ? 'high' : 'auto'"
@@ -218,6 +219,7 @@ import { useHead } from '@vueuse/head'
 import HeaderQuickSearch from '@/components/layout/HeaderQuickSearch.vue'
 import WatchCard from './WatchCard.vue'
 import WatchCardSkeleton from './WatchCardSkeleton.vue'
+import { WATCH_CARD_GRID_PROPS } from '@/constants/watchCardDefaults.js'
 import { scrollAnimation } from '@/animation'
 import { BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -358,31 +360,31 @@ watch(searchQuery, (next, prev) => {
   }
 })
 
-watch(
-  [searchQuery, () => siteConfig.brand?.displayName],
-  () => {
-    const q = searchQuery.value
-    if (!q) return
-    const siteName = siteConfig.brand?.displayName || siteConfig.brand?.legalName || 'Montres'
-    const title = `Résultats : ${q} | ${siteName}`
-    useHead({
-      title,
-      meta: [
-        { name: 'robots', content: 'noindex, follow' },
-        { name: 'description', content: `Résultats de recherche pour ${q}` },
-        { property: 'og:title', content: title },
-        { property: 'og:url', content: `${BASE_URL}/collection/recherche?q=${encodeURIComponent(q)}` },
-      ],
-      link: [
-        {
-          rel: 'canonical',
-          href: `${BASE_URL}/collection/recherche?q=${encodeURIComponent(q)}`,
-        },
-      ],
-    })
-  },
-  { immediate: true },
-)
+const searchHead = computed(() => {
+  const q = searchQuery.value
+  if (!q) return {}
+
+  const siteName = siteConfig.brand?.displayName || siteConfig.brand?.legalName || 'Montres'
+  const title = `Résultats : ${q} | ${siteName}`
+
+  return {
+    title,
+    meta: [
+      { name: 'robots', content: 'noindex, follow' },
+      { name: 'description', content: `Résultats de recherche pour ${q}` },
+      { property: 'og:title', content: title },
+      { property: 'og:url', content: `${BASE_URL}/collection/recherche?q=${encodeURIComponent(q)}` },
+    ],
+    link: [
+      {
+        rel: 'canonical',
+        href: `${BASE_URL}/collection/recherche?q=${encodeURIComponent(q)}`,
+      },
+    ],
+  }
+})
+
+useHead(searchHead)
 
 onMounted(async () => {
   paginationMq = window.matchMedia(COLLECTION_PAGINATION_MOBILE_MQ)

@@ -209,7 +209,7 @@
           <WatchCard
             v-for="(watch, index) in paginatedWatches"
             :key="watch.id"
-            v-bind="WATCH_CARD_CATALOG_PROPS"
+            v-bind="WATCH_CARD_GRID_PROPS"
             :watch="watch"
             :image-loading="index < 4 ? 'eager' : 'lazy'"
             :image-fetch-priority="index === 0 ? 'high' : 'auto'"
@@ -425,7 +425,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getMergedCollectionFilters, getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
 import { isValidCollectionPublicQuerySlug } from '@/constants/watchAudiences.js'
-import { WATCH_CARD_CATALOG_PROPS } from '@/constants/watchCardDefaults.js'
+import { WATCH_CARD_GRID_PROPS } from '@/constants/watchCardDefaults.js'
 import { resolveBrandFromSlug, slugifyBrand } from '@/utils/brandSlug.js'
 import {
   COLLECTION_PAGINATION_MOBILE_MQ,
@@ -656,75 +656,66 @@ function fillBrand(template, brand) {
 
 const seoBrand = computed(() => siteConfig.seo?.brandCollection || {})
 
-watch(
-  () => [
-    singleBrandLabel.value,
-    marqueQuerySlug.value,
-    listing.isLoading,
-    listing.error,
-    listing.selectedBrands.length,
-  ],
-  () => {
-    if (listing.isLoading || listing.error) return
+const collectionHead = computed(() => {
+  if (listing.isLoading || listing.error) return {}
 
-    if (!singleBrandLabel.value || listing.selectedBrands.length !== 1) {
-      useHead({
-        title: seoCollection.title,
-        meta: [
-          { name: 'description', content: seoCollection.metaDescription },
-          { property: 'og:title', content: seoCollection.ogTitle },
-          { property: 'og:description', content: seoCollection.ogDescription },
-          { property: 'og:url', content: `${BASE_URL}/collection` },
-          { property: 'og:type', content: 'website' },
-          { name: 'twitter:card', content: 'summary' },
-          { name: 'twitter:title', content: seoCollection.twitterTitle },
-          { name: 'twitter:description', content: seoCollection.twitterDescription },
-        ],
-        link: [{ rel: 'canonical', href: `${BASE_URL}/collection` }],
-      })
-      return
-    }
-
-    const brand = singleBrandLabel.value
-    const shareParams = new URLSearchParams()
-    if (marqueQuerySlug.value) {
-      shareParams.set('marque', marqueQuerySlug.value)
-    }
-    if (publicQuerySlug.value) {
-      shareParams.set('public', publicQuerySlug.value)
-    }
-    const shareQuery = shareParams.toString()
-    const shareUrl = shareQuery
-      ? `${BASE_URL}/collection?${shareQuery}`
-      : `${BASE_URL}/collection`
-    const title = brand
-      ? fillBrand(seoBrand.value.title || '{brand} | Collection', brand)
-      : seoBrand.value.titleFallback || 'Collection par marque'
-    const desc = brand
-      ? fillBrand(
-          seoBrand.value.metaDescription ||
-            'Montres {brand} disponibles. Filtrez par public et budget.',
-          brand,
-        )
-      : seoBrand.value.metaDescriptionFallback || ''
-
-    useHead({
-      title,
+  if (!singleBrandLabel.value || listing.selectedBrands.length !== 1) {
+    return {
+      title: seoCollection.title,
       meta: [
-        { name: 'description', content: desc },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: desc },
-        { property: 'og:url', content: shareUrl },
+        { name: 'description', content: seoCollection.metaDescription },
+        { property: 'og:title', content: seoCollection.ogTitle },
+        { property: 'og:description', content: seoCollection.ogDescription },
+        { property: 'og:url', content: `${BASE_URL}/collection` },
         { property: 'og:type', content: 'website' },
         { name: 'twitter:card', content: 'summary' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: desc },
+        { name: 'twitter:title', content: seoCollection.twitterTitle },
+        { name: 'twitter:description', content: seoCollection.twitterDescription },
       ],
       link: [{ rel: 'canonical', href: `${BASE_URL}/collection` }],
-    })
-  },
-  { immediate: true },
-)
+    }
+  }
+
+  const brand = singleBrandLabel.value
+  const shareParams = new URLSearchParams()
+  if (marqueQuerySlug.value) {
+    shareParams.set('marque', marqueQuerySlug.value)
+  }
+  if (publicQuerySlug.value) {
+    shareParams.set('public', publicQuerySlug.value)
+  }
+  const shareQuery = shareParams.toString()
+  const shareUrl = shareQuery
+    ? `${BASE_URL}/collection?${shareQuery}`
+    : `${BASE_URL}/collection`
+  const title = brand
+    ? fillBrand(seoBrand.value.title || '{brand} | Collection', brand)
+    : seoBrand.value.titleFallback || 'Collection par marque'
+  const desc = brand
+    ? fillBrand(
+        seoBrand.value.metaDescription ||
+          'Montres {brand} disponibles. Filtrez par public et budget.',
+        brand,
+      )
+    : seoBrand.value.metaDescriptionFallback || ''
+
+  return {
+    title,
+    meta: [
+      { name: 'description', content: desc },
+      { property: 'og:title', content: title },
+      { property: 'og:description', content: desc },
+      { property: 'og:url', content: shareUrl },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary' },
+      { name: 'twitter:title', content: title },
+      { name: 'twitter:description', content: desc },
+    ],
+    link: [{ rel: 'canonical', href: `${BASE_URL}/collection` }],
+  }
+})
+
+useHead(collectionHead)
 
 const sortDropdownRef = ref(null)
 

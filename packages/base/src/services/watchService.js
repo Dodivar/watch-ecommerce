@@ -1,13 +1,14 @@
 import { supabase } from './supabase'
 import { getWatchArticles } from './watchArticleService'
 import { normalizeCaseSizeValue } from '@/utils/caseSize'
+import { WATCH_CARD_MAX_IMAGES } from '@/constants/watchCardDefaults.js'
 import {
   getStaticWatchAudienceAdminOptions,
   getStaticWatchAudienceFilterOptions,
 } from '@/constants/watchAudiences'
 
-/** Images par montre en listing : 2 pour l’aperçu au survol (desktop) sur la collection. */
-const LISTING_IMAGES_PER_WATCH = 2
+/** Images par montre en listing collection / recherche (navigation jusqu'à WATCH_CARD_MAX_IMAGES). */
+const LISTING_IMAGES_PER_WATCH = WATCH_CARD_MAX_IMAGES
 
 /**
  * Slugs affichés comme filtres sur la page collection (table watch_audiences).

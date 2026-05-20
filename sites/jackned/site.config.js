@@ -39,9 +39,10 @@ export default {
     footerAddressHtml: '14 Place de la Cathédrale<br />67000 Strasbourg, France',
   },
 
-  /** Carte boutique (Leaflet + OSM) — coordonnées à ajuster au besoin après géocodage précis */
+  /** Carte boutique — coordonnées à ajuster au besoin après géocodage précis */
   storeMap: {
     enabled: true,
+    provider: 'google',
     center: { lat: 48.58185, lng: 7.74875 },
     zoom: 16,
     markerLabel: "Jack'N'Ed",
@@ -123,6 +124,7 @@ export default {
     shipping: {
       defaultCountry: 'FR',
       freeShippingFrom: null,
+      pickupEnabled: true,
       methods: [
         {
           id: 'colissimo_home',

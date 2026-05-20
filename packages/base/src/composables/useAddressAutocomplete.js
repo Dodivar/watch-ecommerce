@@ -1,5 +1,5 @@
 import { unref, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { ensureGooglePlaces, isGooglePlacesEnabled } from '@/services/googlePlaces.js'
+import { ensureGooglePlaces, isGooglePlacesEnabled } from '@/services/googleMaps.js'
 import { parseAddressComponents } from '@/utils/parseGoogleAddressComponents.js'
 
 const ADDRESS_PRIMARY_TYPES = ['street_address', 'premise', 'subpremise', 'route']
@@ -12,6 +12,7 @@ const ADDRESS_PRIMARY_TYPES = ['street_address', 'premise', 'subpremise', 'route
  *   enabled?: import('vue').MaybeRefOrGetter<boolean>,
  *   modelValue?: import('vue').MaybeRefOrGetter<string>,
  *   disabled?: import('vue').MaybeRefOrGetter<boolean>,
+ *   placeholder?: import('vue').MaybeRefOrGetter<string>,
  *   onValueChange?: (value: string) => void,
  *   onPlaceSelected: (parsed: ReturnType<typeof parseAddressComponents>) => void,
  * }} options
@@ -54,6 +55,13 @@ export function useAddressAutocomplete(containerRef, options) {
     return Boolean(flag)
   }
 
+  function resolvePlaceholder() {
+    if (options.placeholder == null) return ''
+    return typeof options.placeholder === 'function'
+      ? options.placeholder()
+      : String(unref(options.placeholder) || '')
+  }
+
   function syncElementState() {
     if (!autocompleteElement) return
     const next = resolveModelValue()
@@ -61,6 +69,10 @@ export function useAddressAutocomplete(containerRef, options) {
       autocompleteElement.value = next
     }
     autocompleteElement.disabled = isDisabled()
+    const placeholder = resolvePlaceholder()
+    if (placeholder && autocompleteElement.placeholder !== placeholder) {
+      autocompleteElement.placeholder = placeholder
+    }
   }
 
   async function onGmpSelect(event) {
@@ -120,6 +132,9 @@ export function useAddressAutocomplete(containerRef, options) {
       name: 'street-address',
       value: resolveModelValue(),
       disabled: isDisabled(),
+      placeholder: resolvePlaceholder(),
+      requestedLanguage: 'fr',
+      noInputIcon: true,
     })
     autocompleteElement.className = 'watch-place-autocomplete'
 
@@ -160,7 +175,7 @@ export function useAddressAutocomplete(containerRef, options) {
   )
 
   watch(
-    () => [resolveModelValue(), isDisabled()].join('\0'),
+    () => [resolveModelValue(), isDisabled(), resolvePlaceholder()].join('\0'),
     () => {
       syncElementState()
     },

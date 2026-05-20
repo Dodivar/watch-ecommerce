@@ -25,14 +25,38 @@ Voir `backend/routes/orders.js`, `backend/routes/stripe.js` (webhooks `payment_i
 
 Bloc `checkout` dans `sites/<SITE_ID>/site.config.js` (livraison, promo, CGV).
 
-## Autocomplétion adresse (Google Places)
+## Google Maps / Places (`VITE_GOOGLE_PLACES_API_KEY`)
 
-Sur `/checkout`, le champ « Adresse » utilise `PlaceAutocompleteElement` (API Places recommandée) si `VITE_GOOGLE_PLACES_API_KEY` est défini (par déploiement Vercel, comme Stripe).
+Une même clé sert à l’**autocomplétion checkout** et à la **carte boutique** (pages Contact et À propos), lorsque `storeMap.provider: 'google'` dans `site.config.js`.
 
-**Google Cloud (par projet) :**
+### Autocomplétion adresse (checkout)
+
+Sur `/checkout`, le champ « Adresse » utilise `PlaceAutocompleteElement` si la clé est définie. Sans clé, la saisie manuelle reste inchangée.
+
+### Carte boutique (Contact / À propos)
+
+`StoreLocationMap.vue` affiche Google Maps si `storeMap.provider === 'google'` et la clé est présente. Sinon, repli sur **Leaflet + OpenStreetMap** (`provider: 'leaflet'` ou clé absente).
+
+Configuration par client dans `sites/<SITE_ID>/site.config.js` :
+
+```js
+storeMap: {
+  enabled: true,
+  provider: 'google', // ou 'leaflet'
+  center: { lat: 48.59, lng: 7.77 },
+  zoom: 16,
+  markerLabel: 'Nom boutique',
+  /** Optionnel — logo dans la bulle (chemin `public/` ou URL absolue) */
+  popupLogoSrc: '/brand-logo.jpg',
+},
+```
+
+Par défaut, le logo utilise `popupLogoSrc`, sinon `/apple-touch-icon.png` (dossier `public/` du site).
+
+### Google Cloud (par projet Vercel)
 
 1. Activer **Maps JavaScript API**, **Places API** et **Places API (New)**.
 2. Créer une clé API restreinte par **référent HTTP** (`localhost:5173`, domaines prod/recette du client).
 3. Ne pas activer **Address Validation API** (hors scope, coût supplémentaire).
 
-Sans clé, la saisie manuelle reste inchangée.
+Option ultérieure : `storeMap.mapId` + marqueurs avancés (Map ID dans la console Google Cloud).

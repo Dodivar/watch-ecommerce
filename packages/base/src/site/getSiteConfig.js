@@ -4,6 +4,7 @@ import { resolveHomeSections } from './homeSections.js'
 import { resolveHomeNouvellesConfig } from './homeNouvelles.js'
 import { resolveHomeSelectionsConfig } from './homeSelections.js'
 import { mergeSiteFeatures } from './siteFeatures.js'
+import { resolveCheckoutShipping } from './checkoutShipping.js'
 
 let cached
 
@@ -30,9 +31,19 @@ export function getSiteConfig() {
         : {}
     const selections = resolveHomeSelectionsConfig(siteConfig)
     const nouvelles = resolveHomeNouvellesConfig(siteConfig)
+    const checkoutRaw = siteConfig.checkout || {}
+    const shippingResolved = resolveCheckoutShipping(checkoutRaw)
     cached = {
       ...siteConfig,
       features,
+      checkout: {
+        ...checkoutRaw,
+        shipping: {
+          ...(checkoutRaw.shipping || {}),
+          pickupEnabled: shippingResolved.pickupEnabled,
+          methods: shippingResolved.methods,
+        },
+      },
       home: {
         ...homeRest,
         sections: resolveHomeSections(siteConfig),

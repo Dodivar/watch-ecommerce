@@ -40,6 +40,7 @@ export default {
 
   storeMap: {
     enabled: true,
+    provider: 'google',
     center: { lat: 48.8566, lng: 2.3522 },
     zoom: 12,
     markerLabel: 'Demo Store',
@@ -134,6 +135,7 @@ export default {
     shipping: {
       defaultCountry: 'FR',
       freeShippingFrom: null,
+      pickupEnabled: true,
       methods: [
         {
           id: 'standard_home',

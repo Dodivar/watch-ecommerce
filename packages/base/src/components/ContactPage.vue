@@ -114,10 +114,7 @@
               </div>
             </div>
 
-            <div v-if="showStoreMap" class="bg-white rounded-lg shadow-md p-6 border border-cream-300">
-              <h2 class="text-lg font-semibold text-text-main mb-4">Nous trouver</h2>
-              <StoreLocationMap />
-            </div>
+            <StoreLocationMap v-if="showStoreMap" class="rounded-lg shadow-md" />
           </div>
 
           <!-- Formulaire -->

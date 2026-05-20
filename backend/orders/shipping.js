@@ -1,10 +1,32 @@
 /**
+ * Retrait en boutique — `checkout.shipping.pickupEnabled` par site.
+ * @param {object} checkoutConfig
+ * @returns {boolean}
+ */
+function isPickupEnabled(checkoutConfig) {
+  const explicit = checkoutConfig?.shipping?.pickupEnabled
+  if (typeof explicit === 'boolean') return explicit
+  const methods = checkoutConfig?.shipping?.methods || []
+  return methods.some((m) => m?.type === 'pickup')
+}
+
+/**
+ * @param {object} checkoutConfig
+ * @returns {object[]}
+ */
+function getActiveShippingMethods(checkoutConfig) {
+  const methods = checkoutConfig?.shipping?.methods || []
+  if (isPickupEnabled(checkoutConfig)) return methods
+  return methods.filter((m) => m?.type !== 'pickup')
+}
+
+/**
  * @param {object} checkoutConfig
  * @param {string} country ISO2
  * @returns {object[]}
  */
 function getAvailableShippingMethods(checkoutConfig, country) {
-  const methods = checkoutConfig?.shipping?.methods || []
+  const methods = getActiveShippingMethods(checkoutConfig)
   const cc = String(country || checkoutConfig?.shipping?.defaultCountry || 'FR')
     .trim()
     .toUpperCase()
@@ -53,8 +75,7 @@ function computeShippingCents(method, subtotalCents, checkoutConfig) {
  * @returns {object|null}
  */
 function findShippingMethod(checkoutConfig, methodId) {
-  const methods = checkoutConfig?.shipping?.methods || []
-  return methods.find((m) => m.id === methodId) || null
+  return getActiveShippingMethods(checkoutConfig).find((m) => m.id === methodId) || null
 }
 
 /**
@@ -75,6 +96,8 @@ function validateHomeAddress(address) {
 }
 
 module.exports = {
+  isPickupEnabled,
+  getActiveShippingMethods,
   getAvailableShippingMethods,
   computeShippingCents,
   findShippingMethod,

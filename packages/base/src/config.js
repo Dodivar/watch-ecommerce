@@ -23,14 +23,10 @@ export const LEGAL_SIRET = site.legal.siret
 export const PURCHASE_ENABLED =
   site.features.purchase !== false && import.meta.env.VITE_PURCHASE_ENABLED !== 'false'
 
-/** Ajout au panier depuis les cartes montre (collection, carrousels). */
-export const CARD_QUICK_ADD_ENABLED =
-  PURCHASE_ENABLED && site.features.cardQuickAddToCart === true
-
 /** Clé publique Stripe (Payment Element) — `VITE_STRIPE_PUBLISHABLE_KEY` par déploiement. */
 export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
 
-/** Clé Google Places (autocomplétion adresse checkout) — `VITE_GOOGLE_PLACES_API_KEY` par déploiement. */
+/** Clé Google Maps / Places (carte boutique + autocomplétion checkout) — `VITE_GOOGLE_PLACES_API_KEY` par déploiement. */
 export const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || ''
 
 const urlProduction = site.urls.production

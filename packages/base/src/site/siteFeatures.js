@@ -25,11 +25,6 @@ export const DEFAULT_SITE_FEATURES = {
    * Nécessite que le flux checkout envoie `lines` avec quantités (voir `orderService.createOrder`).
    */
   cartMultiQuantity: false,
-  /**
-   * Carte montre : bouton « Ajouter au panier » au survol (desktop) et icône en bas à gauche (mobile),
-   * sans passer par la fiche produit. Nécessite `purchase: true` et `VITE_PURCHASE_ENABLED` non désactivé.
-   */
-  cardQuickAddToCart: false,
 }
 
 export function mergeSiteFeatures(partial = {}) {

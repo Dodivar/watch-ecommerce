@@ -17,7 +17,9 @@ import {
 } from '@/services/orderService.js'
 import CheckoutOrderSummary from './CheckoutOrderSummary.vue'
 import AddressAutocompleteInput from './AddressAutocompleteInput.vue'
+import PickupLocationCard from './PickupLocationCard.vue'
 import LegalPageLinks from '@/components/legal/LegalPageLinks.vue'
+import { CHECKOUT_FIELD_CLASS } from './checkoutFieldClasses.js'
 
 const COUNTRY_LABELS = {
   FR: 'France',
@@ -31,6 +33,7 @@ const router = useRouter()
 const site = getSiteConfig()
 const checkoutConfig = site.checkout || {}
 const shippingMethods = checkoutConfig.shipping?.methods || []
+const pickupEnabled = checkoutConfig.shipping?.pickupEnabled === true
 const promoEnabled = checkoutConfig.promo?.enabled !== false
 const vatRate = Number(checkoutConfig.vatRate) > 0 ? Number(checkoutConfig.vatRate) : 20
 
@@ -54,6 +57,13 @@ const billing = ref({
 const selectedMethodId = ref('')
 const fulfillmentMode = ref('home')
 const shippingAddress = ref({
+  line1: '',
+  line2: '',
+  postalCode: '',
+  city: '',
+  country: checkoutConfig.shipping?.defaultCountry || 'FR',
+})
+const billingAddress = ref({
   line1: '',
   line2: '',
   postalCode: '',
@@ -98,7 +108,7 @@ function countryLabel(code) {
   return COUNTRY_LABELS[code] || code
 }
 const showFulfillmentToggle = computed(
-  () => homeMethodsAll.value.length > 0 && pickupMethodsAll.value.length > 0,
+  () => pickupEnabled && homeMethodsAll.value.length > 0 && pickupMethodsAll.value.length > 0,
 )
 
 function getAvailableHomeMethods(country) {
@@ -128,19 +138,37 @@ const selectedMethod = computed(() =>
 )
 
 const isHomeDelivery = computed(() => selectedMethod.value?.type === 'home')
+const isPickup = computed(() => selectedMethod.value?.type === 'pickup')
 
-const addressComplete = computed(() => {
-  const a = shippingAddress.value
+function isAddressComplete(address) {
   return Boolean(
-    a.line1?.trim() && a.postalCode?.trim() && a.city?.trim() && a.country,
+    address.line1?.trim() &&
+      address.postalCode?.trim() &&
+      address.city?.trim() &&
+      address.country,
   )
-})
+}
+
+const shippingAddressComplete = computed(() => isAddressComplete(shippingAddress.value))
+const billingAddressComplete = computed(() => isAddressComplete(billingAddress.value))
 
 const shippingQuoteReady = computed(() => {
   if (!selectedMethodId.value) return false
-  if (selectedMethod.value?.type === 'pickup') return true
-  return addressComplete.value
+  if (isPickup.value) return billingAddressComplete.value
+  return shippingAddressComplete.value
 })
+
+const showShippingMethodSection = computed(
+  () => !(isPickup.value && methodsForCurrentMode.value.length <= 1),
+)
+
+const shippingPendingLabel = computed(() =>
+  isPickup.value
+    ? 'Complétez votre adresse de facturation'
+    : "Saisir une adresse d'expédition",
+)
+
+const shippingLineLabel = computed(() => (isPickup.value ? 'Retrait' : 'Expédition'))
 
 const canSyncOrder = computed(() => {
   if (!String(email.value).trim()) return false
@@ -148,11 +176,17 @@ const canSyncOrder = computed(() => {
     return false
   }
   if (!selectedMethodId.value) return false
-  if (selectedMethod.value?.type === 'home' && !addressComplete.value) return false
+  if (isHomeDelivery.value && !shippingAddressComplete.value) return false
+  if (isPickup.value && !billingAddressComplete.value) return false
   return true
 })
 
-const canInitPayment = computed(() => canSyncOrder.value)
+const canShowPayment = computed(
+  () =>
+    Boolean(STRIPE_PUBLISHABLE_KEY && orderId.value && accessToken.value && orderLines.value.length),
+)
+
+const canConfirmPayment = computed(() => canSyncOrder.value)
 
 function formatPrice(cents) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
@@ -252,32 +286,34 @@ async function discardSavedOrder() {
 }
 
 function buildBillingAddress() {
-  if (selectedMethod.value?.type === 'pickup') {
-    return {
-      firstName: billing.value.firstName,
-      lastName: billing.value.lastName,
-      country: checkoutConfig.shipping?.defaultCountry || 'FR',
-    }
-  }
+  const addressSource = isPickup.value ? billingAddress.value : shippingAddress.value
   return {
     firstName: billing.value.firstName,
     lastName: billing.value.lastName,
-    line1: shippingAddress.value.line1,
-    line2: shippingAddress.value.line2,
-    postalCode: shippingAddress.value.postalCode,
-    city: shippingAddress.value.city,
-    country: shippingAddress.value.country,
+    line1: addressSource.line1,
+    line2: addressSource.line2,
+    postalCode: addressSource.postalCode,
+    city: addressSource.city,
+    country: addressSource.country,
   }
 }
 
-function onPlaceSelected(parsed) {
-  Object.assign(shippingAddress.value, {
-    line1: parsed.line1 || shippingAddress.value.line1,
+function applyParsedAddress(target, parsed) {
+  Object.assign(target, {
+    line1: parsed.line1 || target.line1,
     line2: parsed.line2 ?? '',
-    postalCode: parsed.postalCode || shippingAddress.value.postalCode,
-    city: parsed.city || shippingAddress.value.city,
-    country: parsed.country || shippingAddress.value.country,
+    postalCode: parsed.postalCode || target.postalCode,
+    city: parsed.city || target.city,
+    country: parsed.country || target.country,
   })
+}
+
+function onShippingPlaceSelected(parsed) {
+  applyParsedAddress(shippingAddress.value, parsed)
+}
+
+function onBillingPlaceSelected(parsed) {
+  applyParsedAddress(billingAddress.value, parsed)
 }
 
 function buildShippingPayload() {
@@ -358,11 +394,11 @@ async function syncOrder() {
   try {
     await updateOrderDetailsPartial()
     const total = quote.value?.totalCents
-    if (canInitPayment.value) {
+    if (canShowPayment.value) {
       if (stripeReady.value && total != null && total !== lastPaymentTotalCents) {
-        await initPayment(true)
+        await initPayment()
       } else if (!stripeReady.value && !paymentLoading.value) {
-        await initPayment(false)
+        await initPayment()
       }
     }
   } catch (e) {
@@ -415,8 +451,8 @@ async function onApplyPromo() {
     )
     promoMessage.value = 'Code appliqué'
     promoMessageType.value = 'success'
-    if (canInitPayment.value) {
-      await initPayment(true)
+    if (canShowPayment.value) {
+      await initPayment()
     }
   } catch (e) {
     promoMessage.value = e.message || 'Code promo invalide'
@@ -434,8 +470,8 @@ async function onRemovePromo() {
     promoInput.value = ''
     promoMessage.value = ''
     promoMessageType.value = ''
-    if (canInitPayment.value) {
-      await initPayment(true)
+    if (canShowPayment.value) {
+      await initPayment()
     }
   } catch (e) {
     error.value = e.message
@@ -444,18 +480,20 @@ async function onRemovePromo() {
   }
 }
 
-async function initPayment(forceRemount = false) {
-  if (!STRIPE_PUBLISHABLE_KEY || !canInitPayment.value) return
+async function initPayment() {
+  if (!STRIPE_PUBLISHABLE_KEY || !canShowPayment.value) return
   if (paymentLoading.value) return
 
-  paymentLoading.value = true
-  if (!forceRemount) {
+  const isFirstInit = !stripeReady.value
+  if (isFirstInit) {
     error.value = ''
-    stripeReady.value = false
+    paymentLoading.value = true
   }
   try {
     const pay = await createOrderPayment(orderId.value, accessToken.value)
-    lastPaymentTotalCents = pay.totalCents ?? quote.value?.totalCents
+    const newTotal = pay.totalCents ?? quote.value?.totalCents
+    const clientSecretChanged = pay.clientSecret !== lastClientSecret
+    const totalChanged = newTotal != null && newTotal !== lastPaymentTotalCents
 
     if (!stripeInstance) {
       stripeInstance = await loadStripe(STRIPE_PUBLISHABLE_KEY)
@@ -465,7 +503,7 @@ async function initPayment(forceRemount = false) {
     }
 
     const needsNewElements =
-      forceRemount || !elementsInstance || lastClientSecret !== pay.clientSecret
+      !elementsInstance || !paymentElement || clientSecretChanged
 
     if (needsNewElements) {
       if (paymentElement) {
@@ -474,7 +512,11 @@ async function initPayment(forceRemount = false) {
       }
       elementsInstance = stripeInstance.elements({ clientSecret: pay.clientSecret })
       lastClientSecret = pay.clientSecret
+    } else if (totalChanged && elementsInstance?.fetchUpdates) {
+      await elementsInstance.fetchUpdates()
     }
+
+    lastPaymentTotalCents = newTotal
 
     await nextTick()
     const mountEl = document.getElementById('payment-element')
@@ -490,27 +532,40 @@ async function initPayment(forceRemount = false) {
     error.value = e.message
     stripeReady.value = false
   } finally {
-    paymentLoading.value = false
+    if (isFirstInit) {
+      paymentLoading.value = false
+    }
   }
 }
 
 async function onConfirmPayment() {
   if (!stripeInstance || !elementsInstance) return
+  if (!canConfirmPayment.value) {
+    error.value = 'Complétez vos informations de contact et de livraison pour finaliser le paiement.'
+    return
+  }
   if (checkoutConfig.legal?.requireAcceptance && !cgvAccepted.value) {
     error.value = 'Veuillez accepter les conditions générales'
     return
   }
   paymentLoading.value = true
   error.value = ''
-  const returnUrl = `${window.location.origin}/commande/succes?order=${orderId.value}&token=${encodeURIComponent(accessToken.value)}`
-  const { error: stripeError } = await stripeInstance.confirmPayment({
-    elements: elementsInstance,
-    confirmParams: { return_url: returnUrl },
-  })
-  if (stripeError) {
-    error.value = stripeError.message || 'Paiement refusé'
+  try {
+    await updateOrderDetailsPartial()
+    await initPayment()
+    const returnUrl = `${window.location.origin}/commande/succes?order=${orderId.value}&token=${encodeURIComponent(accessToken.value)}`
+    const { error: stripeError } = await stripeInstance.confirmPayment({
+      elements: elementsInstance,
+      confirmParams: { return_url: returnUrl },
+    })
+    if (stripeError) {
+      error.value = stripeError.message || 'Paiement refusé'
+    }
+  } catch (e) {
+    error.value = e.message || 'Erreur lors du paiement'
+  } finally {
+    paymentLoading.value = false
   }
-  paymentLoading.value = false
 }
 
 async function onCancelCheckout() {
@@ -550,7 +605,31 @@ function hydrateFromOrder(o) {
       country: o.billingAddress.country || shippingAddress.value.country,
     })
   }
+  if (o.billingAddress?.line1) {
+    Object.assign(billingAddress.value, {
+      line1: o.billingAddress.line1 || '',
+      line2: o.billingAddress.line2 || '',
+      postalCode: o.billingAddress.postalCode || '',
+      city: o.billingAddress.city || '',
+      country: o.billingAddress.country || billingAddress.value.country,
+    })
+  }
 }
+
+function ensureValidFulfillmentMode() {
+  if (fulfillmentMode.value === 'pickup' && !pickupMethodsAll.value.length) {
+    fulfillmentMode.value = 'home'
+  }
+  if (fulfillmentMode.value === 'home' && !homeMethodsAll.value.length && pickupMethodsAll.value.length) {
+    fulfillmentMode.value = 'pickup'
+  }
+  selectFirstMethodForMode(fulfillmentMode.value)
+}
+
+watch(pickupMethodsAll, () => {
+  ensureValidFulfillmentMode()
+  scheduleSync()
+})
 
 watch(fulfillmentMode, (mode) => {
   selectFirstMethodForMode(mode)
@@ -568,7 +647,7 @@ watch(
 )
 
 watch(
-  [email, phone, billing, shippingAddress, selectedMethodId],
+  [email, phone, billing, shippingAddress, billingAddress, selectedMethodId],
   () => {
     scheduleSync()
   },
@@ -600,18 +679,22 @@ onMounted(async () => {
     const o = orderSnapshot.value?.order
     hydrateFromOrder(o)
 
-    if (o?.shippingAddress || pickupMethodsAll.value.length === shippingMethods.length) {
+    if (o?.billingAddress?.line1 && !o?.shippingAddress && pickupMethodsAll.value.length) {
+      fulfillmentMode.value = 'pickup'
+    } else if (o?.shippingAddress || (pickupEnabled && pickupMethodsAll.value.length === shippingMethods.length)) {
       const hasPickupOnly = pickupMethodsAll.value.length && !homeMethodsAll.value.length
       fulfillmentMode.value = hasPickupOnly ? 'pickup' : 'home'
     }
 
-    selectFirstMethodForMode(fulfillmentMode.value)
+    ensureValidFulfillmentMode()
     if (!selectedMethodId.value) {
       selectedMethodId.value = shippingMethods[0]?.id || ''
     }
 
     if (canSyncOrder.value) {
       await syncOrder()
+    } else if (canShowPayment.value) {
+      await initPayment()
     }
   } catch (e) {
     error.value = e.message
@@ -655,6 +738,8 @@ onUnmounted(() => {
             :promo-message-type="promoMessageType"
             :promo-loading="promoLoading || syncLoading"
             :shipping-quote-ready="shippingQuoteReady"
+            :shipping-pending-label="shippingPendingLabel"
+            :shipping-line-label="shippingLineLabel"
             :vat-rate="vatRate"
             @apply-promo="onApplyPromo"
             @remove-promo="onRemovePromo"
@@ -673,7 +758,8 @@ onUnmounted(() => {
                   type="email"
                   required
                   autocomplete="email"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="Adresse e-mail"
+                  :class="CHECKOUT_FIELD_CLASS"
                 />
               </div>
               <div class="grid sm:grid-cols-2 gap-4">
@@ -683,7 +769,8 @@ onUnmounted(() => {
                     v-model="billing.firstName"
                     required
                     autocomplete="given-name"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Jean"
+                    :class="CHECKOUT_FIELD_CLASS"
                   />
                 </div>
                 <div>
@@ -692,7 +779,8 @@ onUnmounted(() => {
                     v-model="billing.lastName"
                     required
                     autocomplete="family-name"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Dupont"
+                    :class="CHECKOUT_FIELD_CLASS"
                   />
                 </div>
               </div>
@@ -702,13 +790,16 @@ onUnmounted(() => {
                   v-model="phone"
                   type="tel"
                   autocomplete="tel"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  placeholder="06 12 34 56 78"
+                  :class="CHECKOUT_FIELD_CLASS"
                 />
               </div>
             </section>
 
             <section class="space-y-4">
-              <h2 class="font-semibold text-lg text-gray-900">Livraison</h2>
+              <h2 class="font-semibold text-lg text-gray-900">
+                {{ isPickup ? 'Retrait en boutique' : 'Livraison' }}
+              </h2>
 
               <div
                 v-if="showFulfillmentToggle"
@@ -767,7 +858,7 @@ onUnmounted(() => {
                   <label class="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
                   <select
                     v-model="shippingAddress.country"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    :class="CHECKOUT_FIELD_CLASS"
                   >
                     <option
                       v-for="code in allowedShippingCountries"
@@ -784,7 +875,8 @@ onUnmounted(() => {
                     v-model="shippingAddress.line1"
                     :countries="allowedShippingCountries"
                     :enabled="isHomeDelivery"
-                    @place-selected="onPlaceSelected"
+                    placeholder="12 rue de la Paix"
+                    @place-selected="onShippingPlaceSelected"
                   />
                 </div>
                 <div>
@@ -794,7 +886,8 @@ onUnmounted(() => {
                   <input
                     v-model="shippingAddress.line2"
                     autocomplete="address-line2"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="Appartement, bâtiment…"
+                    :class="CHECKOUT_FIELD_CLASS"
                   />
                 </div>
                 <div class="grid sm:grid-cols-3 gap-4">
@@ -806,7 +899,8 @@ onUnmounted(() => {
                       v-model="shippingAddress.postalCode"
                       required
                       autocomplete="postal-code"
-                      class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="75001"
+                      :class="CHECKOUT_FIELD_CLASS"
                     />
                   </div>
                   <div class="sm:col-span-2">
@@ -815,31 +909,99 @@ onUnmounted(() => {
                       v-model="shippingAddress.city"
                       required
                       autocomplete="address-level2"
-                      class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="Paris"
+                      :class="CHECKOUT_FIELD_CLASS"
                     />
                   </div>
                 </div>
               </template>
 
-              <template v-else-if="selectedMethod?.type === 'pickup'">
-                <p
-                  v-if="selectedMethod.pickupLocation"
-                  class="text-sm text-gray-700 rounded-lg bg-cream p-4 border border-gray-200"
-                >
-                  <span class="font-medium block">{{ selectedMethod.pickupLocation.name }}</span>
-                  {{ selectedMethod.pickupLocation.address }}
-                </p>
+              <template v-else-if="isPickup">
+                <PickupLocationCard
+                  v-if="selectedMethod?.pickupLocation"
+                  :name="selectedMethod.pickupLocation.name"
+                  :address="selectedMethod.pickupLocation.address"
+                  :estimated-days="selectedMethod.estimatedDays"
+                />
+
+                <div class="space-y-4 pt-2">
+                  <h3 class="font-medium text-gray-900">Adresse de facturation</h3>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
+                    <select v-model="billingAddress.country" :class="CHECKOUT_FIELD_CLASS">
+                      <option
+                        v-for="code in allowedShippingCountries"
+                        :key="code"
+                        :value="code"
+                      >
+                        {{ countryLabel(code) }}
+                      </option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
+                    <AddressAutocompleteInput
+                      v-model="billingAddress.line1"
+                      :countries="allowedShippingCountries"
+                      :enabled="isPickup"
+                      placeholder="12 rue de la Paix"
+                      @place-selected="onBillingPlaceSelected"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1"
+                      >Complément d’adresse</label
+                    >
+                    <input
+                      v-model="billingAddress.line2"
+                      autocomplete="address-line2"
+                      placeholder="Appartement, bâtiment…"
+                      :class="CHECKOUT_FIELD_CLASS"
+                    />
+                  </div>
+                  <div class="grid sm:grid-cols-3 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1"
+                        >Code postal *</label
+                      >
+                      <input
+                        v-model="billingAddress.postalCode"
+                        required
+                        autocomplete="postal-code"
+                        placeholder="75001"
+                        :class="CHECKOUT_FIELD_CLASS"
+                      />
+                    </div>
+                    <div class="sm:col-span-2">
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+                      <input
+                        v-model="billingAddress.city"
+                        required
+                        autocomplete="address-level2"
+                        placeholder="Paris"
+                        :class="CHECKOUT_FIELD_CLASS"
+                      />
+                    </div>
+                  </div>
+                </div>
               </template>
             </section>
 
-            <section class="space-y-4">
+            <section v-if="showShippingMethodSection" class="space-y-4">
               <h2 class="font-semibold text-lg text-gray-900">Mode d’expédition</h2>
 
               <div
-                v-if="isHomeDelivery && !addressComplete"
+                v-if="isHomeDelivery && !shippingAddressComplete"
                 class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
               >
                 Saisissez votre adresse d’expédition pour voir les modes d’expédition disponibles.
+              </div>
+
+              <div
+                v-else-if="isPickup && !billingAddressComplete"
+                class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+              >
+                Complétez votre adresse de facturation pour finaliser le retrait en boutique.
               </div>
 
               <div
@@ -853,31 +1015,54 @@ onUnmounted(() => {
                 <label
                   v-for="method in methodsForCurrentMode"
                   :key="method.id"
-                  class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors"
+                  class="block cursor-pointer transition-colors"
                   :class="
-                    selectedMethodId === method.id
-                      ? 'border-primary bg-cream'
-                      : 'border-gray-200'
+                    method.type === 'pickup'
+                      ? selectedMethodId === method.id
+                        ? 'rounded-xl ring-2 ring-primary ring-offset-2'
+                        : 'rounded-xl'
+                      : ''
                   "
                 >
-                  <input
-                    v-model="selectedMethodId"
-                    type="radio"
-                    :value="method.id"
-                    class="mt-1"
-                  />
-                  <span class="min-w-0 flex-1">
-                    <span class="font-medium block">{{ method.label }}</span>
-                    <span v-if="method.estimatedDays" class="text-xs text-gray-500 block">{{
-                      method.estimatedDays
-                    }}</span>
-                    <span
-                      v-if="method.type === 'pickup' && method.pickupLocation"
-                      class="text-xs text-gray-600 block mt-1"
-                    >
-                      {{ method.pickupLocation.name }} — {{ method.pickupLocation.address }}
+                  <div
+                    v-if="method.type === 'pickup' && method.pickupLocation"
+                    class="flex items-start gap-3"
+                  >
+                    <input
+                      v-model="selectedMethodId"
+                      type="radio"
+                      :value="method.id"
+                      class="mt-5 shrink-0"
+                    />
+                    <PickupLocationCard
+                      class="flex-1 min-w-0"
+                      :name="method.pickupLocation.name"
+                      :address="method.pickupLocation.address"
+                      :estimated-days="method.estimatedDays"
+                    />
+                  </div>
+                  <div
+                    v-else
+                    class="flex items-start gap-3 p-3 border rounded-lg transition-colors"
+                    :class="
+                      selectedMethodId === method.id
+                        ? 'border-primary bg-cream'
+                        : 'border-gray-200'
+                    "
+                  >
+                    <input
+                      v-model="selectedMethodId"
+                      type="radio"
+                      :value="method.id"
+                      class="mt-1"
+                    />
+                    <span class="min-w-0 flex-1">
+                      <span class="font-medium block">{{ method.label }}</span>
+                      <span v-if="method.estimatedDays" class="text-xs text-gray-500 block">{{
+                        method.estimatedDays
+                      }}</span>
                     </span>
-                  </span>
+                  </div>
                 </label>
               </div>
             </section>
@@ -891,15 +1076,15 @@ onUnmounted(() => {
               </p>
             </div>
 
-            <div
-              v-if="!canInitPayment"
-              class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600"
+            <p
+              v-if="!canConfirmPayment"
+              class="text-sm text-gray-500"
             >
-              Complétez vos informations de contact et de livraison pour accéder au paiement.
-            </div>
+              Le montant final sera recalculé une fois vos informations de livraison complétées.
+            </p>
 
             <label
-              v-if="checkoutConfig.legal?.requireAcceptance && canInitPayment"
+              v-if="checkoutConfig.legal?.requireAcceptance"
               class="flex items-start gap-2 text-sm"
             >
               <input v-model="cgvAccepted" type="checkbox" class="mt-1 rounded" />
@@ -924,7 +1109,7 @@ onUnmounted(() => {
 
             <button
               type="button"
-              :disabled="paymentLoading || !stripeReady || !canInitPayment"
+              :disabled="paymentLoading || !stripeReady || !canConfirmPayment"
               class="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
               @click="onConfirmPayment"
             >

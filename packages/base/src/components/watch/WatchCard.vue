@@ -1,6 +1,6 @@
 <template>
   <div :class="{ 'cursor-pointer': clickable }" @click="handleCardClick">
-    <div class="relative w-full aspect-square bg-white rounded-md overflow-hidden mb-2 border border-gray-100 group">
+    <div class="relative w-full aspect-square bg-gray-100 rounded-md overflow-hidden mb-2 border border-gray-100 group">
       <span
         v-if="showNewBadge"
         class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-primary text-white shadow-sm"
@@ -8,7 +8,7 @@
         Nouveau
       </span>
       <div
-        v-if="!watch.images || watch.images.length === 0"
+        v-if="!watchItem.images || watchItem.images.length === 0"
         class="absolute inset-0 flex items-center justify-center"
       >
         <div class="text-gray-400 text-lg">Image non disponible</div>
@@ -24,7 +24,7 @@
           :src="firstImageSrc"
           :srcset="firstImageSrcSet"
           :sizes="firstImageSrcSet ? WATCH_CARD_IMAGE_SIZES : undefined"
-          :alt="watch.name"
+          :alt="watchItem.name"
           :loading="imageLoading"
           :fetchpriority="imageFetchPriority"
           decoding="async"
@@ -36,7 +36,7 @@
         <img
           v-if="isDesktopViewport"
           :src="secondImageSrc"
-          :alt="`${watch.name} — vue alternative`"
+          :alt="`${watchItem.name} — vue alternative`"
           loading="lazy"
           decoding="async"
           width="400"
@@ -49,27 +49,34 @@
       <div
         v-else
         class="relative h-full"
+        @mouseenter="warmNavigableImages"
         @touchstart="handleTouchStartWrapper"
         @touchend="handleTouchEndWrapper"
       >
         <img
-          :src="displayImageSrc"
-          :srcset="displayImageSrcSet"
-          :sizes="displayImageSrcSet ? WATCH_CARD_IMAGE_SIZES : undefined"
-          :alt="watch.name"
-          :loading="imageLoading"
-          :fetchpriority="imageFetchPriority"
+          v-for="(url, index) in navigableImages"
+          :key="`${watchItem.id}-${index}`"
+          :src="resolveImageSrc(url)"
+          :alt="index === shownImageIndex ? watchItem.name : ''"
+          :loading="navImageLoading(index)"
+          :fetchpriority="index === 0 ? imageFetchPriority : 'auto'"
           decoding="async"
           width="400"
           height="400"
-          class="w-full h-full object-cover object-center"
+          class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
+          :class="shownImageIndex === index ? 'z-[1] opacity-100' : 'z-0 opacity-0'"
+          :aria-hidden="shownImageIndex === index ? undefined : 'true'"
+          @load="onNavImageLoad(index)"
+          @error="onNavImageLoad(index)"
+          :ref="(el) => setNavImageRef(el, index)"
         />
 
         <button
-          v-if="effectiveShowImageNavigation && watch.images.length > 1"
+          v-if="effectiveShowImageNavigation && hasMultipleNavigableImages"
           type="button"
+          aria-label="Image précédente"
           @click.stop="previousImage"
-          class="absolute left-1 md:left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1 md:p-2 transition-all duration-200"
+          class="absolute left-1 md:left-2 top-1/2 z-10 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 md:p-2 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
         >
           <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -82,10 +89,11 @@
         </button>
 
         <button
-          v-if="effectiveShowImageNavigation && watch.images.length > 1"
+          v-if="effectiveShowImageNavigation && hasMultipleNavigableImages"
           type="button"
+          aria-label="Image suivante"
           @click.stop="nextImage"
-          class="absolute right-1 md:right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1 md:p-2 transition-all duration-200"
+          class="absolute right-1 md:right-2 top-1/2 z-10 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 md:p-2 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
         >
           <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -98,56 +106,24 @@
         </button>
 
         <div
-          v-if="effectiveShowImageNavigation && watch.images.length > 1"
-          class="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1"
+          v-if="effectiveShowImageNavigation && hasMultipleNavigableImages"
+          class="absolute bottom-2 left-1/2 z-10 transform -translate-x-1/2 flex gap-1"
         >
           <button
-            v-for="(_, index) in watch.images"
+            v-for="(_, index) in navigableImages"
             :key="index"
             type="button"
-            @click.stop="currentImageIndex = index"
+            :aria-label="`Image ${index + 1}`"
+            :aria-current="currentImageIndex === index ? 'true' : undefined"
+            @click.stop="goToImage(index)"
             :class="[
-              'w-1 h-1 md:w-2 md:h-2 rounded-full transition-all duration-200',
-              currentImageIndex === index ? 'bg-white' : 'bg-white bg-opacity-50',
+              'h-0.5 rounded-full transition-all duration-200',
+              currentImageIndex === index ? 'w-5 bg-white' : 'w-2 bg-white/40',
             ]"
           />
         </div>
       </div>
 
-      <template v-if="showQuickAddToCart">
-        <button
-          type="button"
-          class="hidden md:inline-flex absolute bottom-2 right-2 z-20 items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          aria-label="Ajouter au panier"
-          @click.stop="handleQuickAddToCart"
-        >
-          <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-            />
-          </svg>
-          Ajouter au panier
-        </button>
-
-        <button
-          type="button"
-          class="md:hidden absolute bottom-2 right-2 z-20 inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-primary-hover active:scale-95 transition-transform"
-          aria-label="Ajouter au panier"
-          @click.stop="handleQuickAddToCart"
-        >
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-            />
-          </svg>
-        </button>
-      </template>
     </div>
 
     <div>
@@ -155,12 +131,12 @@
         <h3
           class="text-xs md:text-base lg:text-xl font-semibold text-gray-900 leading-tight flex-1 pr-1 truncate"
           style="max-width: 100%"
-          :title="watch.name"
+          :title="watchItem.name"
         >
-          {{ watch.name }}
+          {{ watchItem.name }}
         </h3>
         <span
-          v-if="watch.isSold && showSoldBadge"
+          v-if="watchItem.isSold && showSoldBadge"
           class="ml-1 md:ml-2 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-red-100 text-red-800 whitespace-nowrap flex-shrink-0"
         >
           Vendue
@@ -168,24 +144,24 @@
       </div>
 
       <p v-if="showReference" class="text-[10px] md:text-sm text-gray-600 md:mb-2 font-light">
-        Réf. {{ watch.reference }}
+        Réf. {{ watchItem.reference }}
       </p>
 
       <div
-        v-if="showPrice || watch.contenu || watch.details?.content || watch.year"
+        v-if="showPrice || watchItem.contenu || watchItem.details?.content || watchItem.year"
         class="flex items-center gap-2 text-[10px] md:text-sm text-gray-500"
       >
         <span v-if="showPrice" class="text-base md:text-xl lg:text-2xl font-medium text-primary">
-          {{ formatPrice(watch.price) }}
+          {{ formatPrice(watchItem.price) }}
         </span>
         <span
-          v-if="watch.contenu || watch.details?.content"
+          v-if="watchItem.contenu || watchItem.details?.content"
           class="hidden md:inline bg-cream-200 px-1.5 md:px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs text-black"
         >
-          {{ watch.contenu || watch.details?.content }}
+          {{ watchItem.contenu || watchItem.details?.content }}
         </span>
-        <span v-if="watch.year" class="font-medium ml-auto">
-          {{ watch.year }}
+        <span v-if="watchItem.year" class="font-medium ml-auto">
+          {{ watchItem.year }}
         </span>
       </div>
     </div>
@@ -193,10 +169,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { CARD_QUICK_ADD_ENABLED } from '@/config.js'
-import { useCart } from '@/composables/useCart.js'
-import { DESKTOP_HOVER_SECOND_IMAGE_MQ } from '@/constants/watchCardDefaults.js'
+import { ref, computed, onMounted, onUnmounted, watch as vueWatch } from 'vue'
+import {
+  DESKTOP_HOVER_SECOND_IMAGE_MQ,
+  WATCH_CARD_MAX_IMAGES,
+} from '@/constants/watchCardDefaults.js'
 import {
   watchCardImageUrl,
   buildWatchCardSrcSet,
@@ -250,17 +227,13 @@ const props = defineProps({
 
 const emit = defineEmits(['viewDetails'])
 
-const { add: addToCart, openDrawer: openCartDrawer } = useCart()
-
-const showQuickAddToCart = computed(
-  () =>
-    CARD_QUICK_ADD_ENABLED &&
-    props.watch?.id &&
-    props.watch.isAvailable !== false &&
-    !props.watch.isSold,
-)
+const watchItem = computed(() => props.watch)
 
 const currentImageIndex = ref(0)
+const shownImageIndex = ref(0)
+const warmedNavIndices = ref([0, 1])
+const navImageRefs = ref([])
+const decodedNavIndices = new Set()
 const isHoveringSecond = ref(false)
 const isDesktopViewport = ref(false)
 
@@ -272,30 +245,133 @@ const effectiveShowImageNavigation = computed(
   () => props.showImageNavigation && !props.hoverSecondImage,
 )
 
+const navigableImages = computed(() => {
+  const images = props.watch.images ?? []
+  if (!effectiveShowImageNavigation.value) return images
+  return images.slice(0, WATCH_CARD_MAX_IMAGES)
+})
+
+const hasMultipleNavigableImages = computed(() => navigableImages.value.length > 1)
+
 function resolveDisplayUrl(url) {
   return watchCardImageUrl(url) ?? url
 }
 
-const firstImageSrc = computed(() => resolveDisplayUrl(props.watch.images?.[0] ?? ''))
+const firstImageSrc = computed(() => resolveImageSrc(props.watch.images?.[0] ?? ''))
 const firstImageSrcSet = computed(() => buildWatchCardSrcSet(props.watch.images?.[0] ?? ''))
-const secondImageSrc = computed(() => resolveDisplayUrl(props.watch.images?.[1] ?? ''))
+const secondImageSrc = computed(() => resolveImageSrc(props.watch.images?.[1] ?? ''))
 
-const rawImageUrl = computed(
-  () => props.watch.images?.[currentImageIndex.value] ?? '',
-)
+function resolveImageSrc(url) {
+  return resolveDisplayUrl(url) ?? ''
+}
 
-const displayImageSrc = computed(() => resolveDisplayUrl(rawImageUrl.value))
-const displayImageSrcSet = computed(() => buildWatchCardSrcSet(rawImageUrl.value))
+function navImageLoading(index) {
+  if (index === 0) return props.imageLoading
+  return warmedNavIndices.value.includes(index) ? 'eager' : 'lazy'
+}
 
-function prefetchImageUrl(url) {
-  if (!url) return
-  const img = new Image()
-  img.src = resolveDisplayUrl(url)
+function warmNavIndex(index) {
+  if (index < 0 || index >= navigableImages.value.length) return
+  if (!warmedNavIndices.value.includes(index)) {
+    warmedNavIndices.value = [...warmedNavIndices.value, index]
+  }
+}
+
+function warmNavigableImages() {
+  if (!effectiveShowImageNavigation.value) return
+  warmedNavIndices.value = navigableImages.value.map((_, index) => index)
+}
+
+function setNavImageRef(el, index) {
+  if (el) {
+    navImageRefs.value[index] = el
+    if (el.complete) {
+      revealImage(index)
+    }
+  } else {
+    delete navImageRefs.value[index]
+  }
+}
+
+function waitForNavImageLoad(el) {
+  return new Promise((resolve) => {
+    if (el.complete) {
+      resolve()
+      return
+    }
+    const onDone = () => {
+      el.removeEventListener('load', onDone)
+      el.removeEventListener('error', onDone)
+      resolve()
+    }
+    el.addEventListener('load', onDone)
+    el.addEventListener('error', onDone)
+  })
+}
+
+function preloadNavImageFallback(index) {
+  const url = resolveImageSrc(navigableImages.value[index] ?? '')
+  if (!url) return Promise.resolve(null)
+
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(null)
+    img.src = url
+  })
+}
+
+async function revealImage(index) {
+  if (currentImageIndex.value !== index) return
+
+  const cachedEl = navImageRefs.value[index]
+  if (decodedNavIndices.has(index) && cachedEl?.complete) {
+    shownImageIndex.value = index
+    return
+  }
+
+  let el = cachedEl
+
+  if (!el) {
+    el = await preloadNavImageFallback(index)
+    if (currentImageIndex.value !== index) return
+  } else {
+    await waitForNavImageLoad(el)
+    if (currentImageIndex.value !== index) return
+  }
+
+  if (el && !decodedNavIndices.has(index) && typeof el.decode === 'function') {
+    try {
+      await el.decode()
+    } catch {
+      // Reveal after load when decode is unavailable or fails
+    }
+    decodedNavIndices.add(index)
+  }
+
+  if (currentImageIndex.value === index) {
+    shownImageIndex.value = index
+  }
+}
+
+function onNavImageLoad(index) {
+  revealImage(index)
+}
+
+function goToImage(index) {
+  const images = navigableImages.value
+  if (index < 0 || index >= images.length || index === currentImageIndex.value) return
+
+  currentImageIndex.value = index
+  warmNavIndex(index)
+  warmNavIndex(index - 1)
+  warmNavIndex(index + 1)
+
+  revealImage(index)
 }
 
 function onHoverSecondEnter() {
   if (!props.hoverSecondImage || !isDesktopViewport.value || !hasSecondImage.value) return
-  prefetchImageUrl(props.watch.images[1])
   isHoveringSecond.value = true
 }
 
@@ -306,6 +382,17 @@ function onHoverSecondLeave() {
 function syncDesktopViewport() {
   isDesktopViewport.value = window.matchMedia(DESKTOP_HOVER_SECOND_IMAGE_MQ).matches
 }
+
+vueWatch(
+  () => props.watch.id,
+  () => {
+    currentImageIndex.value = 0
+    shownImageIndex.value = 0
+    warmedNavIndices.value = [0, 1]
+    navImageRefs.value = []
+    decodedNavIndices.clear()
+  },
+)
 
 onMounted(() => {
   desktopHoverMq = window.matchMedia(DESKTOP_HOVER_SECOND_IMAGE_MQ)
@@ -323,41 +410,30 @@ const handleCardClick = () => {
   }
 }
 
-function handleQuickAddToCart() {
-  if (!props.watch?.id) return
-  const result = addToCart({
-    watchId: props.watch.id,
-    name: props.watch.name,
-    reference: props.watch.reference,
-    price: props.watch.price,
-    imageUrl: props.watch.images?.[0] ?? null,
-  })
-  if (!result.ok) {
-    alert(result.reason || 'Impossible d’ajouter au panier')
-    return
-  }
-  openCartDrawer()
-}
-
 const nextImage = () => {
-  if (props.watch.images?.length > 1) {
-    currentImageIndex.value = (currentImageIndex.value + 1) % props.watch.images.length
+  if (hasMultipleNavigableImages.value) {
+    goToImage((currentImageIndex.value + 1) % navigableImages.value.length)
   }
 }
 
 const previousImage = () => {
-  if (props.watch.images?.length > 1) {
-    currentImageIndex.value =
-      currentImageIndex.value === 0 ? props.watch.images.length - 1 : currentImageIndex.value - 1
+  if (hasMultipleNavigableImages.value) {
+    goToImage(
+      currentImageIndex.value === 0
+        ? navigableImages.value.length - 1
+        : currentImageIndex.value - 1,
+    )
   }
 }
 
 const formatPrice = (price) => {
+  const value = Number(price)
+  if (!Number.isFinite(value)) return ''
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
     minimumFractionDigits: 0,
-  }).format(price)
+  }).format(value)
 }
 
 let touchStartX = 0

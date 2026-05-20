@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { CHECKOUT_FIELD_CLASS } from './checkoutFieldClasses.js'
 
 const props = defineProps({
   orderLines: { type: Array, default: () => [] },
@@ -10,6 +11,11 @@ const props = defineProps({
   promoMessageType: { type: String, default: '' },
   promoLoading: { type: Boolean, default: false },
   shippingQuoteReady: { type: Boolean, default: false },
+  shippingPendingLabel: {
+    type: String,
+    default: "Saisir une adresse d'expédition",
+  },
+  shippingLineLabel: { type: String, default: 'Expédition' },
   vatRate: { type: Number, default: 20 },
 })
 
@@ -97,8 +103,8 @@ const shippingLabel = computed(() => {
       <input
         :value="promoInput"
         type="text"
-        placeholder="Code de réduction"
-        class="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase"
+        placeholder="Code promo"
+        :class="[CHECKOUT_FIELD_CLASS, 'flex-1 min-w-0 text-sm uppercase']"
         @input="emit('update:promoInput', $event.target.value)"
       />
       <button
@@ -136,12 +142,12 @@ const shippingLabel = computed(() => {
         <span>{{ formatPrice(quote.subtotalCents) }}</span>
       </div>
       <div class="flex justify-between text-gray-700 gap-4">
-        <span>Expédition</span>
+        <span>{{ shippingLineLabel }}</span>
         <span
           class="text-right"
           :class="shippingQuoteReady ? 'text-gray-900' : 'text-gray-500 text-xs max-w-[10rem]'"
         >
-          {{ shippingQuoteReady ? shippingLabel : "Saisir une adresse d'expédition" }}
+          {{ shippingQuoteReady ? shippingLabel : shippingPendingLabel }}
         </span>
       </div>
       <div

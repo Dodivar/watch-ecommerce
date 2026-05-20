@@ -370,6 +370,11 @@ function buildOrdersRouter(registry) {
         return res.json({ valid: false, reason: 'Paiement non complété' })
       }
       const lines = await loadOrderLines(supabase, orderId)
+      const { data: shippingRow } = await supabase
+        .from('order_shipping')
+        .select('method_type, method_label, metadata')
+        .eq('order_id', orderId)
+        .maybeSingle()
       res.json({
         valid: true,
         order: {
@@ -377,6 +382,9 @@ function buildOrdersRouter(registry) {
           status: order.status,
           totalCents: order.total_cents,
           customerEmail: order.customer_email,
+          shippingMethodType: shippingRow?.method_type || null,
+          shippingMethodLabel: shippingRow?.method_label || null,
+          pickupLocation: shippingRow?.metadata?.pickupLocation || null,
         },
         lines,
       })
@@ -560,24 +568,13 @@ function buildOrdersRouter(registry) {
         return res.status(400).json({ success: false, error: 'Commande non payable' })
       }
 
-      const { data: shippingRow } = await supabase
-        .from('order_shipping')
-        .select('method_id')
-        .eq('order_id', orderId)
-        .maybeSingle()
-      if (!shippingRow?.method_id) {
-        return res.status(400).json({ success: false, error: 'Mode de livraison requis' })
-      }
-      if (!order.customer_email) {
-        return res.status(400).json({ success: false, error: 'Email client requis' })
-      }
-
       const { quote, lines } = await recalculateAndPersist(supabase, site, order)
       if (quote.totalCents < 50) {
         return res.status(400).json({ success: false, error: 'Montant invalide' })
       }
 
       const currency = (order.currency || 'eur').toLowerCase()
+      const receiptEmail = order.customer_email ? String(order.customer_email).trim() : null
 
       let paymentIntent
       if (order.stripe_payment_intent_id) {
@@ -586,12 +583,17 @@ function buildOrdersRouter(registry) {
           paymentIntent.status === 'requires_payment_method' ||
           paymentIntent.status === 'requires_confirmation'
         ) {
-          paymentIntent = await stripe.paymentIntents.update(order.stripe_payment_intent_id, {
-            amount: quote.totalCents,
-          })
+          const updatePayload = { amount: quote.totalCents }
+          if (receiptEmail) {
+            updatePayload.receipt_email = receiptEmail
+          }
+          paymentIntent = await stripe.paymentIntents.update(
+            order.stripe_payment_intent_id,
+            updatePayload,
+          )
         }
       } else {
-        paymentIntent = await stripe.paymentIntents.create({
+        const createPayload = {
           amount: quote.totalCents,
           currency,
           automatic_payment_methods: { enabled: true },
@@ -599,8 +601,11 @@ function buildOrdersRouter(registry) {
             order_id: orderId,
             site_id: site.id,
           },
-          receipt_email: order.customer_email,
-        })
+        }
+        if (receiptEmail) {
+          createPayload.receipt_email = receiptEmail
+        }
+        paymentIntent = await stripe.paymentIntents.create(createPayload)
       }
 
       await supabase

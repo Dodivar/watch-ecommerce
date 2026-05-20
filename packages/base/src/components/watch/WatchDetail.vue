@@ -186,23 +186,59 @@
           </div>
 
           <!-- Thumbnail Gallery (Desktop only) -->
-          <div v-if="watchItem && watchItem.images && watchItem.images.length > 1" class="hidden lg:grid grid-cols-4 gap-2">
+          <div
+            v-if="watchItem && watchItem.images && watchItem.images.length > 1"
+            class="hidden lg:block relative group/thumbnails"
+            @mouseenter="updateThumbnailScrollState"
+          >
             <button
-              v-for="(image, index) in watchItem.images"
-              :key="index"
-              @click="currentImageIndex = index"
-              :class="[
-                'relative h-20 bg-white rounded-lg overflow-hidden border-2 transition-all duration-200',
-                currentImageIndex === index
-                  ? 'border-primary'
-                  : 'border-gray-200 hover:border-gray-300',
-              ]"
+              v-if="canScrollThumbnailsPrev"
+              type="button"
+              class="absolute left-0 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md bg-black/50 text-white opacity-0 transition-opacity duration-200 hover:bg-black/70 group-hover/thumbnails:opacity-100"
+              aria-label="Vignettes précédentes"
+              @click="scrollThumbnails(-1)"
             >
-              <img
-                :src="image"
-                :alt="`${watchItem.name} - Image ${index + 1}`"
-                class="w-full h-full object-cover"
-              />
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <div
+              ref="thumbnailStripRef"
+              class="thumbnail-strip flex gap-2 overflow-x-auto scroll-smooth"
+              @scroll="updateThumbnailScrollState"
+            >
+              <button
+                v-for="(image, index) in watchItem.images"
+                :key="index"
+                type="button"
+                :ref="(el) => setThumbnailRef(el, index)"
+                @click="currentImageIndex = index"
+                :class="[
+                  'relative h-20 w-20 shrink-0 bg-white rounded-lg overflow-hidden border-2 transition-all duration-200',
+                  currentImageIndex === index
+                    ? 'border-primary'
+                    : 'border-gray-200 hover:border-gray-300',
+                ]"
+              >
+                <img
+                  :src="image"
+                  :alt="`${watchItem.name} - Image ${index + 1}`"
+                  class="w-full h-full object-cover"
+                />
+              </button>
+            </div>
+
+            <button
+              v-if="canScrollThumbnailsNext"
+              type="button"
+              class="absolute right-0 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md bg-black/50 text-white opacity-0 transition-opacity duration-200 hover:bg-black/70 group-hover/thumbnails:opacity-100"
+              aria-label="Vignettes suivantes"
+              @click="scrollThumbnails(1)"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
         </div>
@@ -907,6 +943,41 @@ const router = useRouter()
 
 // Current image index for slider
 const currentImageIndex = ref(0)
+
+// Thumbnail strip navigation
+const thumbnailStripRef = ref(null)
+const thumbnailRefs = ref([])
+const canScrollThumbnailsPrev = ref(false)
+const canScrollThumbnailsNext = ref(false)
+
+function setThumbnailRef(el, index) {
+  if (el) {
+    thumbnailRefs.value[index] = el
+  }
+}
+
+function updateThumbnailScrollState() {
+  const el = thumbnailStripRef.value
+  if (!el) return
+  canScrollThumbnailsPrev.value = el.scrollLeft > 1
+  canScrollThumbnailsNext.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+}
+
+function scrollThumbnails(direction) {
+  const el = thumbnailStripRef.value
+  if (!el) return
+  const firstThumb = el.querySelector('button')
+  const step = firstThumb ? firstThumb.offsetWidth + 8 : 88
+  el.scrollBy({ left: direction * step, behavior: 'smooth' })
+}
+
+function scrollActiveThumbnailIntoView() {
+  nextTick(() => {
+    const active = thumbnailRefs.value[currentImageIndex.value]
+    active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' })
+    updateThumbnailScrollState()
+  })
+}
 
 // Lightbox state
 const isLightboxOpen = ref(false)
@@ -1670,6 +1741,8 @@ watch(isShareLightboxOpen, async (isOpen) => {
 onMounted(async () => {
   await loadWatch()
   scrollAnimation()
+  updateThumbnailScrollState()
+  window.addEventListener('resize', updateThumbnailScrollState)
 })
 
 // Watch for route changes
@@ -1682,6 +1755,7 @@ watch(() => route.params.id, async (newId) => {
 // Reset zoom and load image dimensions when image changes
 watch(currentImageIndex, async () => {
   isHovering.value = false
+  scrollActiveThumbnailIntoView()
   if (watchItem.value && watchItem.value.images && watchItem.value.images.length > 0) {
     await loadImageDimensions(watchItem.value.images[currentImageIndex.value])
   }
@@ -1689,12 +1763,15 @@ watch(currentImageIndex, async () => {
 
 // Load image dimensions when watch item changes
 watch(() => watchItem.value, async (newWatchItem) => {
+  thumbnailRefs.value = []
   if (newWatchItem && newWatchItem.images && newWatchItem.images.length > 0) {
     await loadImageDimensions(newWatchItem.images[currentImageIndex.value])
+    nextTick(updateThumbnailScrollState)
   }
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateThumbnailScrollState)
   // Cleanup: restore body scroll and remove event listeners
   document.body.style.overflow = ''
   document.documentElement.style.overflow = ''
@@ -1773,6 +1850,15 @@ onUnmounted(() => {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+.thumbnail-strip {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.thumbnail-strip::-webkit-scrollbar {
+  display: none;
 }
 
 /* Disable zoom on mobile/touch devices */

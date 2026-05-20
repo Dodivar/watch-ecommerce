@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { verifyOrder } from '@/services/orderService.js'
 import { getWatchById } from '@/services/watchService'
@@ -14,6 +14,8 @@ const browsePath = getBrowsePath(site.features)
 const orderId = ref('')
 const totalCents = ref(0)
 const customerEmail = ref('')
+const shippingMethodType = ref('')
+const pickupLocation = ref(null)
 const lines = ref([])
 const watches = ref([])
 const loading = ref(true)
@@ -24,6 +26,16 @@ function formatPrice(cents) {
     (cents || 0) / 100,
   )
 }
+
+const followUpMessage = computed(() => {
+  if (shippingMethodType.value === 'pickup') {
+    const place = pickupLocation.value?.name
+    return place
+      ? `Notre équipe prépare votre commande. Vous pourrez la retirer à ${place} dès qu’elle sera prête — nous vous contacterons par email.`
+      : 'Notre équipe prépare votre commande. Vous serez contacté par email pour organiser le retrait en boutique.'
+  }
+  return 'Notre équipe prépare votre commande. Vous serez contacté pour l’expédition.'
+})
 
 function clearCheckoutSession() {
   const key = `watch_checkout:${site.siteId || site.id || 'default'}`
@@ -48,6 +60,8 @@ onMounted(async () => {
     }
     totalCents.value = result.order?.totalCents || 0
     customerEmail.value = result.order?.customerEmail || ''
+    shippingMethodType.value = result.order?.shippingMethodType || ''
+    pickupLocation.value = result.order?.pickupLocation || null
     lines.value = result.lines || []
 
     const { clear: clearCart } = useCart()
@@ -106,7 +120,7 @@ onMounted(async () => {
         </ul>
 
         <p class="text-gray-600 text-sm mb-8">
-          Notre équipe prépare votre commande. Vous serez contacté pour la livraison ou le retrait.
+          {{ followUpMessage }}
         </p>
 
         <div class="flex flex-col sm:flex-row gap-3 justify-center">

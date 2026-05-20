@@ -84,9 +84,12 @@ export default {
 
   storeMap: {
     enabled: true,
+    provider: 'google',
     center: { lat: 48.5842, lng: 7.7449 },
     zoom: 16,
     markerLabel: 'Place des Montres — Place des Halles',
+    /** Logo bulle carte (`public/brand-logo.jpg`) */
+    popupLogoSrc: '/brand-logo.jpg',
   },
 
   legal: {
@@ -161,6 +164,7 @@ export default {
     shipping: {
       defaultCountry: 'FR',
       freeShippingFrom: 80,
+      pickupEnabled: true,
       methods: [
         {
           id: 'colissimo_fr',

@@ -40,10 +40,13 @@ export default {
   },
 
   storeMap: {
-    enabled: false,
+    enabled: true,
+    provider: 'google',
     center: { lat: 48.5946, lng: 7.7769 },
     zoom: 16,
     markerLabel: 'Sauvage Watches',
+    /** Logo bulle carte — remplacer par un PNG horizontal dans `public/` si besoin */
+    popupLogoSrc: '/web-app-manifest-512x512.png',
   },
 
   legal: {
@@ -101,8 +104,6 @@ export default {
   features: {
     /** Achats en ligne (Stripe) sur les fiches montre ; désactiver aussi `VITE_PURCHASE_ENABLED=false` en prod si besoin. */
     purchase: true,
-    /** Bouton / icône panier sur les cartes montre (collection, carrousels). */
-    cardQuickAddToCart: true,
     paymentReturn: true,
   },
 
@@ -113,6 +114,8 @@ export default {
     shipping: {
       defaultCountry: 'FR',
       freeShippingFrom: null,
+      /** Proposer le retrait en boutique au checkout (les méthodes `type: 'pickup'` sont ignorées si false). */
+      pickupEnabled: true,
       methods: [
         {
           id: 'colissimo_insured',
@@ -121,6 +124,17 @@ export default {
           countries: ['FR', 'MC', 'BE', 'CH', 'LU'],
           fee: { type: 'flat', amount: 0 },
           estimatedDays: 'Sous 5 à 10 jours ouvrés après validation du paiement',
+        },
+        {
+          id: 'pickup_robertsau',
+          type: 'pickup',
+          label: 'Retrait en boutique — Robertsau',
+          fee: { type: 'flat', amount: 0 },
+          estimatedDays: 'Prêt en boutique sous 48 h après validation du paiement',
+          pickupLocation: {
+            name: 'Sauvage Watches',
+            address: '32 Allée de la Robertsau, 67000 Strasbourg',
+          },
         },
       ],
     },

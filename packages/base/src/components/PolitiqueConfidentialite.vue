@@ -76,6 +76,19 @@
         <p class="mt-2">
           Base juridique : <strong class="text-text-main">exécution du contrat</strong> (article 6-1-b du RGPD).
         </p>
+
+        <h3 class="text-lg font-semibold text-text-main mt-6 mb-2">2.4 Carte d’accès à la boutique</h3>
+        <p>
+          Sur les pages Contact et À propos, une carte interactive peut afficher l’emplacement de notre
+          boutique. Selon la configuration du site, cette carte est fournie par
+          <strong class="text-text-main">Google Maps</strong> (chargement du script Maps JavaScript API) ou par
+          un fond de carte OpenStreetMap. L’affichage Google peut transmettre à Google des données techniques
+          liées à l’affichage de la carte (adresse IP, requêtes de tuiles).
+        </p>
+        <p class="mt-2">
+          Base juridique : <strong class="text-text-main">intérêt légitime</strong> (informer sur notre
+          localisation, article 6-1-f du RGPD).
+        </p>
       </section>
 
       <section>
@@ -83,8 +96,8 @@
         <p class="mb-3">Les données peuvent être communiquées aux catégories de destinataires suivantes :</p>
         <ul class="list-disc pl-5 space-y-2">
           <li>
-            <strong class="text-text-main">Google Ireland Limited</strong> (Google Analytics), pour la mesure
-            d’audience soumise à consentement —
+            <strong class="text-text-main">Google Ireland Limited</strong> (Google Analytics, carte boutique
+            Google Maps le cas échéant, autocomplétion d’adresse au checkout si activée) —
             <a
               href="https://policies.google.com/privacy"
               class="font-medium text-primary underline decoration-primary/40 hover:text-primary-hover"
