@@ -16,12 +16,12 @@ const features = getSiteConfig().features
       <div class="text-center relative z-10">
         <h1 class="text-4xl lg:text-6xl font-bold text-text-main mb-4 leading-tight">
           Découvrez nos <span class="text-primary">montres disponibles</span> dès maintenant
-          <svg class="inline-block w-10 h-10 text-primary align-middle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <!-- <svg class="inline-block w-10 h-10 text-primary align-middle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
             <rect x="9.5" y="1.5" width="5" height="3" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
             <rect x="9.5" y="19.5" width="5" height="3" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
             <path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          </svg> -->
         </h1>
         <p class="text-xl text-gray-600 mb-6 leading-relaxed">
           Consultez notre sélection de montres en stock garanties 1 an.

@@ -48,6 +48,14 @@ storeMap: {
   markerLabel: 'Nom boutique',
   /** Optionnel — logo dans la bulle (chemin `public/` ou URL absolue) */
   popupLogoSrc: '/brand-logo.jpg',
+  /** Lien fiche Google Maps du client (Partager → Copier le lien) */
+  googleMapsUrl: 'https://maps.app.goo.gl/…',
+  /** Adresse postale exacte pour lancer l'itinéraire */
+  directionsAddress: '24 rue Exemple, 75000 Paris, France',
+  /** Optionnel — note et avis via Places API (si clé Google configurée) */
+  googlePlaceId: 'ChIJ…',
+  /** Recherche textuelle si googlePlaceId absent (avis uniquement) */
+  googlePlaceQuery: 'Nom boutique, adresse complète',
 },
 ```
 

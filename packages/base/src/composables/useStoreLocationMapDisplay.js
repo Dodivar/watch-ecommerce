@@ -58,18 +58,18 @@ export function useStoreLocationMapDisplay(props) {
     return resolveStoreMapPopupLogoUrl(path)
   })
 
+  const resolvedAddressHtml = computed(() => {
+    if (site.contact?.footerAddressHtml) return site.contact.footerAddressHtml
+    if (site.legal?.address) return escapeHtml(site.legal.address)
+    return ''
+  })
+
   const resolvedPopupHtml = computed(() => {
     if (toValue(props).popupHtml?.trim()) return toValue(props).popupHtml.trim()
 
-    const addr = site.contact?.footerAddressHtml
-      ? site.contact.footerAddressHtml
-      : site.legal?.address
-        ? escapeHtml(site.legal.address)
-        : ''
-
     return buildStoreMapPopupHtml({
       title: resolvedMarkerTitle.value,
-      addressHtml: addr,
+      addressHtml: resolvedAddressHtml.value,
       logoUrl: resolvedPopupLogoUrl.value,
       logoAlt: site.brand?.logoAlt || resolvedMarkerTitle.value,
     })
@@ -87,6 +87,7 @@ export function useStoreLocationMapDisplay(props) {
     resolvedCenterArray,
     resolvedMarkerTitle,
     resolvedPopupLogoUrl,
+    resolvedAddressHtml,
     resolvedPopupHtml,
     resolvedAriaLabel,
   }

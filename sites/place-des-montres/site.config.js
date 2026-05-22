@@ -65,6 +65,24 @@ export default {
       cream300: '#dfd5c6',
       textMain: '#2c2412',
     },
+    /** Typographie de référence du socle — fichiers dans `public/fonts/`. */
+    typography: {
+      sans: {
+        family: 'FjallaOne-Regular',
+        faces: [
+          { weight: 400, style: 'normal', file: 'FjallaOne-Regular.ttf' },
+        ],
+      },
+      heading: {
+        family: 'FjallaOne-Regular',
+        faces: [{ weight: 400, style: 'normal', file: 'FjallaOne-Regular.ttf' }],
+      },
+      subheading: {
+        role: 'sans',
+        weight: 800,
+      },
+      headingWeight: 700,
+    },
   },
 
   brand: {
@@ -76,8 +94,9 @@ export default {
   },
 
   contact: {
-    whatsappE164: '+33388224040',
     email: 'service.client@placedesmontres.fr',
+    phoneDisplay: '03 88 22 40 40',
+    phoneE164: '+33388224040',
     footerAddressHtml:
       'Centre commercial Place des Halles<br />67000 Strasbourg, France',
   },
@@ -85,11 +104,18 @@ export default {
   storeMap: {
     enabled: true,
     provider: 'google',
-    center: { lat: 48.5842, lng: 7.7449 },
-    zoom: 16,
+    center: { lat: 48.5864673, lng: 7.7411787 },
+    zoom: 14,
     markerLabel: 'Place des Montres — Place des Halles',
     /** Logo bulle carte (`public/brand-logo.jpg`) */
     popupLogoSrc: '/brand-logo.jpg',
+    /** Fiche Google Maps (Partager → Copier le lien) */
+    googleMapsUrl:
+      'https://www.google.com/maps/place/Place+des+Montres/@48.5864673,7.7411787,17z/data=!3m1!4b1!4m6!3m5!1s0x4796c84892d71677:0xed78782525eaaaa8!8m2!3d48.5864673!4d7.7411787!16s%2Fg%2F1tqck4qt?hl=fr',
+    /** Adresse exacte pour l'itinéraire Google Maps */
+    directionsAddress: '24 Place des Halles, Centre Commercial, 67000 Strasbourg, France',
+    /** Optionnel — note et avis via Places API (si clé Google configurée) */
+    googlePlaceQuery: 'Place des Montres, 24 Place des Halles, 67000 Strasbourg',
   },
 
   legal: {
@@ -106,12 +132,9 @@ export default {
   },
 
   social: {
-    footerTiktokUrl: 'https://www.tiktok.com/',
     suivezNous: {
-      instagramUrl: 'https://www.facebook.com/252531501590681',
-      instagramHandle: 'Facebook — Place des Montres',
-      tiktokUrl: 'https://www.tiktok.com/',
-      tiktokHandle: '@placedesmontres',
+      facebookUrl: 'https://www.facebook.com/252531501590681',
+      facebookHandle: 'Place des Montres',
     },
   },
 
@@ -143,8 +166,8 @@ export default {
 
   features: {
     collection: true,
-    blog: true,
-    recherche: true,
+    blog: false,
+    recherche: false,
     estimation: false,
     estimationProcess: false,
     merci: true,
@@ -209,17 +232,16 @@ export default {
       subtitle: 'Découvrez nos dernières pièces ajoutées à notre sélection',
     },
     sections: [
-      'hero',
-      'nouvelles',
       'selections',
+      'nouvelles',
       'trust',
       'ventes',
       'suivezNous',
-      'services',
+      // 'services',
       'faq',
     ],
     selections: {
-      title: 'Nos sélections du moment',
+      title: 'Notre sélection du moment',
       /** Visuels : voir `public/home-selections/README.md` et `homeSelections.config.js`. */
       cards: homeSelectionCards,
     },
@@ -227,31 +249,37 @@ export default {
 
   navigation: {
     main: [
-      { type: 'link', label: 'Accueil', to: '/' },
-      { type: 'link', label: 'Nos montres', to: '/collection', feature: 'collection' },
       {
-        type: 'group',
-        label: 'Univers',
-        items: [
-          { label: 'Homme', to: '/collection?public=homme', feature: 'collection' },
-          { label: 'Femme', to: '/collection?public=femme', feature: 'collection' },
-          { label: 'Enfant', to: '/collection?public=enfant', feature: 'collection' },
+        type: 'megaMenu',
+        label: 'Nos montres',
+        to: '/collection',
+        feature: 'collection',
+        columns: [
+          {
+            title: 'Marques',
+            source: 'brands',
+            columns: 2,
+            footerLink: { label: 'Toutes les marques', to: '/collection/marques' },
+          },
+          {
+            title: 'Genre',
+            items: [
+              { label: 'Montre homme', to: '/collection?public=homme', feature: 'collection' },
+              { label: 'Montre femme', to: '/collection?public=femme', feature: 'collection' },
+              { label: 'Montre enfant', to: '/collection?public=enfant', feature: 'collection' },
+            ],
+          },
         ],
       },
-      { type: 'link', label: 'Marques', to: '/collection/marques', feature: 'collection' },
-      { type: 'link', label: 'Recherche', to: '/recherche', feature: 'recherche' },
-      { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
       { type: 'link', label: 'À propos', to: '/a-propos', feature: 'about' },
       { type: 'link', label: 'FAQ', to: '/#faq', feature: 'faq' },
       { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
     ],
     footer: [
       { label: 'Accueil', to: '/#accueil' },
-      { label: 'Nos montres', to: '/collection', feature: 'collection' },
       { label: 'Marques', to: '/collection/marques', feature: 'collection' },
-      { label: 'Recherche', to: '/recherche', feature: 'recherche' },
-      { label: 'Blog', to: '/blog', feature: 'blog' },
       { label: 'À propos', to: '/a-propos', feature: 'about' },
+      { label: 'FAQ', to: '/#faq', feature: 'faq' },
       { label: 'Contact', to: '/contact', feature: 'contact' },
     ],
   },

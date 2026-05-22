@@ -4,40 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Palette / tokens : variables injectées depuis sites/<SITE_ID>/site.config.js (voir vite/site-from-config.mjs) */
-
-/* Polices site : fichiers servis depuis sites/<SITE_ID>/public/fonts via la racine Vite */
-@font-face {
-  font-family: 'Poppins';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/Poppins Bold.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'HK Grotesk';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/HK Grotesk Regular.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'HK Grotesk';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/HK Grotesk Italic.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'HK Grotesk';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url('/fonts/HK Grotesk ExtraBold.woff2') format('woff2');
-}
+/* Palette / typographie : variables et @font-face injectés depuis sites/<SITE_ID>/site.config.js (vite/site-from-config.mjs) */
 
 * {
   scroll-behavior: smooth;
@@ -85,21 +52,21 @@ input[type="checkbox"] ~ label {
 }
 
 body {
-  font-family: 'HK Grotesk', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--color-cream);
   color: var(--color-text-main);
 }
 
 h1,
 h2 {
-  font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
 }
 
 h3,
 h4 {
-  font-family: 'HK Grotesk', ui-sans-serif, system-ui, sans-serif;
-  font-weight: 800;
+  font-family: var(--font-subheading);
+  font-weight: var(--font-subheading-weight);
 }
 
 .watch-shadow {

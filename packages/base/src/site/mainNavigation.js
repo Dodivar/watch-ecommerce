@@ -17,6 +17,28 @@
  *         { label: 'Estimation', to: '/estimation', feature: 'estimation' },
  *       ],
  *     },
+ *     {
+ *       type: 'megaMenu',
+ *       label: 'Nos montres',
+ *       to: '/collection',
+ *       feature: 'collection',
+ *       columns: [
+ *         {
+ *           title: 'Genre',
+ *           items: [
+ *             { label: 'Montre homme', to: '/collection?public=homme' },
+ *             { label: 'Montre femme', to: '/collection?public=femme' },
+ *             { label: 'Montre enfant', to: '/collection?public=enfant' },
+ *           ],
+ *         },
+ *         {
+ *           title: 'Marques',
+ *           source: 'brands',
+ *           columns: 2,
+ *           footerLink: { label: 'Toutes les marques', to: '/collection/marques' },
+ *         },
+ *       ],
+ *     },
  *     { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
  *     { type: 'link', label: 'FAQ', to: '/#faq', feature: 'faq' },
  *   ],
@@ -29,6 +51,7 @@
  *
  * - `feature` (optionnel) sur un lien ou sur un groupe : masque l’entrée (ou tout le groupe) si `site.features[feature]` est faux.
  * - Sur un `group`, `to` (optionnel) rend le libellé du groupe cliquable (`RouterLink`) en plus du sous-menu.
+ * - Sur un `megaMenu`, `columns` décrit les colonnes du panneau pleine largeur (items statiques ou `source: 'brands'`).
  * - Si `navigation.main` est absent ou vide, un menu principal par défaut est utilisé.
  * - Si `navigation.footer` est absent ou vide, la colonne footer reprend le comportement historique du template (sans lien FAQ ; Contact vers `/contact` si `features.contact`).
  */
@@ -47,14 +70,29 @@ export function resolveMainNavigation(site) {
 }
 
 /**
+ * Indique si la navigation affiche un mega-menu alimenté par les marques catalogue.
+ * @param {MainNavItem[]} navItems
+ * @returns {boolean}
+ */
+export function navigationUsesCatalogBrands(navItems) {
+  return navItems.some(
+    (item) =>
+      item.type === 'megaMenu' &&
+      item.columns?.some((column) => column.source === 'brands'),
+  )
+}
+
+/**
  * @typedef {{ label: string, to: string }} NavSubLinkResolved
  * @typedef {{ type: 'link', label: string, to: string }} NavLinkResolved
  * @typedef {{ type: 'group', label: string, items: NavSubLinkResolved[], to?: string }} NavGroupResolved
- * @typedef {NavLinkResolved | NavGroupResolved} MainNavItem
+ * @typedef {{ title: string, items?: NavSubLinkResolved[], source?: 'brands', columns?: number, footerLink?: NavSubLinkResolved }} MegaMenuColumnResolved
+ * @typedef {{ type: 'megaMenu', label: string, to: string, columns: MegaMenuColumnResolved[] }} NavMegaMenuResolved
+ * @typedef {NavLinkResolved | NavGroupResolved | NavMegaMenuResolved} MainNavItem
  */
 
 /**
- * @typedef {{ type?: 'link' | 'group', label: string, to?: string, feature?: string, items?: Array<{ label: string, to: string, feature?: string }> }} RawNavEntry
+ * @typedef {{ type?: 'link' | 'group' | 'megaMenu', label: string, to?: string, feature?: string, items?: Array<{ label: string, to: string, feature?: string }>, columns?: Array<{ title: string, items?: Array<{ label: string, to: string, feature?: string }>, source?: 'brands', columns?: number, footerLink?: { label: string, to: string } }> }} RawNavEntry
  * @typedef {{ label: string, to: string, feature?: string }} RawFooterLink
  * @typedef {{ label: string, to: string }} FooterNavLinkResolved
  */
@@ -87,15 +125,68 @@ function filterConfiguredMainNav(items, features) {
         group.to = raw.to
       }
       out.push(group)
+    } else if (type === 'megaMenu' && Array.isArray(raw.columns)) {
+      if (raw.feature && !features[raw.feature]) continue
+      if (!raw.to) continue
+      const columns = resolveMegaMenuColumns(raw.columns, features)
+      if (columns.length === 0) continue
+      /** @type {NavMegaMenuResolved} */
+      const megaMenu = {
+        type: 'megaMenu',
+        label: raw.label,
+        to: raw.to,
+        columns,
+      }
+      out.push(megaMenu)
     }
+  }
+  return out
+}
+
+/**
+ * @param {NonNullable<RawNavEntry['columns']>} rawColumns
+ * @param {Record<string, boolean>} features
+ * @returns {MegaMenuColumnResolved[]}
+ */
+function resolveMegaMenuColumns(rawColumns, features) {
+  /** @type {MegaMenuColumnResolved[]} */
+  const out = []
+  for (const column of rawColumns) {
+    if (!column?.title) continue
+    if (column.source === 'brands') {
+      /** @type {MegaMenuColumnResolved} */
+      const dynamicColumn = {
+        title: column.title,
+        source: 'brands',
+      }
+      if (typeof column.columns === 'number' && column.columns > 1) {
+        dynamicColumn.columns = column.columns
+      }
+      if (column.footerLink?.label && column.footerLink?.to) {
+        dynamicColumn.footerLink = {
+          label: column.footerLink.label,
+          to: column.footerLink.to,
+        }
+      }
+      out.push(dynamicColumn)
+      continue
+    }
+    const items = (column.items ?? []).filter((sub) => !sub.feature || features[sub.feature])
+    if (items.length === 0) continue
+    out.push({
+      title: column.title,
+      items: items.map(({ label, to }) => ({ label, to })),
+    })
   }
   return out
 }
 
 /** @param {RawNavEntry} raw */
 function resolveRawType(raw) {
+  if (raw.type === 'megaMenu') return 'megaMenu'
   if (raw.type === 'group') return 'group'
   if (raw.type === 'link') return 'link'
+  if (Array.isArray(raw.columns)) return 'megaMenu'
   if (Array.isArray(raw.items)) return 'group'
   return 'link'
 }

@@ -22,6 +22,26 @@ export default {
       cream300: '#d9cec0',
       textMain: '#000000',
     },
+    /** Typographie de référence du socle — fichiers dans `public/fonts/`. */
+    typography: {
+      sans: {
+        family: 'HK Grotesk',
+        faces: [
+          { weight: 400, style: 'normal', file: 'HK Grotesk Regular.woff2' },
+          { weight: 400, style: 'italic', file: 'HK Grotesk Italic.woff2' },
+          { weight: 800, style: 'normal', file: 'HK Grotesk ExtraBold.woff2' },
+        ],
+      },
+      heading: {
+        family: 'Poppins',
+        faces: [{ weight: 700, style: 'normal', file: 'Poppins Bold.woff2' }],
+      },
+      subheading: {
+        role: 'sans',
+        weight: 800,
+      },
+      headingWeight: 700,
+    },
   },
 
   brand: {

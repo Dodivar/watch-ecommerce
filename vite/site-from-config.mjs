@@ -1,3 +1,5 @@
+import { resolveTypography } from '../packages/base/src/site/resolveTypography.js'
+
 function escapeHtmlAttr(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -5,9 +7,36 @@ function escapeHtmlAttr(value) {
     .replace(/</g, '&lt;')
 }
 
+function buildFontFaceCss(typography) {
+  const seen = new Set()
+  const rules = []
+
+  for (const role of [typography.sans, typography.heading]) {
+    for (const face of role.faces) {
+      const key = `${role.family}|${face.weight}|${face.style}|${face.src}`
+      if (seen.has(key)) continue
+      seen.add(key)
+
+      rules.push(`@font-face {
+  font-family: '${role.family}';
+  font-style: ${face.style};
+  font-weight: ${face.weight};
+  font-display: swap;
+  src: url('${face.src}') format('woff2');
+}`)
+    }
+  }
+
+  return rules.join('\n\n')
+}
+
 function buildThemeCss(siteConfig) {
   const t = siteConfig.theme.colors
-  return `:root {
+  const typography = resolveTypography(siteConfig)
+
+  return `${buildFontFaceCss(typography)}
+
+:root {
   --color-primary: ${t.primary};
   --color-primary-hover: ${t.primaryHover};
   --color-cream: ${t.cream};
@@ -15,6 +44,11 @@ function buildThemeCss(siteConfig) {
   --color-cream-200: ${t.cream200};
   --color-cream-300: ${t.cream300};
   --color-text-main: ${t.textMain};
+  --font-sans: ${typography.sans.stack};
+  --font-heading: ${typography.heading.stack};
+  --font-subheading: ${typography.subheading.stack};
+  --font-heading-weight: ${typography.headingWeight};
+  --font-subheading-weight: ${typography.subheading.weight};
 }
 `
 }

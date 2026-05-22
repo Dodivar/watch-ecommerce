@@ -1,9 +1,48 @@
 <script setup>
-defineProps({
+import { ref, computed, onMounted } from 'vue'
+import MainNavMegaMenuPanel from '@/components/layout/MainNavMegaMenuPanel.vue'
+import { navigationUsesCatalogBrands } from '@/site/mainNavigation.js'
+import { prefetchCatalogBrands } from '@/composables/useCatalogBrands.js'
+
+const props = defineProps({
   features: { type: Object, required: true },
   isAdmin: { type: Boolean, required: true },
   navItems: { type: Array, required: true },
 })
+
+const openMegaMenuIndex = ref(null)
+let closeTimer = null
+
+const activeMegaMenuItem = computed(() => {
+  if (openMegaMenuIndex.value === null) return null
+  const item = props.navItems[openMegaMenuIndex.value]
+  return item?.type === 'megaMenu' ? item : null
+})
+
+onMounted(() => {
+  if (!props.isAdmin && navigationUsesCatalogBrands(props.navItems)) {
+    prefetchCatalogBrands()
+  }
+})
+
+function openMegaMenu(index) {
+  clearCloseTimer()
+  openMegaMenuIndex.value = index
+}
+
+function scheduleCloseMegaMenu() {
+  clearCloseTimer()
+  closeTimer = setTimeout(() => {
+    openMegaMenuIndex.value = null
+  }, 150)
+}
+
+function clearCloseTimer() {
+  if (closeTimer) {
+    clearTimeout(closeTimer)
+    closeTimer = null
+  }
+}
 </script>
 
 <template>
@@ -34,6 +73,35 @@ defineProps({
             class="text-text-main hover:text-primary transition-colors"
             >{{ item.label }}</RouterLink
           >
+          <div
+            v-else-if="item.type === 'megaMenu'"
+            class="relative"
+            @mouseenter="openMegaMenu(idx)"
+            @mouseleave="scheduleCloseMegaMenu"
+          >
+            <div
+              class="text-text-main hover:text-primary transition-colors flex items-center"
+              :class="{ 'text-primary': openMegaMenuIndex === idx }"
+            >
+              <RouterLink :to="item.to" class="hover:text-primary transition-colors">{{
+                item.label
+              }}</RouterLink>
+              <svg
+                class="w-4 h-4 ml-1 shrink-0 pointer-events-none transition-transform"
+                :class="{ 'rotate-180': openMegaMenuIndex === idx }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </div>
           <div v-else-if="item.type === 'group'" class="relative group">
             <div class="text-text-main hover:text-primary transition-colors flex items-center">
               <RouterLink
@@ -72,5 +140,13 @@ defineProps({
         </template>
       </template>
     </div>
+
+    <MainNavMegaMenuPanel
+      v-if="activeMegaMenuItem"
+      :item="activeMegaMenuItem"
+      :visible="openMegaMenuIndex !== null"
+      @mouseenter="clearCloseTimer"
+      @mouseleave="scheduleCloseMegaMenu"
+    />
   </div>
 </template>

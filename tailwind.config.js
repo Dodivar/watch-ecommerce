@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['HK Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        heading: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)'],
+        heading: ['var(--font-heading)'],
       },
       colors: {
         primary: 'var(--color-primary)',

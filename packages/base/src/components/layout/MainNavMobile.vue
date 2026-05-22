@@ -1,7 +1,11 @@
 <script setup>
+import { ref, watch, onMounted } from 'vue'
 import { useCart } from '@/composables/useCart.js'
+import { slugifyBrand } from '@/utils/brandSlug'
+import { useCatalogBrands, prefetchCatalogBrands } from '@/composables/useCatalogBrands.js'
+import { navigationUsesCatalogBrands } from '@/site/mainNavigation.js'
 
-defineProps({
+const props = defineProps({
   features: { type: Object, required: true },
   isAdmin: { type: Boolean, required: true },
   navItems: { type: Array, required: true },
@@ -13,6 +17,21 @@ defineProps({
 const open = defineModel('open', { type: Boolean, default: false })
 
 const { badgeLabel, toggleDrawer } = useCart()
+const { brands, isLoading, error, load } = useCatalogBrands()
+
+const expandedMegaMenuIndex = ref(null)
+
+watch(open, (isOpen) => {
+  if (!isOpen) {
+    expandedMegaMenuIndex.value = null
+  }
+})
+
+onMounted(() => {
+  if (!props.isAdmin && navigationUsesCatalogBrands(props.navItems)) {
+    prefetchCatalogBrands()
+  }
+})
 
 function close() {
   open.value = false
@@ -21,6 +40,21 @@ function close() {
 function openCartFromMenu() {
   toggleDrawer()
   open.value = false
+}
+
+function toggleMegaMenu(index, item) {
+  if (expandedMegaMenuIndex.value === index) {
+    expandedMegaMenuIndex.value = null
+    return
+  }
+  expandedMegaMenuIndex.value = index
+  if (item.columns?.some((column) => column.source === 'brands')) {
+    load()
+  }
+}
+
+function brandRoute(brandName) {
+  return { path: '/collection', query: { marque: slugifyBrand(brandName) } }
 }
 </script>
 
@@ -113,32 +147,97 @@ function openCartFromMenu() {
               class="hover:text-cream-100 transition-colors text-center"
               >{{ item.label }}</RouterLink
             >
-            <!-- N'AFFICHE PAS LES GROUPES DE LIENS, uniquement les liens simples -->
-            <!-- <div
-              v-else-if="item.type === 'group'"
-              class="flex flex-col items-center gap-6 w-full max-w-sm"
+            <div
+              v-else-if="item.type === 'megaMenu'"
+              class="flex flex-col items-center gap-4 w-full max-w-sm"
             >
-              <RouterLink
-                v-if="item.to"
-                :to="item.to"
-                @click="close"
-                class="text-base font-semibold uppercase tracking-wide text-white/75 hover:text-cream-100 transition-colors text-center"
-                >{{ item.label }}</RouterLink
+              <button
+                type="button"
+                class="flex items-center gap-2 hover:text-cream-100 transition-colors text-center"
+                :aria-expanded="expandedMegaMenuIndex === idx"
+                @click="toggleMegaMenu(idx, item)"
               >
-              <span
-                v-else
-                class="text-base font-semibold uppercase tracking-wide text-white/75"
-                >{{ item.label }}</span
+                <span>{{ item.label }}</span>
+                <svg
+                  class="w-5 h-5 shrink-0 transition-transform"
+                  :class="{ 'rotate-180': expandedMegaMenuIndex === idx }"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              <div
+                v-if="expandedMegaMenuIndex === idx"
+                class="w-full space-y-6 text-base font-normal"
               >
-              <RouterLink
-                v-for="(sub, j) in item.items"
-                :key="'msub-' + j + '-' + sub.to"
-                :to="sub.to"
-                @click="close"
-                class="hover:text-cream-100 transition-colors text-lg text-center"
-                >{{ sub.label }}</RouterLink
-              >
-            </div> -->
+                <RouterLink
+                  :to="item.to"
+                  @click="close"
+                  class="block text-center text-white/90 hover:text-cream-100 transition-colors"
+                >
+                  Voir toute la collection
+                </RouterLink>
+
+                <template v-for="(column, columnIndex) in item.columns" :key="'mcol-' + columnIndex">
+                  <div v-if="column.source !== 'brands'" class="space-y-3">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-white/75 text-center">
+                      {{ column.title }}
+                    </p>
+                    <RouterLink
+                      v-for="(link, linkIndex) in column.items"
+                      :key="'mlink-' + linkIndex + '-' + link.to"
+                      :to="link.to"
+                      @click="close"
+                      class="block text-center hover:text-cream-100 transition-colors"
+                    >
+                      {{ link.label }}
+                    </RouterLink>
+                  </div>
+
+                  <div v-else class="space-y-3">
+                    <p class="text-sm font-semibold uppercase tracking-wide text-white/75 text-center">
+                      {{ column.title }}
+                    </p>
+
+                    <p v-if="isLoading" class="text-center text-white/70 text-sm">Chargement…</p>
+                    <p v-else-if="error" class="text-center text-white/70 text-sm">{{ error }}</p>
+                    <p
+                      v-else-if="brands.length === 0"
+                      class="text-center text-white/70 text-sm"
+                    >
+                      Aucune marque disponible pour le moment.
+                    </p>
+                    <RouterLink
+                      v-for="brandName in brands"
+                      v-else
+                      :key="brandName"
+                      :to="brandRoute(brandName)"
+                      @click="close"
+                      class="block text-center hover:text-cream-100 transition-colors"
+                    >
+                      {{ brandName }}
+                    </RouterLink>
+
+                    <RouterLink
+                      v-if="column.footerLink"
+                      :to="column.footerLink.to"
+                      @click="close"
+                      class="block text-center text-white/90 hover:text-cream-100 transition-colors"
+                    >
+                      {{ column.footerLink.label }}
+                    </RouterLink>
+                  </div>
+                </template>
+              </div>
+            </div>
           </template>
         </template>
       </nav>

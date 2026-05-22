@@ -1,7 +1,10 @@
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { ensureGoogleMaps } from '@/services/googleMaps.js'
 import { useStoreLocationMapDisplay } from '@/composables/useStoreLocationMapDisplay.js'
+import { useGoogleStorePlace } from '@/composables/useGoogleStorePlace.js'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
+import StoreLocationMapGoogleCard from '@/components/StoreLocationMapGoogleCard.vue'
 
 const props = defineProps({
   center: { type: Object, default: null },
@@ -16,21 +19,41 @@ const mapContainerRef = ref(null)
 let mapInstance = null
 /** @type {google.maps.Marker | null} */
 let markerInstance = null
-/** @type {google.maps.InfoWindow | null} */
-let infoWindowInstance = null
+
+const site = getSiteConfig()
+const storeMap = site.storeMap
 
 const {
   resolvedZoom,
   resolvedCenter,
-  resolvedPopupHtml,
   resolvedAriaLabel,
   resolvedMarkerTitle,
+  resolvedPopupLogoUrl,
+  resolvedAddressHtml,
 } = useStoreLocationMapDisplay(props)
 
+const googlePlaceSource = computed(() => ({
+  placeId: storeMap?.googlePlaceId,
+  placeQuery: storeMap?.googlePlaceQuery,
+  googleMapsUrl: storeMap?.googleMapsUrl,
+  directionsAddress: storeMap?.directionsAddress,
+  center: resolvedCenter.value,
+  fallbackTitle: resolvedMarkerTitle.value,
+}))
+
+const {
+  loading: placeLoading,
+  displayName: placeDisplayName,
+  formattedAddress: placeFormattedAddress,
+  rating: placeRating,
+  userRatingCount: placeUserRatingCount,
+  reviews: placeReviews,
+  profileUrl: placeProfileUrl,
+  directionsUrl: placeDirectionsUrl,
+} = useGoogleStorePlace(googlePlaceSource)
+
 function destroyMap() {
-  infoWindowInstance?.close()
   markerInstance = null
-  infoWindowInstance = null
   mapInstance = null
   if (mapContainerRef.value) {
     mapContainerRef.value.replaceChildren()
@@ -62,12 +85,6 @@ async function initMap() {
     map: mapInstance,
     title: resolvedMarkerTitle.value,
   })
-
-  infoWindowInstance = new maps.InfoWindow({
-    content: resolvedPopupHtml.value,
-    maxWidth: 320,
-  })
-  infoWindowInstance.open({ map: mapInstance, anchor: markerInstance })
 }
 
 onMounted(() => {
@@ -78,7 +95,7 @@ onUnmounted(() => {
   destroyMap()
 })
 
-watch([resolvedCenter, resolvedZoom, resolvedPopupHtml], () => {
+watch([resolvedCenter, resolvedZoom], () => {
   void initMap()
 })
 </script>
@@ -89,10 +106,24 @@ watch([resolvedCenter, resolvedZoom, resolvedPopupHtml], () => {
     class="store-location-map store-location-map--google w-full overflow-hidden rounded-lg shadow-md"
   >
     <div
-      class="store-location-map__frame border border-cream-300"
+      class="store-location-map__frame relative border border-cream-300"
       role="region"
       :aria-label="resolvedAriaLabel"
     >
+      <StoreLocationMapGoogleCard
+        :title="placeDisplayName || resolvedMarkerTitle"
+        :address-html="resolvedAddressHtml"
+        :formatted-address="placeFormattedAddress"
+        :logo-url="resolvedPopupLogoUrl || ''"
+        :logo-alt="site.brand?.logoAlt || resolvedMarkerTitle"
+        :rating="placeRating"
+        :user-rating-count="placeUserRatingCount"
+        :profile-url="placeProfileUrl || ''"
+        :directions-url="placeDirectionsUrl || ''"
+        :reviews="placeReviews"
+        :loading="placeLoading"
+      />
+
       <div
         ref="mapContainerRef"
         class="store-location-map__google h-[min(420px,55vh)] w-full min-h-[280px]"
@@ -100,3 +131,9 @@ watch([resolvedCenter, resolvedZoom, resolvedPopupHtml], () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.store-location-map--google :deep(.store-location-map-google-card) {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+</style>

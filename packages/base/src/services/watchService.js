@@ -6,6 +6,7 @@ import {
   getStaticWatchAudienceAdminOptions,
   getStaticWatchAudienceFilterOptions,
 } from '@/constants/watchAudiences'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
 
 /** Images par montre en listing collection / recherche (navigation jusqu'à WATCH_CARD_MAX_IMAGES). */
 const LISTING_IMAGES_PER_WATCH = WATCH_CARD_MAX_IMAGES
@@ -225,6 +226,136 @@ async function assembleWatchesWithRelations(watches, imagesPerWatch = LISTING_IM
       imagesById.get(watch.id) ?? [],
     ),
   )
+}
+
+/**
+ * Marques distinctes des montres disponibles (requête légère : colonne `brand` uniquement).
+ * @param {Array<{ brand?: string | null }>} rows
+ * @returns {string[]}
+ */
+function dedupeCatalogBrands(rows) {
+  const brands = new Set()
+  for (const row of rows ?? []) {
+    const brand = typeof row?.brand === 'string' ? row.brand.trim() : ''
+    if (brand) brands.add(brand)
+  }
+  return [...brands].sort((a, b) => a.localeCompare(b, 'fr'))
+}
+
+/** @type {string[] | null} */
+let catalogBrandsCache = null
+/** @type {Promise<string[]> | null} */
+let catalogBrandsPromise = null
+
+const CATALOG_BRANDS_CACHE_TTL_MS = 15 * 60 * 1000
+
+function getCatalogBrandsStorageKey() {
+  const siteId = getSiteConfig().siteId || 'default'
+  return `watch-ecommerce:catalog-brands:${siteId}`
+}
+
+/**
+ * @returns {string[] | null}
+ */
+function readCatalogBrandsSessionCache() {
+  if (typeof sessionStorage === 'undefined') return null
+
+  try {
+    const raw = sessionStorage.getItem(getCatalogBrandsStorageKey())
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed?.brands) || typeof parsed.cachedAt !== 'number') {
+      sessionStorage.removeItem(getCatalogBrandsStorageKey())
+      return null
+    }
+
+    if (Date.now() - parsed.cachedAt > CATALOG_BRANDS_CACHE_TTL_MS) {
+      sessionStorage.removeItem(getCatalogBrandsStorageKey())
+      return null
+    }
+
+    return parsed.brands.filter((brand) => typeof brand === 'string' && brand.trim())
+  } catch {
+    return null
+  }
+}
+
+/**
+ * @param {string[]} brands
+ */
+function writeCatalogBrandsSessionCache(brands) {
+  if (typeof sessionStorage === 'undefined') return
+
+  try {
+    sessionStorage.setItem(
+      getCatalogBrandsStorageKey(),
+      JSON.stringify({
+        brands,
+        cachedAt: Date.now(),
+      }),
+    )
+  } catch {
+    // Quota dépassé ou navigation privée restrictive — ignorer silencieusement.
+  }
+}
+
+/**
+ * Retourne les marques déjà en cache (mémoire ou sessionStorage), sans requête réseau.
+ * @returns {string[] | null}
+ */
+export function peekAvailableCatalogBrands() {
+  if (catalogBrandsCache) return catalogBrandsCache
+  const sessionCached = readCatalogBrandsSessionCache()
+  if (sessionCached) {
+    catalogBrandsCache = sessionCached
+    return catalogBrandsCache
+  }
+  return null
+}
+
+/**
+ * Liste triée des marques présentes sur des montres disponibles.
+ * Une seule requête Supabase (`select brand`) — pas de chargement images / détails.
+ * Cache mémoire + sessionStorage (TTL 15 min) par site.
+ *
+ * @returns {Promise<string[]>}
+ */
+export async function getAvailableCatalogBrands() {
+  const cached = peekAvailableCatalogBrands()
+  if (cached) return cached
+  if (catalogBrandsPromise) return catalogBrandsPromise
+
+  catalogBrandsPromise = (async () => {
+    const { data, error } = await supabase
+      .from('watches')
+      .select('brand')
+      .eq('is_available', true)
+      .not('brand', 'is', null)
+
+    if (error) {
+      catalogBrandsPromise = null
+      throw new Error(`Erreur lors de la récupération des marques: ${error.message}`)
+    }
+
+    catalogBrandsCache = dedupeCatalogBrands(data)
+    writeCatalogBrandsSessionCache(catalogBrandsCache)
+    catalogBrandsPromise = null
+    return catalogBrandsCache
+  })()
+
+  return catalogBrandsPromise
+}
+
+/**
+ * Invalide le cache des marques catalogue (mémoire + sessionStorage).
+ */
+export function invalidateCatalogBrandsCache() {
+  catalogBrandsCache = null
+  catalogBrandsPromise = null
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem(getCatalogBrandsStorageKey())
+  }
 }
 
 /**

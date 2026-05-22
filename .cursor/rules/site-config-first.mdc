@@ -1,0 +1,26 @@
+---
+description: Consulter site.config.js du client avant toute modification site ou socle
+globs: sites/**,packages/base/**
+alwaysApply: false
+---
+
+# Configuration client d'abord
+
+Monorepo multi-sites : chaque client vit sous `sites/<SITE_ID>/`. Le manifest est **`sites/<SITE_ID>/site.config.js`** (jamais `client.config.js` ni fichiers parallèles non demandés).
+
+## Avant de modifier quoi que ce soit
+
+1. **Identifier le `SITE_ID` actif** — mention utilisateur, chemin ouvert (`sites/place-des-montres/...`), ou `SITE_ID` / script npm (`dev:sauvage`, `build:demo-store`). **Ne pas supposer `sauvage-watches`** : c'est seulement le défaut dev si `SITE_ID` est absent.
+2. **Lire** `sites/<SITE_ID>/site.config.js` et les imports locaux (`faq.config.js`, `homeSelections.config.js`, etc.).
+3. **Vérifier** `.cursor/rules/<site-id>-editorial.mdc` s'il existe (ton éditorial).
+4. **Préférer la config** aux valeurs en dur dans `packages/base` : contact, copy, thème, livraison, feature flags, navigation, SEO.
+
+## Rappels rapides
+
+- `features.*` active/désactive routes, menus et blocs d'accueil.
+- `home.sections` vide → accueil sans blocs ; ids dans `packages/base/src/site/homeSections.js`.
+- `getSiteConfig()` (`packages/base/src/site/getSiteConfig.js`) enrichit FAQ, checkout shipping, home.
+- Assets client : `sites/<SITE_ID>/src/assets/` (`@site/*`), polices/favicons : `public/`.
+- Build prod : `SITE_ID` **obligatoire** (`npm run build`).
+
+Workflow détaillé : skill projet `site-config-check` (`.cursor/skills/site-config-check/`).
