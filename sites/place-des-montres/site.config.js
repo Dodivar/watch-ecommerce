@@ -138,6 +138,100 @@ export default {
     },
   },
 
+  about: {
+    variant: 'retail',
+    hero: {
+      eyebrow: 'Qui sommes-nous ?',
+      title: 'Place des Montres',
+      lead:
+        "Depuis 1995, au cœur de Strasbourg, nous cultivons l'art de bien choisir sa montre — avec l'exigence d'un spécialiste qui a vu passer près de trois décennies de tendances, de marques et de sourires clients.",
+      sinceYear: 1995,
+      image: '/home-selections/montres-homme.jpg',
+    },
+    stats: [
+      { value: '1995', label: 'Année de création', detail: 'Plus de 30 ans d\'expérience' },
+      { value: '3 000', label: 'Montres en stock', detail: 'Un choix immédiat' },
+      { value: '30', label: 'Marques', detail: 'Des plus prestigieuses' },
+      { value: '1', label: 'Adresse à Strasbourg', detail: 'Place des Halles' },
+    ],
+    story: {
+      title: 'Une adresse de référence à Strasbourg',
+      paragraphs: [
+        "Installée au centre commercial Place des Halles, Place des Montres est bien plus qu'une boutique : c'est un lieu de rencontre entre les amateurs de belles montres et une équipe qui connaît chaque univers, chaque mécanisme, chaque nuance de cadran.",
+        "Notre force, c'est l'expérience accumulée depuis 1995. Derrière le comptoir comme en ligne, nous guidons chaque client — du premier garde-temps au cadeau qui marquera une occasion — avec la même attention et le même plaisir de conseiller.",
+        "Des montres de tous styles et à tous les prix : sport, élégance, mécanique automatique à fond transparent… nous vous aidons à trouver la pièce qui vous ressemble, pour vous faire plaisir ou faire plaisir à votre entourage.",
+      ],
+      pullQuote:
+        "Franchir la porte de notre magasin, c'est entrer dans près de trente ans de passion horlogère — et repartir avec une montre choisie pour vous.",
+    },
+    styles: [
+      {
+        title: 'Sport & quotidien',
+        description:
+          'Chronographes, montres résistantes, modèles connectés ou classiques au poignet : pour le bureau, le week-end ou l\'aventure.',
+        icon: 'sport',
+      },
+      {
+        title: 'Élégance intemporelle',
+        description:
+          'Cadrans sobres, finitions raffinées, bracelets cuir ou acier : la montre qui sublime une tenue et traverse les saisons.',
+        icon: 'elegance',
+      },
+      {
+        title: 'Mécanique vivante',
+        description:
+          'Pour les amoureux de belles mécaniques : montres automatiques à fond transparent pour admirer les rouages en mouvement.',
+        icon: 'mechanics',
+      },
+    ],
+    brands: {
+      title: 'Une trentaine de marques, un seul standard',
+      intro:
+        'Tissot, Swatch, Cluse, Seiko, Hugo Boss, Tommy Hilfiger, Diesel, Fossil, Festina, Pierre Lannier, Casio, G-Shock… et bien d\'autres : nous sélectionnons des maisons reconnues pour leur qualité et leur diversité.',
+      names: [
+        'Tissot',
+        'Swatch',
+        'Cluse',
+        'Seiko',
+        'Hugo Boss',
+        'Tommy Hilfiger',
+        'Diesel',
+        'Fossil',
+        'Festina',
+        'Pierre Lannier',
+        'Casio',
+        'G-Shock',
+      ],
+    },
+    experience: {
+      title: 'L\'expérience Place des Montres',
+      items: [
+        {
+          title: 'Conseil de proximité',
+          description:
+            'Essayer au poignet, comparer les modèles, poser toutes vos questions : notre équipe vous accueille avec plaisir du lundi au samedi.',
+        },
+        {
+          title: 'Boutique & e-commerce',
+          description:
+            'Commandez en ligne ou passez nous voir aux Halles : retrait magasin, livraison Colissimo offerte dès 80 € en France métropolitaine.',
+        },
+        {
+          title: 'Pour toutes les envies',
+          description:
+            'Anniversaire, fête des pères, première montre ou pièce de collection accessible : nous trouvons le cadeau idéal à chaque budget.',
+        },
+      ],
+    },
+    cta: {
+      title: 'Prêt à trouver votre montre ?',
+      subtitle:
+        'Parcourez notre catalogue en ligne ou venez nous rencontrer au centre commercial Place des Halles — c\'est avec plaisir que nous vous accueillerons.',
+      collectionLabel: 'Découvrir nos montres',
+      contactLabel: 'Nous contacter',
+    },
+  },
+
   copy: {
     footerTagline:
       "Spécialiste de la montre depuis 1995 : vente en ligne et au magasin Place des Halles à Strasbourg, grand choix de marques, livraison Colissimo offerte dès 80 € en France métropolitaine (hors offres ponctuelles). Service client du lundi au samedi, 9h–20h.",
@@ -271,14 +365,14 @@ export default {
           },
         ],
       },
-      { type: 'link', label: 'À propos', to: '/a-propos', feature: 'about' },
+      { type: 'link', label: 'Qui sommes-nous', to: '/a-propos', feature: 'about' },
       { type: 'link', label: 'FAQ', to: '/#faq', feature: 'faq' },
       { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
     ],
     footer: [
       { label: 'Accueil', to: '/#accueil' },
       { label: 'Marques', to: '/collection/marques', feature: 'collection' },
-      { label: 'À propos', to: '/a-propos', feature: 'about' },
+      { label: 'Qui sommes-nous', to: '/a-propos', feature: 'about' },
       { label: 'FAQ', to: '/#faq', feature: 'faq' },
       { label: 'Contact', to: '/contact', feature: 'contact' },
     ],
@@ -379,14 +473,14 @@ export default {
       structuredDataSellerName: 'Place des Montres',
     },
     aPropos: {
-      title: 'À propos — Place des Montres, spécialiste depuis 1995',
+      title: 'Qui sommes-nous ? — Place des Montres, spécialiste depuis 1995',
       metaDescription:
-        "Installée au cœur de Strasbourg (Place des Halles), Place des Montres propose une vaste sélection de montres pour toute la famille, avec l'exigence d'un détaillant historique.",
-      ogTitle: 'À propos | Place des Montres',
+        "Place des Montres à Strasbourg (Place des Halles) : près de 3 000 montres, une trentaine de marques, conseils experts depuis 1995. Sport, élégance, mécanique — venez découvrir notre univers.",
+      ogTitle: 'Qui sommes-nous | Place des Montres',
       ogDescription:
-        'Vente, conseils et réparation : notre histoire et nos engagements pour les amateurs de belles montres.',
-      twitterTitle: 'À propos Place des Montres',
-      twitterDescription: 'Expertise et proximité depuis 1995 à Strasbourg.',
+        'Spécialiste montres depuis 1995 au centre commercial Place des Halles : expérience, proximité et large choix pour toutes les envies.',
+      twitterTitle: 'Qui sommes-nous — Place des Montres',
+      twitterDescription: 'Expertise horlogère et accueil chaleureux à Strasbourg depuis 1995.',
     },
     politique: {
       title: 'Politique de confidentialité | Place des Montres',

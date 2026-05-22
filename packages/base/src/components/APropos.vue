@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen">
+  <AProposRetail v-if="useRetailAbout" />
+  <div v-else class="min-h-screen">
     <!-- Hero Section -->
     <section class="py-12">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -484,61 +485,40 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useHead } from '@vueuse/head'
 import { BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import StoreLocationMap from '@/components/StoreLocationMap.vue'
+import AProposRetail from '@/components/AProposRetail.vue'
 
 const site = getSiteConfig()
+const useRetailAbout = computed(() => site.about?.variant === 'retail')
 const brandDisplayName = site.brand.displayName
 const seo = site.seo.aPropos
 const features = site.features
 const storeMap = site.storeMap
 
-// SEO Meta Tags
-useHead({
-  title: seo.title,
-  meta: [
-    {
-      name: 'description',
-      content: seo.metaDescription,
-    },
-    {
-      property: 'og:title',
-      content: seo.ogTitle,
-    },
-    {
-      property: 'og:description',
-      content: seo.ogDescription,
-    },
-    {
-      property: 'og:url',
-      content: `${BASE_URL}/a-propos`,
-    },
-    {
-      property: 'og:type',
-      content: 'website',
-    },
-    {
-      name: 'twitter:card',
-      content: 'summary_large_image',
-    },
-    {
-      name: 'twitter:title',
-      content: seo.twitterTitle,
-    },
-    {
-      name: 'twitter:description',
-      content: seo.twitterDescription,
-    },
-  ],
-  link: [
-    {
-      rel: 'canonical',
-      href: `${BASE_URL}/a-propos`,
-    },
-  ],
-})
+// SEO Meta Tags (la variante retail gère son propre useHead)
+useHead(
+  computed(() => {
+    if (site.about?.variant === 'retail') return {}
+    return {
+      title: seo.title,
+      meta: [
+        { name: 'description', content: seo.metaDescription },
+        { property: 'og:title', content: seo.ogTitle },
+        { property: 'og:description', content: seo.ogDescription },
+        { property: 'og:url', content: `${BASE_URL}/a-propos` },
+        { property: 'og:type', content: 'website' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: seo.twitterTitle },
+        { name: 'twitter:description', content: seo.twitterDescription },
+      ],
+      link: [{ rel: 'canonical', href: `${BASE_URL}/a-propos` }],
+    }
+  }),
+)
 </script>
 
 <script>
