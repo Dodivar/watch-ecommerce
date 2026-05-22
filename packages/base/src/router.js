@@ -29,6 +29,7 @@ import PolitiqueConfidentialite from './components/PolitiqueConfidentialite.vue'
 import MentionsLegales from './components/MentionsLegales.vue'
 import ConditionsGeneralesUtilisation from './components/ConditionsGeneralesUtilisation.vue'
 import ContactPage from './components/ContactPage.vue'
+import ServicesPage from './components/ServicesPage.vue'
 import NotFound from './components/NotFound.vue'
 import CheckoutPage from './components/checkout/CheckoutPage.vue'
 import OrderSuccess from './components/checkout/OrderSuccess.vue'
@@ -51,6 +52,7 @@ const routeDefinitions = [
   { path: '/blog', component: BlogList, feature: 'blog' },
   { path: '/blog/:id', component: BlogDetail, feature: 'blog' },
   { path: '/a-propos', component: APropos, feature: 'about' },
+  { path: '/services', component: ServicesPage, feature: 'servicesPage' },
   { path: '/contact', component: ContactPage, feature: 'contact' },
   { path: '/politique-confidentialite', component: PolitiqueConfidentialite, feature: 'legal' },
   { path: '/mentions-legales', component: MentionsLegales, feature: 'legal' },

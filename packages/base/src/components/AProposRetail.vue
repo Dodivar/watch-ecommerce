@@ -12,7 +12,10 @@
       />
 
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid items-center gap-12 lg:grid-cols-2">
+        <div
+          class="grid items-center gap-10 lg:gap-12"
+          :class="heroGridClass"
+        >
           <div>
             <p class="text-sm font-semibold uppercase tracking-[0.2em] text-primary mb-4">
               {{ about.hero.eyebrow }}
@@ -43,14 +46,12 @@
             </div>
           </div>
 
-          <div class="relative flex justify-center lg:justify-end">
-            <div
-              class="relative aspect-[4/5] w-full max-w-md overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/5"
-            >
+          <div class="relative w-full" :class="heroImageWrapClass">
+            <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/5" :class="heroImageFrameClass">
               <img
                 :src="heroImageSrc"
                 :alt="`${brandDisplayName} — horlogerie à Strasbourg`"
-                class="h-full w-full object-cover"
+                class="h-full w-full object-cover object-center"
                 loading="eager"
               />
               <div
@@ -75,7 +76,7 @@
           <div
             v-for="(stat, index) in about.stats"
             :key="index"
-            class="rounded-xl bg-white p-6 text-center shadow-lg ring-1 ring-cream-300/80 transition-transform hover:-translate-y-0.5"
+            class="rounded-xl bg-white p-6 text-center shadow-lg transition-transform hover:-translate-y-0.5"
           >
             <p class="text-3xl lg:text-4xl font-bold text-primary mb-1">{{ stat.value }}</p>
             <p class="text-base font-semibold text-text-main">{{ stat.label }}</p>
@@ -139,7 +140,7 @@
           <article
             v-for="(style, index) in about.styles"
             :key="index"
-            class="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg ring-1 ring-cream-300/60 transition-all hover:shadow-xl hover:ring-primary/20"
+            class="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg transition-all hover:shadow-xl"
           >
             <div
               class="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white transition-transform group-hover:scale-110"
@@ -214,9 +215,6 @@
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10">
           <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Venez nous rencontrer</h2>
-          <p class="text-lg text-gray-600">
-            Au centre commercial Place des Halles, notre équipe vous accueille avec plaisir.
-          </p>
         </div>
         <StoreLocationMap class="rounded-xl shadow-lg" />
       </div>
@@ -267,6 +265,19 @@ const features = site.features
 const storeMap = site.storeMap
 
 const heroImageSrc = about.hero?.image || '/brand-logo.jpg'
+const isLandscapeHero = about.hero?.imageLayout === 'landscape'
+
+const heroGridClass = computed(() =>
+  isLandscapeHero ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]' : 'lg:grid-cols-2',
+)
+
+const heroImageWrapClass = computed(() =>
+  isLandscapeHero ? 'lg:justify-self-stretch' : 'flex justify-center lg:justify-end',
+)
+
+const heroImageFrameClass = computed(() =>
+  isLandscapeHero ? 'aspect-[16/10] w-full' : 'aspect-[4/5] w-full max-w-md mx-auto lg:mx-0 lg:ml-auto',
+)
 
 const showStoreMap = computed(() => {
   const center = storeMap?.center

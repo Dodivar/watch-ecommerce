@@ -13,6 +13,8 @@ export const DEFAULT_SITE_FEATURES = {
   about: true,
   /** Page dédiée `/contact` (formulaire + récapitulatif des coordonnées). */
   contact: true,
+  /** Page dédiée `/services` (contenu `servicesPage` dans le manifest client). */
+  servicesPage: false,
   legal: true,
   /** Section #faq sur l’accueil et lien « FAQ » — activé si `site.config` exporte `faq` avec entrées (voir getSiteConfig). */
   faq: false,
@@ -25,6 +27,8 @@ export const DEFAULT_SITE_FEATURES = {
    * Nécessite que le flux checkout envoie `lines` avec quantités (voir `orderService.createOrder`).
    */
   cartMultiQuantity: false,
+  /** Afficher la référence montre sur les cartes catalogue et fiches produit. */
+  watchReference: false,
 }
 
 export function mergeSiteFeatures(partial = {}) {

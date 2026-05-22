@@ -25,6 +25,12 @@ export function getSiteConfig() {
         faq: Boolean(siteConfig.faq.enabled && hasItems),
       }
     }
+    if (siteConfig.servicesPage != null) {
+      features = {
+        ...features,
+        servicesPage: Boolean(mergedFeatures.servicesPage && siteConfig.servicesPage),
+      }
+    }
     const homeRest =
       siteConfig.home != null && typeof siteConfig.home === 'object'
         ? siteConfig.home

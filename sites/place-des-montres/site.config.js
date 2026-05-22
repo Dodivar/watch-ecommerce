@@ -44,7 +44,7 @@ export default {
         id: 5,
         question: 'Proposez-vous la réparation de montres ?',
         answer:
-          'Le site source met en avant la <strong>vente et la réparation toutes marques</strong> dans son titre et sa description. Le présent template e-commerce du monorepo est centré catalogue ; les parcours dédiés « atelier réparation » (devis en ligne, suivi d’intervention) sont listés dans le fichier MISSING_FEATURES.md à la racine du dossier site.',
+          'Oui : <strong>réparation et entretien toutes marques</strong>, changement de pile, étanchéité, verres et bracelets — avec un <strong>horloger sur place</strong> aux Place des Halles. Consultez notre page <a href="/services" class="text-primary underline">Nos services</a> pour les tarifs et prestations.',
       },
     ],
   },
@@ -146,7 +146,8 @@ export default {
       lead:
         "Depuis 1995, au cœur de Strasbourg, nous cultivons l'art de bien choisir sa montre — avec l'exigence d'un spécialiste qui a vu passer près de trois décennies de tendances, de marques et de sourires clients.",
       sinceYear: 1995,
-      image: '/home-selections/montres-homme.jpg',
+      image: '/places/place-des-montres-strasbourg_1.jpg',
+      imageLayout: 'landscape',
     },
     stats: [
       { value: '1995', label: 'Année de création', detail: 'Plus de 30 ans d\'expérience' },
@@ -232,6 +233,129 @@ export default {
     },
   },
 
+  servicesPage: {
+    hero: {
+      eyebrow: 'Atelier & service rapide',
+      title: 'Tout pour votre montre, sur place',
+      lead:
+        'Aux Place des Halles, notre horloger intervient sur toutes marques — du changement de pile express à la réparation complète, sans longs délais.',
+    },
+    quickPrices: [
+      {
+        value: '9 €',
+        label: 'Pile RENATA',
+        note: 'SWISS MADE — main d\'œuvre incluse*',
+      },
+      {
+        value: '21 €',
+        label: 'Étanchéité',
+        note: 'Contrôle sur place en moins d\'1 h',
+      },
+      {
+        value: '2 €',
+        label: 'Garantie +1 an',
+        note: 'Extension pour votre montre',
+      },
+    ],
+    priceFootnote: '* Hors montres haut de gamme.',
+    workshop: {
+      title: 'Horloger & atelier sur place',
+      description:
+        'Un atelier équipé et un horloger qualifié vous accueillent en boutique. L\'essentiel se fait devant vous — pas de renvoi externe pour les interventions courantes.',
+    },
+    sections: [
+      {
+        id: 'atelier',
+        icon: 'atelier',
+        title: 'Réparation & entretien',
+        intro: 'Toutes marques, diagnostic et remise en état.',
+        items: [
+          {
+            title: 'Réparation complète',
+            description: 'Montres quartz, automatiques ou mécaniques — prise en charge par notre atelier.',
+          },
+          {
+            title: 'Entretien régulier',
+            description: 'Révision, nettoyage et contrôle pour prolonger la vie de votre montre.',
+          },
+          {
+            title: 'Changement de verre',
+            description: 'Remplacement du vitrage selon modèle et disponibilité des pièces.',
+          },
+          {
+            title: 'Étanchéité express',
+            description: 'Test et contrôle réalisés sur place — résultat en moins d\'une heure.',
+            price: '21 €',
+            badge: '< 1 h',
+          },
+        ],
+      },
+      {
+        id: 'piles',
+        icon: 'piles',
+        title: 'Piles & petits objets',
+        intro: 'Montres, clés de voiture, télécommandes, calculatrices…',
+        items: [
+          {
+            title: 'Pile RENATA SWISS MADE',
+            description: 'Pose incluse pour la plupart des montres — qualité suisse reconnue.',
+            price: '9 €',
+            badge: 'Express',
+          },
+          {
+            title: 'Toutes marques de montres',
+            description: 'Quartz, digitale, connectée ou classique : nous changeons la pile sur place.',
+          },
+          {
+            title: 'Au-delà de la montre',
+            description:
+              'Clés de voiture, télécommandes, calculatrices et autres objets à pile — même service rapide.',
+          },
+        ],
+      },
+      {
+        id: 'bracelets',
+        icon: 'bracelets',
+        title: 'Bracelets',
+        intro: 'Le plus grand choix de bracelets de montres sur Strasbourg.',
+        items: [
+          {
+            title: 'Remplacement sur place',
+            description: 'Pose, ajustement et conseil taille directement en magasin.',
+          },
+          {
+            title: 'Large choix',
+            description: 'Cuir, acier, caoutchouc, NATO… pour personnaliser ou renouveler votre bracelet.',
+            badge: 'N°1 Strasbourg',
+          },
+        ],
+      },
+      {
+        id: 'avantages',
+        icon: 'avantages',
+        title: 'Facilités',
+        items: [
+          {
+            title: 'Paiement en 3 ou 4x',
+            description: 'Sans frais par carte bancaire, directement en magasin.',
+            badge: 'Sans frais',
+          },
+          {
+            title: 'Extension de garantie',
+            description: 'Un an de tranquillité supplémentaire pour votre montre.',
+            price: '2 €',
+          },
+        ],
+      },
+    ],
+    cta: {
+      title: 'Passez nous voir aux Halles',
+      subtitle: 'Du lundi au samedi, 9h–20h — Centre commercial Place des Halles, Strasbourg.',
+      contactLabel: 'Nous contacter',
+      phoneLabel: '03 88 22 40 40',
+    },
+  },
+
   copy: {
     footerTagline:
       "Spécialiste de la montre depuis 1995 : vente en ligne et au magasin Place des Halles à Strasbourg, grand choix de marques, livraison Colissimo offerte dès 80 € en France métropolitaine (hors offres ponctuelles). Service client du lundi au samedi, 9h–20h.",
@@ -266,6 +390,7 @@ export default {
     estimationProcess: false,
     merci: true,
     about: true,
+    servicesPage: true,
     legal: true,
     faq: true,
     purchase: true,
@@ -366,6 +491,7 @@ export default {
         ],
       },
       { type: 'link', label: 'Qui sommes-nous', to: '/a-propos', feature: 'about' },
+      { type: 'link', label: 'Nos services', to: '/services', feature: 'servicesPage' },
       { type: 'link', label: 'FAQ', to: '/#faq', feature: 'faq' },
       { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
     ],
@@ -373,6 +499,7 @@ export default {
       { label: 'Accueil', to: '/#accueil' },
       { label: 'Marques', to: '/collection/marques', feature: 'collection' },
       { label: 'Qui sommes-nous', to: '/a-propos', feature: 'about' },
+      { label: 'Nos services', to: '/services', feature: 'servicesPage' },
       { label: 'FAQ', to: '/#faq', feature: 'faq' },
       { label: 'Contact', to: '/contact', feature: 'contact' },
     ],
@@ -481,6 +608,16 @@ export default {
         'Spécialiste montres depuis 1995 au centre commercial Place des Halles : expérience, proximité et large choix pour toutes les envies.',
       twitterTitle: 'Qui sommes-nous — Place des Montres',
       twitterDescription: 'Expertise horlogère et accueil chaleureux à Strasbourg depuis 1995.',
+    },
+    servicesPage: {
+      title: 'Nos services horlogerie | Place des Montres Strasbourg',
+      metaDescription:
+        'Pile RENATA 9 €, étanchéité en 1 h (21 €), réparation toutes marques, bracelets et financement 3/4x sans frais — horloger sur place aux Place des Halles.',
+      ogTitle: 'Services horlogerie | Place des Montres',
+      ogDescription:
+        'Atelier sur place à Strasbourg : piles, étanchéité, réparation, bracelets et extension de garantie à prix clairs.',
+      twitterTitle: 'Nos services — Place des Montres',
+      twitterDescription: 'Horloger sur place aux Halles : piles, réparation, bracelets et paiement en plusieurs fois.',
     },
     politique: {
       title: 'Politique de confidentialité | Place des Montres',

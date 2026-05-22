@@ -117,6 +117,9 @@ export default async function handler(req, res) {
     if (mergedFeatures.contact) {
       staticRoutes.push({ path: '/contact', priority: '0.75', changefreq: 'monthly' })
     }
+    if (mergedFeatures.servicesPage && siteConfig.servicesPage) {
+      staticRoutes.push({ path: '/services', priority: '0.8', changefreq: 'monthly' })
+    }
 
     // Générer le XML
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
