@@ -266,7 +266,7 @@
                 </span>
               </div>
             </div>
-            <p class="text-base lg:text-lg text-gray-600 mb-3">Réf. {{ watchItem.reference }}</p>
+            <p v-if="showWatchReference" class="text-base lg:text-lg text-gray-600 mb-3">Réf. {{ watchItem.reference }}</p>
             <div class="text-2xl lg:text-3xl font-medium text-primary mb-4">
               {{ formatPrice(watchItem.price) }}
             </div>
@@ -373,7 +373,7 @@
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Modèle</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.model }}</span>
               </div>
-              <div v-if="hasValue(watchItem.reference)" class="flex gap-4 py-3 border-b border-gray-200">
+              <div v-if="showWatchReference && hasValue(watchItem.reference)" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Numéro de référence</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.reference }}</span>
               </div>
@@ -666,7 +666,7 @@
                   WHATSAPP_NUMBER +
                   '?text=' +
                   encodeURIComponent(
-                    `Bonjour, je suis intéressé par la montre ${watchItem.name} (Réf. ${watchItem.reference}) au prix de ${formatPrice(watchItem.price)}`,
+                    `Bonjour, je suis intéressé par la montre ${watchItem.name}${showWatchReference ? ` (Réf. ${watchItem.reference})` : ''} au prix de ${formatPrice(watchItem.price)}`,
                   )
                 : '#'
             "
@@ -689,7 +689,7 @@
                   encodeURIComponent(`Demande d'information - ${watchItem.name}`) +
                   '&body=' +
                   encodeURIComponent(
-                    `Bonjour,\n\nJe souhaiterais avoir plus d'informations concernant la montre ${watchItem.name} (Réf. ${watchItem.reference}) proposée au prix de ${formatPrice(watchItem.price)}.\n\nCordialement`,
+                    `Bonjour,\n\nJe souhaiterais avoir plus d'informations concernant la montre ${watchItem.name}${showWatchReference ? ` (Réf. ${watchItem.reference})` : ''} proposée au prix de ${formatPrice(watchItem.price)}.\n\nCordialement`,
                   )
                 : '#'
             "
@@ -933,6 +933,7 @@ const site = getSiteConfig()
 const siteCopy = site.copy
 const seoWatch = site.seo.watchDetail
 const browsePath = getBrowsePath(site.features)
+const showWatchReference = site.features.watchReference
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { useCart } from '@/composables/useCart.js'
 import WatchDetailSkeleton from '@/components/watch/WatchDetailSkeleton.vue'
@@ -1651,7 +1652,8 @@ const shareOnTwitter = () => {
 const shareByEmail = () => {
   if (!watchItem.value) return
   const subject = encodeURIComponent(`Découvrez cette montre : ${watchItem.value.name}`)
-  const body = encodeURIComponent(`Je vous partage cette montre : ${watchItem.value.name} (Réf. ${watchItem.value.reference})\n\nPrix : ${formatPrice(watchItem.value.price)}\n\n${canonicalUrl.value}`)
+  const refPart = showWatchReference ? ` (Réf. ${watchItem.value.reference})` : ''
+  const body = encodeURIComponent(`Je vous partage cette montre : ${watchItem.value.name}${refPart}\n\nPrix : ${formatPrice(watchItem.value.price)}\n\n${canonicalUrl.value}`)
   window.location.href = `mailto:?subject=${subject}&body=${body}`
   closeShareLightbox()
 }

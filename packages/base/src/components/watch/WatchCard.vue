@@ -143,7 +143,7 @@
         </span>
       </div>
 
-      <p v-if="showReference" class="text-[10px] md:text-sm text-gray-600 md:mb-2 font-light">
+      <p v-if="effectiveShowReference" class="text-[10px] md:text-sm text-gray-600 md:mb-2 font-light">
         Réf. {{ watchItem.reference }}
       </p>
 
@@ -179,6 +179,9 @@ import {
   buildWatchCardSrcSet,
   WATCH_CARD_IMAGE_SIZES,
 } from '@/utils/watchImageUrl.js'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
+
+const showWatchReference = getSiteConfig().features.watchReference
 
 const props = defineProps({
   watch: {
@@ -228,6 +231,10 @@ const props = defineProps({
 const emit = defineEmits(['viewDetails'])
 
 const watchItem = computed(() => props.watch)
+
+const effectiveShowReference = computed(
+  () => props.showReference && showWatchReference,
+)
 
 const currentImageIndex = ref(0)
 const shownImageIndex = ref(0)
