@@ -40,7 +40,7 @@
  *       ],
  *     },
  *     { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
- *     { type: 'link', label: 'FAQ', to: '/#faq', feature: 'faq' },
+ *     { type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' },
  *   ],
  *   footer: [
  *     { label: 'Accueil', to: '/#accueil' },
@@ -225,7 +225,7 @@ function getDefaultMainNavigation(features) {
   }
 
   if (features.faq) {
-    items.push({ type: 'link', label: 'FAQ', to: '/#faq' })
+    items.push({ type: 'link', label: 'FAQ', to: '/faq' })
   }
   if (features.contact) {
     items.push({ type: 'link', label: 'Contact', to: '/contact' })

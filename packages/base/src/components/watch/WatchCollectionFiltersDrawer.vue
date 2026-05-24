@@ -22,14 +22,7 @@
             aria-label="Fermer les filtres"
             @click="onClose"
           >
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+            <ChevronLeft class="h-6 w-6" :stroke-width="2" />
           </button>
           <h2 id="watch-filters-drawer-title" class="text-lg font-bold text-text-main">
             Filtrer les produits
@@ -55,15 +48,11 @@
                   {{ listing.getDraftSectionCount('brand') }}
                 </span>
               </span>
-              <svg
+              <ChevronDown
                 class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
                 :class="{ 'rotate-180': expanded.brand }"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
+                :stroke-width="2"
+              />
             </button>
             <div v-show="expanded.brand" class="pb-4">
               <div class="flex flex-wrap gap-2">
@@ -101,15 +90,11 @@
                   {{ listing.getDraftSectionCount('price') }}
                 </span>
               </span>
-              <svg
+              <ChevronDown
                 class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
                 :class="{ 'rotate-180': expanded.price }"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
+                :stroke-width="2"
+              />
             </button>
             <div v-show="expanded.price" class="space-y-4 pb-4">
               <!-- <div>
@@ -200,15 +185,11 @@
                   {{ listing.getDraftSectionCount('caseSize') }}
                 </span>
               </span>
-              <svg
+              <ChevronDown
                 class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
                 :class="{ 'rotate-180': expanded.caseSize }"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
+                :stroke-width="2"
+              />
             </button>
             <div v-show="expanded.caseSize" class="pb-4">
               <p v-if="listing.availableCaseSizes.length === 0" class="text-sm text-gray-500">
@@ -249,15 +230,11 @@
                   {{ listing.getDraftSectionCount('audience') }}
                 </span>
               </span>
-              <svg
+              <ChevronDown
                 class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
                 :class="{ 'rotate-180': expanded.audience }"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
+                :stroke-width="2"
+              />
             </button>
             <div v-show="expanded.audience" class="flex flex-wrap gap-2 pb-4">
               <button
@@ -303,6 +280,7 @@
 
 <script setup>
 import { computed, reactive, ref, watch, onMounted, onUnmounted } from 'vue'
+import { ChevronDown, ChevronLeft } from '@lucide/vue'
 import { getWatchAudiencesForCollectionFilter } from '@/services/watchService'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 import Slider from '@vueform/slider'

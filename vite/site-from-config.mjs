@@ -1,4 +1,5 @@
 import { resolveTypography } from '../packages/base/src/site/resolveTypography.js'
+import { resolveVisual, getRadiusPreset } from '../packages/base/src/site/resolveVisual.js'
 
 function escapeHtmlAttr(value) {
   return String(value)
@@ -33,6 +34,7 @@ function buildFontFaceCss(typography) {
 function buildThemeCss(siteConfig) {
   const t = siteConfig.theme.colors
   const typography = resolveTypography(siteConfig)
+  const { radius } = resolveVisual(siteConfig)
 
   return `${buildFontFaceCss(typography)}
 
@@ -49,6 +51,14 @@ function buildThemeCss(siteConfig) {
   --font-subheading: ${typography.subheading.stack};
   --font-heading-weight: ${typography.headingWeight};
   --font-subheading-weight: ${typography.subheading.weight};
+  --radius-sm: ${radius.sm};
+  --radius-default: ${radius.DEFAULT};
+  --radius-md: ${radius.md};
+  --radius-lg: ${radius.lg};
+  --radius-xl: ${radius.xl};
+  --radius-2xl: ${radius['2xl']};
+  --radius-3xl: ${radius['3xl']};
+  --radius-full: ${radius.full};
 }
 `
 }
@@ -107,6 +117,12 @@ export function siteFromConfigPlugin(siteConfig) {
       for (const [token, value] of Object.entries(map)) {
         out = out.split(token).join(value)
       }
+
+      const radiusPreset = getRadiusPreset(siteConfig)
+      if (radiusPreset !== 'rounded') {
+        out = out.replace('<html', `<html data-ui-radius="${escapeHtmlAttr(radiusPreset)}"`)
+      }
+
       return out
     },
   }

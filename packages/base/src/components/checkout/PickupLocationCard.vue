@@ -1,4 +1,6 @@
 <script setup>
+import { Clock, MapPin } from '@lucide/vue'
+
 defineProps({
   name: { type: String, required: true },
   address: { type: String, required: true },
@@ -19,26 +21,7 @@ defineProps({
 
     <div class="flex items-start justify-between gap-4 pl-2.5">
       <div class="min-w-0 flex items-start gap-2">
-        <svg
-          class="mt-0.5 h-4 w-4 shrink-0 text-primary/70"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="1.5"
-            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-          />
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="1.5"
-            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
+        <MapPin class="mt-0.5 h-4 w-4 shrink-0 text-primary/70" :stroke-width="1.5" />
         <p class="font-semibold text-gray-900 leading-snug">{{ name }}</p>
       </div>
 
@@ -56,20 +39,7 @@ defineProps({
       v-if="estimatedDays"
       class="mt-2.5 pl-6 flex items-center gap-1.5 text-xs text-gray-500"
     >
-      <svg
-        class="h-3.5 w-3.5 shrink-0"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        aria-hidden="true"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="1.5"
-          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
+      <Clock class="h-3.5 w-3.5 shrink-0" :stroke-width="1.5" />
       <span>{{ estimatedDays }}</span>
     </p>
   </div>

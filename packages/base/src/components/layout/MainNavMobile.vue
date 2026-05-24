@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { ChevronDown, ShoppingBag, X } from '@lucide/vue'
 import { useCart } from '@/composables/useCart.js'
 import { slugifyBrand } from '@/utils/brandSlug'
 import { useCatalogBrands, prefetchCatalogBrands } from '@/composables/useCatalogBrands.js'
@@ -82,14 +83,7 @@ function brandRoute(brandName) {
           aria-label="Ouvrir le panier"
           @click="openCartFromMenu"
         >
-          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-            />
-          </svg>
+          <ShoppingBag class="w-8 h-8" :stroke-width="2" />
           <span
             v-if="badgeLabel"
             class="absolute -top-0.5 -right-0.5 min-h-[1.125rem] min-w-[1.125rem] px-1 flex items-center justify-center rounded-full bg-white text-[10px] font-bold text-primary leading-none"
@@ -103,14 +97,7 @@ function brandRoute(brandName) {
           class="text-white focus:outline-none p-2"
           aria-label="Fermer le menu"
         >
-          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <X class="w-8 h-8" :stroke-width="2" />
         </button>
       </div>
       <nav
@@ -158,20 +145,11 @@ function brandRoute(brandName) {
                 @click="toggleMegaMenu(idx, item)"
               >
                 <span>{{ item.label }}</span>
-                <svg
+                <ChevronDown
                   class="w-5 h-5 shrink-0 transition-transform"
                   :class="{ 'rotate-180': expandedMegaMenuIndex === idx }"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                  :stroke-width="2"
+                />
               </button>
 
               <div

@@ -43,6 +43,25 @@ describe('resolveSiteConfig', () => {
     expect(off.features.servicesPage).toBe(false)
   })
 
+  it('active guidePage seulement si flag et contenu guidePage', () => {
+    const on = resolveSiteConfig({
+      features: { guidePage: true },
+      guidePage: { hero: { title: 'Guide' } },
+    })
+    expect(on.features.guidePage).toBe(true)
+
+    const flagOnly = resolveSiteConfig({
+      features: { guidePage: true },
+    })
+    expect(flagOnly.features.guidePage).toBe(true)
+
+    const off = resolveSiteConfig({
+      features: { guidePage: true },
+      guidePage: false,
+    })
+    expect(off.features.guidePage).toBe(false)
+  })
+
   it('résout checkout.shipping.pickupEnabled et methods', () => {
     const resolved = resolveSiteConfig({
       checkout: {

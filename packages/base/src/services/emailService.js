@@ -7,6 +7,9 @@ const API_URL = import.meta.env.PROD
   ? import.meta.env.VITE_BACKEND_URL
   : 'http://localhost:3000'
 
+/** Site actif (build Vite) — évite qu'en local le backend prenne le mauvais site via Origin :5173. */
+const SITE_ID = import.meta.env.VITE_SITE_ID || 'sauvage-watches'
+
 // Fonction pour envoyer un email avec retry
 export const sendEmailWithRetry = async (endpoint, formData, maxRetries = 3) => {
   let retries = 0
@@ -22,6 +25,7 @@ export const sendEmailWithRetry = async (endpoint, formData, maxRetries = 3) => 
         credentials: 'include',
         headers: {
           Accept: 'application/json',
+          'X-Site-Id': SITE_ID,
         },
       })
 

@@ -78,14 +78,7 @@
           @click.stop="previousImage"
           class="absolute left-1 md:left-2 top-1/2 z-10 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 md:p-2 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
         >
-          <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <ChevronLeft class="w-4 h-4 md:w-5 md:h-5" :stroke-width="2" />
         </button>
 
         <button
@@ -95,14 +88,7 @@
           @click.stop="nextImage"
           class="absolute right-1 md:right-2 top-1/2 z-10 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 md:p-2 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
         >
-          <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
+          <ChevronRight class="w-4 h-4 md:w-5 md:h-5" :stroke-width="2" />
         </button>
 
         <div
@@ -170,6 +156,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch as vueWatch } from 'vue'
+import { ChevronLeft, ChevronRight } from '@lucide/vue'
 import {
   DESKTOP_HOVER_SECOND_IMAGE_MQ,
   WATCH_CARD_MAX_IMAGES,

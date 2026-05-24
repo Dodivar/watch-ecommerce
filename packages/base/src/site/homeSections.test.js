@@ -22,6 +22,8 @@ describe('resolveHomeSections', () => {
 
   it('couvre tous les ids documentés', () => {
     expect(KNOWN_HOME_SECTION_IDS).toContain('selections')
+    expect(KNOWN_HOME_SECTION_IDS).toContain('stats')
+    expect(KNOWN_HOME_SECTION_IDS).toContain('aboutPreview')
     expect(KNOWN_HOME_SECTION_IDS).toContain('services')
   })
 })
@@ -37,6 +39,24 @@ describe('filterHomeSectionsByFeatures', () => {
   it('retire faq si features.faq est false', () => {
     const out = filterHomeSectionsByFeatures(['hero', 'faq'], { ...baseFeatures, faq: false })
     expect(out).toEqual(['hero'])
+  })
+
+  it('retire hero compact sans titre', () => {
+    const out = filterHomeSectionsByFeatures(
+      ['hero', 'stats'],
+      baseFeatures,
+      { home: { hero: { variant: 'compact', title: null } } },
+    )
+    expect(out).toEqual(['stats'])
+  })
+
+  it('conserve hero parallax sans config compact', () => {
+    const out = filterHomeSectionsByFeatures(
+      ['hero', 'stats'],
+      baseFeatures,
+      { home: { hero: { variant: 'parallax' } } },
+    )
+    expect(out).toEqual(['hero', 'stats'])
   })
 
   it('retire selections sans cartes ou sans collection', () => {

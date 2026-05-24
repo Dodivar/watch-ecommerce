@@ -1,3 +1,7 @@
+<script setup>
+import { BadgeCheck, Globe, ShieldCheck, UserRound } from '@lucide/vue'
+</script>
+
 <template>
   <section class="py-12 bg-cream">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,10 +18,7 @@
           <div
             class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3"
           >
-            <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20c0-2.209 3.134-4 8-4s8 1.791 8 4"/>
-            </svg>
+            <UserRound class="h-8 w-8 text-white" :stroke-width="2" />
           </div>
           <h3 class="text-lg font-semibold mb-2">Accompagnement personnalisé</h3>
           <p class="text-gray-600">
@@ -28,10 +29,7 @@
           <div
             class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3"
           >
-            <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4l7 4v6a9 9 0 01-7 8 9 9 0 01-7-8V8l7-4z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/>
-            </svg>
+            <ShieldCheck class="h-8 w-8 text-white" :stroke-width="2" />
           </div>
           <h3 class="text-lg font-semibold mb-2">Authenticité & sécurité</h3>
           <p class="text-gray-600">
@@ -42,11 +40,7 @@
           <div
             class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3"
           >
-            <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
-              <ellipse cx="12" cy="12" rx="4" ry="10" stroke="currentColor" stroke-width="2" fill="none"/>
-              <ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="2" fill="none"/>
-            </svg>
+            <Globe class="h-8 w-8 text-white" :stroke-width="2" />
           </div>
           <h3 class="text-lg font-semibold mb-2">Sourcing & réseau international</h3>
           <p class="text-gray-600">
@@ -57,10 +51,7 @@
           <div
             class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3"
           >
-            <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <rect x="4" y="4" width="16" height="16" rx="2" stroke-width="2"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 13.5l2.2 2.2 4.8-4.8"/>
-            </svg>
+            <BadgeCheck class="h-8 w-8 text-white" :stroke-width="2" />
           </div>
           <h3 class="text-lg font-semibold mb-2">Transparence & satisfaction</h3>
           <p class="text-gray-600">

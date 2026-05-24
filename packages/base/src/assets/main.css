@@ -98,13 +98,13 @@ h4 {
 
 .custom-scrollbar-carrousel::-webkit-scrollbar-track {
   background: var(--color-cream);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   margin: 0 8px;
 }
 
 .custom-scrollbar-carrousel::-webkit-scrollbar-thumb {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   border: 2px solid var(--color-cream);
   transition: all 0.3s ease;
 }
@@ -131,4 +131,19 @@ h4 {
   div {
     z-index: -1;
   }
+}
+
+/* Preset sharp — coins droits sur cartes/boutons/champs ; cercles (rounded-full) conservés. */
+html[data-ui-radius='sharp'] {
+  --radius-sm: 0;
+  --radius-default: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+}
+
+html[data-ui-radius='sharp'] :is(.rounded, [class*='rounded-']):not([class*='rounded-full']) {
+  border-radius: 0 !important;
 }

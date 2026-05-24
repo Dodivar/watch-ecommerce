@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { Search, X } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { parseSearchQuery } from '@/utils/watchSearch.js'
 
@@ -89,14 +90,7 @@ const inputClasses =
     aria-controls="header-catalog-search-panel"
     @click="togglePanel"
   >
-    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-      />
-    </svg>
+    <Search class="h-6 w-6" :stroke-width="2" />
   </button>
 
   <Transition
@@ -134,14 +128,7 @@ const inputClasses =
             aria-label="Fermer la recherche"
             @click="closePanel"
           >
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X class="h-5 w-5" :stroke-width="2" />
           </button>
         </form>
       </div>

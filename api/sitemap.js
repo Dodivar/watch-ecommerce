@@ -117,8 +117,14 @@ export default async function handler(req, res) {
     if (mergedFeatures.contact) {
       staticRoutes.push({ path: '/contact', priority: '0.75', changefreq: 'monthly' })
     }
+    if (mergedFeatures.faq) {
+      staticRoutes.push({ path: '/faq', priority: '0.7', changefreq: 'monthly' })
+    }
     if (mergedFeatures.servicesPage && siteConfig.servicesPage) {
       staticRoutes.push({ path: '/services', priority: '0.8', changefreq: 'monthly' })
+    }
+    if (mergedFeatures.guidePage && siteConfig.guidePage) {
+      staticRoutes.push({ path: '/guide-horloger', priority: '0.75', changefreq: 'monthly' })
     }
 
     // Générer le XML

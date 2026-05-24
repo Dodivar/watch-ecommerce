@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { Clock } from '@lucide/vue'
 import { CHECKOUT_FIELD_CLASS } from './checkoutFieldClasses.js'
 
 const props = defineProps({
@@ -62,20 +63,7 @@ const shippingLabel = computed(() => {
               :alt="line.name"
               class="h-full w-full object-cover"
             />
-            <svg
-              v-else
-              class="h-7 w-7 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <Clock v-else class="h-7 w-7 text-gray-400" :stroke-width="1.5" />
           </div>
           <span
             class="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-medium text-white"

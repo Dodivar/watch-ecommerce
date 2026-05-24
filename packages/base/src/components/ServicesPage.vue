@@ -173,6 +173,14 @@
             {{ content.cta.phoneLabel || site.contact.phoneDisplay }}
           </a>
         </div>
+        <RouterLink
+          v-if="features.guidePage && content.cta.guideLabel"
+          :to="content.cta.guideTo || '/guide-horloger'"
+          class="mt-6 inline-flex items-center gap-1 text-primary font-semibold hover:text-primaryHover transition-colors"
+        >
+          {{ content.cta.guideLabel }}
+          <span aria-hidden="true">→</span>
+        </RouterLink>
       </div>
     </section>
   </div>
@@ -186,6 +194,7 @@ import ServiceIcon from '@/components/services/ServiceIcon.vue'
 
 const site = getSiteConfig()
 const content = site.servicesPage
+const features = site.features
 const seo = site.seo?.servicesPage
 
 if (seo) {

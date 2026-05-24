@@ -8,14 +8,7 @@
       <div v-else-if="error" class="text-center py-10">
         <div v-if="isUnavailable" class="max-w-2xl mx-auto">
           <div class="text-gray-400 mb-3">
-            <svg class="w-24 h-24 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <CircleX class="w-24 h-24 mx-auto mb-3" :stroke-width="1.5" />
           </div>
             <h3 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">Montre non disponible</h3>
             <p class="text-base lg:text-lg text-gray-600 mb-6">
@@ -26,14 +19,7 @@
               :to="browsePath"
               class="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors inline-flex items-center justify-center"
             >
-              <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
+              <ArrowLeft class="w-5 h-5 mr-2" :stroke-width="2" />
               Voir notre collection
             </router-link>
             <router-link
@@ -46,14 +32,7 @@
         </div>
         <div v-else>
           <div class="text-red-500 mb-3">
-            <svg class="w-16 h-16 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <AlertCircle class="w-16 h-16 mx-auto mb-3" :stroke-width="2" />
           </div>
           <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
           <p class="text-gray-600 mb-3">{{ error }}</p>
@@ -117,14 +96,7 @@
                   title="Agrandir l'image"
                   aria-label="Agrandir l'image"
                 >
-                  <svg class="w-4 h-4 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-                    />
-                  </svg>
+                  <Maximize2 class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
                 </button>
                 <!-- Share button -->
                 <button
@@ -133,14 +105,7 @@
                   title="Partager"
                   aria-label="Partager cette montre"
                 >
-                  <svg class="w-4 h-4 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                    />
-                  </svg>
+                  <Share2 class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
                 </button>
               </div>
 
@@ -150,14 +115,7 @@
                 @click="previousImage"
                 class="absolute left-2 lg:left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1.5 lg:p-3 transition-all duration-200"
               >
-                <svg class="w-4 h-4 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
+                <ChevronLeft class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
               </button>
 
               <button
@@ -165,14 +123,7 @@
                 @click="nextImage"
                 class="absolute right-2 lg:right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1.5 lg:p-3 transition-all duration-200"
               >
-                <svg class="w-4 h-4 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                <ChevronRight class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
               </button>
 
               <!-- Image Counter (Mobile only) -->
@@ -198,9 +149,7 @@
               aria-label="Vignettes précédentes"
               @click="scrollThumbnails(-1)"
             >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
+              <ChevronLeft class="h-4 w-4" :stroke-width="2" />
             </button>
 
             <div
@@ -236,9 +185,7 @@
               aria-label="Vignettes suivantes"
               @click="scrollThumbnails(1)"
             >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
+              <ChevronRight class="h-4 w-4" :stroke-width="2" />
             </button>
           </div>
         </div>
@@ -301,19 +248,7 @@
                 @click="handleAddToCart"
                 class="w-full inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200 shadow-md hover:shadow-lg mb-3"
               >
-                <svg
-                  class="w-6 h-6 mr-3"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                  />
-                </svg>
+                <ShoppingBag class="w-6 h-6 mr-3" :stroke-width="2" />
                 Ajouter au panier
               </button>
               
@@ -328,20 +263,7 @@
               @click="openAppointmentModal"
               class="w-full inline-flex items-center justify-center px-6 py-3 border border-primary/30 text-base font-medium rounded-lg text-primary bg-white hover:bg-primary/5 transition-colors duration-200"
             >
-              <svg
-                class="w-5 h-5 mr-2 shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
+              <Calendar class="w-5 h-5 mr-2 shrink-0" :stroke-width="2" />
               Prendre rendez-vous
             </button>
           </div>
@@ -526,19 +448,16 @@
               :key="index"
               class="flex items-center space-x-3"
             >
-              <svg
-                :class="['w-5 h-5', item.included ? 'text-primary' : 'text-gray-400']"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  :d="item.included ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'"
-                />
-              </svg>
+              <Check
+                v-if="item.included"
+                :class="['w-5 h-5', 'text-primary']"
+                :stroke-width="2"
+              />
+              <X
+                v-else
+                :class="['w-5 h-5', 'text-gray-400']"
+                :stroke-width="2"
+              />
               <span :class="item.included ? 'text-gray-900' : 'text-gray-500'">
                 {{ item.name }}
               </span>
@@ -592,22 +511,13 @@
           :aria-expanded="isDescriptionExpanded"
         >
           <h2 class="text-lg lg:text-xl font-semibold text-gray-900">Description</h2>
-          <svg
+          <ChevronDown
             :class="[
               'w-6 h-6 text-gray-500 transition-transform duration-200',
               isDescriptionExpanded ? 'transform rotate-180' : ''
             ]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
+            :stroke-width="2"
+          />
         </button>
         <Transition
           enter-active-class="transition-all duration-300 ease-out"
@@ -678,14 +588,7 @@
             "
             class="flex-1 inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
           >
-            <svg class="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
+            <Mail class="w-6 h-6 mr-3" :stroke-width="2" />
             Email
           </a>
         </div>
@@ -714,19 +617,7 @@
         @click="handleAddToCart"
         class="flex-shrink-0 inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200 shadow-md"
       >
-        <svg
-          class="w-5 h-5 mr-2"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-          />
-        </svg>
+        <ShoppingBag class="w-5 h-5 mr-2" :stroke-width="2" />
         Ajouter au panier
       </button>
     </div>
@@ -751,14 +642,7 @@
           title="Fermer"
           aria-label="Fermer la lightbox"
         >
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <X class="w-6 h-6" :stroke-width="2" />
         </button>
 
         <!-- Main image in lightbox -->
@@ -777,14 +661,7 @@
           class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-full p-4 transition-all duration-200 z-10"
           aria-label="Image précédente"
         >
-          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <ChevronLeft class="w-8 h-8" :stroke-width="2" />
         </button>
 
         <button
@@ -793,14 +670,7 @@
           class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-full p-4 transition-all duration-200 z-10"
           aria-label="Image suivante"
         >
-          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
+          <ChevronRight class="w-8 h-8" :stroke-width="2" />
         </button>
 
         <!-- Image counter -->
@@ -834,14 +704,7 @@
             title="Fermer"
             aria-label="Fermer"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X class="w-5 h-5" :stroke-width="2" />
           </button>
 
           <!-- Title -->
@@ -876,9 +739,7 @@
               @click="shareByEmail"
               class="flex items-center justify-center gap-3 px-6 py-4 rounded-lg bg-gray-600 text-white hover:bg-gray-700 transition-colors font-medium"
             >
-              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
+              <Mail class="w-6 h-6" :stroke-width="2" />
               <span>Partager par email</span>
             </button>
 
@@ -887,12 +748,8 @@
               @click="copyUrl"
               class="flex items-center justify-center gap-3 px-6 py-4 rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors font-medium relative"
             >
-              <svg v-if="!urlCopied" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
+              <Copy v-if="!urlCopied" class="w-6 h-6" :stroke-width="2" />
+              <Check v-else class="w-6 h-6" :stroke-width="2" />
               <span>{{ urlCopied ? 'URL copiée !' : 'Copier l\'URL' }}</span>
             </button>
           </div>
@@ -910,6 +767,22 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import {
+  AlertCircle,
+  ArrowLeft,
+  Calendar,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  CircleX,
+  Copy,
+  Mail,
+  Maximize2,
+  Share2,
+  ShoppingBag,
+  X,
+} from '@lucide/vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { scrollAnimation } from '@/animation'
@@ -1845,7 +1718,7 @@ onUnmounted(() => {
   position: fixed;
   z-index: 1000;
   background: white;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   overflow: hidden;
   border: 2px solid rgba(0, 0, 0, 0.1);

@@ -15,8 +15,10 @@ export const DEFAULT_SITE_FEATURES = {
   contact: true,
   /** Page dédiée `/services` (contenu `servicesPage` dans le manifest client). */
   servicesPage: false,
+  /** Page dédiée `/guide-horloger` (contenu `guidePage` dans le manifest client). */
+  guidePage: false,
   legal: true,
-  /** Section #faq sur l’accueil et lien « FAQ » — activé si `site.config` exporte `faq` avec entrées (voir getSiteConfig). */
+  /** Section #faq sur l’accueil, page `/faq` et lien « FAQ » — activé si `site.config` exporte `faq` avec entrées (voir getSiteConfig). */
   faq: false,
   /** Boutons « Acheter » et flux Stripe Checkout sur les fiches montre. */
   purchase: true,

@@ -1,4 +1,6 @@
 <script setup>
+import { Calculator, Search, Watch } from '@lucide/vue'
+
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 
 const features = getSiteConfig().features
@@ -24,10 +26,7 @@ const features = getSiteConfig().features
           class="bg-white rounded-md p-6 text-center hover:shadow-lg transition-all shadow-lg"
         >
           <div class="text-primary text-4xl mb-3 flex justify-center">
-            <svg class="h-10 w-10 text-primary mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+            <Search class="h-10 w-10 text-primary mx-auto" :stroke-width="2" />
           </div>
           <h3 class="text-xl font-semibold mb-2">Recherche personnalisée</h3>
           <p class="text-gray-600 mb-3">
@@ -45,12 +44,7 @@ const features = getSiteConfig().features
           class="bg-white rounded-md p-6 text-center hover:shadow-lg transition-all shadow-lg"
         >
           <div class="text-primary text-4xl mb-3 flex justify-center">
-            <svg class="h-10 w-10 text-primary mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
-              <rect x="9.5" y="1.5" width="5" height="3" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
-              <rect x="9.5" y="19.5" width="5" height="3" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <Watch class="h-10 w-10 text-primary mx-auto" :stroke-width="2" />
           </div>
           <h3 class="text-xl font-semibold mb-2">Collection de montres</h3>
           <p class="text-gray-600 mb-3">
@@ -66,16 +60,7 @@ const features = getSiteConfig().features
           class="bg-white rounded-md p-6 text-center hover:shadow-lg transition-all shadow-lg"
         >
           <div class="text-primary text-4xl mb-3 flex justify-center">
-            <svg class="h-10 w-10 text-primary mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-              <rect x="8" y="7" width="8" height="2" rx="1" fill="currentColor" class="opacity-30"/>
-              <circle cx="8" cy="13" r="1" fill="currentColor"/>
-              <circle cx="12" cy="13" r="1" fill="currentColor"/>
-              <circle cx="16" cy="13" r="1" fill="currentColor"/>
-              <circle cx="8" cy="17" r="1" fill="currentColor"/>
-              <circle cx="12" cy="17" r="1" fill="currentColor"/>
-              <circle cx="16" cy="17" r="1" fill="currentColor"/>
-            </svg>
+            <Calculator class="h-10 w-10 text-primary mx-auto" :stroke-width="2" />
           </div>
           <h3 class="text-xl font-semibold mb-2">Estimation gratuite</h3>
           <p class="text-gray-600 mb-3">

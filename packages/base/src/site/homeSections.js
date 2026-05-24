@@ -1,3 +1,4 @@
+import { isHomeHeroRenderable } from './homeHero.js'
 import { resolveHomeSelectionsConfig } from './homeSelections.js'
 
 /** Identifiants de sections reconnus pour `site.config.js` → `home.sections`. */
@@ -5,6 +6,8 @@ export const KNOWN_HOME_SECTION_IDS = [
   'hero',
   'nouvelles',
   'selections',
+  'stats',
+  'aboutPreview',
   'trust',
   'ventes',
   'suivezNous',
@@ -55,6 +58,9 @@ export function filterHomeSectionsByFeatures(sections, features, siteConfig) {
         : 0
 
   return sections.filter((id) => {
+    if (id === 'hero') {
+      return isHomeHeroRenderable(siteConfig?.home?.hero)
+    }
     if (id === 'faq') return Boolean(features.faq)
     if (id === 'selections') {
       return Boolean(features.collection && selectionsCards > 0)

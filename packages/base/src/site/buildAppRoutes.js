@@ -22,7 +22,9 @@ import PolitiqueConfidentialite from '@/components/PolitiqueConfidentialite.vue'
 import MentionsLegales from '@/components/MentionsLegales.vue'
 import ConditionsGeneralesUtilisation from '@/components/ConditionsGeneralesUtilisation.vue'
 import ContactPage from '@/components/ContactPage.vue'
+import FaqPage from '@/components/FaqPage.vue'
 import ServicesPage from '@/components/ServicesPage.vue'
+import GuidePage from '@/components/GuidePage.vue'
 import NotFound from '@/components/NotFound.vue'
 import CheckoutPage from '@/components/checkout/CheckoutPage.vue'
 import OrderSuccess from '@/components/checkout/OrderSuccess.vue'
@@ -47,7 +49,9 @@ const COMPONENTS_BY_PATH = {
   '/blog/:id': BlogDetail,
   '/a-propos': APropos,
   '/services': ServicesPage,
+  '/guide-horloger': GuidePage,
   '/contact': ContactPage,
+  '/faq': FaqPage,
   '/politique-confidentialite': PolitiqueConfidentialite,
   '/mentions-legales': MentionsLegales,
   '/conditions-generales-utilisation': ConditionsGeneralesUtilisation,

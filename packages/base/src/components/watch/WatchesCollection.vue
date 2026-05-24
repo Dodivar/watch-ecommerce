@@ -29,16 +29,6 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4">
-      <!-- Titre : collection complète, ou nom de la marque unique (filtre) sans image hero -->
-      <div
-        v-if="!effectiveBrandHero"
-        class="text-center mb-3 lg:mb-8"
-      >
-        <h1 class="text-2xl font-bold text-text-main">
-          {{ pageHeadingTitle }}
-        </h1>
-      </div>
-
       <!-- Marque introuvable -->
       <div
         v-if="!listing.isLoading && !listing.error && unknownBrand"
@@ -55,111 +45,102 @@
       </div>
 
       <template v-else>
-        <!-- Barre : filtres + tri -->
+        <!-- En-tête : titre + filtres + chips + tri -->
         <div
-          v-if="showFilters || showSort || singleBrandLabel"
-          class="bg-white rounded-md shadow-lg p-4 mb-3 lg:mb-8"
+          v-if="showFilters || showSort || !effectiveBrandHero"
+          class="mb-3 lg:mb-8 flex min-w-0 items-center gap-3 lg:gap-4"
         >
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div class="flex flex-wrap items-center gap-3">
-              <button
-                v-if="showFilters"
-                type="button"
-                class="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-4 py-2.5 text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                @click="listing.openFilterDrawer"
+          <div class="flex shrink-0 items-center gap-3 lg:gap-4">
+            <h1
+              v-if="!effectiveBrandHero"
+              class="text-2xl font-bold text-text-main"
+            >
+              {{ pageHeadingTitle }}
+            </h1>
+
+            <button
+              v-if="showFilters"
+              type="button"
+              class="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-4 py-2.5 text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              @click="listing.openFilterDrawer"
+            >
+              <SlidersHorizontal class="h-5 w-5 shrink-0" :stroke-width="2" />
+              <span class="text-sm font-semibold uppercase tracking-wide">Filtrer</span>
+              <span
+                v-if="listing.activeFilterCount > 0"
+                class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold text-text-main"
               >
-                <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                  />
-                </svg>
-                <span class="text-sm font-semibold uppercase tracking-wide">Filtrer</span>
-                <span
-                  v-if="listing.activeFilterCount > 0"
-                  class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold text-text-main"
-                >
-                  {{ listing.activeFilterCount }}
-                </span>
-              </button>
-            </div>
+                {{ listing.activeFilterCount }}
+              </span>
+            </button>
+          </div>
+
+          <div
+            v-if="activeFilterChips.length > 0"
+            class="collection-active-filters flex min-w-0 flex-1 items-center gap-2 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            aria-label="Filtres actifs"
+          >
+            <button
+              v-for="chip in activeFilterChips"
+              :key="chip.id"
+              type="button"
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-text-main transition-colors hover:border-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+              :aria-label="`Retirer le filtre ${chip.label}`"
+              @click="removeActiveFilter(chip)"
+            >
+              <span class="whitespace-nowrap">{{ chip.label }}</span>
+              <X class="h-3.5 w-3.5 shrink-0 text-gray-500" :stroke-width="2.5" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div
+            v-if="showSort"
+            class="relative ml-auto shrink-0"
+            ref="sortDropdownRef"
+          >
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+              :aria-label="`Trier les montres : ${currentSortLabel}`"
+              aria-haspopup="listbox"
+              :aria-expanded="listing.isSortMenuOpen"
+              @click.stop="listing.toggleSortMenu"
+            >
+              <ArrowDownUp class="h-4 w-4 shrink-0 text-gray-600" :stroke-width="2" />
+              <span class="whitespace-nowrap">{{ currentSortLabel }}</span>
+              <ChevronDown
+                class="h-4 w-4 shrink-0 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': listing.isSortMenuOpen }"
+                :stroke-width="2"
+              />
+            </button>
 
             <div
-              class="flex items-center gap-4"
-              :class="{ 'ml-auto': !showFilters && !singleBrandLabel }"
+              v-if="listing.isSortMenuOpen"
+              ref="sortMenuRef"
+              class="absolute top-full right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 min-w-[180px]"
+              role="listbox"
+              :aria-label="`Trier les montres : ${currentSortLabel}`"
+              @click.stop
             >
-              <div
-                v-if="showSort"
-                class="relative"
-                ref="sortDropdownRef"
+              <button
+                v-for="(option, index) in sortOptions"
+                :key="option.value"
+                type="button"
+                role="option"
+                :aria-selected="listing.sortOrder === option.value"
+                class="w-full text-left px-4 py-2 hover:bg-cream transition-colors"
+                :class="[
+                  listing.sortOrder === option.value
+                    ? 'bg-primary text-white hover:bg-primary-hover'
+                    : 'text-gray-700',
+                  index === sortOptions.length - 1 ? 'rounded-b-lg' : '',
+                  index === 0 ? 'rounded-t-lg' : '',
+                ]"
+                @click="listing.selectSort(option.value)"
               >
-                <button
-                  type="button"
-                  class="p-2 hover:bg-cream-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-                  aria-label="Trier les montres"
-                  @click.stop="listing.toggleSortMenu"
-                >
-                  <svg
-                    class="w-5 h-5 text-gray-700"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-                    />
-                  </svg>
-                </button>
-
-                <div
-                  v-if="listing.isSortMenuOpen"
-                  ref="sortMenuRef"
-                  class="absolute top-full right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 min-w-[180px]"
-                  @click.stop
-                >
-                  <button
-                    type="button"
-                    class="w-full text-left px-4 py-2 hover:bg-cream transition-colors"
-                    :class="
-                      listing.sortOrder === 'recent'
-                        ? 'bg-primary text-white hover:bg-primary-hover'
-                        : 'text-gray-700'
-                    "
-                    @click="listing.selectSort('recent')"
-                  >
-                    Ajout récent
-                  </button>
-                  <button
-                    type="button"
-                    class="w-full text-left px-4 py-2 hover:bg-cream transition-colors"
-                    :class="
-                      listing.sortOrder === 'price-asc'
-                        ? 'bg-primary text-white hover:bg-primary-hover'
-                        : 'text-gray-700'
-                    "
-                    @click="listing.selectSort('price-asc')"
-                  >
-                    Prix croissant
-                  </button>
-                  <button
-                    type="button"
-                    class="w-full text-left px-4 py-2 hover:bg-cream transition-colors rounded-b-lg"
-                    :class="
-                      listing.sortOrder === 'price-desc'
-                        ? 'bg-primary text-white hover:bg-primary-hover'
-                        : 'text-gray-700'
-                    "
-                    @click="listing.selectSort('price-desc')"
-                  >
-                    Prix décroissant
-                  </button>
-                </div>
-              </div>
+                {{ option.label }}
+              </button>
             </div>
           </div>
         </div>
@@ -181,14 +162,7 @@
         <!-- Erreur -->
         <div v-else-if="listing.error" class="text-center py-10">
           <div class="text-red-500 mb-3">
-            <svg class="w-16 h-16 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <AlertCircle class="w-16 h-16 mx-auto mb-3" :stroke-width="2" />
           </div>
           <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
           <p class="text-gray-600 mb-3">{{ listing.error }}</p>
@@ -254,20 +228,7 @@
                 aria-label="Page précédente"
                 @click="goToPage(currentPage - 1)"
               >
-                <svg
-                  class="h-5 w-5 shrink-0 sm:h-5 sm:w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15.75 19.5l-7.5-7.5 7.5-7.5"
-                  />
-                </svg>
+                <ChevronLeft class="h-5 w-5 shrink-0 sm:h-5 sm:w-5" :stroke-width="2" />
               </button>
               <ul
                 class="m-0 flex shrink-0 list-none flex-wrap items-center justify-center gap-0 p-0 sm:gap-1"
@@ -315,20 +276,7 @@
                 aria-label="Page suivante"
                 @click="goToPage(currentPage + 1)"
               >
-                <svg
-                  class="h-5 w-5 shrink-0 sm:h-5 sm:w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                  />
-                </svg>
+                <ChevronRight class="h-5 w-5 shrink-0 sm:h-5 sm:w-5" :stroke-width="2" />
               </button>
             </div>
           </nav>
@@ -345,14 +293,7 @@
           class="text-center py-10"
         >
           <div class="text-gray-400 mb-3">
-            <svg class="w-16 h-16 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <Clock class="w-16 h-16 mx-auto mb-3" :stroke-width="1" />
           </div>
           <h3 class="text-xl text-gray-600 mb-2">Aucune montre trouvée</h3>
           <p class="text-gray-500">Essayez de modifier vos critères de recherche</p>
@@ -385,14 +326,7 @@
               :href="'mailto:' + EMAIL_CONTACT"
               class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
             >
-              <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
+              <Mail class="w-5 h-5 mr-2" :stroke-width="2" />
               Contact Email
             </a>
           </div>
@@ -413,6 +347,17 @@
 
 <script setup>
 import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import {
+  AlertCircle,
+  ArrowDownUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Mail,
+  SlidersHorizontal,
+  X,
+} from '@lucide/vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useHead } from '@vueuse/head'
 
@@ -424,7 +369,8 @@ import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getMergedCollectionFilters, getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
-import { isValidCollectionPublicQuerySlug } from '@/constants/watchAudiences.js'
+import { isValidCollectionPublicQuerySlug, getStaticWatchAudienceFilterOptions } from '@/constants/watchAudiences.js'
+import { formatCaseSizeDisplay } from '@/utils/caseSize'
 import { WATCH_CARD_GRID_PROPS } from '@/constants/watchCardDefaults.js'
 import { resolveBrandFromSlug, slugifyBrand } from '@/utils/brandSlug.js'
 import {
@@ -438,6 +384,12 @@ const props = defineProps({
   showContactSection: { type: Boolean, default: true },
   showBrandHero: { type: Boolean, default: true },
 })
+
+const sortOptions = [
+  { value: 'recent', label: 'Ajout récent' },
+  { value: 'price-asc', label: 'Prix croissant' },
+  { value: 'price-desc', label: 'Prix décroissant' },
+]
 
 const route = useRoute()
 const router = useRouter()
@@ -456,6 +408,11 @@ const publicQuerySlug = computed(() => {
 })
 
 const listing = useWatchListing()
+
+const currentSortLabel = computed(() => {
+  const match = sortOptions.find((option) => option.value === listing.sortOrder)
+  return match?.label ?? sortOptions[0].label
+})
 
 watch(
   () => [marqueQuerySlug.value, listing.watches.length],
@@ -626,8 +583,79 @@ const singleBrandLabel = computed(() => {
 const resolvedTitle = computed(() => singleBrandLabel.value || 'Marque')
 
 const pageHeadingTitle = computed(() =>
-  singleBrandLabel.value ? singleBrandLabel.value : 'Notre collection de montres',
+  singleBrandLabel.value ? singleBrandLabel.value : 'Toutes nos montres',
 )
+
+const audienceLabelBySlug = Object.fromEntries(
+  getStaticWatchAudienceFilterOptions().map((opt) => [opt.id, opt.label]),
+)
+
+const activeFilterChips = computed(() => {
+  const chips = []
+
+  for (const brand of listing.selectedBrands) {
+    chips.push({
+      id: `brand:${brand}`,
+      type: 'brand',
+      value: brand,
+      label: brand,
+    })
+  }
+
+  for (const size of listing.selectedCaseSizes) {
+    chips.push({
+      id: `caseSize:${size}`,
+      type: 'caseSize',
+      value: size,
+      label: formatCaseSizeDisplay(size),
+    })
+  }
+
+  if (listing.selectedAudience !== 'all') {
+    chips.push({
+      id: `audience:${listing.selectedAudience}`,
+      type: 'audience',
+      value: listing.selectedAudience,
+      label: audienceLabelBySlug[listing.selectedAudience] || listing.selectedAudience,
+    })
+  }
+
+  if (listing.priceMin !== null || listing.priceMax !== null) {
+    const min = listing.priceMin ?? listing.priceMinLimit
+    const max = listing.priceMax ?? listing.priceMaxLimit
+    chips.push({
+      id: 'price',
+      type: 'price',
+      label: `${min.toLocaleString('fr-FR')} € – ${max.toLocaleString('fr-FR')} €`,
+    })
+  }
+
+  return chips
+})
+
+function removeActiveFilter(chip) {
+  switch (chip.type) {
+    case 'brand':
+      listing.selectedBrands = listing.selectedBrands.filter((brand) => brand !== chip.value)
+      break
+    case 'caseSize':
+      listing.selectedCaseSizes = listing.selectedCaseSizes.filter((size) => size !== chip.value)
+      break
+    case 'audience':
+      listing.selectedAudience = 'all'
+      break
+    case 'price':
+      listing.priceMin = null
+      listing.priceMax = null
+      break
+    default:
+      return
+  }
+
+  if (collectionListingReady.value) {
+    syncCollectionFilterQuery()
+  }
+}
 
 const heroConfig = computed(() => {
   const name = singleBrandLabel.value
@@ -769,5 +797,10 @@ onUnmounted(() => {
 
 .animate-fade-in {
   animation: fade-in 0.6s ease-out;
+}
+
+.collection-active-filters {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 </style>

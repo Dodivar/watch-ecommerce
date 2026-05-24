@@ -178,7 +178,7 @@ function onInput(event) {
 
   border: 1px solid #d1d5db;
 
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
 
   font-family: inherit;
 

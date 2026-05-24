@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { Clock, X } from '@lucide/vue'
 import { useCart } from '@/composables/useCart.js'
 import { useRouter } from 'vue-router'
 
@@ -112,15 +113,7 @@ function onCheckout() {
             aria-label="Fermer le panier"
             @click="closeDrawer"
           >
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+            <X class="h-6 w-6" :stroke-width="2" />          </button>
         </header>
 
         <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
@@ -145,21 +138,7 @@ function onCheckout() {
                   :alt="line.name"
                   class="h-full w-full object-cover"
                 />
-                <svg
-                  v-else
-                  class="h-8 w-8 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="1.5"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </router-link>
+                <Clock v-else class="h-8 w-8 text-gray-400" :stroke-width="1.5" />              </router-link>
               <div class="min-w-0 flex-1">
                 <div class="flex justify-between gap-2">
                   <router-link
@@ -175,15 +154,7 @@ function onCheckout() {
                     :aria-label="'Retirer ' + line.name"
                     @click="remove(line.watchId)"
                   >
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
+                    <X class="h-5 w-5" :stroke-width="2" />                  </button>
                 </div>
                 <p v-if="line.reference" class="text-xs text-gray-500 mt-0.5">
                   Réf. {{ line.reference }}

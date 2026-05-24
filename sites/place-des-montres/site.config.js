@@ -1,4 +1,5 @@
 import homeSelectionCards from './homeSelections.config.js'
+import guidePage from './guide.config.js'
 
 /**
  * Manifest client — Place des Montres (placedesmontres.fr), horlogerie e-commerce à Strasbourg.
@@ -14,37 +15,91 @@ export default {
     enabled: true,
     heading: 'Questions fréquentes',
     subheading:
-      'Livraison, retrait magasin, garanties et service client — les informations essentielles pour commander en confiance.',
+      'Commande, livraison, paiement, retours, garanties et service client.',
     items: [
       {
         id: 1,
-        question: 'Quelles sont les modalités de livraison en France ?',
+        question: 'Le modèle affiché est-il disponible en stock ?',
         answer:
-          'Pour la France métropolitaine, la livraison en <strong>Colissimo suivi</strong> est <strong>offerte à partir de 80&nbsp;€</strong> d’achat. En dessous de ce seuil, les frais de port s’affichent avant validation du panier. Les délais indicatifs communiqués sur le site historique évoquent une expédition sous environ <strong>48&nbsp;h</strong> après réception du paiement — à confirmer dans vos conditions de vente à jour.',
+          'Nous mettons en ligne uniquement des modèles <strong>disponibles en stock</strong>. Les stocks sont mis à jour plusieurs fois par jour. Tant que votre commande n’est pas validée, il se peut qu’un article sélectionné soit acheté par un autre client&nbsp;: la vente est alors annulée et vous êtes prévenu par e-mail.',
       },
       {
         id: 2,
-        question: 'Puis-je retirer ma commande au magasin à Strasbourg ?',
+        question: 'Puis-je modifier ou annuler ma commande ?',
         answer:
-          'Le site historique propose un retrait au <strong>Centre commercial Place des Halles</strong> pour les clients situés à Strasbourg, dans le Bas-Rhin ou en Alsace : commande en ligne puis retrait en boutique. Cette démo reproduit l’expérience premium du socle ; le flux <strong>Click&nbsp;& Collect</strong> métier exact (créneaux, préparation) reste à caler avec vos outils de caisse et logistique.',
+          'La modification ou la suppression d’une ligne de commande doit intervenir au niveau du <strong>panier</strong>, avant validation du paiement. Au-delà, la vente est ferme et la livraison interviendra. Vous disposez toutefois d’un délai de <strong>30&nbsp;jours</strong> pour retourner votre achat (voir ci-dessous).',
       },
       {
         id: 3,
-        question: 'Comment contacter le service client ?',
+        question: 'Quels moyens de paiement acceptez-vous ?',
         answer:
-          'Vous pouvez écrire à <strong>service.client@placedesmontres.fr</strong> ou appeler le <strong>03&nbsp;88&nbsp;22&nbsp;40&nbsp;40</strong> du lundi au samedi, 9h–20h (prix d’un appel local). Ce bandeau de contact est repris des informations publiques du site actuel.',
+          'Vous pouvez régler vos achats par <strong>carte bancaire</strong> (Visa, Mastercard, Cartes Bleues). Le paiement par <strong>virement</strong> ou par <strong>chèque</strong> n’est pas proposé en ligne, afin de garantir des délais de livraison fiables et une gestion précise des stocks.',
       },
       {
         id: 4,
-        question: 'Les montres sont-elles neuves et couvertes par une garantie ?',
+        question: 'Le paiement en ligne est-il sécurisé ?',
         answer:
-          'Place des Montres est un <strong>spécialiste de la montre depuis 1995</strong> avec un large choix en stock. Les modalités précises (garantie constructeur, garantie vendeur, montres neuve / démonstration) doivent figurer sur chaque fiche produit et dans vos <strong>CGV</strong> — ce texte est une reformulation marketing ; validez-le juridiquement avant mise en production.',
+          'Le site utilise le <strong>cryptage SSL</strong> pour protéger vos données. Le paiement est traité via un prestataire certifié (<strong>Stripe</strong>), qui applique les standards de sécurité les plus exigeants pour vos coordonnées bancaires.',
       },
       {
         id: 5,
+        question: 'Quelles sont les modalités de livraison en France ?',
+        answer:
+          'Pour la France métropolitaine, la livraison en <strong>Colissimo suivi</strong> est <strong>offerte à partir de 80&nbsp;€</strong> d’achat. En dessous de ce seuil, les frais de port s’affichent avant validation du panier. Expédition sous environ <strong>48&nbsp;h</strong> après réception du paiement (délai indicatif, jours ouvrés). Vous pouvez vous faire livrer à domicile, sur votre lieu de travail ou dans un <strong>point relais</strong>. Lors de l’envoi, vous recevez un numéro de colisage par e-mail ou SMS&nbsp;; le suivi est disponible sur <strong>colissimo.fr</strong>. En cas de retard, consultez d’abord le site du transporteur, puis contactez notre service client. Si le colis n’est pas livré, une enquête sera menée auprès du transporteur&nbsp;: réexpédition ou remboursement selon le résultat. Si vous ne pouvez pas être présent, choisissez la livraison en point de dépôt.',
+      },
+      {
+        id: 6,
+        question: 'Puis-je retirer ma commande au magasin à Strasbourg ?',
+        answer:
+          'Oui&nbsp;: c’est le meilleur moyen de «&nbsp;réserver&nbsp;» une montre. Commandez en ligne sur placedesmontres.fr, puis retirez votre commande au <strong>Centre commercial Place des Halles</strong>, 67000 Strasbourg, du <strong>lundi au samedi de 9h à 20h</strong>, quand vous le souhaitez. Il n’est pas possible de réserver un modèle sans l’acheter en ligne, pour garantir la fiabilité du stock.',
+      },
+      {
+        id: 7,
+        question: 'Comment réceptionner mon colis ?',
+        answer:
+          'À réception de votre commande, nous vous recommandons vivement de vérifier la conformité en présence du livreur, surtout si le colis est abîmé. Pour qu’une réclamation soit recevable, elle doit être mentionnée par écrit au moment de la réception. En cas de doute, il est conseillé de refuser le colis et d’en informer notre service client via votre compte client.',
+      },
+      {
+        id: 8,
+        question: 'Puis-je retourner ou échanger une montre ?',
+        answer:
+          'Oui&nbsp;: vous disposez d’un délai de <strong>30&nbsp;jours</strong> à compter de la réception pour nous notifier votre souhait de retour ou d’échange. La procédure est la même pour un échange&nbsp;: indiquez le produit souhaité en remplacement. Si celui-ci n’est pas disponible immédiatement, nous pouvons vous émettre un avoir.',
+      },
+      {
+        id: 9,
+        question: 'Comment effectuer un retour ?',
+        answer:
+          'Envoyez un e-mail à <strong>service.client@placedesmontres.fr</strong> avec votre numéro de facture, vos coordonnées et votre numéro de client. Attendez un <strong>numéro de retour</strong> en réponse. Les articles doivent être dans leur emballage d’origine, complets (garantie, accessoires, notice). Mentionnez le numéro de retour sur le colis et joignez une copie du mail de retour à l’intérieur. Adresse de retour&nbsp;: <strong>Place des Montres — Retour N°&nbsp;… — Centre commercial Place des Halles — 67000 Strasbourg</strong>.',
+      },
+      {
+        id: 10,
+        question: 'Les montres sont-elles neuves et couvertes par une garantie ?',
+        answer:
+          'Place des Montres est un <strong>spécialiste de la montre depuis 1995</strong>. Toutes nos montres bénéficient d’une <strong>garantie constructeur minimum de 2&nbsp;ans</strong> à partir de la date d’achat. Elle couvre les défauts de fabrication et les pannes d’origine interne. Ne sont pas couverts&nbsp;: les consommables (piles, verres, bracelets, joints…), l’usage anormal, une réparation par un intervenant non agréé, ou les dommages dus à un choc, une chute ou une immersion inappropriée. Votre montre est livrée avec une garantie constructeur tamponnée, datée et référencée&nbsp;: conservez-la dans l’écrin. Pour toute prise en charge, consultez notre page <a href="/services" class="text-primary underline">Nos services</a>.',
+      },
+      {
+        id: 11,
+        question: 'Que faire si ma montre ne fonctionne plus ?',
+        answer:
+          'Si vous habitez près de Strasbourg, passez nous voir aux Place des Halles. Sinon, rendez-vous chez un <strong>dépositaire agréé</strong> de la marque dans votre ville&nbsp;: nos montres ont une bonne couverture réseau en France. L’horloger identifiera la panne. Pour les premiers réflexes (notamment la pile), consultez notre <a href="/guide-horloger" class="text-primary underline">Guide de l’horloger</a>.',
+      },
+      {
+        id: 12,
         question: 'Proposez-vous la réparation de montres ?',
         answer:
-          'Oui : <strong>réparation et entretien toutes marques</strong>, changement de pile, étanchéité, verres et bracelets — avec un <strong>horloger sur place</strong> aux Place des Halles. Consultez notre page <a href="/services" class="text-primary underline">Nos services</a> pour les tarifs et prestations.',
+          'Oui&nbsp;: <strong>réparation et entretien toutes marques</strong>, changement de pile, étanchéité, verres et bracelets — avec un <strong>horloger sur place</strong> aux Place des Halles. Consultez notre page <a href="/services" class="text-primary underline">Nos services</a> pour les tarifs et prestations.',
+      },
+      {
+        id: 13,
+        question: 'Où trouver des conseils d’entretien (pile, étanchéité…) ?',
+        answer:
+          'Les conseils techniques sur la pile, l’étanchéité, les mouvements, les verres et les fonctions de montre sont regroupés dans notre <a href="/guide-horloger" class="text-primary underline">Guide de l’horloger</a>, rédigé par l’équipe Place des Montres.',
+      },
+      {
+        id: 14,
+        question: 'Comment contacter le service client ?',
+        answer:
+          'Par e-mail&nbsp;: <strong>service.client@placedesmontres.fr</strong> (moyen le plus rapide). Par téléphone&nbsp;: <strong>03&nbsp;88&nbsp;22&nbsp;40&nbsp;40</strong>, du lundi au samedi de 9h à 20h (prix d’un appel local). Par courrier&nbsp;: Place des Montres — Centre commercial Place des Halles — 67000 Strasbourg.',
       },
     ],
   },
@@ -65,24 +120,24 @@ export default {
       cream300: '#dfd5c6',
       textMain: '#2c2412',
     },
-    /** Typographie de référence du socle — fichiers dans `public/fonts/`. */
+    /** Typographie — contenu en Tahoma, titres en Fjalla One (`public/fonts/`). */
     typography: {
       sans: {
-        family: 'FjallaOne-Regular',
-        faces: [
-          { weight: 400, style: 'normal', file: 'FjallaOne-Regular.ttf' },
-        ],
+        family: 'Tahoma',
+        faces: [{ weight: 400, style: 'normal', file: 'tahoma.ttf' }],
       },
       heading: {
         family: 'FjallaOne-Regular',
         faces: [{ weight: 400, style: 'normal', file: 'FjallaOne-Regular.ttf' }],
       },
       subheading: {
-        role: 'sans',
-        weight: 800,
+        role: 'heading',
+        weight: 400,
       },
       headingWeight: 700,
     },
+    /** Coins droits sur cartes/boutons/champs ; cercles (`rounded-full`) conservés. */
+    radius: 'sharp',
   },
 
   brand: {
@@ -236,6 +291,13 @@ export default {
       collectionLabel: 'Découvrir nos montres',
       contactLabel: 'Nous contacter',
     },
+    guidePromo: {
+      title: "Le Guide de l'horloger",
+      description:
+        'Pile, étanchéité, mouvements, verres et fonctions — tout ce qu\'il faut savoir pour entretenir votre montre.',
+      linkLabel: 'Consulter le guide',
+      to: '/guide-horloger',
+    },
   },
 
   servicesPage: {
@@ -358,8 +420,12 @@ export default {
       subtitle: 'Du lundi au samedi, 9h–20h — Centre commercial Place des Halles, Strasbourg.',
       contactLabel: 'Nous contacter',
       phoneLabel: '03 88 22 40 40',
+      guideLabel: "Le Guide de l'horloger",
+      guideTo: '/guide-horloger',
     },
   },
+
+  guidePage,
 
   copy: {
     footerTagline:
@@ -396,6 +462,7 @@ export default {
     merci: true,
     about: true,
     servicesPage: true,
+    guidePage: true,
     legal: true,
     faq: true,
     purchase: true,
@@ -514,18 +581,77 @@ export default {
   },
 
   home: {
+    hero: {
+      variant: 'compact',
+      title: 'Votre montre de marque, aujourd\'hui.',
+      subtitle: '30 ans d\'expérience basée à Strasbourg.',
+      primaryCta: { label: 'Découvrir nos montres', to: '/collection' },
+      secondaryCta: { label: 'Nous contacter', to: '/contact' },
+    },
     nouvelles: {
       title: 'Nouvelles arrivées',
-      subtitle: 'Découvrez nos dernières pièces ajoutées à notre sélection',
+      // subtitle: 'Découvrez nos dernières pièces ajoutées à notre sélection',
+    },
+    stats: {
+      items: [
+        {
+          icon: 'stock',
+          value: '3 000',
+          label: 'Montres en stock',
+          detail: 'Disponibles en ligne ou en boutique',
+        },
+        {
+          icon: 'experience',
+          value: '30 ans',
+          label: 'D’expérience',
+          detail: 'Spécialiste montre depuis 1995',
+        },
+        {
+          icon: 'sparkles',
+          value: '30+',
+          label: 'Marques',
+          detail: 'Des maisons accessibles aux références Swiss Made',
+        },
+      ],
+      highlights: [
+        {
+          icon: 'shipping',
+          label: 'Envoi gratuit en 48 h',
+          detail: 'Offert dès 80 € d’achat en France métropolitaine',
+        },
+        {
+          icon: 'guarantee',
+          label: 'Toutes nos montres sont garanties 2 ans',
+          detail: 'Extension de garantie disponible en boutique',
+        },
+        {
+          icon: 'return',
+          label: 'Retour possible sous 30 jours',
+          detail: 'À compter de la réception, montre complète dans son emballage d’origine',
+        },
+      ],
+    },
+    aboutPreview: {
+      eyebrow: 'Qui sommes-nous ?',
+      title: 'Une adresse horlogère au cœur des Place des Halles',
+      description:
+        'Installée à Strasbourg depuis 1995, notre équipe conseille chaque client avec la même attention : choisir le bon style, comparer les marques, trouver le cadeau idéal ou entretenir sa montre au quotidien.',
+      image: '/places/place-des-montres-strasbourg_1.jpg',
+      imageAlt: 'Boutique Place des Montres au centre commercial Place des Halles à Strasbourg',
+      ctaLabel: 'Découvrir notre histoire',
+      to: '/a-propos',
     },
     sections: [
-      'selections',
+      'hero',
       'nouvelles',
-      'trust',
-      'ventes',
-      'suivezNous',
+      'selections',
+      'stats',
+      'aboutPreview',
+      // 'trust',
+      // 'ventes',
+      // 'suivezNous',
       // 'services',
-      'faq',
+      // 'faq',
     ],
     selections: {
       title: 'Notre sélection du moment',
@@ -560,7 +686,7 @@ export default {
       },
       { type: 'link', label: 'Qui sommes-nous', to: '/a-propos', feature: 'about' },
       { type: 'link', label: 'Nos services', to: '/services', feature: 'servicesPage' },
-      { type: 'link', label: 'FAQ', to: '/#faq', feature: 'faq' },
+      { type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' },
       { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
     ],
     footer: [
@@ -568,7 +694,8 @@ export default {
       { label: 'Marques', to: '/collection/marques', feature: 'collection' },
       { label: 'Qui sommes-nous', to: '/a-propos', feature: 'about' },
       { label: 'Nos services', to: '/services', feature: 'servicesPage' },
-      { label: 'FAQ', to: '/#faq', feature: 'faq' },
+      { label: "Guide de l'horloger", to: '/guide-horloger', feature: 'guidePage' },
+      { label: 'FAQ', to: '/faq', feature: 'faq' },
       { label: 'Contact', to: '/contact', feature: 'contact' },
     ],
   },
@@ -686,6 +813,27 @@ export default {
         'Atelier sur place à Strasbourg : piles, étanchéité, réparation, bracelets et extension de garantie à prix clairs.',
       twitterTitle: 'Nos services — Place des Montres',
       twitterDescription: 'Horloger sur place aux Halles : piles, réparation, bracelets et paiement en plusieurs fois.',
+    },
+    guidePage: {
+      title: "Le Guide de l'horloger | Place des Montres",
+      metaDescription:
+        "Conseils d'entretien horloger : pile, étanchéité, mouvements, types de verre, boîtiers et fonctions de montre — par l'équipe Place des Montres à Strasbourg.",
+      ogTitle: "Le Guide de l'horloger | Place des Montres",
+      ogDescription:
+        'Tout savoir sur l\'entretien de votre montre : pile, étanchéité, mouvements et complications expliqués simplement.',
+      twitterTitle: "Guide de l'horloger — Place des Montres",
+      twitterDescription: 'Entretien, étanchéité et fonctionnement des montres — conseils d\'experts.',
+    },
+    faq: {
+      title: 'FAQ | Place des Montres — Commande, livraison et garanties',
+      metaDescription:
+        'Réponses aux questions fréquentes : stock, paiement sécurisé, Colissimo offert dès 80 €, retrait aux Halles, retour sous 30 jours, garantie 2 ans et service client.',
+      ogTitle: 'FAQ | Place des Montres',
+      ogDescription:
+        'Commande, livraison, paiement, retours, garanties et service client — toutes les réponses pour acheter en confiance.',
+      twitterTitle: 'FAQ — Place des Montres',
+      twitterDescription:
+        'Colissimo, retrait Strasbourg, retour 30 jours, garantie 2 ans — vos questions, nos réponses.',
     },
     politique: {
       title: 'Politique de confidentialité | Place des Montres',

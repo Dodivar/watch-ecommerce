@@ -18,14 +18,7 @@
             @click="goBack"
             class="inline-flex items-center text-primary hover:text-green-700 transition-colors cursor-pointer"
           >
-            <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
+            <ArrowLeft class="w-5 h-5 mr-2" :stroke-width="2" />
             Retour
           </button>
         </div>
@@ -151,54 +144,42 @@
             </h2>
             <div class="grid md:grid-cols-2 gap-6">
               <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
                   <h4 class="font-semibold text-text-main mb-1">Marque et modèle</h4>
                   <p class="text-sm text-gray-600">Certaines marques et modèles emblématiques conservent mieux leur valeur.</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
                   <h4 class="font-semibold text-text-main mb-1">Année et rareté</h4>
                   <p class="text-sm text-gray-600">Les éditions limitées et les modèles anciens peuvent avoir une valeur supérieure.</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
                   <h4 class="font-semibold text-text-main mb-1">État général</h4>
                   <p class="text-sm text-gray-600">L'usure, les rayures et l'entretien régulier impactent la valeur.</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
                   <h4 class="font-semibold text-text-main mb-1">Accessoires d'origine</h4>
                   <p class="text-sm text-gray-600">Boîte, papiers, étiquettes et certificats augmentent significativement la valeur.</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
                   <h4 class="font-semibold text-text-main mb-1">Historique de propriété</h4>
                   <p class="text-sm text-gray-600">Un historique documenté peut ajouter de la valeur à certaines pièces.</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
                   <h4 class="font-semibold text-text-main mb-1">Conjoncture du marché</h4>
                   <p class="text-sm text-gray-600">Les tendances actuelles et la demande influencent les prix.</p>
@@ -214,33 +195,23 @@
             </h2>
             <ul class="space-y-3 text-gray-700">
 <!--               <li class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-primary flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
+                <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <span><strong>Expertise reconnue</strong> : Notre équipe possède des années d'expérience dans l'horlogerie de luxe.</span>
               </li> -->
               <li class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-primary flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
+                <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <span><strong>Transparence totale</strong> : Nous vous expliquons clairement notre méthode et nos critères d'évaluation.</span>
               </li>
               <li class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-primary flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
+                <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <span><strong>Estimation gratuite</strong> : Aucun engagement de votre part, l'estimation est 100% gratuite.</span>
               </li>
               <li class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-primary flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
+                <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <span><strong>Prix du marché</strong> : Nos estimations sont basées sur les prix réels du marché, pas sur des prix gonflés.</span>
               </li>
               <li class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-primary flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
+                <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <span><strong>Accompagnement personnalisé</strong> : Nous restons à votre disposition pour répondre à toutes vos questions.</span>
               </li>
             </ul>
@@ -257,9 +228,7 @@
               class="inline-flex items-center bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-cream-100 transition-all"
             >
               Faire une estimation gratuite
-              <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
+              <ChevronRight class="w-5 h-5 ml-2" :stroke-width="2" />
             </RouterLink>
           </div>
         </div>
@@ -270,6 +239,7 @@
 
 <script setup>
 import { RouterLink, useRouter } from 'vue-router'
+import { ArrowLeft, CheckCircle2, ChevronRight, CircleCheck } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 

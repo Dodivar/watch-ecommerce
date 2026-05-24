@@ -54,14 +54,12 @@
                 class="h-full w-full object-cover object-center"
                 loading="eager"
               />
-              <div
-                class="absolute inset-0 bg-gradient-to-t from-text-main/50 via-transparent to-transparent"
-                aria-hidden="true"
-              />
               <p
-                class="absolute bottom-5 left-5 right-5 text-sm font-medium text-white/95 drop-shadow-sm"
+                class="absolute bottom-5 left-5 right-5 text-sm font-medium text-white"
               >
-                Centre commercial Place des Halles — Strasbourg
+                <span class="inline-block rounded-lg bg-text-main/75 px-3 py-1.5 shadow-sm">
+                  Centre commercial Place des Halles — Strasbourg
+                </span>
               </p>
             </div>
           </div>
@@ -220,6 +218,33 @@
       </div>
     </section>
 
+    <!-- Guide promo -->
+    <section
+      v-if="showGuidePromo"
+      class="py-12 lg:py-14 bg-cream border-t border-cream-300"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div
+          class="flex flex-col gap-6 rounded-2xl bg-white p-6 lg:p-8 shadow-lg ring-1 ring-black/5 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div class="max-w-2xl">
+            <h2 class="text-xl lg:text-2xl font-bold text-text-main mb-2">
+              {{ about.guidePromo.title }}
+            </h2>
+            <p class="text-gray-600 leading-relaxed">
+              {{ about.guidePromo.description }}
+            </p>
+          </div>
+          <RouterLink
+            :to="about.guidePromo.to || '/guide-horloger'"
+            class="inline-flex shrink-0 items-center justify-center bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primaryHover transition-colors shadow-md"
+          >
+            {{ about.guidePromo.linkLabel || 'Consulter le guide' }}
+          </RouterLink>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA -->
     <section v-if="about.cta" class="py-16 bg-white border-t border-cream-300">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -288,6 +313,10 @@ const showStoreMap = computed(() => {
     typeof center.lng === 'number'
   )
 })
+
+const showGuidePromo = computed(
+  () => Boolean(features.guidePage && about.guidePromo?.title),
+)
 
 useHead({
   title: seo.title,

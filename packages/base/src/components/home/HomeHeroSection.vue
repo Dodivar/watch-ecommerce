@@ -1,4 +1,6 @@
 <script setup>
+import { computed } from 'vue'
+
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import navitimerImg from '@site/assets/hero section img/navitimer-b01-chronograph-43.png'
 import parallaxImg1 from '@site/assets/hero section img/montre-tag-heuer-monaco-calibre-11.png'
@@ -6,12 +8,16 @@ import parallaxImg2 from '@site/assets/hero section img/Rolex.png'
 import parallaxImg3 from '@site/assets/hero section img/cartier-santos.png'
 import parallaxImg4 from '@site/assets/hero section img/image-Photoroom (2).png'
 import ParallaxImage from '../ParallaxImage.vue'
+import HomeHeroCompactSection from './HomeHeroCompactSection.vue'
 
-const features = getSiteConfig().features
+const site = getSiteConfig()
+const features = site.features
+const useCompactHero = computed(() => site.home?.hero?.variant === 'compact')
 </script>
 
 <template>
-  <section id="accueil" class="gradient-bg py-12 lg:py-20 h-screen">
+  <HomeHeroCompactSection v-if="useCompactHero" />
+  <section v-else id="accueil" class="gradient-bg py-12 lg:py-20 h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center relative z-10">
         <h1 class="text-4xl lg:text-6xl font-bold text-text-main mb-4 leading-tight">

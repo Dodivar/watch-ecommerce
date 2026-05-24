@@ -1,3 +1,4 @@
+import { resolveHomeHeroConfig } from './homeHero.js'
 import { resolveHomeSections } from './homeSections.js'
 import { resolveHomeNouvellesConfig } from './homeNouvelles.js'
 import { resolveHomeSelectionsConfig } from './homeSelections.js'
@@ -26,6 +27,12 @@ export function resolveSiteConfig(siteConfig) {
       servicesPage: Boolean(mergedFeatures.servicesPage && siteConfig.servicesPage),
     }
   }
+  if (siteConfig.guidePage != null) {
+    features = {
+      ...features,
+      guidePage: Boolean(mergedFeatures.guidePage && siteConfig.guidePage),
+    }
+  }
   const watchCatalog = resolveWatchCatalogConfig(siteConfig)
   features = {
     ...features,
@@ -37,6 +44,7 @@ export function resolveSiteConfig(siteConfig) {
       : {}
   const selections = resolveHomeSelectionsConfig(siteConfig)
   const nouvelles = resolveHomeNouvellesConfig(siteConfig)
+  const hero = resolveHomeHeroConfig(siteConfig)
   const checkoutRaw = siteConfig.checkout || {}
   const shippingResolved = resolveCheckoutShipping(checkoutRaw)
   return {
@@ -56,6 +64,7 @@ export function resolveSiteConfig(siteConfig) {
       sections: resolveHomeSections(siteConfig),
       selections,
       nouvelles,
+      hero,
     },
   }
 }

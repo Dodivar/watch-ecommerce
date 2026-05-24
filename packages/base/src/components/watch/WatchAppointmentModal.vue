@@ -1,5 +1,9 @@
 <script setup>
 import { computed, reactive, ref, watch, onMounted, onUnmounted } from 'vue'
+import { AlertCircle, Check, Clock, Map, MapPin, X } from '@lucide/vue'
+import { VueDatePicker } from '@vuepic/vue-datepicker'
+import { fr } from 'date-fns/locale'
+import '@vuepic/vue-datepicker/dist/main.css'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { buildGoogleMapsDirectionsUrl } from '@/utils/googleMapsLinks.js'
 import { resolveStoreOpeningHours } from '@/utils/formatStoreOpeningHours.js'
@@ -12,6 +16,7 @@ import {
   getAvailableAppointmentSlots,
   isAppointmentDateEligible,
   formatAppointmentDateLabel,
+  parseDateISO,
   SLOT_LABELS,
 } from '@/composables/useRetailAppointmentSlots.js'
 
@@ -52,6 +57,19 @@ const form = reactive({
 })
 
 const minDate = computed(() => formatDateISO(getMinAppointmentDate()))
+const minDateValue = computed(() => parseDateISO(minDate.value))
+
+const datePickerFormats = { input: 'dd/MM/yyyy' }
+
+const datePickerInputAttrs = {
+  id: 'appointment-date',
+  required: true,
+  autocomplete: 'off',
+}
+
+function isDateDisabled(date) {
+  return !isAppointmentDateEligible(formatDateISO(date))
+}
 
 const slotOptions = computed(() =>
   getAvailableAppointmentSlots(form.date).map((value) => ({
@@ -214,9 +232,7 @@ onUnmounted(() => {
             aria-label="Fermer"
             @click="closeModal"
           >
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X class="h-5 w-5" :stroke-width="2" />
           </button>
         </div>
 
@@ -224,9 +240,7 @@ onUnmounted(() => {
           <!-- Success -->
           <div v-if="modalState === 'success'" class="text-center space-y-4 py-2">
             <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
-              <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
+              <Check class="h-7 w-7" :stroke-width="2" />
             </div>
             <p class="text-text-main font-medium">
               Votre demande de rendez-vous a bien été envoyée.
@@ -260,9 +274,7 @@ onUnmounted(() => {
           <!-- Error -->
           <div v-else-if="modalState === 'error'" class="text-center space-y-4 py-2">
             <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600">
-              <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <AlertCircle class="h-7 w-7" :stroke-width="2" />
             </div>
             <p class="text-text-main font-medium">Impossible d'envoyer votre demande</p>
             <p class="text-sm text-red-600">{{ errorMessage }}</p>
@@ -289,19 +301,14 @@ onUnmounted(() => {
             <div class="rounded-lg border border-gray-100 bg-cream/60 p-4 space-y-3">
               <p class="text-sm font-semibold text-text-main">{{ brandDisplayName }}</p>
               <div class="flex gap-2 items-start text-sm text-gray-700">
-                <svg class="w-5 h-5 shrink-0 mt-0.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
+                <MapPin class="w-5 h-5 shrink-0 mt-0.5 text-primary" :stroke-width="2" />
                 <span v-html="site.contact.footerAddressHtml" />
               </div>
               <div
                 v-if="storeOpeningHours.hasHours"
                 class="flex gap-2 items-start text-sm text-gray-700"
               >
-                <svg class="w-5 h-5 shrink-0 mt-0.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <Clock class="w-5 h-5 shrink-0 mt-0.5 text-primary" :stroke-width="2" />
                 <div>
                   <p v-if="storeOpeningHours.daysLabel" class="font-medium text-text-main">
                     {{ storeOpeningHours.daysLabel }}
@@ -318,9 +325,7 @@ onUnmounted(() => {
                 rel="noopener noreferrer"
                 class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary-hover transition-colors"
               >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
+                <Map class="w-4 h-4" :stroke-width="2" />
                 Itinéraire GPS
               </a>
             </div>
@@ -377,16 +382,24 @@ onUnmounted(() => {
                 <label for="appointment-date" class="block text-sm font-medium text-text-main mb-1">
                   Date souhaitée *
                 </label>
-                <input
-                  id="appointment-date"
-                  v-model="form.date"
-                  name="date"
-                  type="date"
-                  required
-                  :min="minDate"
-                  class="w-full rounded-md border border-cream-300 px-3 py-2 text-text-main focus:outline-none focus:ring-2 focus:ring-primary/40"
-                  @change="validateDateInput"
-                />
+                <div class="appointment-date-picker">
+                  <VueDatePicker
+                    v-model="form.date"
+                    model-type="yyyy-MM-dd"
+                    :locale="fr"
+                    :min-date="minDateValue"
+                    :disabled-dates="isDateDisabled"
+                    :formats="datePickerFormats"
+                    :input-attrs="datePickerInputAttrs"
+                    placeholder="Choisir une date"
+                    :week-start="1"
+                    auto-apply
+                    prevent-min-max-navigation
+                    teleport="body"
+                    @update:model-value="validateDateInput"
+                  />
+                  <input type="hidden" name="date" :value="form.date" />
+                </div>
               </div>
 
               <fieldset>
@@ -435,3 +448,30 @@ onUnmounted(() => {
     </div>
   </Teleport>
 </template>
+
+<style scoped>
+.appointment-date-picker {
+  --dp-primary-color: var(--color-primary);
+  --dp-primary-disabled-color: color-mix(in srgb, var(--color-primary) 45%, white);
+  --dp-border-color-focus: var(--color-primary);
+  --dp-font-family: inherit;
+}
+
+.appointment-date-picker :deep(.dp__input) {
+  border-color: var(--color-cream-300, #e8e0d4);
+  border-radius: 0.375rem;
+  color: var(--color-text-main, #111827);
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 0.5rem 0.75rem;
+}
+
+.appointment-date-picker :deep(.dp__input:hover:not(.dp__input_focus)) {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-cream-300, #e8e0d4));
+}
+
+.appointment-date-picker :deep(.dp__input_focus) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+</style>

@@ -220,7 +220,7 @@ export default {
       },
       { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
       { type: 'link', label: 'À propos', to: '/a-propos', feature: 'about' },
-      { type: 'link', label: 'FAQ', to: '/#faq', feature: 'faq' },
+      { type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' },
       { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
     ],
     footer: [
@@ -358,6 +358,17 @@ export default {
       titlePriceSuffix: ' | Sauvage',
       descriptionFallback: 'Découvrez cette montre de luxe sur Sauvage',
       structuredDataSellerName: 'Sauvage',
+    },
+    faq: {
+      title: 'FAQ | Questions fréquentes | Sauvage',
+      metaDescription:
+        'Réponses aux questions les plus fréquentes sur Sauvage : recherche personnalisée, estimation gratuite, collection, garanties et services horlogers.',
+      ogTitle: 'FAQ | Sauvage Watches',
+      ogDescription:
+        'Estimation, recherche personnalisée, collection et garanties — retrouvez toutes les réponses à vos questions.',
+      twitterTitle: 'FAQ — Sauvage Watches',
+      twitterDescription:
+        'Questions fréquentes sur nos services de montres de luxe, estimation et collection garantie.',
     },
     aPropos: {
       title: 'À propos de Sauvage - Votre partenaire de confiance pour les montres de luxe',

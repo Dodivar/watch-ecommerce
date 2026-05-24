@@ -1,4 +1,5 @@
 <script setup>
+import { Check, Mail } from '@lucide/vue'
 import { scrollAnimation } from '@/animation'
 import { WHATSAPP_NUMBER, EMAIL_CONTACT } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -36,51 +37,15 @@ onMounted(() => {
               <h3 class="text-xl font-semibold text-primary mb-4">Pourquoi nous choisir ?</h3>
               <ul class="space-y-3">
                 <li class="flex items-start">
-                  <svg
-                    class="h-6 w-6 text-primary mr-2 mt-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <Check class="h-6 w-6 text-primary mr-2 mt-1 shrink-0" :stroke-width="2" />
                   <span>Une visibilité maximale auprès de collectionneurs qualifiés</span>
                 </li>
                 <li class="flex items-start">
-                  <svg
-                    class="h-6 w-6 text-primary mr-2 mt-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <Check class="h-6 w-6 text-primary mr-2 mt-1 shrink-0" :stroke-width="2" />
                   <span>Un accompagnement personnalisé tout au long du processus</span>
                 </li>
                 <li class="flex items-start">
-                  <svg
-                    class="h-6 w-6 text-primary mr-2 mt-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <Check class="h-6 w-6 text-primary mr-2 mt-1 shrink-0" :stroke-width="2" />
                   <span>Une expertise dans l'estimation des montres</span>
                 </li>
               </ul>
@@ -90,51 +55,15 @@ onMounted(() => {
               <h3 class="text-xl font-semibold text-primary mb-4">Nos engagements</h3>
               <ul class="space-y-3">
                 <li class="flex items-start">
-                  <svg
-                    class="h-6 w-6 text-primary mr-2 mt-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <Check class="h-6 w-6 text-primary mr-2 mt-1 shrink-0" :stroke-width="2" />
                   <span>Une sélection rigoureuse des acheteurs potentiels</span>
                 </li>
                 <li class="flex items-start">
-                  <svg
-                    class="h-6 w-6 text-primary mr-2 mt-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <Check class="h-6 w-6 text-primary mr-2 mt-1 shrink-0" :stroke-width="2" />
                   <span>Des transactions 100% sécurisées</span>
                 </li>
                 <li class="flex items-start">
-                  <svg
-                    class="h-6 w-6 text-primary mr-2 mt-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <Check class="h-6 w-6 text-primary mr-2 mt-1 shrink-0" :stroke-width="2" />
                   <span>Une transparence totale sur les conditions de vente</span>
                 </li>
               </ul>
@@ -187,14 +116,7 @@ onMounted(() => {
               :href="'mailto:' + EMAIL_CONTACT"
               class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-hover transition-colors"
             >
-              <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
+              <Mail class="w-5 h-5 mr-2" :stroke-width="2" />
               Contact Email
             </a>
           </div>

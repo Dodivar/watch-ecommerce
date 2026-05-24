@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { ChevronDown } from '@lucide/vue'
 import MainNavMegaMenuPanel from '@/components/layout/MainNavMegaMenuPanel.vue'
 import { navigationUsesCatalogBrands } from '@/site/mainNavigation.js'
 import { prefetchCatalogBrands } from '@/composables/useCatalogBrands.js'
@@ -107,20 +108,11 @@ function closeMegaMenu() {
               <RouterLink :to="item.to" class="hover:text-primary transition-colors">{{
                 item.label
               }}</RouterLink>
-              <svg
+              <ChevronDown
                 class="w-4 h-4 ml-1 shrink-0 pointer-events-none transition-transform"
                 :class="{ 'rotate-180': openMegaMenuIndex === idx }"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+                :stroke-width="2"
+              />
             </div>
           </div>
           <div v-else-if="item.type === 'group'" class="relative group">
@@ -132,19 +124,7 @@ function closeMegaMenu() {
                 >{{ item.label }}</RouterLink
               >
               <span v-else class="cursor-default">{{ item.label }}</span>
-              <svg
-                class="w-4 h-4 ml-1 shrink-0 pointer-events-none"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              <ChevronDown class="w-4 h-4 ml-1 shrink-0 pointer-events-none" :stroke-width="2" />
             </div>
             <div
               class="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-30"

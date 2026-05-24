@@ -12,6 +12,7 @@ exports[`site contract: demo-store > charge et résout le manifest sans erreur 1
     "estimation": true,
     "estimationProcess": true,
     "faq": true,
+    "guidePage": false,
     "legal": true,
     "merci": true,
     "paymentReturn": true,
@@ -79,7 +80,7 @@ exports[`site contract: demo-store > charge et résout le manifest sans erreur 1
     },
     {
       "label": "FAQ",
-      "to": "/#faq",
+      "to": "/faq",
       "type": "link",
     },
     {
@@ -104,6 +105,7 @@ exports[`site contract: jackned > charge et résout le manifest sans erreur 1`] 
     "estimation": true,
     "estimationProcess": true,
     "faq": false,
+    "guidePage": false,
     "legal": true,
     "merci": true,
     "paymentReturn": true,
@@ -191,6 +193,7 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
     "estimation": false,
     "estimationProcess": false,
     "faq": true,
+    "guidePage": true,
     "legal": true,
     "merci": true,
     "paymentReturn": true,
@@ -217,8 +220,12 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
       "to": "/services",
     },
     {
+      "label": "Guide de l'horloger",
+      "to": "/guide-horloger",
+    },
+    {
       "label": "FAQ",
-      "to": "/#faq",
+      "to": "/faq",
     },
     {
       "label": "Contact",
@@ -226,12 +233,11 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
     },
   ],
   "homeSections": [
+    "hero",
     "selections",
+    "stats",
     "nouvelles",
-    "trust",
-    "ventes",
-    "suivezNous",
-    "faq",
+    "aboutPreview",
   ],
   "mainNav": [
     {
@@ -251,7 +257,7 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
     },
     {
       "label": "FAQ",
-      "to": "/#faq",
+      "to": "/faq",
       "type": "link",
     },
     {
@@ -276,6 +282,7 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     "estimation": true,
     "estimationProcess": true,
     "faq": true,
+    "guidePage": false,
     "legal": true,
     "merci": true,
     "paymentReturn": true,
@@ -346,7 +353,7 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     },
     {
       "label": "FAQ",
-      "to": "/#faq",
+      "to": "/faq",
       "type": "link",
     },
     {

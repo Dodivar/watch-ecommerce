@@ -1,8 +1,14 @@
 <template>
-  <section id="faq" class="py-12">
+  <section :id="asPage ? undefined : 'faq'" :class="asPage ? 'py-10 lg:py-14' : 'py-12'">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 v-if="heading" class="text-3xl lg:text-4xl font-bold text-text-main mb-3">{{ heading }}</h2>
+        <component
+          :is="asPage ? 'h1' : 'h2'"
+          v-if="heading"
+          class="text-3xl lg:text-4xl font-bold text-text-main mb-3"
+        >
+          {{ heading }}
+        </component>
         <p v-if="subheading" class="text-xl text-gray-600">{{ subheading }}</p>
       </div>
       <div class="space-y-2">
@@ -13,20 +19,11 @@
           >
             <div class="flex justify-between items-center">
               <h3 class="text-lg font-semibold">{{ item.question }}</h3>
-              <svg
+              <ChevronDown
                 class="h-5 w-5 transform transition-transform duration-300 ease-out"
                 :class="{ 'rotate-180': activeFaqId === item.id }"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+                :stroke-width="2"
+              />
             </div>
           </button>
           <div
@@ -50,8 +47,16 @@
 
 <script setup>
 import { computed, ref, onMounted, nextTick } from 'vue'
+import { ChevronDown } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+
+defineProps({
+  asPage: {
+    type: Boolean,
+    default: false,
+  },
+})
 
 const router = useRouter()
 
