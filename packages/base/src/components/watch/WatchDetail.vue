@@ -392,6 +392,7 @@
               Détails
             </button>
             <button
+              v-if="watchGuarantees.items.length > 0"
               @click="activeTab = 'security'"
               :class="[
                 'py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap',
@@ -493,90 +494,22 @@
         </div>
 
         <!-- Tab Content: Security -->
-        <div v-if="activeTab === 'security'">
-          <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-6">Les garanties pour cette annonce</h3>
+        <div v-if="activeTab === 'security' && watchGuarantees.items.length > 0">
+          <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-6">{{ watchGuarantees.heading }}</h3>
           <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Card 1: Droit de rétractation -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+            <div
+              v-for="guarantee in watchGuarantees.items"
+              :key="guarantee.id"
+              class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm"
+            >
               <div class="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
+                <div class="text-primary [&_svg]:h-8 [&_svg]:w-8">
+                  <TrustHighlightIcon :name="guarantee.icon" />
+                </div>
               </div>
-              <h4 class="text-base lg:text-lg font-semibold text-gray-900 mb-2">Droit de rétractation de 14 jours</h4>
+              <h4 class="text-base lg:text-lg font-semibold text-gray-900 mb-2">{{ guarantee.title }}</h4>
               <p class="text-gray-600 text-sm leading-relaxed">
-                Si la montre présente des défauts ou ne correspond pas à vos attentes, vous pouvez exercer votre droit de rétractation dans un délai de 14 jours à compter de la réception pour obtenir un remboursement intégral du prix d'achat, rapidement et simplement.
-              </p>
-            </div>
-
-            <!-- Card 2: Authentification garantie -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-              <div class="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                <!-- Icône oeil pour authentification garantie -->
-                <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M1.458 12C2.732 7.943 6.522 5 12 5s9.268 2.943 10.542 7c-1.274 4.057-5.064 7-10.542 7s-9.268-2.943-10.542-7z" />
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none" />
-                </svg>
-              </div>
-              <h4 class="text-base lg:text-lg font-semibold text-gray-900 mb-2">Authentification garantie</h4>
-              <p class="text-gray-600 text-sm leading-relaxed">
-                {{ siteCopy.watchSecurityAuthentic }}
-              </p>
-            </div>
-
-            <!-- Card 3: Garantie mécanisme -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-              <div class="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h4 class="text-base lg:text-lg font-semibold text-gray-900 mb-2">Garantie 1 an sur le mécanisme</h4>
-              <p class="text-gray-600 text-sm leading-relaxed">
-                Toutes nos montres bénéficient d'une garantie d'un an sur le mécanisme. En cas de problème mécanique, nous prenons en charge la réparation ou le remplacement, vous permettant d'acheter en toute sérénité.
-              </p>
-            </div>
-
-            <!-- Card 4: Assurance transport -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-              <div class="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <h4 class="text-base lg:text-lg font-semibold text-gray-900 mb-2">Envoi assuré</h4>
-              <p class="text-gray-600 text-sm leading-relaxed">
-                {{ siteCopy.watchSecurityInsurance }}
-              </p>
-            </div>
-
-            <!-- Card 5: Paiement sécurisé -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-              <div class="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h4 class="text-base lg:text-lg font-semibold text-gray-900 mb-2">Paiement sécurisé</h4>
-              <p class="text-gray-600 text-sm leading-relaxed">
-                Tous les paiements sont traités de manière sécurisée via Stripe, garantissant la protection de vos données bancaires. Aucune information de paiement n'est stockée sur nos serveurs.
-              </p>
-            </div>
-
-            <!-- Card 6: Colis sécurisé et assuré -->
-            <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-              <div class="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <!-- Icône colis style isométrique (similaire à heroicons "cube") -->
-                  <polygon points="21 7.5 12 3 3 7.5 12 12 21 7.5" fill="none" stroke="currentColor"/>
-                  <polygon points="3 7.5 3 16.5 12 21 12 12 3 7.5" fill="none" stroke="currentColor"/>
-                  <polygon points="21 7.5 21 16.5 12 21 12 12 21 7.5" fill="none" stroke="currentColor"/>
-                </svg>
-              </div>
-              <h4 class="text-base lg:text-lg font-semibold text-gray-900 mb-2">Colis sécurisé et assuré</h4>
-              <p class="text-gray-600 text-sm leading-relaxed">
-                L'envoi de votre montre est sécurisé et assuré à la valeur déclarée de la montre. Chaque colis est suivi et protégé de bout en bout, garantissant une livraison en toute sécurité jusqu'à votre domicile.
+                {{ guarantee.text }}
               </p>
             </div>
           </div>
@@ -983,7 +916,7 @@ import { scrollAnimation } from '@/animation'
 import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, PURCHASE_ENABLED } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
-import { resolveRetailTrustHighlights } from '@/site/watchCatalogDisplay.js'
+import { resolveRetailTrustHighlights, resolveWatchGuarantees } from '@/site/watchCatalogDisplay.js'
 import { getWatchById } from '@/services/watchService'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 
@@ -1084,6 +1017,9 @@ const minSwipeDistance = 50 // Distance minimale en pixels pour déclencher un s
 const watchItem = ref(null)
 const retailTrustHighlights = computed(() =>
   resolveRetailTrustHighlights(site, watchItem.value),
+)
+const watchGuarantees = computed(() =>
+  resolveWatchGuarantees(site, watchItem.value),
 )
 const { add: addToCart, openDrawer: openCartDrawer } = useCart()
 const isLoading = ref(true)

@@ -424,6 +424,47 @@ export default {
         text: 'Retour possible sous 30 jours',
       },
     ],
+    guarantees: {
+      heading: 'Nos garanties et services',
+      items: [
+        {
+          id: 'guarantee',
+          icon: 'guarantee',
+          title: 'Garantie 2 ans',
+          text: 'Toutes nos montres sont couvertes par une garantie de 2 ans. Les modalités précises (constructeur ou vendeur) figurent sur chaque fiche produit.',
+        },
+        {
+          id: 'return',
+          icon: 'return',
+          title: 'Retour sous 30 jours',
+          text: 'Vous disposez de 30 jours pour retourner votre montre si elle ne vous convient pas, dans le respect de nos conditions générales de vente.',
+        },
+        {
+          id: 'shipping',
+          icon: 'shipping',
+          title: 'Envoi Colissimo suivi',
+          text: 'Expédition sous environ 48 h après réception du paiement. Livraison offerte dès 80 € en France métropolitaine.',
+        },
+        {
+          id: 'pickup',
+          icon: 'pickup',
+          title: 'Retrait au magasin',
+          text: 'Commandez en ligne et retirez votre montre au centre commercial Place des Halles, du lundi au samedi de 9h à 20h.',
+        },
+        {
+          id: 'payment',
+          icon: 'payment',
+          title: 'Paiement sécurisé',
+          text: 'Règlement en ligne protégé via Stripe. Aucune information bancaire n\'est stockée sur nos serveurs.',
+        },
+        {
+          id: 'experience',
+          icon: 'experience',
+          title: 'Expertise depuis 1995',
+          text: 'Spécialiste de la montre à Strasbourg depuis près de 30 ans : conseils, atelier sur place et service client du lundi au samedi.',
+        },
+      ],
+    },
   },
 
   checkout: {

@@ -2,7 +2,57 @@
 
 /** @typedef {{ id: string, icon?: string, label?: string, text?: string, source?: string }} WatchCatalogTrustHighlight */
 
+/** @typedef {{ id: string, icon?: string, title?: string, text?: string, source?: string }} WatchCatalogGuaranteeItem */
+
+/** @typedef {{ heading?: string, items?: WatchCatalogGuaranteeItem[] }} WatchCatalogGuaranteesConfig */
+
 export const DEFAULT_WATCH_CATALOG_MODE = 'retail'
+
+export const MIN_WATCH_GUARANTEES = 3
+export const MAX_WATCH_GUARANTEES = 6
+
+/** Contenu par défaut (Sauvage Watches — revente). */
+export const DEFAULT_WATCH_GUARANTEES = {
+  heading: 'Les garanties pour cette annonce',
+  items: [
+    {
+      id: 'return',
+      icon: 'return',
+      title: 'Droit de rétractation de 14 jours',
+      text: "Si la montre présente des défauts ou ne correspond pas à vos attentes, vous pouvez exercer votre droit de rétractation dans un délai de 14 jours à compter de la réception pour obtenir un remboursement intégral du prix d'achat, rapidement et simplement.",
+    },
+    {
+      id: 'authentic',
+      icon: 'authentic',
+      title: 'Authentification garantie',
+      source: 'copy.watchSecurityAuthentic',
+    },
+    {
+      id: 'guarantee',
+      icon: 'guarantee',
+      title: 'Garantie 1 an sur le mécanisme',
+      text: "Toutes nos montres bénéficient d'une garantie d'un an sur le mécanisme. En cas de problème mécanique, nous prenons en charge la réparation ou le remplacement, vous permettant d'acheter en toute sérénité.",
+    },
+    {
+      id: 'insurance',
+      icon: 'shield',
+      title: 'Envoi assuré',
+      source: 'copy.watchSecurityInsurance',
+    },
+    {
+      id: 'payment',
+      icon: 'payment',
+      title: 'Paiement sécurisé',
+      text: "Tous les paiements sont traités de manière sécurisée via Stripe, garantissant la protection de vos données bancaires. Aucune information de paiement n'est stockée sur nos serveurs.",
+    },
+    {
+      id: 'shipping',
+      icon: 'shipping',
+      title: 'Colis sécurisé et assuré',
+      text: "L'envoi de votre montre est sécurisé et assuré à la valeur déclarée de la montre. Chaque colis est suivi et protégé de bout en bout, garantissant une livraison en toute sécurité jusqu'à votre domicile.",
+    },
+  ],
+}
 
 const TRUST_HIGHLIGHT_ICON_BY_ID = {
   guarantee: 'guarantee',
@@ -38,6 +88,10 @@ export function resolveWatchCatalogConfig(siteConfig) {
     isResale,
     isRetail: !isResale,
     trustHighlights: Array.isArray(raw.trustHighlights) ? raw.trustHighlights : [],
+    guarantees:
+      raw.guarantees != null && typeof raw.guarantees === 'object'
+        ? raw.guarantees
+        : undefined,
     display: {
       showReference: isResale,
       showResaleFields: isResale,
@@ -135,4 +189,75 @@ export function resolveRetailTrustHighlights(siteConfig, watchItem) {
   }
 
   return buildDefaultRetailTrustHighlights(siteConfig, watchItem)
+}
+
+function resolveGuaranteeSource(source, siteConfig, watchItem) {
+  switch (source) {
+    case 'copy.watchSecurityAuthentic':
+      return siteConfig?.copy?.watchSecurityAuthentic
+    case 'copy.watchSecurityInsurance':
+      return siteConfig?.copy?.watchSecurityInsurance
+    case 'watch.guarantee':
+      return watchItem?.details?.guarantee
+    default:
+      return undefined
+  }
+}
+
+/**
+ * @param {WatchCatalogGuaranteeItem} item
+ * @param {Record<string, unknown>} siteConfig
+ * @param {Record<string, unknown> | null | undefined} watchItem
+ */
+function resolveGuaranteeItem(item, siteConfig, watchItem) {
+  const title = item.title ? String(item.title).trim() : ''
+  if (!title) return null
+
+  let text = item.text
+  if (item.source) {
+    text = resolveGuaranteeSource(item.source, siteConfig, watchItem)
+  }
+  if (!text || String(text).trim() === '') return null
+
+  return {
+    id: item.id,
+    icon: resolveTrustHighlightIcon(item),
+    title,
+    text: String(text).trim(),
+  }
+}
+
+/**
+ * Cartes garanties / sécurité de l'onglet fiche montre.
+ * @param {Record<string, unknown>} siteConfig — manifest enrichi (`getSiteConfig()`)
+ * @param {Record<string, unknown> | null | undefined} watchItem
+ */
+export function resolveWatchGuarantees(siteConfig, watchItem) {
+  /** @type {WatchCatalogGuaranteesConfig} */
+  const raw = siteConfig?.watchCatalog?.guarantees ?? {}
+  const hasCustomItems = Array.isArray(raw.items) && raw.items.length > 0
+  const config = hasCustomItems ? raw : DEFAULT_WATCH_GUARANTEES
+
+  const heading =
+    (config.heading && String(config.heading).trim()) ||
+    DEFAULT_WATCH_GUARANTEES.heading
+
+  const items = (config.items ?? [])
+    .map((item) => resolveGuaranteeItem(item, siteConfig, watchItem))
+    .filter(Boolean)
+    .slice(0, MAX_WATCH_GUARANTEES)
+
+  if (import.meta.env?.DEV && hasCustomItems) {
+    const count = config.items?.length ?? 0
+    if (count < MIN_WATCH_GUARANTEES || count > MAX_WATCH_GUARANTEES) {
+      console.warn(
+        `[watchCatalog.guarantees] Attendu entre ${MIN_WATCH_GUARANTEES} et ${MAX_WATCH_GUARANTEES} items, reçu ${count}.`,
+      )
+    }
+  }
+
+  return {
+    heading,
+    items,
+  }
 }

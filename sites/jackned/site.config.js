@@ -148,6 +148,41 @@ export default {
         text: "Commande en ligne, retrait en boutique Jack'N'Ed.",
       },
     ],
+    guarantees: {
+      heading: 'Nos garanties et services',
+      items: [
+        {
+          id: 'experience',
+          icon: 'store',
+          title: 'Entreprise familiale',
+          text: "Au pied de la cathédrale de Strasbourg, Jack'N'Ed vous accueille du lundi au samedi, 10h–19h, avec le même soin qu'en boutique depuis des générations.",
+        },
+        {
+          id: 'guarantee',
+          icon: 'guarantee',
+          title: 'Garanties et SAV',
+          text: "Nous vous informons sur les garanties et services associés à votre achat. Pour les modalités précises, adressez-vous à notre équipe en magasin.",
+        },
+        {
+          id: 'sav',
+          icon: 'shield',
+          title: 'Service après-vente sur place',
+          text: 'Réparations, changements de piles, bracelets et entretien : notre équipe intervient directement en boutique pour prolonger la vie de votre montre.',
+        },
+        {
+          id: 'payment',
+          icon: 'payment',
+          title: 'Paiement sécurisé',
+          text: 'Règlement en ligne protégé via Stripe. Aucune information bancaire n\'est stockée sur nos serveurs.',
+        },
+        {
+          id: 'pickup',
+          icon: 'pickup',
+          title: 'Retrait en boutique',
+          text: "Commandez en ligne et retirez votre montre au 14 place de la Cathédrale, au cœur de Strasbourg.",
+        },
+      ],
+    },
   },
 
   checkout: {

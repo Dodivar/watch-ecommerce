@@ -52,6 +52,22 @@ function closeMegaMenu() {
 
 <template>
   <div class="hidden md:block">
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-opacity duration-300 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-none"
+      >
+        <div
+          v-if="openMegaMenuIndex !== null"
+          class="fixed inset-0 z-10 bg-black/30"
+          aria-hidden="true"
+          @click="closeMegaMenu"
+        />
+      </Transition>
+    </Teleport>
+
     <div class="ml-10 flex items-baseline space-x-8">
       <template v-if="isAdmin && features.admin">
         <RouterLink
@@ -152,7 +168,6 @@ function closeMegaMenu() {
       :visible="openMegaMenuIndex !== null"
       @mouseenter="clearCloseTimer"
       @mouseleave="scheduleCloseMegaMenu"
-      @backdrop-click="closeMegaMenu"
     />
   </div>
 </template>

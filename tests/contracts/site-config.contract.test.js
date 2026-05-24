@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import { getActiveRoutePaths } from '@/site/appRouteMeta.js'
 import { resolveSiteConfig } from '@/site/resolveSiteConfig.js'
+import {
+  MAX_WATCH_GUARANTEES,
+  MIN_WATCH_GUARANTEES,
+} from '@/site/watchCatalogDisplay.js'
 import { KNOWN_HOME_SECTION_IDS } from '@/site/homeSections.js'
 import {
   resolveFooterNavigation,
@@ -121,5 +125,18 @@ describe.each(siteIds)('site contract: %s', (siteId) => {
       (m) => m && m.type && m.type !== 'pickup',
     )
     expect(paidMethods).toHaveLength(0)
+  })
+
+  it('respecte le nombre de garanties fiche montre si configurées', async () => {
+    const raw = await loadRawSiteConfig(siteId)
+    const items = raw.watchCatalog?.guarantees?.items
+    if (!Array.isArray(items) || items.length === 0) return
+    expect(items.length).toBeGreaterThanOrEqual(MIN_WATCH_GUARANTEES)
+    expect(items.length).toBeLessThanOrEqual(MAX_WATCH_GUARANTEES)
+    for (const item of items) {
+      expect(item.id).toBeTruthy()
+      expect(item.title).toBeTruthy()
+      expect(item.text || item.source).toBeTruthy()
+    }
   })
 })

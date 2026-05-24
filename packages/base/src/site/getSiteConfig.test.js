@@ -58,4 +58,19 @@ describe('resolveSiteConfig', () => {
     expect(resolved.checkout.shipping.pickupEnabled).toBe(false)
     expect(resolved.checkout.shipping.methods).toHaveLength(1)
   })
+
+  it('conserve watchCatalog.guarantees après résolution', () => {
+    const guarantees = {
+      heading: 'Nos garanties et services',
+      items: [
+        { id: 'a', icon: 'payment', title: 'Paiement', text: 'Stripe.' },
+        { id: 'b', icon: 'pickup', title: 'Retrait', text: 'Boutique.' },
+        { id: 'c', icon: 'guarantee', title: 'Garantie', text: '2 ans.' },
+      ],
+    }
+    const resolved = resolveSiteConfig({
+      watchCatalog: { mode: 'retail', guarantees },
+    })
+    expect(resolved.watchCatalog.guarantees).toEqual(guarantees)
+  })
 })

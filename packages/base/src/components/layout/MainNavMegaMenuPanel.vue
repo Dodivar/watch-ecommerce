@@ -8,7 +8,7 @@ const props = defineProps({
   visible: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['mouseenter', 'mouseleave', 'backdrop-click'])
+const emit = defineEmits(['mouseenter', 'mouseleave'])
 
 const { brands, isLoading, error, load } = useCatalogBrands()
 
@@ -36,24 +36,6 @@ function brandRoute(brandName) {
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition-opacity duration-200 ease-out"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition-opacity duration-150 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="visible"
-        class="fixed inset-0 z-10 hidden bg-black/40 md:block"
-        aria-hidden="true"
-        @click="emit('backdrop-click')"
-      />
-    </Transition>
-  </Teleport>
-
   <Teleport to="#header">
     <div
       v-show="visible"
