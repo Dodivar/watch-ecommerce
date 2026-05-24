@@ -43,6 +43,11 @@ function clearCloseTimer() {
     closeTimer = null
   }
 }
+
+function closeMegaMenu() {
+  clearCloseTimer()
+  openMegaMenuIndex.value = null
+}
 </script>
 
 <template>
@@ -147,6 +152,7 @@ function clearCloseTimer() {
       :visible="openMegaMenuIndex !== null"
       @mouseenter="clearCloseTimer"
       @mouseleave="scheduleCloseMegaMenu"
+      @backdrop-click="closeMegaMenu"
     />
   </div>
 </template>

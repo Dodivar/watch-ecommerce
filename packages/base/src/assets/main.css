@@ -12,6 +12,8 @@
 
 html {
   color: var(--color-text-main);
+  /* Fond blanc visible dans les safe areas iOS (barre d’état, home indicator). */
+  background-color: #ffffff;
 }
 
 /* Formulaires : fond clair conservé en mode sombre (évite le style sombre natif du navigateur) */
@@ -55,6 +57,10 @@ body {
   font-family: var(--font-sans);
   background-color: var(--color-cream);
   color: var(--color-text-main);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 h1,

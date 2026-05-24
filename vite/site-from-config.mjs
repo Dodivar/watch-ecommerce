@@ -79,8 +79,11 @@ export function siteFromConfigPlugin(siteConfig) {
       /** Match legacy index.html: canonical / og:url without trailing slash on bare domain */
       const canonical = base
 
+      const themeColor = siteConfig.theme?.colors?.browserChrome ?? '#ffffff'
+
       const map = {
         __SITE_LANG__: siteConfig.locale,
+        __THEME_COLOR__: escapeHtmlAttr(themeColor),
         __APPLE_MOBILE_TITLE__: escapeHtmlAttr(ix.appleMobileWebAppTitle),
         __INDEX_HTML_TITLE__: escapeHtmlAttr(ix.title),
         __META_DESCRIPTION__: escapeHtmlAttr(ix.metaDescription),

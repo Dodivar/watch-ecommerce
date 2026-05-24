@@ -1,0 +1,36 @@
+import { describe, expect, it } from 'vitest'
+
+import {
+  DEFAULT_SITE_FEATURES,
+  getBrowsePath,
+  mergeSiteFeatures,
+} from './siteFeatures.js'
+
+describe('mergeSiteFeatures', () => {
+  it('applique les défauts quand partial est vide', () => {
+    expect(mergeSiteFeatures({})).toEqual(DEFAULT_SITE_FEATURES)
+  })
+
+  it('surcharge partiellement les flags', () => {
+    const merged = mergeSiteFeatures({ collection: false, blog: false })
+    expect(merged.collection).toBe(false)
+    expect(merged.blog).toBe(false)
+    expect(merged.recherche).toBe(true)
+  })
+
+  it('désactive estimationProcess quand estimation est false', () => {
+    const merged = mergeSiteFeatures({ estimation: false })
+    expect(merged.estimation).toBe(false)
+    expect(merged.estimationProcess).toBe(false)
+  })
+})
+
+describe('getBrowsePath', () => {
+  it('retourne /collection quand collection est activée', () => {
+    expect(getBrowsePath({ collection: true })).toBe('/collection')
+  })
+
+  it('retourne / quand collection est désactivée', () => {
+    expect(getBrowsePath({ collection: false })).toBe('/')
+  })
+})

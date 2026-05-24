@@ -27,7 +27,10 @@ export const DEFAULT_SITE_FEATURES = {
    * Nécessite que le flux checkout envoie `lines` avec quantités (voir `orderService.createOrder`).
    */
   cartMultiQuantity: false,
-  /** Afficher la référence montre sur les cartes catalogue et fiches produit. */
+  /**
+   * Afficher la référence montre sur les cartes catalogue et fiches produit.
+   * Dérivé de `watchCatalog.mode === 'resale'` dans getSiteConfig() — ne pas surcharger sauf cas exceptionnel.
+   */
   watchReference: false,
 }
 

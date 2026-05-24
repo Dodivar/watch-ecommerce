@@ -1,0 +1,360 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`site contract: demo-store > charge et résout le manifest sans erreur 1`] = `
+{
+  "features": {
+    "about": true,
+    "admin": true,
+    "blog": true,
+    "cartMultiQuantity": false,
+    "collection": true,
+    "contact": true,
+    "estimation": true,
+    "estimationProcess": true,
+    "faq": true,
+    "legal": true,
+    "merci": true,
+    "paymentReturn": true,
+    "purchase": true,
+    "recherche": true,
+    "servicesPage": false,
+    "watchReference": true,
+  },
+  "footerNav": [
+    {
+      "label": "Accueil",
+      "to": "/#accueil",
+    },
+    {
+      "label": "Nos montres",
+      "to": "/collection",
+    },
+    {
+      "label": "Recherche personnalisée",
+      "to": "/recherche",
+    },
+    {
+      "label": "Estimation",
+      "to": "/estimation",
+    },
+    {
+      "label": "Blog",
+      "to": "/blog",
+    },
+    {
+      "label": "À propos",
+      "to": "/a-propos",
+    },
+    {
+      "label": "Contact",
+      "to": "/contact",
+    },
+  ],
+  "homeSections": [],
+  "mainNav": [
+    {
+      "label": "Accueil",
+      "to": "/",
+      "type": "link",
+    },
+    {
+      "label": "Nos montres",
+      "to": "/collection",
+      "type": "link",
+    },
+    {
+      "label": "Nos services",
+      "to": undefined,
+      "type": "group",
+    },
+    {
+      "label": "Blog",
+      "to": "/blog",
+      "type": "link",
+    },
+    {
+      "label": "À propos",
+      "to": "/a-propos",
+      "type": "link",
+    },
+    {
+      "label": "FAQ",
+      "to": "/#faq",
+      "type": "link",
+    },
+    {
+      "label": "Contact",
+      "to": "/contact",
+      "type": "link",
+    },
+  ],
+  "watchCatalogMode": "resale",
+}
+`;
+
+exports[`site contract: jackned > charge et résout le manifest sans erreur 1`] = `
+{
+  "features": {
+    "about": true,
+    "admin": true,
+    "blog": true,
+    "cartMultiQuantity": false,
+    "collection": true,
+    "contact": true,
+    "estimation": true,
+    "estimationProcess": true,
+    "faq": false,
+    "legal": true,
+    "merci": true,
+    "paymentReturn": true,
+    "purchase": true,
+    "recherche": true,
+    "servicesPage": false,
+    "watchReference": false,
+  },
+  "footerNav": [
+    {
+      "label": "Accueil",
+      "to": "/#accueil",
+    },
+    {
+      "label": "Nos montres",
+      "to": "/collection",
+    },
+    {
+      "label": "Recherche personnalisée",
+      "to": "/recherche",
+    },
+    {
+      "label": "Estimation",
+      "to": "/estimation",
+    },
+    {
+      "label": "Blog",
+      "to": "/blog",
+    },
+    {
+      "label": "À propos",
+      "to": "/a-propos",
+    },
+    {
+      "label": "Contact",
+      "to": "/contact",
+    },
+  ],
+  "homeSections": [],
+  "mainNav": [
+    {
+      "label": "Accueil",
+      "to": "/",
+      "type": "link",
+    },
+    {
+      "label": "Nos montres",
+      "to": "/collection",
+      "type": "link",
+    },
+    {
+      "label": "Nos services",
+      "to": undefined,
+      "type": "group",
+    },
+    {
+      "label": "Blog",
+      "to": "/blog",
+      "type": "link",
+    },
+    {
+      "label": "À propos",
+      "to": "/a-propos",
+      "type": "link",
+    },
+    {
+      "label": "Contact",
+      "to": "/contact",
+      "type": "link",
+    },
+  ],
+  "watchCatalogMode": "retail",
+}
+`;
+
+exports[`site contract: place-des-montres > charge et résout le manifest sans erreur 1`] = `
+{
+  "features": {
+    "about": true,
+    "admin": true,
+    "blog": false,
+    "cartMultiQuantity": true,
+    "collection": true,
+    "contact": true,
+    "estimation": false,
+    "estimationProcess": false,
+    "faq": true,
+    "legal": true,
+    "merci": true,
+    "paymentReturn": true,
+    "purchase": true,
+    "recherche": false,
+    "servicesPage": true,
+    "watchReference": false,
+  },
+  "footerNav": [
+    {
+      "label": "Accueil",
+      "to": "/#accueil",
+    },
+    {
+      "label": "Marques",
+      "to": "/collection/marques",
+    },
+    {
+      "label": "Qui sommes-nous",
+      "to": "/a-propos",
+    },
+    {
+      "label": "Nos services",
+      "to": "/services",
+    },
+    {
+      "label": "FAQ",
+      "to": "/#faq",
+    },
+    {
+      "label": "Contact",
+      "to": "/contact",
+    },
+  ],
+  "homeSections": [
+    "selections",
+    "nouvelles",
+    "trust",
+    "ventes",
+    "suivezNous",
+    "faq",
+  ],
+  "mainNav": [
+    {
+      "label": "Nos montres",
+      "to": "/collection",
+      "type": "megaMenu",
+    },
+    {
+      "label": "Qui sommes-nous",
+      "to": "/a-propos",
+      "type": "link",
+    },
+    {
+      "label": "Nos services",
+      "to": "/services",
+      "type": "link",
+    },
+    {
+      "label": "FAQ",
+      "to": "/#faq",
+      "type": "link",
+    },
+    {
+      "label": "Contact",
+      "to": "/contact",
+      "type": "link",
+    },
+  ],
+  "watchCatalogMode": "retail",
+}
+`;
+
+exports[`site contract: sauvage-watches > charge et résout le manifest sans erreur 1`] = `
+{
+  "features": {
+    "about": true,
+    "admin": true,
+    "blog": true,
+    "cartMultiQuantity": false,
+    "collection": true,
+    "contact": true,
+    "estimation": true,
+    "estimationProcess": true,
+    "faq": true,
+    "legal": true,
+    "merci": true,
+    "paymentReturn": true,
+    "purchase": true,
+    "recherche": true,
+    "servicesPage": false,
+    "watchReference": true,
+  },
+  "footerNav": [
+    {
+      "label": "Accueil",
+      "to": "/#accueil",
+    },
+    {
+      "label": "Nos montres",
+      "to": "/collection",
+    },
+    {
+      "label": "Recherche personnalisée",
+      "to": "/recherche",
+    },
+    {
+      "label": "Estimation",
+      "to": "/estimation",
+    },
+    {
+      "label": "Blog",
+      "to": "/blog",
+    },
+    {
+      "label": "À propos",
+      "to": "/a-propos",
+    },
+    {
+      "label": "Contact",
+      "to": "/contact",
+    },
+  ],
+  "homeSections": [
+    "hero",
+    "nouvelles",
+    "trust",
+    "ventes",
+    "suivezNous",
+    "services",
+    "faq",
+  ],
+  "mainNav": [
+    {
+      "label": "Nos montres",
+      "to": "/collection",
+      "type": "link",
+    },
+    {
+      "label": "Nos services",
+      "to": undefined,
+      "type": "group",
+    },
+    {
+      "label": "Blog",
+      "to": "/blog",
+      "type": "link",
+    },
+    {
+      "label": "À propos",
+      "to": "/a-propos",
+      "type": "link",
+    },
+    {
+      "label": "FAQ",
+      "to": "/#faq",
+      "type": "link",
+    },
+    {
+      "label": "Contact",
+      "to": "/contact",
+      "type": "link",
+    },
+  ],
+  "watchCatalogMode": "resale",
+}
+`;

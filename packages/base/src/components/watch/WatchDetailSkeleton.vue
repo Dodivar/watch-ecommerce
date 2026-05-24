@@ -50,8 +50,8 @@
           <!-- Buy Now Button Skeleton (Desktop only) -->
           <div class="hidden lg:block">
             <div class="w-full h-14 bg-primary rounded-lg mb-3 shimmer-bg"></div>
-            <!-- Payment Icons Skeleton -->
-            <div class="flex items-center justify-center gap-2 mt-2">
+            <!-- Payment Icons Skeleton (resale only) -->
+            <div v-if="isResaleCatalog" class="flex items-center justify-center gap-2 mt-2">
               <div class="w-14 h-9 bg-cream-200 rounded border border-gray-300 shimmer-bg"></div>
               <div class="w-14 h-9 bg-cream-200 rounded border border-gray-300 shimmer-bg"></div>
               <div class="w-14 h-9 bg-cream-200 rounded border border-gray-300 shimmer-bg"></div>
@@ -182,7 +182,9 @@
 </template>
 
 <script setup>
-// No props needed for this skeleton component
+import { getSiteConfig } from '@/site/getSiteConfig.js'
+
+const isResaleCatalog = getSiteConfig().watchCatalog.isResale
 </script>
 
 <style scoped>

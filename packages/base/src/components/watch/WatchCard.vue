@@ -136,7 +136,7 @@
           {{ watchItem.name }}
         </h3>
         <span
-          v-if="watchItem.isSold && showSoldBadge"
+          v-if="watchItem.isSold && effectiveShowSoldBadge"
           class="ml-1 md:ml-2 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-red-100 text-red-800 whitespace-nowrap flex-shrink-0"
         >
           Vendue
@@ -148,19 +148,19 @@
       </p>
 
       <div
-        v-if="showPrice || watchItem.contenu || watchItem.details?.content || watchItem.year"
+        v-if="showPrice || (catalogDisplay.showResaleFields && (watchItem.contenu || watchItem.details?.content || watchItem.year))"
         class="flex items-center gap-2 text-[10px] md:text-sm text-gray-500"
       >
         <span v-if="showPrice" class="text-base md:text-xl lg:text-2xl font-medium text-primary">
           {{ formatPrice(watchItem.price) }}
         </span>
         <span
-          v-if="watchItem.contenu || watchItem.details?.content"
+          v-if="catalogDisplay.showResaleFields && (watchItem.contenu || watchItem.details?.content)"
           class="hidden md:inline bg-cream-200 px-1.5 md:px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs text-black"
         >
           {{ watchItem.contenu || watchItem.details?.content }}
         </span>
-        <span v-if="watchItem.year" class="font-medium ml-auto">
+        <span v-if="catalogDisplay.showResaleFields && watchItem.year" class="font-medium ml-auto">
           {{ watchItem.year }}
         </span>
       </div>
@@ -181,7 +181,7 @@ import {
 } from '@/utils/watchImageUrl.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 
-const showWatchReference = getSiteConfig().features.watchReference
+const catalogDisplay = getSiteConfig().watchCatalog.display
 
 const props = defineProps({
   watch: {
@@ -233,7 +233,11 @@ const emit = defineEmits(['viewDetails'])
 const watchItem = computed(() => props.watch)
 
 const effectiveShowReference = computed(
-  () => props.showReference && showWatchReference,
+  () => props.showReference && catalogDisplay.showReference,
+)
+
+const effectiveShowSoldBadge = computed(
+  () => props.showSoldBadge && catalogDisplay.showSoldBadge,
 )
 
 const currentImageIndex = ref(0)

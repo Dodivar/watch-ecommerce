@@ -1,0 +1,89 @@
+import MaintenancePage from '@/components/MaintenancePage.vue'
+import HomeView from '@/components/HomePage.vue'
+import Merci from '@/components/Merci.vue'
+import Recherche from '@/components/Recherche.vue'
+import WatchesCollection from '@/components/watch/WatchesCollection.vue'
+import WatchSearchResultsPage from '@/components/watch/WatchSearchResultsPage.vue'
+import BrandsIndexPage from '@/components/watch/BrandsIndexPage.vue'
+import WatchDetail from '@/components/watch/WatchDetail.vue'
+import EstimationPage from '@/components/EstimationPage.vue'
+import AdminLogin from '@/components/admin/AdminLogin.vue'
+import AdminDashboard from '@/components/admin/AdminDashboard.vue'
+import AdminWatchForm from '@/components/admin/AdminWatchForm.vue'
+import AdminWatchStats from '@/components/admin/AdminWatchStats.vue'
+import AdminArticleList from '@/components/admin/AdminArticleList.vue'
+import AdminArticleForm from '@/components/admin/AdminArticleForm.vue'
+import AdminArticleGenerator from '@/components/admin/AdminArticleGenerator.vue'
+import BlogList from '@/components/BlogList.vue'
+import BlogDetail from '@/components/BlogDetail.vue'
+import EstimationProcess from '@/components/EstimationProcess.vue'
+import APropos from '@/components/APropos.vue'
+import PolitiqueConfidentialite from '@/components/PolitiqueConfidentialite.vue'
+import MentionsLegales from '@/components/MentionsLegales.vue'
+import ConditionsGeneralesUtilisation from '@/components/ConditionsGeneralesUtilisation.vue'
+import ContactPage from '@/components/ContactPage.vue'
+import ServicesPage from '@/components/ServicesPage.vue'
+import NotFound from '@/components/NotFound.vue'
+import CheckoutPage from '@/components/checkout/CheckoutPage.vue'
+import OrderSuccess from '@/components/checkout/OrderSuccess.vue'
+import OrderCancel from '@/components/checkout/OrderCancel.vue'
+
+import { APP_ROUTE_META, getActiveRoutePaths } from './appRouteMeta.js'
+
+export { APP_ROUTE_META as ROUTE_DEFINITIONS, getActiveRoutePaths } from './appRouteMeta.js'
+
+const COMPONENTS_BY_PATH = {
+  '/maintenance': MaintenancePage,
+  '/': HomeView,
+  '/merci': Merci,
+  '/recherche': Recherche,
+  '/estimation': EstimationPage,
+  '/estimation/processus': EstimationProcess,
+  '/collection/recherche': WatchSearchResultsPage,
+  '/collection/marques': BrandsIndexPage,
+  '/collection': WatchesCollection,
+  '/watch/:id': WatchDetail,
+  '/blog': BlogList,
+  '/blog/:id': BlogDetail,
+  '/a-propos': APropos,
+  '/services': ServicesPage,
+  '/contact': ContactPage,
+  '/politique-confidentialite': PolitiqueConfidentialite,
+  '/mentions-legales': MentionsLegales,
+  '/conditions-generales-utilisation': ConditionsGeneralesUtilisation,
+  '/checkout': CheckoutPage,
+  '/commande/succes': OrderSuccess,
+  '/commande/annulee': OrderCancel,
+  '/admin/login': AdminLogin,
+  '/admin': AdminDashboard,
+  '/admin/watches/new': AdminWatchForm,
+  '/admin/watches/:id/edit': AdminWatchForm,
+  '/admin/watches/stats': AdminWatchStats,
+  '/admin/articles': AdminArticleList,
+  '/admin/articles/new': AdminArticleForm,
+  '/admin/articles/generate': AdminArticleGenerator,
+  '/admin/articles/:id/edit': AdminArticleForm,
+  '/:pathMatch(.*)*': NotFound,
+}
+
+const REDIRECTS_BY_PATH = {
+  '/paiement-succes': '/commande/succes',
+  '/paiement-annule': { path: '/commande/annulee' },
+}
+
+/**
+ * Routes Vue Router actives pour le jeu de features donné.
+ * @param {Record<string, boolean>} features
+ */
+export function buildAppRoutes(features) {
+  return APP_ROUTE_META.filter((def) => !def.feature || features[def.feature]).map((def) => {
+    const redirect = REDIRECTS_BY_PATH[def.path]
+    if (redirect) {
+      return { path: def.path, redirect }
+    }
+    return {
+      path: def.path,
+      component: COMPONENTS_BY_PATH[def.path],
+    }
+  })
+}

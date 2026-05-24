@@ -76,6 +76,14 @@ npm run build
 
 (`SITE_ID` requis — voir ci-dessus ou les scripts `build:*`.)
 
+### Tests
+
+```sh
+npm test
+```
+
+Suite Vitest (unitaires socle, contrats sur tous les `site.config.js`, registry backend). À lancer avant toute PR touchant `packages/base` ou `sites/*`. Détail : [documentation/testing.md](documentation/testing.md).
+
 ### Lint with [ESLint](https://eslint.org/)
 
 ```sh

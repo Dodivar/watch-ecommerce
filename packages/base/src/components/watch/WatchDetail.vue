@@ -266,14 +266,14 @@
                 </span>
               </div>
             </div>
-            <p v-if="showWatchReference" class="text-base lg:text-lg text-gray-600 mb-3">Réf. {{ watchItem.reference }}</p>
+            <p v-if="catalogDisplay.showReference && hasValue(watchItem.reference)" class="text-base lg:text-lg text-gray-600 mb-3">Réf. {{ watchItem.reference }}</p>
             <div class="text-2xl lg:text-3xl font-medium text-primary mb-4">
               {{ formatPrice(watchItem.price) }}
             </div>
           </div>
 
-          <!-- Key Features -->
-          <div>
+          <!-- Key Features (resale) -->
+          <div v-if="isResaleCatalog">
             <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-3">Caractéristiques principales</h3>
             <div class="space-y-3">
               <div v-if="hasValue(watchItem.year)" class="flex gap-4 py-2 border-b border-gray-100">
@@ -317,9 +317,59 @@
                 Ajouter au panier
               </button>
               
-              <!-- Payment Icons -->
-              <PaymentIcons />
+              <!-- Payment Icons (resale only) -->
+              <PaymentIcons v-if="isResaleCatalog" />
             </div>
+
+          <!-- Retail appointment (always visible on retail catalog) -->
+          <div v-if="!isResaleCatalog && watchItem" class="mt-3">
+            <button
+              type="button"
+              @click="openAppointmentModal"
+              class="w-full inline-flex items-center justify-center px-6 py-3 border border-primary/30 text-base font-medium rounded-lg text-primary bg-white hover:bg-primary/5 transition-colors duration-200"
+            >
+              <svg
+                class="w-5 h-5 mr-2 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              Prendre rendez-vous
+            </button>
+          </div>
+
+          <!-- Trust highlights (retail) — carte compacte sous le bouton d'achat -->
+          <div
+            v-if="!isResaleCatalog && retailTrustHighlights.length > 0"
+            class="bg-white rounded-md shadow-lg border border-gray-100 p-3 lg:p-4"
+            :class="PURCHASE_ENABLED && watchItem && watchItem.isAvailable && !watchItem.isSold ? 'mt-3 lg:mt-4' : ''"
+          >
+            <ul class="flex flex-col gap-2">
+              <li
+                v-for="highlight in retailTrustHighlights"
+                :key="highlight.id"
+                class="flex items-center gap-2 min-w-0"
+              >
+                <div
+                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary [&_svg]:h-6 [&_svg]:w-6"
+                  :aria-label="highlight.label || undefined"
+                >
+                  <TrustHighlightIcon :name="highlight.icon" />
+                </div>
+                <p class="text-sm text-gray-700 leading-snug min-w-0">
+                  {{ highlight.text }}
+                </p>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -361,7 +411,7 @@
           <div>
             <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">Données de base</h3>
             <div class="space-y-0">
-              <div v-if="hasValue(watchItem.adCode)" class="flex gap-4 py-3 border-b border-gray-200">
+              <div v-if="catalogDisplay.showAdCode && hasValue(watchItem.adCode)" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Code annonce</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.adCode }}</span>
               </div>
@@ -373,7 +423,7 @@
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Modèle</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.model }}</span>
               </div>
-              <div v-if="showWatchReference && hasValue(watchItem.reference)" class="flex gap-4 py-3 border-b border-gray-200">
+              <div v-if="catalogDisplay.showReference && hasValue(watchItem.reference)" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Numéro de référence</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.reference }}</span>
               </div>
@@ -389,11 +439,11 @@
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Matière du bracelet</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.braceletMaterial }}</span>
               </div>
-              <div v-if="hasValue(watchItem.year)" class="flex gap-4 py-3 border-b border-gray-200">
+              <div v-if="catalogDisplay.showYearInDetails && hasValue(watchItem.year)" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Année de fabrication</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.year }}</span>
               </div>
-              <div v-if="hasValue(watchItem.condition)" class="flex gap-4 py-3 border-b border-gray-200">
+              <div v-if="catalogDisplay.showConditionInDetails && hasValue(watchItem.condition)" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">État</span>
                 <div class="font-medium text-gray-900 flex-1">
                   <div>{{ watchItem.condition }}</div>
@@ -533,8 +583,8 @@
         </div>
       </div>
 
-      <!-- Accessories -->
-      <div class="grid lg:grid-cols-2 gap-8 mb-12">
+      <!-- Accessories (resale only) -->
+      <div v-if="catalogDisplay.showDeliveryContent" class="grid lg:grid-cols-2 gap-8 mb-12">
         <div class="bg-white rounded-md shadow-lg p-6">
           <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-4">Contenu de la livraison</h3>
           <div class="space-y-3">
@@ -666,7 +716,7 @@
                   WHATSAPP_NUMBER +
                   '?text=' +
                   encodeURIComponent(
-                    `Bonjour, je suis intéressé par la montre ${watchItem.name}${showWatchReference ? ` (Réf. ${watchItem.reference})` : ''} au prix de ${formatPrice(watchItem.price)}`,
+                    `Bonjour, je suis intéressé par la montre ${watchItem.name}${catalogDisplay.showReference && watchItem.reference ? ` (Réf. ${watchItem.reference})` : ''} au prix de ${formatPrice(watchItem.price)}`,
                   )
                 : '#'
             "
@@ -689,7 +739,7 @@
                   encodeURIComponent(`Demande d'information - ${watchItem.name}`) +
                   '&body=' +
                   encodeURIComponent(
-                    `Bonjour,\n\nJe souhaiterais avoir plus d'informations concernant la montre ${watchItem.name}${showWatchReference ? ` (Réf. ${watchItem.reference})` : ''} proposée au prix de ${formatPrice(watchItem.price)}.\n\nCordialement`,
+                    `Bonjour,\n\nJe souhaiterais avoir plus d'informations concernant la montre ${watchItem.name}${catalogDisplay.showReference && watchItem.reference ? ` (Réf. ${watchItem.reference})` : ''} proposée au prix de ${formatPrice(watchItem.price)}.\n\nCordialement`,
                   )
                 : '#'
             "
@@ -916,6 +966,13 @@
         </div>
       </div>
     </Teleport>
+
+    <WatchAppointmentModal
+      v-if="watchItem && !isResaleCatalog"
+      :open="appointmentModalOpen"
+      :watch-context="watchAppointmentContext"
+      @close="appointmentModalOpen = false"
+    />
 </template>
 
 <script setup>
@@ -926,6 +983,7 @@ import { scrollAnimation } from '@/animation'
 import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, PURCHASE_ENABLED } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
+import { resolveRetailTrustHighlights } from '@/site/watchCatalogDisplay.js'
 import { getWatchById } from '@/services/watchService'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 
@@ -933,11 +991,14 @@ const site = getSiteConfig()
 const siteCopy = site.copy
 const seoWatch = site.seo.watchDetail
 const browsePath = getBrowsePath(site.features)
-const showWatchReference = site.features.watchReference
+const catalogDisplay = site.watchCatalog.display
+const isResaleCatalog = site.watchCatalog.isResale
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { useCart } from '@/composables/useCart.js'
 import WatchDetailSkeleton from '@/components/watch/WatchDetailSkeleton.vue'
+import WatchAppointmentModal from '@/components/watch/WatchAppointmentModal.vue'
 import PaymentIcons from '@/components/payment/PaymentIcons.vue'
+import TrustHighlightIcon from '@/components/watch/TrustHighlightIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -987,6 +1048,23 @@ const isLightboxOpen = ref(false)
 const isShareLightboxOpen = ref(false)
 const urlCopied = ref(false)
 
+// Retail appointment modal
+const appointmentModalOpen = ref(false)
+
+const watchAppointmentContext = computed(() => {
+  if (!watchItem.value) return null
+  return {
+    id: watchItem.value.id,
+    name: watchItem.value.name,
+    price: watchItem.value.price,
+    url: `${BASE_URL}${route.fullPath}`,
+  }
+})
+
+function openAppointmentModal() {
+  appointmentModalOpen.value = true
+}
+
 // Zoom on hover state
 const isHovering = ref(false)
 const mousePosition = ref({ x: 0, y: 0 })
@@ -1004,6 +1082,9 @@ const minSwipeDistance = 50 // Distance minimale en pixels pour déclencher un s
 
 // State
 const watchItem = ref(null)
+const retailTrustHighlights = computed(() =>
+  resolveRetailTrustHighlights(site, watchItem.value),
+)
 const { add: addToCart, openDrawer: openCartDrawer } = useCart()
 const isLoading = ref(true)
 const error = ref(null)
@@ -1652,7 +1733,10 @@ const shareOnTwitter = () => {
 const shareByEmail = () => {
   if (!watchItem.value) return
   const subject = encodeURIComponent(`Découvrez cette montre : ${watchItem.value.name}`)
-  const refPart = showWatchReference ? ` (Réf. ${watchItem.value.reference})` : ''
+  const refPart =
+    catalogDisplay.showReference && watchItem.value.reference
+      ? ` (Réf. ${watchItem.value.reference})`
+      : ''
   const body = encodeURIComponent(`Je vous partage cette montre : ${watchItem.value.name}${refPart}\n\nPrix : ${formatPrice(watchItem.value.price)}\n\n${canonicalUrl.value}`)
   window.location.href = `mailto:?subject=${subject}&body=${body}`
   closeShareLightbox()

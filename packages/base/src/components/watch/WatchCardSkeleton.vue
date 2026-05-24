@@ -15,13 +15,13 @@
         <div class="h-4 md:h-5 lg:h-6 bg-cream-300 rounded flex-1 pr-1 shimmer-bg" style="max-width: 75%;"></div>
         <!-- Badge skeleton (optional, shown if showSoldBadge is true) -->
         <div
-          v-if="showSoldBadge"
+          v-if="effectiveShowSoldBadge"
           class="ml-1 md:ml-2 h-4 md:h-5 w-12 md:w-16 bg-cream-200 rounded-full flex-shrink-0 shimmer-bg"
         ></div>
       </div>
 
       <!-- Reference skeleton (optional) -->
-      <div v-if="showReference" class="h-3 md:h-4 bg-cream-200 rounded mb-2 md:mb-3 w-1/2 shimmer-bg"></div>
+      <div v-if="effectiveShowReference" class="h-3 md:h-4 bg-cream-200 rounded mb-2 md:mb-3 w-1/2 shimmer-bg"></div>
 
       <!-- Price/Content/Year skeleton -->
       <div 
@@ -36,6 +36,11 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
+
+const catalogDisplay = getSiteConfig().watchCatalog.display
+
 const props = defineProps({
   showReference: {
     type: Boolean,
@@ -54,6 +59,14 @@ const props = defineProps({
     default: true,
   },
 })
+
+const effectiveShowReference = computed(
+  () => props.showReference && catalogDisplay.showReference,
+)
+
+const effectiveShowSoldBadge = computed(
+  () => props.showSoldBadge && catalogDisplay.showSoldBadge,
+)
 </script>
 
 <style scoped>

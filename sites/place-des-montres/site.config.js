@@ -114,6 +114,11 @@ export default {
       'https://www.google.com/maps/place/Place+des+Montres/@48.5864673,7.7411787,17z/data=!3m1!4b1!4m6!3m5!1s0x4796c84892d71677:0xed78782525eaaaa8!8m2!3d48.5864673!4d7.7411787!16s%2Fg%2F1tqck4qt?hl=fr',
     /** Adresse exacte pour l'itinéraire Google Maps */
     directionsAddress: '24 Place des Halles, Centre Commercial, 67000 Strasbourg, France',
+    /** Horaires boutique — affichés dans la popup prise de rendez-vous */
+    openingHours: {
+      daysLabel: 'Lundi – samedi',
+      hoursLabel: '9h – 20h',
+    },
     /** Optionnel — note et avis via Places API (si clé Google configurée) */
     googlePlaceQuery: 'Place des Montres, 24 Place des Halles, 67000 Strasbourg',
   },
@@ -397,6 +402,28 @@ export default {
     paymentReturn: true,
     admin: true,
     cartMultiQuantity: true,
+  },
+
+  /** Profil catalogue boutique : cartes épurées, bloc confiance sur fiche produit. */
+  watchCatalog: {
+    mode: 'retail',
+    trustHighlights: [
+      {
+        id: 'envoi',
+        icon: 'shipping',
+        text: 'Envoi gratuit en 48 h',
+      },
+      {
+        id: 'guarantee',
+        icon: 'guarantee',
+        text: 'Toutes nos montres sont garanties 2 ans',
+      },
+      {
+        id: 'return',
+        icon: 'return',
+        text: 'Retour possible sous 30 jours',
+      },
+    ],
   },
 
   checkout: {

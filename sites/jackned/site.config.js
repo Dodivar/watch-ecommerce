@@ -46,6 +46,11 @@ export default {
     center: { lat: 48.58185, lng: 7.74875 },
     zoom: 16,
     markerLabel: "Jack'N'Ed",
+    directionsAddress: '14 Place de la Cathédrale, 67000 Strasbourg, France',
+    openingHours: {
+      daysLabel: 'Lundi – samedi',
+      hoursLabel: '10h – 19h',
+    },
   },
 
   legal: {
@@ -115,6 +120,34 @@ export default {
     purchase: true,
     paymentReturn: true,
     admin: true,
+  },
+
+  /** Profil catalogue boutique : cartes épurées, bloc confiance sur fiche produit. */
+  watchCatalog: {
+    mode: 'retail',
+    trustHighlights: [
+      {
+        id: 'experience',
+        icon: 'store',
+        text: "Entreprise familiale au cœur de Strasbourg — Place de la Cathédrale, du lundi au samedi.",
+      },
+      {
+        id: 'guarantee',
+        icon: 'guarantee',
+        source: 'watch.guarantee',
+        label: 'Garantie',
+      },
+      {
+        id: 'payment',
+        icon: 'payment',
+        text: 'Règlement en ligne protégé via Stripe.',
+      },
+      {
+        id: 'pickup',
+        icon: 'pickup',
+        text: "Commande en ligne, retrait en boutique Jack'N'Ed.",
+      },
+    ],
   },
 
   checkout: {

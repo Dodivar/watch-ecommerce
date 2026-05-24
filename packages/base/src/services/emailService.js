@@ -121,6 +121,26 @@ export function prepareContactFormData(form) {
 }
 
 /**
+ * Prépare les données du formulaire de prise de rendez-vous (fiche montre retail).
+ * @param {HTMLFormElement} form
+ * @param {{ id: string|number, name: string, price?: number|string, url?: string }} watchContext
+ * @returns {FormData}
+ */
+export function prepareAppointmentFormData(form, watchContext) {
+  const formData = new FormData(form)
+  formData.append('type', 'appointment')
+  formData.append('watch_id', String(watchContext.id))
+  formData.append('watch_name', watchContext.name)
+  if (watchContext.price != null && watchContext.price !== '') {
+    formData.append('watch_price', String(watchContext.price))
+  }
+  if (watchContext.url) {
+    formData.append('watch_url', watchContext.url)
+  }
+  return formData
+}
+
+/**
  * Gère la soumission d'un formulaire
  * @param {HTMLFormElement} form - Le formulaire à soumettre
  * @param {Function} prepareFormData - Fonction pour préparer les données du formulaire

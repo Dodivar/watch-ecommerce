@@ -148,6 +148,11 @@ export default {
     admin: true,
   },
 
+  /** Profil catalogue revente (démo plateforme). */
+  watchCatalog: {
+    mode: 'resale',
+  },
+
   checkout: {
     reserveMinutes: 30,
     currency: 'EUR',
