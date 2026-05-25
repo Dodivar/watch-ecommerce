@@ -3,7 +3,8 @@ const router = express.Router()
 const multer = require('multer')
 const fs = require('fs')
 
-const { getMailjetClient, MissingSecretsError } = require('../utils/siteClients')
+const { getMailjetClient, getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
+const { persistLeadSubmission } = require('../admin/adminRoutes')
 const { createEmailTemplate, formatEmailContent } = require('../templates/estimationEmail')
 const {
   createAppointmentVendorEmail,
@@ -173,6 +174,13 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
       console.log(`[${site.id}] ✅ Emails rendez-vous envoyés avec succès via Mailjet`)
       cleanupFiles(files)
 
+      try {
+        const supabase = getSupabaseClient(site)
+        await persistLeadSubmission(supabase, site.id, type, formData, files)
+      } catch (persistErr) {
+        console.error(`[${site.id}] persistLeadSubmission (appointment):`, persistErr.message)
+      }
+
       return res.json({
         success: true,
         message: 'Demande de rendez-vous envoyée avec succès',
@@ -213,6 +221,13 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
     console.log(`[${site.id}] ✅ Email envoyé avec succès via Mailjet`)
 
     cleanupFiles(files)
+
+    try {
+      const supabase = getSupabaseClient(site)
+      await persistLeadSubmission(supabase, site.id, type, formData, files)
+    } catch (persistErr) {
+      console.error(`[${site.id}] persistLeadSubmission:`, persistErr.message)
+    }
 
     res.json({
       success: true,

@@ -1,5 +1,7 @@
 /** Métadonnées de routes (path + feature) sans import de composants Vue. */
 
+import { isRouteActiveForFeatures } from './routeFeatures.js'
+
 export const APP_ROUTE_META = [
   { path: '/maintenance' },
   { path: '/' },
@@ -31,10 +33,19 @@ export const APP_ROUTE_META = [
   { path: '/admin/watches/new', feature: 'admin' },
   { path: '/admin/watches/:id/edit', feature: 'admin' },
   { path: '/admin/watches/stats', feature: 'admin' },
-  { path: '/admin/articles', feature: 'admin' },
-  { path: '/admin/articles/new', feature: 'admin' },
-  { path: '/admin/articles/generate', feature: 'admin' },
-  { path: '/admin/articles/:id/edit', feature: 'admin' },
+  { path: '/admin/orders', feature: 'admin' },
+  { path: '/admin/orders/:id', feature: 'admin' },
+  { path: '/admin/leads', feature: 'admin' },
+  { path: '/admin/leads/:id', feature: 'admin' },
+  { path: '/admin/promo', feature: 'admin' },
+  { path: '/admin/promo/new', feature: 'admin' },
+  { path: '/admin/promo/:id/edit', feature: 'admin' },
+  { path: '/admin/home-featured', feature: 'admin' },
+  { path: '/admin/users', feature: 'admin' },
+  { path: '/admin/articles', feature: 'admin', requiresFeatures: ['blog'] },
+  { path: '/admin/articles/new', feature: 'admin', requiresFeatures: ['blog'] },
+  { path: '/admin/articles/generate', feature: 'admin', requiresFeatures: ['blog'] },
+  { path: '/admin/articles/:id/edit', feature: 'admin', requiresFeatures: ['blog'] },
   { path: '/:pathMatch(.*)*' },
 ]
 
@@ -44,7 +55,7 @@ export const APP_ROUTE_META = [
  * @returns {string[]}
  */
 export function getActiveRoutePaths(features) {
-  return APP_ROUTE_META.filter((def) => !def.feature || features[def.feature]).map(
+  return APP_ROUTE_META.filter((def) => isRouteActiveForFeatures(def, features)).map(
     (def) => def.path,
   )
 }

@@ -17,7 +17,7 @@ import {
 } from 'chart.js'
 import { getWatchStatsByDay, getStorageStats, getTableSizes } from '@/services/admin/adminWatchService'
 import { getArticleStatsByDay } from '@/services/admin/adminArticleService'
-import AdminHeader from './AdminHeader.vue'
+import AdminShell from './AdminShell.vue'
 
 // Enregistrer les composants Chart.js
 ChartJS.register(
@@ -519,11 +519,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-cream">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Top Section -->
-      <AdminHeader title="Statistiques des montres" :show-back-button="true" />
-
+  <AdminShell title="Statistiques des montres" :show-back-button="true">
       <!-- Error State -->
       <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
         {{ error }}
@@ -805,7 +801,6 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-    </div>
-  </div>
+  </AdminShell>
 </template>
 

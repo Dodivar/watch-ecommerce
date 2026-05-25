@@ -77,7 +77,7 @@ export default defineConfig(async ({ command }) => {
     root: siteRoot,
     envDir: REPO_ROOT,
     publicDir: 'public',
-    base: '/',
+    base: process.env.VITE_BASE_PATH || '/',
     define: {
       'import.meta.env.VITE_SITE_ID': JSON.stringify(siteId),
     },

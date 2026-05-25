@@ -243,15 +243,15 @@
           </div>
 
           <!-- Buy Now Button -->
-            <div v-if="PURCHASE_ENABLED && watchItem && watchItem.isAvailable && !watchItem.isSold" class="hidden lg:block">
+            <div v-if="showAddToCartButton">
               <button
                 @click="handleAddToCart"
-                class="w-full inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200 shadow-md hover:shadow-lg mb-3"
+                class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200 mb-3"
               >
-                <ShoppingBag class="w-6 h-6 mr-3" :stroke-width="2" />
+                <ShoppingBag class="w-5 h-5 mr-2" :stroke-width="2" />
                 Ajouter au panier
               </button>
-              
+
               <!-- Payment Icons (resale only) -->
               <PaymentIcons v-if="isResaleCatalog" />
             </div>
@@ -272,7 +272,7 @@
           <div
             v-if="!isResaleCatalog && retailTrustHighlights.length > 0"
             class="bg-white rounded-md shadow-lg border border-gray-100 p-3 lg:p-4"
-            :class="PURCHASE_ENABLED && watchItem && watchItem.isAvailable && !watchItem.isSold ? 'mt-3 lg:mt-4' : ''"
+            :class="showAddToCartButton ? 'mt-3 lg:mt-4' : ''"
           >
             <ul class="flex flex-col gap-2">
               <li
@@ -599,25 +599,25 @@
 
   <!-- Sticky Buy Button Mobile -->
   <div
-    v-if="PURCHASE_ENABLED && watchItem && watchItem.isAvailable && !watchItem.isSold"
+    v-if="showAddToCartButton"
     class="fixed bottom-0 left-0 right-0 lg:hidden z-20 bg-white shadow-lg border-t border-gray-200 px-4 py-3"
   >
     <div class="flex items-center justify-between gap-4 max-w-7xl mx-auto">
       <!-- Watch Info and Price -->
       <div class="flex-1 min-w-0">
-        <div class="text-sm font-semibold text-gray-900 truncate mb-0.5">
+        <div class="text-sm font-medium text-gray-900 truncate mb-0.5">
           {{ watchItem.name }}
         </div>
-        <div class="text-xl lg:text-2xl font-medium text-primary">
+        <div class="text-lg font-medium text-primary">
           {{ formatPrice(watchItem.price) }}
         </div>
       </div>
       <!-- Buy Button -->
       <button
         @click="handleAddToCart"
-        class="flex-shrink-0 inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200 shadow-md"
+        class="flex-shrink-0 inline-flex items-center justify-center px-4 py-2.5 border border-transparent text-sm font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
       >
-        <ShoppingBag class="w-5 h-5 mr-2" :stroke-width="2" />
+        <ShoppingBag class="w-4 h-4 mr-1.5" :stroke-width="2" />
         Ajouter au panier
       </button>
     </div>
@@ -893,6 +893,13 @@ const retailTrustHighlights = computed(() =>
 )
 const watchGuarantees = computed(() =>
   resolveWatchGuarantees(site, watchItem.value),
+)
+const showAddToCartButton = computed(
+  () =>
+    PURCHASE_ENABLED &&
+    watchItem.value &&
+    watchItem.value.isAvailable &&
+    !watchItem.value.isSold,
 )
 const { add: addToCart, openDrawer: openCartDrawer } = useCart()
 const isLoading = ref(true)

@@ -117,6 +117,12 @@ function brandRoute(brandName) {
           <RouterLink to="/admin" @click="close" class="hover:text-cream-100 transition-colors"
             >Tableau de bord</RouterLink
           >
+          <RouterLink to="/admin/orders" @click="close" class="hover:text-cream-100 transition-colors"
+            >Commandes</RouterLink
+          >
+          <RouterLink to="/admin/leads" @click="close" class="hover:text-cream-100 transition-colors"
+            >Messages</RouterLink
+          >
           <RouterLink
             v-if="features.blog"
             to="/admin/articles"

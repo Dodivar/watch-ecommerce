@@ -10,6 +10,7 @@ const mailjetRoutes = require('./routes/mailjet')
 const { buildStripeRouter } = require('./routes/stripe')
 const { buildOrdersRouter } = require('./routes/orders')
 const n8nRoutes = require('./routes/n8n')
+const { buildAdminRouter } = require('./admin/adminRoutes')
 
 const isProductionBoot =
   process.env.NODE_ENV === 'production' || process.env.RENDER === 'true'
@@ -92,6 +93,7 @@ async function main() {
   // Routes nécessitant un site (Mailjet + n8n) — site résolu via Origin/header.
   app.use('/api', resolveSite(registry), mailjetRoutes)
   app.use('/api/n8n', resolveSite(registry), n8nRoutes)
+  app.use('/api/admin', resolveSite(registry), buildAdminRouter(registry))
 
   // Stripe webhooks (:siteId) — PaymentIntent
   app.use('/api/stripe', buildStripeRouter(registry))

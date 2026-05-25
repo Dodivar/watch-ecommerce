@@ -1,0 +1,78 @@
+# Déploie Place des Montres sur GitHub Pages (repo projet → /<repo>/).
+# Settings → Pages → Source : GitHub Actions.
+# Secrets requis : VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+# Secrets optionnels : VITE_BACKEND_URL, VITE_GOOGLE_PLACES_API_KEY, VITE_GA_ID,
+#                      VITE_STRIPE_PUBLISHABLE_KEY, VITE_PURCHASE_ENABLED
+name: Deploy Place des Montres (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-place-github-pages.yml'
+      - 'packages/**'
+      - 'sites/place-des-montres/**'
+      - 'vite/**'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+concurrency:
+  group: pages-place-des-montres
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SITE_ID: place-des-montres
+      # URL projet GitHub Pages : https://<owner>.github.io/<repo>/
+      VITE_BASE_PATH: /${{ github.event.repository.name }}/
+      VITE_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Place des Montres
+        run: npm run build:place
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_GOOGLE_PLACES_API_KEY: ${{ secrets.VITE_GOOGLE_PLACES_API_KEY }}
+          VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_PURCHASE_ENABLED: ${{ secrets.VITE_PURCHASE_ENABLED }}
+
+      - name: SPA fallback for client-side routing
+        run: cp dist/index.html dist/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

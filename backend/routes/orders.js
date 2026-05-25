@@ -16,7 +16,7 @@ const {
 const { buildOrderQuote } = require('../orders/pricing')
 const { findShippingMethod, validateHomeAddress } = require('../orders/shipping')
 const { loadPromoCode, computeDiscountCents, validatePromoEligibility } = require('../orders/promo')
-const { fulfillOrderPayment, releaseOrderReservation } = require('../orders/fulfillment')
+const { fulfillOrderPayment, releaseOrderReservation, applyRetailStockDecrement } = require('../orders/fulfillment')
 const { sendOrderConfirmationEmails } = require('../orders/email')
 
 /**
@@ -206,7 +206,7 @@ function buildOrdersRouter(registry) {
 
       const { data: watches, error: watchesError } = await supabase
         .from('watches')
-        .select('id, name, reference, price, is_available, is_sold')
+        .select('id, name, reference, price, is_available, is_sold, stock_quantity')
         .in('id', watchIds)
 
       if (watchesError || !watches || watches.length !== watchIds.length) {
@@ -214,12 +214,18 @@ function buildOrdersRouter(registry) {
       }
 
       const byId = new Map(watches.map((w) => [String(w.id), w]))
-      for (const id of watchIds) {
-        const w = byId.get(String(id))
+      for (const line of lines) {
+        const w = byId.get(line.watchId)
         if (!w || !w.is_available || w.is_sold) {
           return res.status(400).json({
             success: false,
             error: w ? `La montre « ${w.name} » n'est plus disponible` : 'Montre introuvable',
+          })
+        }
+        if (w.stock_quantity != null && line.quantity > w.stock_quantity) {
+          return res.status(400).json({
+            success: false,
+            error: `Stock insuffisant pour « ${w.name} »`,
           })
         }
       }
@@ -707,6 +713,7 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
   }
 
   await fulfillOrderPayment(supabase, orderId, paymentIntent.id)
+  await applyRetailStockDecrement(supabase, orderId)
 
   const { data: discountRow } = await supabase
     .from('order_discounts')

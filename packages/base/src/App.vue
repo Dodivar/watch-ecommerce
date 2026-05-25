@@ -327,6 +327,16 @@ function displayMobileMenu() {
               >
             </li>
             <li>
+              <RouterLink to="/admin/orders" class="text-white/90 hover:text-white transition-colors"
+                >Commandes</RouterLink
+              >
+            </li>
+            <li>
+              <RouterLink to="/admin/leads" class="text-white/90 hover:text-white transition-colors"
+                >Messages</RouterLink
+              >
+            </li>
+            <li>
               <RouterLink to="/admin/watches/new" class="text-white/90 hover:text-white transition-colors"
                 >Nouvelle Montre</RouterLink
               >

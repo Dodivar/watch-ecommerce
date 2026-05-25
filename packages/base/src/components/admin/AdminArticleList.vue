@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAllArticlesForAdmin, deleteArticle, toggleArticleVisibility } from '@/services/admin/adminArticleService'
-import AdminHeader from './AdminHeader.vue'
+import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
 
@@ -207,11 +207,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-cream">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Top Section -->
-      <AdminHeader title="Gestion des articles" />
-
+  <AdminShell title="Gestion des articles">
       <!-- Actions Bar -->
       <div class="bg-white rounded-lg shadow p-6 mb-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -569,7 +565,6 @@ onMounted(async () => {
           + Ajouter un article
         </button>
       </div>
-    </div>
 
     <!-- Delete Confirmation Modal -->
     <div
@@ -601,6 +596,6 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-  </div>
+  </AdminShell>
 </template>
 

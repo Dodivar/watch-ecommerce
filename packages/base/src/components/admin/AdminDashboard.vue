@@ -2,7 +2,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAllWatchesForAdmin, deleteWatch, toggleWatchAvailability, markWatchAsSold, reorderWatches } from '@/services/admin/adminWatchService'
-import AdminHeader from './AdminHeader.vue'
+import { getOrderKpisForAdmin } from '@/services/admin/adminOrderService'
+import { getUnreadLeadsCount } from '@/services/admin/adminLeadService'
+import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
 
@@ -16,6 +18,9 @@ const selectedBrand = ref('')
 const showDeleteConfirm = ref(false)
 const watchToDelete = ref(null)
 const activeTab = ref('available') // 'available', 'unavailable', 'sold', ou 'all'
+
+const orderKpis = ref({ todayCount: 0, weekRevenueCents: 0 })
+const unreadLeadsCount = ref(0)
 
 // Sorting state
 const sortColumn = ref(null) // 'price', 'date', 'brand', 'model'
@@ -164,6 +169,16 @@ const loadWatches = async () => {
     error.value = err.message || 'Une erreur est survenue lors du chargement des montres'
   } finally {
     isLoading.value = false
+  }
+}
+
+const loadDashboardKpis = async () => {
+  try {
+    const [kpis, unread] = await Promise.all([getOrderKpisForAdmin(), getUnreadLeadsCount()])
+    orderKpis.value = kpis
+    unreadLeadsCount.value = unread
+  } catch (err) {
+    console.error('Erreur lors du chargement des KPI:', err)
   }
 }
 
@@ -484,15 +499,31 @@ const handleDragEnd = (event) => {
 }
 
 onMounted(async () => {
-  await loadWatches()
+  await Promise.all([loadWatches(), loadDashboardKpis()])
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-cream">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Top Section -->
-      <AdminHeader title="Administration" />
+  <AdminShell title="Administration">
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <RouterLink to="/admin/orders" class="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
+          <div class="text-sm text-gray-600 mb-1">Commandes du jour</div>
+          <div class="text-3xl font-bold text-text-main">{{ orderKpis.todayCount }}</div>
+          <div class="text-xs text-primary mt-2">Voir les commandes →</div>
+        </RouterLink>
+        <RouterLink to="/admin/orders" class="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
+          <div class="text-sm text-gray-600 mb-1">CA semaine</div>
+          <div class="text-3xl font-bold text-text-main">{{ formatPrice(orderKpis.weekRevenueCents / 100) }}</div>
+          <div class="text-xs text-primary mt-2">Voir les commandes →</div>
+        </RouterLink>
+        <RouterLink to="/admin/leads" class="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
+          <div class="text-sm text-gray-600 mb-1">Messages non lus</div>
+          <div class="text-3xl font-bold text-text-main">{{ unreadLeadsCount }}</div>
+          <div class="text-xs text-primary mt-2">Voir les messages →</div>
+        </RouterLink>
+      </div>
+
       <!-- Stats -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white rounded-lg shadow p-6">
@@ -1064,7 +1095,6 @@ onMounted(async () => {
           + Ajouter une montre
         </button>
       </div>
-    </div>
 
     <!-- Delete Confirmation Modal -->
     <div
@@ -1096,8 +1126,6 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-
-
-  </div>
+  </AdminShell>
 </template>
 

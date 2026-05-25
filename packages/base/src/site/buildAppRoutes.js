@@ -14,6 +14,14 @@ import AdminWatchStats from '@/components/admin/AdminWatchStats.vue'
 import AdminArticleList from '@/components/admin/AdminArticleList.vue'
 import AdminArticleForm from '@/components/admin/AdminArticleForm.vue'
 import AdminArticleGenerator from '@/components/admin/AdminArticleGenerator.vue'
+import AdminOrdersList from '@/components/admin/AdminOrdersList.vue'
+import AdminOrderDetail from '@/components/admin/AdminOrderDetail.vue'
+import AdminLeadsList from '@/components/admin/AdminLeadsList.vue'
+import AdminLeadDetail from '@/components/admin/AdminLeadDetail.vue'
+import AdminPromoList from '@/components/admin/AdminPromoList.vue'
+import AdminPromoForm from '@/components/admin/AdminPromoForm.vue'
+import AdminHomeFeatured from '@/components/admin/AdminHomeFeatured.vue'
+import AdminUsersList from '@/components/admin/AdminUsersList.vue'
 import BlogList from '@/components/BlogList.vue'
 import BlogDetail from '@/components/BlogDetail.vue'
 import EstimationProcess from '@/components/EstimationProcess.vue'
@@ -31,6 +39,7 @@ import OrderSuccess from '@/components/checkout/OrderSuccess.vue'
 import OrderCancel from '@/components/checkout/OrderCancel.vue'
 
 import { APP_ROUTE_META, getActiveRoutePaths } from './appRouteMeta.js'
+import { isRouteActiveForFeatures } from './routeFeatures.js'
 
 export { APP_ROUTE_META as ROUTE_DEFINITIONS, getActiveRoutePaths } from './appRouteMeta.js'
 
@@ -67,6 +76,15 @@ const COMPONENTS_BY_PATH = {
   '/admin/articles/new': AdminArticleForm,
   '/admin/articles/generate': AdminArticleGenerator,
   '/admin/articles/:id/edit': AdminArticleForm,
+  '/admin/orders': AdminOrdersList,
+  '/admin/orders/:id': AdminOrderDetail,
+  '/admin/leads': AdminLeadsList,
+  '/admin/leads/:id': AdminLeadDetail,
+  '/admin/promo': AdminPromoList,
+  '/admin/promo/new': AdminPromoForm,
+  '/admin/promo/:id/edit': AdminPromoForm,
+  '/admin/home-featured': AdminHomeFeatured,
+  '/admin/users': AdminUsersList,
   '/:pathMatch(.*)*': NotFound,
 }
 
@@ -80,7 +98,7 @@ const REDIRECTS_BY_PATH = {
  * @param {Record<string, boolean>} features
  */
 export function buildAppRoutes(features) {
-  return APP_ROUTE_META.filter((def) => !def.feature || features[def.feature]).map((def) => {
+  return APP_ROUTE_META.filter((def) => isRouteActiveForFeatures(def, features)).map((def) => {
     const redirect = REDIRECTS_BY_PATH[def.path]
     if (redirect) {
       return { path: def.path, redirect }

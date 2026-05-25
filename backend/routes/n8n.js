@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const FormData = require('form-data')
 
+const { verifyAdminBearerToken } = require('../admin/adminRoutes')
+
 const isProduction = () =>
   process.env.NODE_ENV === 'production' || process.env.RENDER === 'true'
 
@@ -21,8 +23,18 @@ function resolveN8nUrl(site) {
 
 router.post('/generate-article', async (req, res) => {
   try {
-    const { watchName } = req.body
     const site = req.site
+    const authHeader = req.headers.authorization
+    const bearerToken =
+      typeof authHeader === 'string' && authHeader.startsWith('Bearer ')
+        ? authHeader.slice(7).trim()
+        : null
+    const auth = await verifyAdminBearerToken(site, bearerToken)
+    if (!auth.ok) {
+      return res.status(auth.status).json({ success: false, error: auth.error })
+    }
+
+    const { watchName } = req.body
 
     if (!watchName || !watchName.trim()) {
       return res.status(400).json({

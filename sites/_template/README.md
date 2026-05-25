@@ -24,7 +24,7 @@ Ce dossier **n’est pas** un site buildable : il sert de référence pour crée
    Si le front parle au serveur Express, renseigner `BACKEND_CORS_ORIGINS` avec les domaines du nouveau client.
 
 7. **Catalogue (migration PrestaShop)**  
-   Si le client vient de PrestaShop : copier `prestashop-import.mapping.json`, exporter le CSV produits (+ CSV images), appliquer la migration SQL documentée dans [`scripts/prestashop-import/README.md`](../../scripts/prestashop-import/README.md), puis lancer `npm run db:import-prestashop` (aperçu) avant `npm run db:import-prestashop:apply`.
+   Si le client vient de PrestaShop : import réalisé par l’équipe technique (pas d’accès admin client). Préparer `prestashop-import.mapping.json`, exporter le CSV produits (+ CSV images), appliquer la migration SQL documentée dans [`scripts/prestashop-import/README.md`](../../scripts/prestashop-import/README.md), puis lancer `npm run db:import-prestashop` (aperçu) avant `npm run db:import-prestashop:apply`.
 
 8. **Validation**  
    `npm run dev` avec `SITE_ID=<votre-site-id>` puis `SITE_ID=<votre-site-id> npm run build`.

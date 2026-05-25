@@ -12,7 +12,7 @@ const browseFallback = getBrowsePath(features)
 const routes = buildAppRoutes(features)
 
 const router = createRouter({
-  history: createWebHistory(), //createWebHashHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   // eslint-disable-next-line no-unused-vars
   async scrollBehavior(to, from, savedPosition) {

@@ -28,7 +28,42 @@ async function releaseOrderReservation(supabase, orderId) {
   }
 }
 
+/**
+ * Décrémente stock_quantity pour les catalogues retail après paiement.
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {string} orderId
+ */
+async function applyRetailStockDecrement(supabase, orderId) {
+  const { data: lines, error: linesError } = await supabase
+    .from('order_lines')
+    .select('watch_id, quantity')
+    .eq('order_id', orderId)
+
+  if (linesError) throw linesError
+  if (!lines?.length) return
+
+  for (const line of lines) {
+    const { data: watch, error: watchError } = await supabase
+      .from('watches')
+      .select('stock_quantity, is_sold')
+      .eq('id', line.watch_id)
+      .maybeSingle()
+
+    if (watchError || !watch || watch.stock_quantity == null) continue
+
+    const newStock = Math.max(0, watch.stock_quantity - line.quantity)
+    await supabase
+      .from('watches')
+      .update({
+        stock_quantity: newStock,
+        is_available: newStock > 0 && !watch.is_sold,
+      })
+      .eq('id', line.watch_id)
+  }
+}
+
 module.exports = {
   fulfillOrderPayment,
   releaseOrderReservation,
+  applyRetailStockDecrement,
 }

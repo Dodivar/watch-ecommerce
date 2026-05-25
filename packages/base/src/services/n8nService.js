@@ -2,11 +2,13 @@
  * Service pour appeler les workflows n8n via le backend proxy
  */
 
-// Configuration de l'API URL (même logique que emailService)
+import { supabase } from './supabase'
+
 const API_URL = import.meta.env.PROD
   ? import.meta.env.VITE_BACKEND_URL
   : 'http://localhost:3000'
 
+const SITE_ID = import.meta.env.VITE_SITE_ID || 'sauvage-watches'
 const N8N_PROXY_URL = `${API_URL}/api/n8n/generate-article`
 
 /**
@@ -20,15 +22,24 @@ export async function generateArticleFromWatch(watchName) {
     throw new Error('Le nom de la montre ou de la marque est obligatoire')
   }
 
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  const token = session?.access_token
+  if (!token) {
+    throw new Error('Session admin requise pour générer un article')
+  }
+
   try {
     console.log(`Appel du workflow n8n pour générer un article: ${watchName}`)
 
-    // Appeler le backend qui fait le proxy vers n8n
     const response = await fetch(N8N_PROXY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+        'X-Site-Id': SITE_ID,
       },
       credentials: 'include',
       body: JSON.stringify({ watchName: watchName.trim() }),

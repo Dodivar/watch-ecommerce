@@ -4,7 +4,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { createWatch, updateWatch, uploadWatchImage, deleteWatchImage, reorderWatchImages, getWatchByIdForAdmin, duplicateWatch } from '@/services/admin/adminWatchService'
 import { getWatchAudiencesForAdminForm } from '@/services/watchService'
 import { DEFAULT_WATCH_AUDIENCE_SLUG, getStaticWatchAudienceAdminOptions } from '@/constants/watchAudiences'
-import AdminHeader from './AdminHeader.vue'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
+import AdminShell from './AdminShell.vue'
 import AdminWatchArticleSelector from './AdminWatchArticleSelector.vue'
 
 const router = useRouter()
@@ -12,6 +13,7 @@ const route = useRoute()
 
 const isEditMode = computed(() => !!route.params.id)
 const watchId = computed(() => route.params.id)
+const isResaleCatalog = computed(() => getSiteConfig().watchCatalog?.mode === 'resale')
 
 // Form state
 const formData = ref({
@@ -27,6 +29,7 @@ const formData = ref({
   isAvailable: true,
   isSold: false,
   saleDate: null,
+  stockQuantity: 1,
   audience: 'unisexe',
   details: {
     content: '',
@@ -99,6 +102,7 @@ const loadWatch = async () => {
       isAvailable: watch.isAvailable !== undefined ? watch.isAvailable : true,
       isSold: isSoldValue,
       saleDate: watch.saleDate || null,
+      stockQuantity: watch.stockQuantity ?? 1,
       audience: watch.audience || 'unisexe',
       details: {
         content: watch.details?.content || '',
@@ -255,7 +259,7 @@ const moveImage = (index, direction) => {
 }
 
 const validateForm = () => {
-  if (!formData.value.adCode.trim()) {
+  if (isResaleCatalog.value && !formData.value.adCode.trim()) {
     return 'Le code annonce est requis'
   }
   if (!formData.value.name.trim()) {
@@ -298,6 +302,10 @@ const performSubmit = async () => {
   isSaving.value = true
 
   try {
+    if (!isResaleCatalog.value && !formData.value.adCode.trim()) {
+      formData.value.adCode = formData.value.reference.trim() || formData.value.name.trim()
+    }
+
     let result
 
     if (isEditMode.value) {
@@ -393,16 +401,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-cream py-8">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Header -->
-      <AdminHeader
-        :title="isEditMode ? 'Modifier la montre' : 'Ajouter une montre'"
-        :show-back-button="true"
-        back-button-text="Retour à la liste"
-        back-button-route="/admin"
-      />
-
+  <AdminShell
+    :title="isEditMode ? 'Modifier la montre' : 'Ajouter une montre'"
+    :show-back-button="true"
+    back-button-text="Retour à la liste"
+    back-button-route="/admin"
+    content-class="max-w-5xl"
+  >
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-16">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
@@ -423,7 +428,7 @@ onMounted(async () => {
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Informations de base</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div v-if="isResaleCatalog">
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Code annonce <span class="text-red-500">*</span>
               </label>
@@ -502,7 +507,7 @@ onMounted(async () => {
                 required
               />
             </div>
-            <div>
+            <div v-if="isResaleCatalog">
               <label class="block text-sm font-medium text-gray-700 mb-2">Année</label>
               <input
                 v-model="formData.year"
@@ -510,12 +515,22 @@ onMounted(async () => {
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            <div>
+            <div v-if="isResaleCatalog">
               <label class="block text-sm font-medium text-gray-700 mb-2">État</label>
               <input
                 v-model="formData.condition"
                 type="text"
                 placeholder="Ex: Excellent, Très bon, Bon"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+            <div v-if="!isResaleCatalog">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Stock disponible</label>
+              <input
+                v-model.number="formData.stockQuantity"
+                type="number"
+                min="0"
+                step="1"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -529,24 +544,26 @@ onMounted(async () => {
                 <span class="text-sm font-medium text-gray-700">En vente / Disponible</span>
               </label>
             </div>
-            <div>
-              <label class="flex items-center">
-                <input
-                  v-model="formData.isSold"
-                  type="checkbox"
-                  class="mr-2 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-                />
-                <span class="text-sm font-medium text-gray-700">
-                  Vendue
-                </span>
-              </label>
-            </div>
-            <div v-if="formData.isSold && formData.saleDate" class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Date de mise en vente</label>
-              <div class="px-4 py-2 bg-cream border border-gray-300 rounded-lg text-sm text-gray-700">
-                {{ formatDate(formData.saleDate) }}
+            <template v-if="isResaleCatalog">
+              <div>
+                <label class="flex items-center">
+                  <input
+                    v-model="formData.isSold"
+                    type="checkbox"
+                    class="mr-2 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  />
+                  <span class="text-sm font-medium text-gray-700">
+                    Vendue
+                  </span>
+                </label>
               </div>
-            </div>
+              <div v-if="formData.isSold && formData.saleDate" class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Date de mise en vente</label>
+                <div class="px-4 py-2 bg-cream border border-gray-300 rounded-lg text-sm text-gray-700">
+                  {{ formatDate(formData.saleDate) }}
+                </div>
+              </div>
+            </template>
             <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
@@ -674,7 +691,7 @@ onMounted(async () => {
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            <div>
+            <div v-if="isResaleCatalog">
               <label class="block text-sm font-medium text-gray-700 mb-2">État boîtier</label>
               <input
                 v-model="formData.details.caseCondition"
@@ -683,7 +700,7 @@ onMounted(async () => {
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            <div>
+            <div v-if="isResaleCatalog">
               <label class="block text-sm font-medium text-gray-700 mb-2">État cadran</label>
               <input
                 v-model="formData.details.dialCondition"
@@ -692,7 +709,7 @@ onMounted(async () => {
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            <div>
+            <div v-if="isResaleCatalog">
               <label class="block text-sm font-medium text-gray-700 mb-2">État bracelet</label>
               <input
                 v-model="formData.details.braceletCondition"
@@ -899,7 +916,6 @@ onMounted(async () => {
           </button>
         </div>
       </form>
-    </div>
 
     <!-- Article Selector Modal -->
     <AdminWatchArticleSelector
@@ -909,6 +925,6 @@ onMounted(async () => {
       @close="showArticleSelector = false"
       @saved="handleArticlesSaved"
     />
-  </div>
+  </AdminShell>
 </template>
 

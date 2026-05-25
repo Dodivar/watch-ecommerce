@@ -80,6 +80,12 @@ function closeMegaMenu() {
         <RouterLink to="/admin" class="text-text-main hover:text-primary transition-colors"
           >Tableau de bord</RouterLink
         >
+        <RouterLink to="/admin/orders" class="text-text-main hover:text-primary transition-colors"
+          >Commandes</RouterLink
+        >
+        <RouterLink to="/admin/leads" class="text-text-main hover:text-primary transition-colors"
+          >Messages</RouterLink
+        >
         <RouterLink
           v-if="features.blog"
           to="/admin/articles"

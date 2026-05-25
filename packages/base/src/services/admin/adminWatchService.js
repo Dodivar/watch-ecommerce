@@ -1,12 +1,22 @@
 import { supabase } from '../supabase'
 import { getWatchArticlesForAdmin } from '../watchArticleService'
 import { normalizeCaseSizeValue } from '@/utils/caseSize'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
+
+function isRetailCatalog() {
+  return getSiteConfig().watchCatalog?.mode !== 'resale'
+}
 
 /**
  * Transforme les données du formulaire en format base de données
  */
 function transformWatchToDB(watchData) {
-  return {
+  const retail = isRetailCatalog()
+  const stockQty = retail
+    ? Math.max(0, parseInt(String(watchData.stockQuantity ?? 1), 10) || 0)
+    : 1
+
+  const row = {
     ad_code: watchData.adCode,
     name: watchData.name,
     brand: watchData.brand,
@@ -20,7 +30,14 @@ function transformWatchToDB(watchData) {
     is_sold: watchData.isSold !== undefined ? watchData.isSold : false,
     sale_date: watchData.saleDate || null,
     audience: watchData.audience || 'unisexe',
+    stock_quantity: stockQty,
   }
+
+  if (retail) {
+    row.is_available = !row.is_sold && stockQty > 0
+  }
+
+  return row
 }
 
 /**
@@ -696,6 +713,7 @@ export async function getWatchByIdForAdmin(watchId) {
       isAvailable: watch.is_available !== undefined ? watch.is_available : true,
       isSold: watch.is_sold !== undefined ? watch.is_sold : false,
       saleDate: watch.sale_date || null,
+      stockQuantity: watch.stock_quantity ?? 1,
       displayOrder: watch.display_order || 0,
       audience: watch.audience || 'unisexe',
       articles: articles || [],

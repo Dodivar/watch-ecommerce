@@ -234,9 +234,9 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
   ],
   "homeSections": [
     "hero",
+    "nouvelles",
     "selections",
     "stats",
-    "nouvelles",
     "aboutPreview",
   ],
   "mainNav": [
