@@ -52,13 +52,15 @@ async function applyRetailStockDecrement(supabase, orderId) {
     if (watchError || !watch || watch.stock_quantity == null) continue
 
     const newStock = Math.max(0, watch.stock_quantity - line.quantity)
-    await supabase
+    const { error: updateError } = await supabase
       .from('watches')
       .update({
         stock_quantity: newStock,
         is_available: newStock > 0 && !watch.is_sold,
       })
       .eq('id', line.watch_id)
+
+    if (updateError) throw updateError
   }
 }
 

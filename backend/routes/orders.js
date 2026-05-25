@@ -740,11 +740,28 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
     }
   }
 
-  const lines = await supabase.from('order_lines').select('*').eq('order_id', orderId)
-  const refreshed = await supabase.from('orders').select('*').eq('id', orderId).single()
+  const { data: lineRows, error: linesError } = await supabase
+    .from('order_lines')
+    .select('*')
+    .eq('order_id', orderId)
+
+  const { data: refreshedOrder, error: refreshedError } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('id', orderId)
+    .maybeSingle()
+
+  if (linesError) {
+    console.error(`[${site.id}] Erreur chargement lignes commande ${orderId}:`, linesError)
+  }
+  if (refreshedError) {
+    console.error(`[${site.id}] Erreur rechargement commande ${orderId}:`, refreshedError)
+  }
+
+  const orderForEmail = refreshedOrder ?? { ...order.data, status: 'paid' }
 
   try {
-    await sendOrderConfirmationEmails(site, refreshed.data, lines.data || [])
+    await sendOrderConfirmationEmails(site, orderForEmail, lineRows || [])
   } catch (mailErr) {
     console.error(`[${site.id}] Email commande:`, mailErr)
   }

@@ -7,7 +7,7 @@ name: Deploy Place des Montres (GitHub Pages)
 
 on:
   push:
-    branches: [main]
+    branches: [staging]
     paths:
       - '.github/workflows/deploy-place-github-pages.yml'
       - 'packages/**'
