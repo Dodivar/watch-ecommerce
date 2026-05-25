@@ -17,33 +17,46 @@ async function loadSiteConfig() {
   return { siteId, siteConfig }
 }
 
-function resolveBaseUrl(siteConfig, req) {
-  const explicit = process.env.VITE_BASE_URL || process.env.BASE_URL
-  if (explicit) return explicit.replace(/\/$/, '')
+function stripTrailingSlash(value) {
+  if (typeof value !== 'string' || !value.trim()) return ''
+  return value.trim().replace(/\/$/, '')
+}
 
-  const urlProduction = siteConfig.urls.production.replace(/\/$/, '')
-  const urlStaging = siteConfig.urls.staging.replace(/\/$/, '')
-  const previewFallbackHost = siteConfig.urls.previewFallbackHost?.replace(/\/$/, '') ?? ''
+function resolveBaseUrl(siteConfig, req, env = process.env) {
+  const explicit = env.VITE_BASE_URL || env.BASE_URL
+  if (explicit) return stripTrailingSlash(explicit)
 
-  if (process.env.VERCEL_ENV === 'production') {
-    return urlProduction
+  const urls = siteConfig?.urls ?? {}
+  const urlProduction = stripTrailingSlash(urls.production)
+  const urlStaging = stripTrailingSlash(urls.staging)
+  const urlDevelopment = stripTrailingSlash(urls.development)
+  const previewFallbackHost = stripTrailingSlash(urls.previewFallbackHost)
+  const vercelPreviewUrl = env.VERCEL_URL
+    ? `https://${stripTrailingSlash(env.VERCEL_URL)}`
+    : ''
+
+  if (env.VERCEL_ENV === 'production') {
+    return urlProduction || vercelPreviewUrl || urlDevelopment
   }
 
-  if (process.env.VERCEL_ENV === 'preview' || process.env.VERCEL_URL) {
+  if (env.VERCEL_ENV === 'preview' || env.VERCEL_URL) {
     if (
-      process.env.VERCEL_URL?.includes('recette') ||
+      env.VERCEL_URL?.includes('recette') ||
       req.headers.host?.includes('recette')
     ) {
-      return urlStaging
+      return urlStaging || vercelPreviewUrl || urlProduction || urlDevelopment
     }
-    if (process.env.VERCEL_URL) {
-      return `https://${process.env.VERCEL_URL}`
-    }
-    return `https://${previewFallbackHost}`
+    if (vercelPreviewUrl) return vercelPreviewUrl
+    const requestHost = stripTrailingSlash(req.headers.host?.split(',')[0])
+    if (requestHost) return `https://${requestHost}`
+    if (previewFallbackHost) return `https://${previewFallbackHost}`
+    return urlStaging || urlProduction || urlDevelopment
   }
 
-  return urlProduction
+  return urlProduction || urlDevelopment || vercelPreviewUrl
 }
+
+export { resolveBaseUrl }
 
 export default async function handler(req, res) {
   // Gérer les requêtes OPTIONS pour CORS
@@ -61,6 +74,14 @@ export default async function handler(req, res) {
     const { siteConfig } = await loadSiteConfig()
     const mergedFeatures = mergeSiteFeatures(siteConfig.features)
     const baseUrl = resolveBaseUrl(siteConfig, req)
+
+    if (!baseUrl) {
+      return res.status(500).json({
+        error: 'Configuration manquante',
+        message:
+          'Impossible de déterminer l\'URL de base du sitemap. Renseignez urls.production dans site.config.js ou BASE_URL / VITE_BASE_URL.',
+      })
+    }
 
     // Récupération des variables d'environnement
     // Note: Les variables VITE_* ne sont pas disponibles dans les fonctions serverless Vercel

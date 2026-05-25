@@ -1,0 +1,54 @@
+{
+  "csv": {
+    "delimiter": ";",
+    "columns": {
+      "prestashopId": "ID",
+      "reference": "Référence",
+      "name": "Nom",
+      "brand": "Fabricant",
+      "price": "Prix TTC",
+      "active": "Actif",
+      "quantity": "Quantité",
+      "description": "Description",
+      "shortDescription": "Description courte",
+      "categories": "Catégories",
+      "features": "Feature (Name:Value:Position:Customized)",
+      "imageUrls": "Image URLs"
+    }
+  },
+  "features": {
+    "Modèle": "model",
+    "Référence montre": "reference",
+    "Année": "year",
+    "Mouvement": "details.movement",
+    "Diamètre": "details.caseSize",
+    "Matière boîtier": "details.caseMaterial",
+    "Matière bracelet": "details.braceletMaterial",
+    "Couleur cadran": "details.dialColor",
+    "Verre": "details.crystal",
+    "Étanchéité": "details.waterResistance",
+    "Fonctions": "details.functions",
+    "Réserve de marche": "details.powerReserve",
+    "Fréquence": "details.frequency",
+    "Épaisseur": "details.thickness"
+  },
+  "accessoryFeatures": {
+    "Boîte": "Boîte",
+    "Papiers": "Papiers"
+  },
+  "audienceFromCategory": {
+    "Homme": "homme",
+    "Femme": "femme",
+    "Enfant": "enfant"
+  },
+  "defaults": {
+    "audience": "unisexe",
+    "condition": "Neuf",
+    "details.guarantee": "1 an de garantie"
+  },
+  "adCode": {
+    "from": "reference",
+    "fallback": "prestashopId",
+    "prefix": "PS-"
+  }
+}

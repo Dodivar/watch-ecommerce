@@ -48,59 +48,23 @@
         <!-- En-tête : titre + filtres + chips + tri -->
         <div
           v-if="showFilters || showSort || !effectiveBrandHero"
-          class="mb-3 lg:mb-8 flex min-w-0 items-center gap-3 lg:gap-4"
+          class="mb-3 lg:mb-8 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-3 lg:flex-nowrap lg:gap-4"
         >
-          <div class="flex shrink-0 items-center gap-3 lg:gap-4">
-            <h1
-              v-if="!effectiveBrandHero"
-              class="text-2xl font-bold text-text-main"
-            >
-              {{ pageHeadingTitle }}
-            </h1>
-
-            <button
-              v-if="showFilters"
-              type="button"
-              class="inline-flex items-center gap-2 rounded-lg border border-primary bg-primary px-4 py-2.5 text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-              @click="listing.openFilterDrawer"
-            >
-              <SlidersHorizontal class="h-5 w-5 shrink-0" :stroke-width="2" />
-              <span class="text-sm font-semibold uppercase tracking-wide">Filtrer</span>
-              <span
-                v-if="listing.activeFilterCount > 0"
-                class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold text-text-main"
-              >
-                {{ listing.activeFilterCount }}
-              </span>
-            </button>
-          </div>
-
-          <div
-            v-if="activeFilterChips.length > 0"
-            class="collection-active-filters flex min-w-0 flex-1 items-center gap-2 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            aria-label="Filtres actifs"
+          <h1
+            v-if="!effectiveBrandHero"
+            class="min-w-0 flex-1 text-xl font-bold text-text-main sm:text-2xl lg:flex-none"
           >
-            <button
-              v-for="chip in activeFilterChips"
-              :key="chip.id"
-              type="button"
-              class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-text-main transition-colors hover:border-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
-              :aria-label="`Retirer le filtre ${chip.label}`"
-              @click="removeActiveFilter(chip)"
-            >
-              <span class="whitespace-nowrap">{{ chip.label }}</span>
-              <X class="h-3.5 w-3.5 shrink-0 text-gray-500" :stroke-width="2.5" aria-hidden="true" />
-            </button>
-          </div>
+            {{ pageHeadingTitle }}
+          </h1>
 
           <div
             v-if="showSort"
-            class="relative ml-auto shrink-0"
+            class="relative ml-auto shrink-0 lg:order-3"
             ref="sortDropdownRef"
           >
             <button
               type="button"
-              class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary sm:gap-2 sm:px-4 sm:py-2.5"
               :aria-label="`Trier les montres : ${currentSortLabel}`"
               aria-haspopup="listbox"
               :aria-expanded="listing.isSortMenuOpen"
@@ -140,6 +104,45 @@
                 @click="listing.selectSort(option.value)"
               >
                 {{ option.label }}
+              </button>
+            </div>
+          </div>
+
+          <div
+            v-if="showFilters || activeFilterChips.length > 0"
+            class="flex w-full min-w-0 items-center gap-2 lg:order-2 lg:w-auto lg:flex-1"
+          >
+            <button
+              v-if="showFilters"
+              type="button"
+              class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-primary bg-primary px-3 py-2 text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:px-4 sm:py-2.5"
+              @click="listing.openFilterDrawer"
+            >
+              <SlidersHorizontal class="h-5 w-5 shrink-0" :stroke-width="2" />
+              <span class="text-sm font-semibold uppercase tracking-wide">Filtrer</span>
+              <span
+                v-if="listing.activeFilterCount > 0"
+                class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold text-text-main"
+              >
+                {{ listing.activeFilterCount }}
+              </span>
+            </button>
+
+            <div
+              v-if="activeFilterChips.length > 0"
+              class="collection-active-filters flex min-w-0 flex-1 items-center gap-2 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              aria-label="Filtres actifs"
+            >
+              <button
+                v-for="chip in activeFilterChips"
+                :key="chip.id"
+                type="button"
+                class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-text-main transition-colors hover:border-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+                :aria-label="`Retirer le filtre ${chip.label}`"
+                @click="removeActiveFilter(chip)"
+              >
+                <span class="whitespace-nowrap">{{ chip.label }}</span>
+                <X class="h-3.5 w-3.5 shrink-0 text-gray-500" :stroke-width="2.5" aria-hidden="true" />
               </button>
             </div>
           </div>

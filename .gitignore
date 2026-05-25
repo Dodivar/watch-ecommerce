@@ -42,4 +42,5 @@ render.yaml
 *.md
 !README.md
 *.pdf
+!sites/**/public/**/*.pdf
 *.sql

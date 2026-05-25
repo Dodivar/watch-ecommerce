@@ -101,6 +101,12 @@ export default {
         answer:
           'Par e-mail&nbsp;: <strong>service.client@placedesmontres.fr</strong> (moyen le plus rapide). Par téléphone&nbsp;: <strong>03&nbsp;88&nbsp;22&nbsp;40&nbsp;40</strong>, du lundi au samedi de 9h à 20h (prix d’un appel local). Par courrier&nbsp;: Place des Montres — Centre commercial Place des Halles — 67000 Strasbourg.',
       },
+      {
+        id: 15,
+        question: 'Ajustez-vous le bracelet métal avant la livraison ?',
+        answer:
+          'Oui. Pour toute commande de montre avec <strong>bracelet métal</strong>, nous proposons un <strong>ajustement gratuit</strong> à votre tour de poignet avant expédition. Imprimez notre <a href="/documents/aide-ajustement-montres.pdf" class="text-primary underline" target="_blank" rel="noopener">guide de mesure (PDF)</a> à l’échelle 100&nbsp;%, mesurez votre poignet puis communiquez le résultat par e-mail à <strong>service.client@placedesmontres.fr</strong>.',
+      },
     ],
   },
 
@@ -384,8 +390,18 @@ export default {
         id: 'bracelets',
         icon: 'bracelets',
         title: 'Bracelets',
-        intro: 'Le plus grand choix de bracelets de montres sur Strasbourg.',
+        intro:
+          'Le plus grand choix de bracelets de montres sur Strasbourg — en magasin et pour vos commandes en ligne.',
         items: [
+          {
+            title: 'Ajustement avant expédition',
+            description:
+              'Pour toute montre avec bracelet métal commandée en ligne, nous ajustons gratuitement le bracelet à votre tour de poignet avant l’envoi.',
+            link: {
+              href: '/documents/aide-ajustement-montres.pdf',
+              label: 'Guide de mesure (PDF)',
+            },
+          },
           {
             title: 'Remplacement sur place',
             description: 'Pose, ajustement et conseil taille directement en magasin.',
@@ -422,6 +438,8 @@ export default {
       phoneLabel: '03 88 22 40 40',
       guideLabel: "Le Guide de l'horloger",
       guideTo: '/guide-horloger',
+      documentLabel: 'Guide ajustement bracelet (PDF)',
+      documentHref: '/documents/aide-ajustement-montres.pdf',
     },
   },
 
@@ -510,7 +528,7 @@ export default {
           id: 'shipping',
           icon: 'shipping',
           title: 'Envoi Colissimo suivi',
-          text: 'Expédition sous environ 48 h après réception du paiement. Livraison offerte dès 80 € en France métropolitaine.',
+          text: 'Expédition sous environ 48 h après réception du paiement. Livraison offerte dès 80 € en France métropolitaine. Pour les bracelets métal, ajustement gratuit avant envoi — voir le guide PDF sur la page Nos services.',
         },
         {
           id: 'pickup',

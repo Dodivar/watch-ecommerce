@@ -1,0 +1,13 @@
+-- Migration à appliquer manuellement dans le projet Supabase du client
+-- (Dashboard > SQL Editor). Permet l'upsert idempotent lors des imports PrestaShop.
+--
+-- Voir scripts/prestashop-import/README.md
+
+ALTER TABLE watches ADD COLUMN IF NOT EXISTS prestashop_product_id text;
+
+CREATE UNIQUE INDEX IF NOT EXISTS watches_prestashop_product_id_key
+  ON watches (prestashop_product_id)
+  WHERE prestashop_product_id IS NOT NULL;
+
+COMMENT ON COLUMN watches.prestashop_product_id IS
+  'Identifiant produit PrestaShop (ps_product.id) pour synchronisation import ETL';

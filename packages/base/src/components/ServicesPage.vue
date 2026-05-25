@@ -145,6 +145,16 @@
                     </span>
                   </div>
                   <p class="text-sm text-gray-600 leading-relaxed">{{ item.description }}</p>
+                  <a
+                    v-if="item.link?.href"
+                    :href="item.link.href"
+                    :target="item.link.external === false ? undefined : '_blank'"
+                    :rel="item.link.external === false ? undefined : 'noopener noreferrer'"
+                    class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primaryHover transition-colors"
+                  >
+                    {{ item.link.label || 'En savoir plus' }}
+                    <span aria-hidden="true">→</span>
+                  </a>
                 </div>
               </li>
             </ul>
@@ -173,14 +183,29 @@
             {{ content.cta.phoneLabel || site.contact.phoneDisplay }}
           </a>
         </div>
-        <RouterLink
-          v-if="features.guidePage && content.cta.guideLabel"
-          :to="content.cta.guideTo || '/guide-horloger'"
-          class="mt-6 inline-flex items-center gap-1 text-primary font-semibold hover:text-primaryHover transition-colors"
+        <div
+          v-if="(features.guidePage && content.cta.guideLabel) || content.cta.documentHref"
+          class="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-6"
         >
-          {{ content.cta.guideLabel }}
-          <span aria-hidden="true">→</span>
-        </RouterLink>
+          <RouterLink
+            v-if="features.guidePage && content.cta.guideLabel"
+            :to="content.cta.guideTo || '/guide-horloger'"
+            class="inline-flex items-center gap-1 text-primary font-semibold hover:text-primaryHover transition-colors"
+          >
+            {{ content.cta.guideLabel }}
+            <span aria-hidden="true">→</span>
+          </RouterLink>
+          <a
+            v-if="content.cta.documentHref"
+            :href="content.cta.documentHref"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 text-primary font-semibold hover:text-primaryHover transition-colors"
+          >
+            {{ content.cta.documentLabel || 'Télécharger le guide (PDF)' }}
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
       </div>
     </section>
   </div>

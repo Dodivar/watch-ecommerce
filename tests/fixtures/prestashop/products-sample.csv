@@ -1,0 +1,4 @@
+ID;Référence;Nom;Fabricant;Prix TTC;Actif;Quantité;Description;Description courte;Catégories;Feature (Name:Value:Position:Customized)
+1001;REF-001;Rolex Submariner Date;Rolex;8950.00;1;2;"Montre de plongée iconique.";"Submariner Date";"Montres > Homme";"Modèle:Submariner Date:1:0,Référence montre:126610LN:2:0,Mouvement:Automatique:3:0,Diamètre:41 mm:4:0,Boîte:Oui:5:0"
+1002;REF-002;Omega Speedmaster;Omega;6200.00;1;1;"Chronographe légendaire.";"Speedmaster";"Montres > Homme";"Modèle:Speedmaster:1:0,Mouvement:Manuel:2:0,Diamètre:42:3:0"
+1003;;Montre sans prix;;0;1;1;;;;
