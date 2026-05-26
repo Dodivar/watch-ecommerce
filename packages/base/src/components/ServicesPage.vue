@@ -26,78 +26,8 @@
       </div>
     </section>
 
-    <!-- Tarifs express -->
-    <section v-if="content.quickPrices?.length" class="relative z-10 -mt-8 pb-6">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid gap-4 sm:grid-cols-3">
-          <div
-            v-for="(price, index) in content.quickPrices"
-            :key="index"
-            class="rounded-2xl bg-white p-6 text-center shadow-lg ring-1 ring-black/5 transition-transform hover:-translate-y-0.5"
-          >
-            <p class="text-3xl lg:text-4xl font-bold text-primary mb-1">{{ price.value }}</p>
-            <p class="text-base font-semibold text-text-main mb-1">{{ price.label }}</p>
-            <p v-if="price.note" class="text-sm text-gray-500">{{ price.note }}</p>
-          </div>
-        </div>
-        <p v-if="content.priceFootnote" class="mt-4 text-center text-sm text-gray-500">
-          {{ content.priceFootnote }}
-        </p>
-      </div>
-    </section>
-
-    <!-- Atelier sur place -->
-    <section v-if="content.workshop" class="py-8 lg:py-10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          class="relative overflow-hidden rounded-2xl bg-primary px-6 py-8 lg:px-10 lg:py-10 text-white shadow-xl"
-        >
-          <div
-            class="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-2xl"
-            aria-hidden="true"
-          />
-          <div class="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div class="flex items-start gap-4">
-              <span
-                class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/15"
-                aria-hidden="true"
-              >
-                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="1.75"
-                    d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M9.879 16.122A3 3 0 1012.015 3.015L3 12v4h4l8.879-8.879z"
-                  />
-                </svg>
-              </span>
-              <div>
-                <h2 class="text-2xl font-bold mb-2">{{ content.workshop.title }}</h2>
-                <p class="text-white/90 leading-relaxed max-w-2xl">{{ content.workshop.description }}</p>
-              </div>
-            </div>
-            <a
-              v-if="site.contact?.phoneDisplay"
-              :href="'tel:' + (site.contact.phoneE164 || site.contact.phoneDisplay)"
-              class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-6 py-3 font-semibold text-primary hover:bg-cream transition-colors"
-            >
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                />
-              </svg>
-              {{ site.contact.phoneDisplay }}
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- Grille services -->
-    <section class="py-10 lg:py-14">
+    <section class="relative z-10 -mt-8 pb-6 lg:pb-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid gap-8 lg:grid-cols-2">
           <article
@@ -159,6 +89,56 @@
               </li>
             </ul>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Atelier sur place -->
+    <section v-if="content.workshop" class="py-8 lg:py-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div
+          class="relative overflow-hidden rounded-2xl bg-primary px-6 py-8 lg:px-10 lg:py-10 text-white shadow-xl"
+        >
+          <div
+            class="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-2xl"
+            aria-hidden="true"
+          />
+          <div class="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-start gap-4">
+              <span
+                class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/15"
+                aria-hidden="true"
+              >
+                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.75"
+                    d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M9.879 16.122A3 3 0 1012.015 3.015L3 12v4h4l8.879-8.879z"
+                  />
+                </svg>
+              </span>
+              <div>
+                <h2 class="text-2xl font-bold mb-2">{{ content.workshop.title }}</h2>
+                <p class="text-white/90 leading-relaxed max-w-2xl">{{ content.workshop.description }}</p>
+              </div>
+            </div>
+            <a
+              v-if="site.contact?.phoneDisplay"
+              :href="'tel:' + (site.contact.phoneE164 || site.contact.phoneDisplay)"
+              class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-6 py-3 font-semibold text-primary hover:bg-cream transition-colors"
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                />
+              </svg>
+              {{ site.contact.phoneDisplay }}
+            </a>
+          </div>
         </div>
       </div>
     </section>

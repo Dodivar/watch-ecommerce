@@ -2,7 +2,8 @@
 # Settings → Pages → Source : GitHub Actions.
 # Variables ou secrets dans l'environnement « github-pages » (ou au niveau repo) :
 #   obligatoires : VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
-#   optionnels   : VITE_BACKEND_URL, VITE_GOOGLE_PLACES_API_KEY, VITE_GA_ID,
+#   obligatoire pour formulaires / checkout : VITE_BACKEND_URL (URL Render du backend, sans slash final)
+#   optionnels   : VITE_GOOGLE_PLACES_API_KEY, VITE_GA_ID,
 #                  VITE_STRIPE_PUBLISHABLE_KEY, VITE_PURCHASE_ENABLED
 name: Deploy Place des Montres (GitHub Pages)
 
@@ -49,6 +50,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Vérifier VITE_BACKEND_URL
+        run: |
+          if [ -z "${VITE_BACKEND_URL}" ]; then
+            echo "::error::VITE_BACKEND_URL est requis (Variable ou secret du repo / environnement github-pages). Ex. https://votre-app.onrender.com"
+            exit 1
+          fi
+        env:
+          VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL || secrets.VITE_BACKEND_URL }}
 
       - name: Build Place des Montres
         run: npm run build:place

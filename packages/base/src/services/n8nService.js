@@ -2,14 +2,10 @@
  * Service pour appeler les workflows n8n via le backend proxy
  */
 
+import { getBackendApiUrl } from './backendApiUrl.js'
 import { supabase } from './supabase'
 
-const API_URL = import.meta.env.PROD
-  ? import.meta.env.VITE_BACKEND_URL
-  : 'http://localhost:3000'
-
 const SITE_ID = import.meta.env.VITE_SITE_ID || 'sauvage-watches'
-const N8N_PROXY_URL = `${API_URL}/api/n8n/generate-article`
 
 /**
  * Génère un article depuis le nom d'une montre ou d'une marque via n8n
@@ -33,7 +29,7 @@ export async function generateArticleFromWatch(watchName) {
   try {
     console.log(`Appel du workflow n8n pour générer un article: ${watchName}`)
 
-    const response = await fetch(N8N_PROXY_URL, {
+    const response = await fetch(`${getBackendApiUrl()}/api/n8n/generate-article`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

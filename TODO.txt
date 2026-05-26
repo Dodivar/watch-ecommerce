@@ -18,11 +18,5 @@ Demander quel serait les meilleurs utilité Google Tag Manager et ce qu'il faudr
 Estimation :
 - Ajouter un article de blog "Anatomie d'une arnaque" / "Comment repérer une arnaque"
 
-CGV & d'utilisation
-droit de rétractation ?
-mentions légale 
-montre garantie => le mécanisme 
-
-
 backend:
 - Création de facture et envoi automatisé à l'e-mail du client ? Stripe le propose pour 0,4% de la trs (max 2$)

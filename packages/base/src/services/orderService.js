@@ -1,6 +1,4 @@
-const BACKEND_URL = import.meta.env.PROD
-  ? import.meta.env.VITE_BACKEND_URL
-  : 'http://localhost:3000'
+import { getBackendApiUrl, readApiResponseBody } from './backendApiUrl.js'
 
 /** Site actif (build Vite) — évite qu’en local le backend prenne le mauvais site via Origin :5173. */
 const SITE_ID = import.meta.env.VITE_SITE_ID || 'sauvage-watches'
@@ -16,22 +14,8 @@ function apiHeaders(accessToken) {
   return headers
 }
 
-async function readResponseBody(response) {
-  const contentType = response.headers.get('content-type') || ''
-  if (contentType.includes('application/json')) {
-    return response.json()
-  }
-  const text = (await response.text()).trim()
-  if (!text) return {}
-  try {
-    return JSON.parse(text)
-  } catch {
-    return { error: text }
-  }
-}
-
 async function parseJson(response) {
-  const data = await readResponseBody(response)
+  const data = await readApiResponseBody(response)
   if (!response.ok) {
     if (response.status === 429) {
       throw new Error(
@@ -49,7 +33,7 @@ async function parseJson(response) {
  * @param {{ lines?: { watchId: string, quantity: number }[], watchIds?: string[] }} payload
  */
 export async function createOrder(payload) {
-  const response = await fetch(`${BACKEND_URL}/api/orders`, {
+  const response = await fetch(`${getBackendApiUrl()}/api/orders`, {
     method: 'POST',
     headers: apiHeaders(),
     body: JSON.stringify(payload),
@@ -58,14 +42,14 @@ export async function createOrder(payload) {
 }
 
 export async function fetchOrder(orderId, accessToken) {
-  const response = await fetch(`${BACKEND_URL}/api/orders/${orderId}`, {
+  const response = await fetch(`${getBackendApiUrl()}/api/orders/${orderId}`, {
     headers: apiHeaders(accessToken),
   })
   return parseJson(response)
 }
 
 export async function updateOrderCustomer(orderId, accessToken, body) {
-  const response = await fetch(`${BACKEND_URL}/api/orders/${orderId}/customer`, {
+  const response = await fetch(`${getBackendApiUrl()}/api/orders/${orderId}/customer`, {
     method: 'PATCH',
     headers: apiHeaders(accessToken),
     body: JSON.stringify(body),
@@ -74,7 +58,7 @@ export async function updateOrderCustomer(orderId, accessToken, body) {
 }
 
 export async function updateOrderShipping(orderId, accessToken, body) {
-  const response = await fetch(`${BACKEND_URL}/api/orders/${orderId}/shipping`, {
+  const response = await fetch(`${getBackendApiUrl()}/api/orders/${orderId}/shipping`, {
     method: 'PATCH',
     headers: apiHeaders(accessToken),
     body: JSON.stringify(body),
@@ -83,7 +67,7 @@ export async function updateOrderShipping(orderId, accessToken, body) {
 }
 
 export async function applyOrderPromo(orderId, accessToken, code) {
-  const response = await fetch(`${BACKEND_URL}/api/orders/${orderId}/promo`, {
+  const response = await fetch(`${getBackendApiUrl()}/api/orders/${orderId}/promo`, {
     method: 'POST',
     headers: apiHeaders(accessToken),
     body: JSON.stringify({ code }),
@@ -92,7 +76,7 @@ export async function applyOrderPromo(orderId, accessToken, code) {
 }
 
 export async function removeOrderPromo(orderId, accessToken) {
-  const response = await fetch(`${BACKEND_URL}/api/orders/${orderId}/promo`, {
+  const response = await fetch(`${getBackendApiUrl()}/api/orders/${orderId}/promo`, {
     method: 'POST',
     headers: apiHeaders(accessToken),
     body: JSON.stringify({ remove: true }),
@@ -101,7 +85,7 @@ export async function removeOrderPromo(orderId, accessToken) {
 }
 
 export async function createOrderPayment(orderId, accessToken) {
-  const response = await fetch(`${BACKEND_URL}/api/orders/${orderId}/pay`, {
+  const response = await fetch(`${getBackendApiUrl()}/api/orders/${orderId}/pay`, {
     method: 'POST',
     headers: apiHeaders(accessToken),
   })
@@ -109,7 +93,7 @@ export async function createOrderPayment(orderId, accessToken) {
 }
 
 export async function cancelOrder(orderId, accessToken) {
-  const response = await fetch(`${BACKEND_URL}/api/orders/${orderId}/cancel`, {
+  const response = await fetch(`${getBackendApiUrl()}/api/orders/${orderId}/cancel`, {
     method: 'POST',
     headers: apiHeaders(accessToken),
   })
@@ -119,7 +103,7 @@ export async function cancelOrder(orderId, accessToken) {
 export async function verifyOrder(orderId, accessToken) {
   const params = new URLSearchParams({ token: accessToken })
   const response = await fetch(
-    `${BACKEND_URL}/api/orders/${orderId}/verify?${params.toString()}`,
+    `${getBackendApiUrl()}/api/orders/${orderId}/verify?${params.toString()}`,
     { headers: apiHeaders() },
   )
   return response.json()

@@ -313,24 +313,6 @@ export default {
       lead:
         'Aux Place des Halles, notre horloger intervient sur toutes marques — du changement de pile express à la réparation complète, sans longs délais.',
     },
-    quickPrices: [
-      {
-        value: '9 €',
-        label: 'Pile RENATA',
-        note: 'SWISS MADE — main d\'œuvre incluse*',
-      },
-      {
-        value: '21 €',
-        label: 'Étanchéité',
-        note: 'Contrôle sur place en moins d\'1 h',
-      },
-      {
-        value: '2 €',
-        label: 'Garantie +1 an',
-        note: 'Extension pour votre montre',
-      },
-    ],
-    priceFootnote: '* Hors montres haut de gamme.',
     workshop: {
       title: 'Horloger & atelier sur place',
       description:
@@ -719,8 +701,14 @@ export default {
   },
 
   backend: {
+    /**
+     * URL du backend Express (Render, etc.). Utilisée au build si VITE_BACKEND_URL
+     * n’est pas fournie (ex. GitHub Pages). Sans slash final.
+     */
+    publicApiUrl: '',
     cors: {
-      extraAllowedOrigins: [],
+      /** Origines front autorisées en plus de urls.production / staging / development */
+      extraAllowedOrigins: ['https://dodivar.github.io'],
     },
     email: {
       fromName: 'Place des Montres',

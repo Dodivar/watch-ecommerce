@@ -69,6 +69,7 @@ describe('sendEmailWithRetry', () => {
   it('envoie le header X-Site-Id sur chaque requête', async () => {
     fetch.mockResolvedValue({
       ok: true,
+      headers: { get: () => 'application/json' },
       json: async () => ({ success: true }),
     })
 

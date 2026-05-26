@@ -2,10 +2,7 @@
  * Service pour gérer l'envoi d'emails depuis les formulaires
  */
 
-// Configuration de l'API URL
-const API_URL = import.meta.env.PROD
-  ? import.meta.env.VITE_BACKEND_URL
-  : 'http://localhost:3000'
+import { getBackendApiUrl, readApiResponseBody } from './backendApiUrl.js'
 
 /** Site actif (build Vite) — évite qu'en local le backend prenne le mauvais site via Origin :5173. */
 const SITE_ID = import.meta.env.VITE_SITE_ID || 'sauvage-watches'
@@ -17,9 +14,10 @@ export const sendEmailWithRetry = async (endpoint, formData, maxRetries = 3) => 
 
   while (retries < maxRetries) {
     try {
-      console.log(`Tentative ${retries + 1} d'envoi à ${API_URL}${endpoint}`)
+      const apiUrl = getBackendApiUrl()
+      console.log(`Tentative ${retries + 1} d'envoi à ${apiUrl}${endpoint}`)
 
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      const response = await fetch(`${apiUrl}${endpoint}`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
@@ -30,11 +28,17 @@ export const sendEmailWithRetry = async (endpoint, formData, maxRetries = 3) => 
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || "Erreur lors de l'envoi de l'email")
+        const error = await readApiResponseBody(response)
+        const hint =
+          response.status === 405
+            ? " (l'URL du backend est peut-être incorrecte — vérifiez VITE_BACKEND_URL)"
+            : ''
+        throw new Error(
+          (error.message || error.error || "Erreur lors de l'envoi de l'email") + hint,
+        )
       }
 
-      return await response.json()
+      return await readApiResponseBody(response)
     } catch (error) {
       console.error(`Tentative ${retries + 1} échouée:`, error)
       retries++

@@ -61,6 +61,16 @@ export default defineConfig(async ({ command }) => {
   const siteConfigHref = pathToFileURL(siteConfigPath).href
   const { default: siteConfig } = await import(siteConfigHref)
 
+  const backendApiUrl =
+    (process.env.VITE_BACKEND_URL || '').trim() ||
+    (siteConfig?.backend?.publicApiUrl || '').trim()
+
+  if (command === 'build' && !backendApiUrl) {
+    console.warn(
+      `[vite] VITE_BACKEND_URL / backend.publicApiUrl non définis pour "${siteId}" — les appels API (formulaires, checkout) échoueront en production.`,
+    )
+  }
+
   const plugins = [
     mergeBasePublicPlugin({ repoRoot: REPO_ROOT }),
     siteFromConfigPlugin(siteConfig),
@@ -80,6 +90,9 @@ export default defineConfig(async ({ command }) => {
     base: process.env.VITE_BASE_PATH || '/',
     define: {
       'import.meta.env.VITE_SITE_ID': JSON.stringify(siteId),
+      ...(backendApiUrl
+        ? { 'import.meta.env.VITE_BACKEND_URL': JSON.stringify(backendApiUrl) }
+        : {}),
     },
     plugins,
     resolve: {
