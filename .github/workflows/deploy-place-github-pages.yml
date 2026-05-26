@@ -1,8 +1,9 @@
 # Déploie Place des Montres sur GitHub Pages (repo projet → /<repo>/).
 # Settings → Pages → Source : GitHub Actions.
-# Secrets requis : VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
-# Secrets optionnels : VITE_BACKEND_URL, VITE_GOOGLE_PLACES_API_KEY, VITE_GA_ID,
-#                      VITE_STRIPE_PUBLISHABLE_KEY, VITE_PURCHASE_ENABLED
+# Variables ou secrets dans l'environnement « github-pages » (ou au niveau repo) :
+#   obligatoires : VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+#   optionnels   : VITE_BACKEND_URL, VITE_GOOGLE_PLACES_API_KEY, VITE_GA_ID,
+#                  VITE_STRIPE_PUBLISHABLE_KEY, VITE_PURCHASE_ENABLED
 name: Deploy Place des Montres (GitHub Pages)
 
 on:
@@ -29,6 +30,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
     env:
       SITE_ID: place-des-montres
       # URL projet GitHub Pages : https://<owner>.github.io/<repo>/
@@ -50,13 +53,13 @@ jobs:
       - name: Build Place des Montres
         run: npm run build:place
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
-          VITE_GOOGLE_PLACES_API_KEY: ${{ secrets.VITE_GOOGLE_PLACES_API_KEY }}
-          VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
-          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-          VITE_PURCHASE_ENABLED: ${{ secrets.VITE_PURCHASE_ENABLED }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL || secrets.VITE_BACKEND_URL }}
+          VITE_GOOGLE_PLACES_API_KEY: ${{ vars.VITE_GOOGLE_PLACES_API_KEY || secrets.VITE_GOOGLE_PLACES_API_KEY }}
+          VITE_GA_ID: ${{ vars.VITE_GA_ID || secrets.VITE_GA_ID }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY || secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_PURCHASE_ENABLED: ${{ vars.VITE_PURCHASE_ENABLED || secrets.VITE_PURCHASE_ENABLED }}
 
       - name: SPA fallback for client-side routing
         run: cp dist/index.html dist/404.html
