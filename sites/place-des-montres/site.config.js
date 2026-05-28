@@ -712,8 +712,11 @@ export default {
     },
     email: {
       fromName: 'Place des Montres',
-      fromAddress: 'service.client@placedesmontres.fr',
-      toAddress: 'service.client@placedesmontres.fr',
+      // TODO
+      // fromAddress: 'service.client@placedesmontres.fr',
+      // toAddress: 'service.client@placedesmontres.fr',
+      fromAddress: 'doryandillen@gmail.com',
+      toAddress: 'doryandillen@gmail.com',
       template: {
         logoText: 'PLACE DES MONTRES',
         accentColor: '#7c6300',
