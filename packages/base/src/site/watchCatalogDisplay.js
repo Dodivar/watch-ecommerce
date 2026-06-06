@@ -83,6 +83,10 @@ export function resolveWatchCatalogConfig(siteConfig) {
   const mode = raw.mode === 'resale' ? 'resale' : 'retail'
   const isResale = mode === 'resale'
 
+  // Position de l'année sur la carte montre : 'corner' (badge en haut à gauche
+  // de l'image) ou 'inline' (à droite du prix/contenu, comportement historique).
+  const yearBadgePosition = raw.yearBadgePosition === 'corner' ? 'corner' : 'inline'
+
   return {
     mode,
     isResale,
@@ -100,6 +104,7 @@ export function resolveWatchCatalogConfig(siteConfig) {
       showDeliveryContent: isResale,
       showYearInDetails: isResale,
       showConditionInDetails: isResale,
+      yearBadgePosition,
     },
   }
 }
