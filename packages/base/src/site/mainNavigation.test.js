@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  isFaqOnHomepage,
   navigationUsesCatalogBrands,
   resolveFooterNavigation,
   resolveMainNavigation,
@@ -61,6 +62,48 @@ describe('resolveMainNavigation', () => {
     expect(nav[0].type).toBe('megaMenu')
     expect(navigationUsesCatalogBrands(nav)).toBe(true)
   })
+
+  it('redirige le lien FAQ vers /#faq quand la section est sur l’accueil', () => {
+    const site = {
+      features: { ...DEFAULT_SITE_FEATURES, faq: true },
+      home: { sections: ['hero', 'faq'] },
+      navigation: {
+        main: [{ type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' }],
+      },
+    }
+    const nav = resolveMainNavigation(site)
+    expect(nav).toEqual([{ type: 'link', label: 'FAQ', to: '/#faq' }])
+  })
+
+  it('conserve /faq quand la section n’est pas sur l’accueil', () => {
+    const site = {
+      features: { ...DEFAULT_SITE_FEATURES, faq: true },
+      home: { sections: ['hero'] },
+      navigation: {
+        main: [{ type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' }],
+      },
+    }
+    const nav = resolveMainNavigation(site)
+    expect(nav).toEqual([{ type: 'link', label: 'FAQ', to: '/faq' }])
+  })
+})
+
+describe('isFaqOnHomepage', () => {
+  it('retourne true si faq est dans home.sections filtré', () => {
+    const site = {
+      features: { ...DEFAULT_SITE_FEATURES, faq: true },
+      home: { sections: ['hero', 'faq'] },
+    }
+    expect(isFaqOnHomepage(site)).toBe(true)
+  })
+
+  it('retourne false si faq est absent de home.sections', () => {
+    const site = {
+      features: { ...DEFAULT_SITE_FEATURES, faq: true },
+      home: { sections: ['hero'] },
+    }
+    expect(isFaqOnHomepage(site)).toBe(false)
+  })
 })
 
 describe('resolveFooterNavigation', () => {
@@ -76,5 +119,17 @@ describe('resolveFooterNavigation', () => {
     }
     const footer = resolveFooterNavigation(site)
     expect(footer.map((l) => l.label)).toEqual(['Accueil'])
+  })
+
+  it('redirige le lien footer FAQ vers /#faq quand la section est sur l’accueil', () => {
+    const site = {
+      features: { ...DEFAULT_SITE_FEATURES, faq: true },
+      home: { sections: ['faq'] },
+      navigation: {
+        footer: [{ label: 'FAQ', to: '/faq', feature: 'faq' }],
+      },
+    }
+    const footer = resolveFooterNavigation(site)
+    expect(footer).toEqual([{ label: 'FAQ', to: '/#faq' }])
   })
 })
