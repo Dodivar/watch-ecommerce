@@ -4,9 +4,14 @@ import { useRouter } from 'vue-router'
 import { getAllWatchesForAdmin, deleteWatch, toggleWatchAvailability, markWatchAsSold, reorderWatches } from '@/services/admin/adminWatchService'
 import { getOrderKpisForAdmin } from '@/services/admin/adminOrderService'
 import { getUnreadLeadsCount } from '@/services/admin/adminLeadService'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
 import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
+
+// Catalogue retail (gestion de stock) : statut base sur le stock ("Hors stock"),
+// pas sur "Vendue" (reserve au mode resale / pieces uniques).
+const isRetailCatalog = computed(() => getSiteConfig().watchCatalog?.mode !== 'resale')
 
 // State
 const watches = ref([])
@@ -938,6 +943,18 @@ onMounted(async () => {
                 </td> -->
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
+                    v-if="isRetailCatalog"
+                    :class="[
+                      Number(watch.stock_quantity) <= 0
+                        ? 'bg-orange-100 text-orange-800'
+                        : 'bg-green-100 text-green-800',
+                      'px-2 py-1 text-xs font-semibold rounded-full',
+                    ]"
+                  >
+                    {{ Number(watch.stock_quantity) <= 0 ? 'Hors stock' : 'En vente' }}
+                  </span>
+                  <span
+                    v-else
                     :class="[
                       watch.is_sold === true
                         ? 'bg-red-100 text-red-800'

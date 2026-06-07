@@ -200,7 +200,7 @@
               </h1>
               <div class="flex items-center space-x-2">
                 <span
-                  v-if="!watchItem.isAvailable"
+                  v-if="isOutOfStock"
                   class="ml-4 px-3 py-1 text-sm font-semibold rounded-full bg-orange-100 text-orange-800 whitespace-nowrap"
                 >
                   Hors stock
@@ -254,6 +254,17 @@
 
               <!-- Payment Icons (resale only) -->
               <PaymentIcons v-if="isResaleCatalog" />
+            </div>
+
+          <!-- Out of stock (retail) — achat indisponible -->
+            <div v-else-if="isOutOfStock">
+              <button
+                type="button"
+                disabled
+                class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-gray-500 bg-gray-100 cursor-not-allowed mb-3"
+              >
+                Hors stock
+              </button>
             </div>
 
           <!-- Retail appointment (always visible on retail catalog) -->
@@ -789,7 +800,7 @@ import { scrollAnimation } from '@/animation'
 import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, PURCHASE_ENABLED } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
-import { resolveRetailTrustHighlights, resolveWatchGuarantees } from '@/site/watchCatalogDisplay.js'
+import { resolveRetailTrustHighlights, resolveWatchGuarantees, isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
 import { getWatchById } from '@/services/watchService'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 
@@ -894,12 +905,14 @@ const retailTrustHighlights = computed(() =>
 const watchGuarantees = computed(() =>
   resolveWatchGuarantees(site, watchItem.value),
 )
+const isOutOfStock = computed(() => isWatchOutOfStock(site, watchItem.value))
 const showAddToCartButton = computed(
   () =>
     PURCHASE_ENABLED &&
     watchItem.value &&
     watchItem.value.isAvailable &&
-    !watchItem.value.isSold,
+    !watchItem.value.isSold &&
+    !isOutOfStock.value,
 )
 const { add: addToCart, openDrawer: openCartDrawer } = useCart()
 const isLoading = ref(true)

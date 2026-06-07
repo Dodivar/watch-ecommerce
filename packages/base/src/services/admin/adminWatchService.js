@@ -34,7 +34,12 @@ function transformWatchToDB(watchData) {
   }
 
   if (retail) {
-    row.is_available = !row.is_sold && stockQty > 0
+    // Catalogue retail : decoupler publication et stock.
+    // `is_available` = montre publiee (toggle admin "En vente / Disponible").
+    // La rupture de stock (`stock_quantity === 0`) n'enleve plus la montre du
+    // catalogue : elle reste visible avec un badge "Hors stock".
+    row.is_sold = false
+    row.is_available = watchData.isAvailable !== undefined ? watchData.isAvailable : true
   }
 
   return row
@@ -853,35 +858,43 @@ export async function getAllWatchesForAdmin() {
       return []
     }
 
-    // Charger la première image de chaque montre
-    const watchesWithImages = await Promise.all(
-      watches.map(async (watch) => {
-        const { data: firstImage } = await supabase
-          .from('watch_images')
-          .select('image_url, image_path')
-          .eq('watch_id', watch.id)
-          .order('image_order', { ascending: true })
-          .limit(1)
-          .single()
+    // Charger toutes les images des montres en une seule requête (évite le N+1)
+    const watchIds = watches.map((watch) => watch.id)
+    const { data: allImages, error: imagesError } = await supabase
+      .from('watch_images')
+      .select('watch_id, image_url, image_path, image_order')
+      .in('watch_id', watchIds)
+      .order('image_order', { ascending: true })
 
-        let imageUrl = null
-        if (firstImage) {
-          if (firstImage.image_url) {
-            imageUrl = firstImage.image_url
-          } else if (firstImage.image_path) {
-            const { data } = supabase.storage.from('watch-images').getPublicUrl(firstImage.image_path)
-            imageUrl = data.publicUrl
-          }
+    if (imagesError) {
+      console.error('Erreur lors du chargement des images des montres:', imagesError)
+    }
+
+    // Construire une Map watch_id -> première image (la plus petite image_order)
+    const firstImageByWatchId = new Map()
+    for (const image of allImages || []) {
+      if (!firstImageByWatchId.has(image.watch_id)) {
+        firstImageByWatchId.set(image.watch_id, image)
+      }
+    }
+
+    return watches.map((watch) => {
+      const firstImage = firstImageByWatchId.get(watch.id)
+      let imageUrl = null
+      if (firstImage) {
+        if (firstImage.image_url) {
+          imageUrl = firstImage.image_url
+        } else if (firstImage.image_path) {
+          const { data } = supabase.storage.from('watch-images').getPublicUrl(firstImage.image_path)
+          imageUrl = data.publicUrl
         }
+      }
 
-        return {
-          ...watch,
-          images: imageUrl ? [imageUrl] : [],
-        }
-      }),
-    )
-
-    return watchesWithImages
+      return {
+        ...watch,
+        images: imageUrl ? [imageUrl] : [],
+      }
+    })
   } catch (error) {
     console.error('Erreur dans getAllWatchesForAdmin:', error)
     throw error
