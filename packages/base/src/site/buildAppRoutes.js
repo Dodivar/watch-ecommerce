@@ -9,6 +9,7 @@ import WatchDetail from '@/components/watch/WatchDetail.vue'
 import EstimationPage from '@/components/EstimationPage.vue'
 import AdminLogin from '@/components/admin/AdminLogin.vue'
 import AdminDashboard from '@/components/admin/AdminDashboard.vue'
+import AdminWatchesList from '@/components/admin/AdminWatchesList.vue'
 import AdminWatchForm from '@/components/admin/AdminWatchForm.vue'
 import AdminWatchStats from '@/components/admin/AdminWatchStats.vue'
 import AdminArticleList from '@/components/admin/AdminArticleList.vue'
@@ -52,7 +53,9 @@ const COMPONENTS_BY_PATH = {
   '/estimation/processus': EstimationProcess,
   '/collection/recherche': WatchSearchResultsPage,
   '/collection/marques': BrandsIndexPage,
+  '/collection/:brandSlug': WatchesCollection,
   '/collection': WatchesCollection,
+  '/montre/:slug': WatchDetail,
   '/watch/:id': WatchDetail,
   '/blog': BlogList,
   '/blog/:id': BlogDetail,
@@ -69,6 +72,7 @@ const COMPONENTS_BY_PATH = {
   '/commande/annulee': OrderCancel,
   '/admin/login': AdminLogin,
   '/admin': AdminDashboard,
+  '/admin/watches': AdminWatchesList,
   '/admin/watches/new': AdminWatchForm,
   '/admin/watches/:id/edit': AdminWatchForm,
   '/admin/stats': AdminWatchStats,

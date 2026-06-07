@@ -327,7 +327,7 @@ const performSubmit = async () => {
     if (result.success) {
       success.value = isEditMode.value ? 'Montre mise à jour avec succès' : 'Montre créée avec succès'
       setTimeout(() => {
-        router.push('/admin')
+        router.push('/admin/watches')
       }, 1500)
     } else {
       error.value = result.error || 'Erreur lors de la sauvegarde'
@@ -363,7 +363,7 @@ const handleDuplicate = async () => {
       success.value = `Montre "${formData.value.name}" dupliquée avec succès. Redirection...`
       // Rediriger vers la liste après 1.5 secondes
       setTimeout(() => {
-        router.push('/admin')
+        router.push('/admin/watches')
       }, 1500)
     } else {
       error.value = result.error || 'Erreur lors de la duplication'
@@ -886,7 +886,7 @@ onMounted(async () => {
         <div class="flex justify-end space-x-4">
           <button
             type="button"
-            @click="router.push('/admin')"
+            @click="router.push('/admin/watches')"
             class="px-6 py-2 text-gray-700 rounded-lg bg-white transition-colors"
           >
             Annuler

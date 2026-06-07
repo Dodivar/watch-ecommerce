@@ -2,6 +2,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
+  LayoutDashboard,
   Watch,
   ShoppingBag,
   MessageSquare,
@@ -34,7 +35,8 @@ const features = site.features
 
 const links = computed(() => {
   const items = [
-    { to: '/admin', label: 'Montres', icon: Watch, match: (p) => p === '/admin' || p.startsWith('/admin/watches') },
+    { to: '/admin', label: 'Tableau de bord', icon: LayoutDashboard, match: (p) => p === '/admin' },
+    { to: '/admin/watches', label: 'Montres', icon: Watch, match: (p) => p.startsWith('/admin/watches') },
     { to: '/admin/orders', label: 'Commandes', icon: ShoppingBag, match: (p) => p.startsWith('/admin/orders') },
     { to: '/admin/leads', label: 'Messages', icon: MessageSquare, match: (p) => p.startsWith('/admin/leads') },
     { to: '/admin/promo', label: 'Promos', icon: Tag, match: (p) => p.startsWith('/admin/promo') },
@@ -85,7 +87,7 @@ onMounted(async () => {
   </Transition>
 
   <aside
-    class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-white border-r border-gray-200 transition-transform duration-300 lg:static lg:z-auto lg:translate-x-0"
+    class="fixed inset-y-0 left-0 z-40 flex h-screen w-64 shrink-0 flex-col overflow-hidden bg-white border-r border-gray-200 transition-transform duration-300 lg:static lg:z-auto lg:translate-x-0"
     :class="open ? 'translate-x-0' : '-translate-x-full'"
   >
     <div class="flex items-center justify-between px-5 h-16 border-b border-gray-200 shrink-0">
@@ -106,7 +108,7 @@ onMounted(async () => {
       </button>
     </div>
 
-    <nav aria-label="Administration" class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+    <nav aria-label="Administration" class="flex-1 min-h-0 px-3 py-4 space-y-1">
       <RouterLink
         v-for="link in links"
         :key="link.to"
