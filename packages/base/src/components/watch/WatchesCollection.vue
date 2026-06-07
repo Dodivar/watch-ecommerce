@@ -45,106 +45,107 @@
       </div>
 
       <template v-else>
-        <!-- En-tête : titre + filtres + chips + tri -->
+        <!-- En-tête : titre + filtrer/tri (même ligne) + chips (ligne dessous) -->
         <div
           v-if="showFilters || showSort || !effectiveBrandHero"
-          class="mb-3 lg:mb-8 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-3 lg:flex-nowrap lg:gap-4"
+          class="mb-3 lg:mb-8"
         >
-          <h1
-            v-if="!effectiveBrandHero"
-            class="min-w-0 flex-1 text-xl font-bold text-text-main sm:text-2xl lg:flex-none"
-          >
-            {{ pageHeadingTitle }}
-          </h1>
-
-          <div
-            v-if="showSort"
-            class="relative ml-auto shrink-0 lg:order-3"
-            ref="sortDropdownRef"
-          >
-            <button
-              type="button"
-              class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary sm:gap-2 sm:px-4 sm:py-2.5"
-              :aria-label="`Trier les montres : ${currentSortLabel}`"
-              aria-haspopup="listbox"
-              :aria-expanded="listing.isSortMenuOpen"
-              @click.stop="listing.toggleSortMenu"
+          <!-- Ligne 1 : titre à gauche, Filtrer puis Tri à droite -->
+          <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-3 lg:gap-4">
+            <h1
+              v-if="!effectiveBrandHero"
+              class="min-w-0 flex-1 text-xl font-bold text-text-main sm:text-2xl"
             >
-              <ArrowDownUp class="h-4 w-4 shrink-0 text-gray-600" :stroke-width="2" />
-              <span class="whitespace-nowrap">{{ currentSortLabel }}</span>
-              <ChevronDown
-                class="h-4 w-4 shrink-0 text-gray-500 transition-transform"
-                :class="{ 'rotate-180': listing.isSortMenuOpen }"
-                :stroke-width="2"
-              />
-            </button>
+              {{ pageHeadingTitle }}
+            </h1>
 
-            <div
-              v-if="listing.isSortMenuOpen"
-              ref="sortMenuRef"
-              class="absolute top-full right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 min-w-[180px]"
-              role="listbox"
-              :aria-label="`Trier les montres : ${currentSortLabel}`"
-              @click.stop
-            >
+            <div class="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
               <button
-                v-for="(option, index) in sortOptions"
-                :key="option.value"
+                v-if="showFilters"
                 type="button"
-                role="option"
-                :aria-selected="listing.sortOrder === option.value"
-                class="w-full text-left px-4 py-2 hover:bg-cream transition-colors"
-                :class="[
-                  listing.sortOrder === option.value
-                    ? 'bg-primary text-white hover:bg-primary-hover'
-                    : 'text-gray-700',
-                  index === sortOptions.length - 1 ? 'rounded-b-lg' : '',
-                  index === 0 ? 'rounded-t-lg' : '',
-                ]"
-                @click="listing.selectSort(option.value)"
+                class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-primary bg-primary px-3 py-2 text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:px-4 sm:py-2.5"
+                @click="listing.openFilterDrawer"
               >
-                {{ option.label }}
+                <SlidersHorizontal class="h-5 w-5 shrink-0" :stroke-width="2" />
+                <span class="text-sm font-semibold uppercase tracking-wide">Filtrer</span>
+                <span
+                  v-if="listing.activeFilterCount > 0"
+                  class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold text-text-main"
+                >
+                  {{ listing.activeFilterCount }}
+                </span>
               </button>
+
+              <div
+                v-if="showSort"
+                class="relative shrink-0"
+                ref="sortDropdownRef"
+              >
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary sm:gap-2 sm:px-4 sm:py-2.5"
+                  :aria-label="`Trier les montres : ${currentSortLabel}`"
+                  aria-haspopup="listbox"
+                  :aria-expanded="listing.isSortMenuOpen"
+                  @click.stop="listing.toggleSortMenu"
+                >
+                  <ArrowDownUp class="h-4 w-4 shrink-0 text-gray-600" :stroke-width="2" />
+                  <span class="whitespace-nowrap">{{ currentSortLabel }}</span>
+                  <ChevronDown
+                    class="h-4 w-4 shrink-0 text-gray-500 transition-transform"
+                    :class="{ 'rotate-180': listing.isSortMenuOpen }"
+                    :stroke-width="2"
+                  />
+                </button>
+
+                <div
+                  v-if="listing.isSortMenuOpen"
+                  ref="sortMenuRef"
+                  class="absolute top-full right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 min-w-[180px]"
+                  role="listbox"
+                  :aria-label="`Trier les montres : ${currentSortLabel}`"
+                  @click.stop
+                >
+                  <button
+                    v-for="(option, index) in sortOptions"
+                    :key="option.value"
+                    type="button"
+                    role="option"
+                    :aria-selected="listing.sortOrder === option.value"
+                    class="w-full text-left px-4 py-2 hover:bg-cream transition-colors"
+                    :class="[
+                      listing.sortOrder === option.value
+                        ? 'bg-primary text-white hover:bg-primary-hover'
+                        : 'text-gray-700',
+                      index === sortOptions.length - 1 ? 'rounded-b-lg' : '',
+                      index === 0 ? 'rounded-t-lg' : '',
+                    ]"
+                    @click="listing.selectSort(option.value)"
+                  >
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
+          <!-- Ligne 2 : chips de filtres actifs -->
           <div
-            v-if="showFilters || activeFilterChips.length > 0"
-            class="flex w-full min-w-0 items-center gap-2 lg:order-2 lg:w-auto lg:flex-1"
+            v-if="activeFilterChips.length > 0"
+            class="collection-active-filters mt-3 flex flex-wrap items-center gap-2 lg:mt-4"
+            aria-label="Filtres actifs"
           >
             <button
-              v-if="showFilters"
+              v-for="chip in activeFilterChips"
+              :key="chip.id"
               type="button"
-              class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-primary bg-primary px-3 py-2 text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:px-4 sm:py-2.5"
-              @click="listing.openFilterDrawer"
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-text-main transition-colors hover:border-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+              :aria-label="`Retirer le filtre ${chip.label}`"
+              @click="removeActiveFilter(chip)"
             >
-              <SlidersHorizontal class="h-5 w-5 shrink-0" :stroke-width="2" />
-              <span class="text-sm font-semibold uppercase tracking-wide">Filtrer</span>
-              <span
-                v-if="listing.activeFilterCount > 0"
-                class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold text-text-main"
-              >
-                {{ listing.activeFilterCount }}
-              </span>
+              <span class="whitespace-nowrap">{{ chip.label }}</span>
+              <X class="h-3.5 w-3.5 shrink-0 text-gray-500" :stroke-width="2.5" aria-hidden="true" />
             </button>
-
-            <div
-              v-if="activeFilterChips.length > 0"
-              class="collection-active-filters flex min-w-0 flex-1 items-center gap-2 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              aria-label="Filtres actifs"
-            >
-              <button
-                v-for="chip in activeFilterChips"
-                :key="chip.id"
-                type="button"
-                class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-text-main transition-colors hover:border-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
-                :aria-label="`Retirer le filtre ${chip.label}`"
-                @click="removeActiveFilter(chip)"
-              >
-                <span class="whitespace-nowrap">{{ chip.label }}</span>
-                <X class="h-3.5 w-3.5 shrink-0 text-gray-500" :stroke-width="2.5" aria-hidden="true" />
-              </button>
-            </div>
           </div>
         </div>
 
