@@ -1,4 +1,5 @@
 <template>
+  <SeoStructuredData v-if="collectionBreadcrumbSchema" :schemas="collectionBreadcrumbSchema" />
   <section
     class="min-h-screen"
     :class="
@@ -18,6 +19,9 @@
           :alt="heroConfig.alt || resolvedTitle"
           fetchpriority="high"
           decoding="async"
+          width="1680"
+          height="720"
+          sizes="100vw"
           class="absolute inset-0 w-full h-full object-cover"
         />
         <div class="absolute inset-0 bg-black/35 flex items-center justify-center px-4">
@@ -376,7 +380,11 @@ import { useWatchListing } from '@/composables/useWatchListing.js'
 import { isValidCollectionPublicQuerySlug, getStaticWatchAudienceFilterOptions } from '@/constants/watchAudiences.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 import { WATCH_CARD_GRID_PROPS } from '@/constants/watchCardDefaults.js'
+import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
+import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredData.js'
+import { buildBrandCollectionPath, buildBrandCollectionUrl, resolveBrandSlugFromRoute } from '@/utils/collectionRoutes.js'
 import { resolveBrandFromSlug, slugifyBrand } from '@/utils/brandSlug.js'
+import { navigateToWatch } from '@/utils/watchSlug.js'
 import {
   COLLECTION_PAGINATION_MOBILE_MQ,
   buildCollectionPaginationItems,
@@ -398,11 +406,7 @@ const sortOptions = [
 const route = useRoute()
 const router = useRouter()
 
-const marqueQuerySlug = computed(() => {
-  const q = route.query.marque
-  const raw = Array.isArray(q) ? q[0] : q
-  return raw ? String(raw) : ''
-})
+const marqueQuerySlug = computed(() => resolveBrandSlugFromRoute(route))
 
 const publicQuerySlug = computed(() => {
   const q = route.query.public
@@ -485,34 +489,35 @@ const collectionFilterFingerprint = computed(() =>
   ].join('|'),
 )
 
-function buildCollectionQueryFromListing(page) {
-  const next = { ...route.query }
-
-  if (listing.selectedBrands.length === 1) {
-    next.marque = slugifyBrand(listing.selectedBrands[0])
-  } else {
-    delete next.marque
-  }
+function buildCollectionLocation(page) {
+  const query = {}
 
   if (listing.selectedAudience !== 'all') {
-    next.public = listing.selectedAudience
-  } else {
-    delete next.public
+    query.public = listing.selectedAudience
   }
 
-  if (page > 1) next.page = String(page)
-  else delete next.page
+  if (page > 1) query.page = String(page)
 
-  return next
+  if (listing.selectedBrands.length === 1) {
+    return {
+      path: buildBrandCollectionPath(listing.selectedBrands[0]),
+      query,
+    }
+  }
+
+  return {
+    path: '/collection',
+    query,
+  }
 }
 
 function updateCollectionPageQuery(page) {
-  router.replace({ query: buildCollectionQueryFromListing(page) })
+  router.replace(buildCollectionLocation(page))
 }
 
 function syncCollectionFilterQuery() {
   currentPage.value = 1
-  router.replace({ query: buildCollectionQueryFromListing(1) })
+  router.replace(buildCollectionLocation(1))
 }
 
 function onFiltersApplied() {
@@ -710,16 +715,12 @@ const collectionHead = computed(() => {
 
   const brand = singleBrandLabel.value
   const shareParams = new URLSearchParams()
-  if (marqueQuerySlug.value) {
-    shareParams.set('marque', marqueQuerySlug.value)
-  }
   if (publicQuerySlug.value) {
     shareParams.set('public', publicQuerySlug.value)
   }
   const shareQuery = shareParams.toString()
-  const shareUrl = shareQuery
-    ? `${BASE_URL}/collection?${shareQuery}`
-    : `${BASE_URL}/collection`
+  const brandPath = buildBrandCollectionPath(brand)
+  const shareUrl = shareQuery ? `${BASE_URL}${brandPath}?${shareQuery}` : `${BASE_URL}${brandPath}`
   const title = brand
     ? fillBrand(seoBrand.value.title || '{brand} | Collection', brand)
     : seoBrand.value.titleFallback || 'Collection par marque'
@@ -743,8 +744,17 @@ const collectionHead = computed(() => {
       { name: 'twitter:title', content: title },
       { name: 'twitter:description', content: desc },
     ],
-    link: [{ rel: 'canonical', href: `${BASE_URL}/collection` }],
+    link: [{ rel: 'canonical', href: buildBrandCollectionUrl(BASE_URL, brand) }],
   }
+})
+
+const collectionBreadcrumbSchema = computed(() => {
+  if (!singleBrandLabel.value || listing.selectedBrands.length !== 1) return null
+  return buildBreadcrumbStructuredData(BASE_URL, [
+    { name: 'Accueil', path: '/' },
+    { name: 'Collection', path: '/collection' },
+    { name: singleBrandLabel.value, path: buildBrandCollectionPath(singleBrandLabel.value) },
+  ])
 })
 
 useHead(collectionHead)
@@ -757,8 +767,8 @@ const handleClickOutsideSortMenu = (event) => {
   }
 }
 
-const handleViewDetails = (watchId) => {
-  router.push(`/watch/${watchId}`)
+const handleViewDetails = (watch) => {
+  navigateToWatch(router, watch)
 }
 
 function syncCollectionPaginationViewport() {

@@ -7,6 +7,7 @@ import {
   getStaticWatchAudienceFilterOptions,
 } from '@/constants/watchAudiences'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { buildWatchSlug } from '@/utils/watchSlug.js'
 
 /** Images par montre en listing collection / recherche (navigation jusqu'à WATCH_CARD_MAX_IMAGES). */
 const LISTING_IMAGES_PER_WATCH = WATCH_CARD_MAX_IMAGES
@@ -57,8 +58,10 @@ export async function getWatchAudiencesForAdminForm() {
  * Transforme les données de la base de données en format attendu par les composants
  */
 function transformWatchData(watchData, details, accessories, images, articles = []) {
+  const slug = watchData.slug || buildWatchSlug(watchData)
   return {
     id: watchData.id,
+    slug,
     adCode: watchData.ad_code,
     name: watchData.name,
     brand: watchData.brand,
@@ -400,6 +403,50 @@ export async function getAllWatches() {
  * @param {boolean} allowUnavailable - Si true, permet de récupérer les montres hors-stock (pour les admins)
  * @returns {Promise<Object>} Données de la montre
  */
+/**
+ * Résout l’ID interne d’une montre à partir de son slug URL canonique.
+ * @param {string} slug
+ * @param {boolean} allowUnavailable
+ * @returns {Promise<string|null>}
+ */
+export async function resolveWatchIdBySlug(slug, allowUnavailable = false) {
+  if (!slug) return null
+
+  let query = supabase.from('watches').select('id, slug, brand, name, reference, is_available')
+
+  if (!allowUnavailable) {
+    query = query.eq('is_available', true).eq('is_sold', false)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Erreur lors de la résolution du slug montre:', error)
+    return null
+  }
+
+  const normalized = String(slug).toLowerCase().trim()
+  const match = (data ?? []).find((row) => {
+    const rowSlug = row.slug || buildWatchSlug(row)
+    return rowSlug === normalized
+  })
+
+  return match?.id ?? null
+}
+
+/**
+ * Récupère une montre par son slug URL canonique (/montre/:slug).
+ * @param {string} slug
+ * @param {boolean} allowUnavailable
+ */
+export async function getWatchBySlug(slug, allowUnavailable = false) {
+  const id = await resolveWatchIdBySlug(slug, allowUnavailable)
+  if (!id) {
+    throw new Error('Montre non trouvée')
+  }
+  return getWatchById(id, allowUnavailable)
+}
+
 export async function getWatchById(id, allowUnavailable = false) {
   try {
     // Récupérer la montre

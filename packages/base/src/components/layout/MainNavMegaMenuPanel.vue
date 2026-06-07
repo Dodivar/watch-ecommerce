@@ -1,6 +1,6 @@
 <script setup>
 import { computed, watch } from 'vue'
-import { slugifyBrand } from '@/utils/brandSlug'
+import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { useCatalogBrands, splitIntoColumns } from '@/composables/useCatalogBrands.js'
 
 const props = defineProps({
@@ -31,7 +31,7 @@ function brandColumns(column) {
 }
 
 function brandRoute(brandName) {
-  return { path: '/collection', query: { marque: slugifyBrand(brandName) } }
+  return buildBrandCollectionPath(brandName)
 }
 </script>
 

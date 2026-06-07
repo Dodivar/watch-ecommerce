@@ -23,6 +23,7 @@ const router = useRouter()
 const inputValue = ref(props.initialQuery || '')
 const isInvalid = ref(false)
 const panelInputRef = ref(null)
+const panelRef = ref(null)
 
 const isHeaderTrigger = computed(() => props.variant === 'header-trigger')
 const isHeaderPanel = computed(() => props.variant === 'header-panel')
@@ -68,12 +69,23 @@ function onDocumentKeydown(event) {
   }
 }
 
+function onDocumentPointerDown(event) {
+  if (!open.value || !isHeaderPanel.value) return
+  const target = event.target
+  if (!(target instanceof Node)) return
+  if (panelRef.value?.contains(target)) return
+  if (target.closest?.('[aria-controls="header-catalog-search-panel"]')) return
+  closePanel()
+}
+
 onMounted(() => {
   document.addEventListener('keydown', onDocumentKeydown)
+  document.addEventListener('mousedown', onDocumentPointerDown)
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', onDocumentKeydown)
+  document.removeEventListener('mousedown', onDocumentPointerDown)
 })
 
 const inputClasses =
@@ -105,6 +117,7 @@ const inputClasses =
     <div
       v-if="open"
       id="header-catalog-search-panel"
+      ref="panelRef"
       class="absolute left-0 right-0 top-full z-30 border-t border-gray-200 bg-white shadow-md"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">

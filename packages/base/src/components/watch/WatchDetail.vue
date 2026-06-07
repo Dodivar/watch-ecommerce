@@ -1,4 +1,5 @@
 <template>
+  <SeoStructuredData v-if="pageStructuredSchemas.length" :schemas="pageStructuredSchemas" />
   <section class="lg:py-10 pb-20 lg:pb-10 min-h-screen">
     <div class="max-w-7xl mx-auto px-4">
       <!-- Loading State -->
@@ -801,7 +802,11 @@ import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, PURCHASE_ENABLED } from '@/co
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
 import { resolveRetailTrustHighlights, resolveWatchGuarantees, isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
-import { getWatchById } from '@/services/watchService'
+import { getWatchById, getWatchBySlug } from '@/services/watchService'
+import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
+import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredData.js'
+import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
+import { buildWatchPath, isLegacyWatchIdParam } from '@/utils/watchSlug.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 
 const site = getSiteConfig()
@@ -923,6 +928,8 @@ const activeTab = ref('details')
 const isDescriptionExpanded = ref(false)
 
 
+const isSlugRoute = computed(() => route.path.startsWith('/montre/'))
+
 // Load watch from Supabase
 const loadWatch = async () => {
   try {
@@ -933,14 +940,21 @@ const loadWatch = async () => {
     // Vérifier si l'utilisateur est admin
     isAdmin.value = await isAdminAuthenticated()
     
-    const watchId = route.params.id
-    if (!watchId) {
-      throw new Error('ID de montre manquant')
+    const routeKey = isSlugRoute.value ? route.params.slug : route.params.id
+    if (!routeKey) {
+      throw new Error('Identifiant de montre manquant')
     }
     
     // Si l'utilisateur est admin, permettre de voir les montres hors-stock
-    const data = await getWatchById(watchId, isAdmin.value)
+    const data = isSlugRoute.value
+      ? await getWatchBySlug(String(routeKey), isAdmin.value)
+      : await getWatchById(String(routeKey), isAdmin.value)
     watchItem.value = data
+
+    const canonicalPath = buildWatchPath(data)
+    if (!isSlugRoute.value && isLegacyWatchIdParam(String(routeKey)) && canonicalPath.startsWith('/montre/')) {
+      await router.replace({ path: canonicalPath, query: route.query, hash: route.hash })
+    }
     // Reset image index when watch changes
     currentImageIndex.value = 0
     // Load image dimensions
@@ -1378,7 +1392,22 @@ const ogImage = computed(() => {
 })
 
 const canonicalUrl = computed(() => {
-  return `${BASE_URL}/watch/${route.params.id}`
+  if (watchItem.value) {
+    return `${BASE_URL}${buildWatchPath(watchItem.value)}`
+  }
+  const fallback = isSlugRoute.value ? route.params.slug : route.params.id
+  return `${BASE_URL}${isSlugRoute.value ? `/montre/${fallback}` : `/watch/${fallback}`}`
+})
+
+const breadcrumbStructuredData = computed(() => {
+  if (!watchItem.value) return null
+  const brand = watchItem.value.brand
+  const crumbs = [{ name: 'Accueil', path: '/' }]
+  if (brand) {
+    crumbs.push({ name: brand, path: buildBrandCollectionPath(brand) })
+  }
+  crumbs.push({ name: watchItem.value.name || 'Montre', path: buildWatchPath(watchItem.value) })
+  return buildBreadcrumbStructuredData(BASE_URL, crumbs)
 })
 
 // Structured Data (JSON-LD)
@@ -1474,16 +1503,12 @@ watch([watchItem, pageTitle, pageDescription, ogImage, canonicalUrl], () => {
         href: canonicalUrl.value,
       },
     ],
-    script: structuredData.value
-      ? [
-          {
-            type: 'application/ld+json',
-            children: JSON.stringify(structuredData.value),
-          },
-        ]
-      : [],
   })
 }, { immediate: true })
+
+const pageStructuredSchemas = computed(() =>
+  [structuredData.value, breadcrumbStructuredData.value].filter(Boolean),
+)
 
 // Lightbox methods
 const openLightbox = () => {
@@ -1661,11 +1686,14 @@ onMounted(async () => {
 })
 
 // Watch for route changes
-watch(() => route.params.id, async (newId) => {
-  if (newId) {
-    await loadWatch()
-  }
-})
+watch(
+  () => [route.params.id, route.params.slug, route.path],
+  async () => {
+    if (route.params.id || route.params.slug) {
+      await loadWatch()
+    }
+  },
+)
 
 // Reset zoom and load image dimensions when image changes
 watch(currentImageIndex, async () => {

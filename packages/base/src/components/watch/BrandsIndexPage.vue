@@ -36,7 +36,7 @@
         <RouterLink
           v-for="brandName in listing.availableBrands"
           :key="brandName"
-          :to="{ path: '/collection', query: { marque: slugifyBrand(brandName) } }"
+          :to="buildBrandCollectionPath(brandName)"
           class="group block rounded-lg border border-cream-200 bg-white shadow-sm overflow-hidden transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           :aria-label="`Collection ${brandName}`"
         >
@@ -85,8 +85,8 @@ import { useHead } from '@vueuse/head'
 
 import { BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import {
-  slugifyBrand,
   resolveBrandTileImage,
   resolveBrandTileAlt,
 } from '@/utils/brandSlug.js'

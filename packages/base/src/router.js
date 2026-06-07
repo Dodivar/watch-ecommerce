@@ -5,6 +5,7 @@ import { verifyOrder } from './services/orderService'
 import { getBrowsePath } from './site/siteFeatures.js'
 import { getSiteConfig } from './site/getSiteConfig.js'
 import { buildAppRoutes } from './site/buildAppRoutes.js'
+import { resolveSeoRouteRedirect } from './site/seoRouteGuards.js'
 
 const { features } = getSiteConfig()
 const browseFallback = getBrowsePath(features)
@@ -42,6 +43,12 @@ const router = createRouter({
 
 // Guard de maintenance - bloque toutes les routes sauf /maintenance si non authentifié
 router.beforeEach(async (to, from, next) => {
+  const seoRedirect = resolveSeoRouteRedirect(to)
+  if (seoRedirect) {
+    next(seoRedirect)
+    return
+  }
+
   // Stocker la route précédente pour EstimationProcess
   if (to.path === '/estimation/processus' && from.path) {
     sessionStorage.setItem('estimationProcessPreviousRoute', from.path)

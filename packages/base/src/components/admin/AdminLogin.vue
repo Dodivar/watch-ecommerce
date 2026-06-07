@@ -145,6 +145,15 @@ const handleSubmit = async () => {
             </span>
           </button>
         </form>
+
+        <p class="mt-8 text-center">
+          <RouterLink
+            to="/"
+            class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+          >
+            ← Retour au site public
+          </RouterLink>
+        </p>
       </div>
     </div>
   </div>

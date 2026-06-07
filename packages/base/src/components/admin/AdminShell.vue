@@ -41,31 +41,33 @@ const contentClasses = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-cream lg:flex">
+  <div class="h-screen overflow-hidden bg-cream lg:flex">
     <AdminSidebar :open="sidebarOpen" @close="sidebarOpen = false" />
 
-    <div class="flex-1 min-w-0">
-      <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex items-center gap-4 mb-8">
-          <button
-            type="button"
-            class="p-2 -ml-2 text-gray-600 hover:text-gray-900 rounded-lg lg:hidden"
-            aria-label="Ouvrir le menu"
-            @click="sidebarOpen = true"
-          >
-            <Menu class="w-6 h-6" :stroke-width="2" />
-          </button>
-          <h1 class="text-2xl font-bold text-text-main flex-1 min-w-0 truncate">{{ title }}</h1>
-          <button
-            v-if="showBackButton"
-            @click="router.push(backButtonRoute)"
-            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-cream-100 rounded-lg transition-colors shrink-0"
-          >
-            {{ backButtonText }}
-          </button>
-        </div>
-        <div :class="contentClasses">
-          <slot />
+    <div class="flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
+      <div class="flex-1 min-h-0 overflow-y-auto">
+        <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+          <div class="flex items-center gap-4 mb-8">
+            <button
+              type="button"
+              class="p-2 -ml-2 text-gray-600 hover:text-gray-900 rounded-lg lg:hidden"
+              aria-label="Ouvrir le menu"
+              @click="sidebarOpen = true"
+            >
+              <Menu class="w-6 h-6" :stroke-width="2" />
+            </button>
+            <h1 class="text-2xl font-bold text-text-main flex-1 min-w-0 truncate">{{ title }}</h1>
+            <button
+              v-if="showBackButton"
+              @click="router.push(backButtonRoute)"
+              class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-cream-100 rounded-lg transition-colors shrink-0"
+            >
+              {{ backButtonText }}
+            </button>
+          </div>
+          <div :class="contentClasses">
+            <slot />
+          </div>
         </div>
       </div>
     </div>

@@ -3,7 +3,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { createClient } from '@supabase/supabase-js'
 
-import { mergeSiteFeatures } from '../packages/base/src/site/siteFeatures.js'
+import { buildSitemapStaticRoutes } from '../packages/base/src/site/buildSitemapStaticRoutes.js'
+import { slugifyBrand } from '../packages/base/src/utils/brandSlug.js'
+import { buildWatchSlug } from '../packages/base/src/utils/watchSlug.js'
+import { resolveSiteConfig } from '../packages/base/src/site/resolveSiteConfig.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -72,7 +75,8 @@ export default async function handler(req, res) {
   }
   try {
     const { siteConfig } = await loadSiteConfig()
-    const mergedFeatures = mergeSiteFeatures(siteConfig.features)
+    const resolved = resolveSiteConfig(siteConfig)
+    const { features } = resolved
     const baseUrl = resolveBaseUrl(siteConfig, req)
 
     if (!baseUrl) {
@@ -103,50 +107,37 @@ export default async function handler(req, res) {
 
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Récupérer toutes les montres disponibles
-    const { data: watches, error: watchesError } = await supabase
-      .from('watches')
-      .select('id, brand, updated_at')
-      .eq('is_available', true)
-      .eq('is_sold', false)
+    let watches = []
+    if (features.collection) {
+      const { data, error: watchesError } = await supabase
+        .from('watches')
+        .select('id, slug, brand, name, reference, updated_at')
+        .eq('is_available', true)
+        .eq('is_sold', false)
 
-    if (watchesError) {
-      console.error('Erreur lors de la récupération des montres:', watchesError)
-    }
-
-    // Récupérer uniquement les articles visibles
-    const { data: articles, error: articlesError } = await supabase
-      .from('articles')
-      .select('id, updated_at')
-      .eq('is_visible', true)
-      .order('created_at', { ascending: false })
-
-    if (articlesError) {
-      console.error('Erreur lors de la récupération des articles:', articlesError)
+      if (watchesError) {
+        console.error('Erreur lors de la récupération des montres:', watchesError)
+      } else {
+        watches = data || []
+      }
     }
 
-    // Routes statiques
-    const staticRoutes = [
-      { path: '', priority: '1.0', changefreq: 'daily' },
-      { path: '/collection', priority: '0.9', changefreq: 'weekly' },
-      { path: '/collection/marques', priority: '0.85', changefreq: 'weekly' },
-      { path: '/blog', priority: '0.8', changefreq: 'weekly' },
-      { path: '/recherche', priority: '0.7', changefreq: 'monthly' },
-      { path: '/estimation', priority: '0.7', changefreq: 'monthly' },
-    ]
+    let articles = []
+    if (features.blog) {
+      const { data, error: articlesError } = await supabase
+        .from('articles')
+        .select('id, updated_at')
+        .eq('is_visible', true)
+        .order('created_at', { ascending: false })
 
-    if (mergedFeatures.contact) {
-      staticRoutes.push({ path: '/contact', priority: '0.75', changefreq: 'monthly' })
+      if (articlesError) {
+        console.error('Erreur lors de la récupération des articles:', articlesError)
+      } else {
+        articles = data || []
+      }
     }
-    if (mergedFeatures.faq) {
-      staticRoutes.push({ path: '/faq', priority: '0.7', changefreq: 'monthly' })
-    }
-    if (mergedFeatures.servicesPage && siteConfig.servicesPage) {
-      staticRoutes.push({ path: '/services', priority: '0.8', changefreq: 'monthly' })
-    }
-    if (mergedFeatures.guidePage && siteConfig.guidePage) {
-      staticRoutes.push({ path: '/guide-horloger', priority: '0.75', changefreq: 'monthly' })
-    }
+
+    const staticRoutes = buildSitemapStaticRoutes(features, resolved)
 
     // Générer le XML
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -163,24 +154,40 @@ export default async function handler(req, res) {
 `
     })
 
-    // Ajouter les montres
-    if (watches && watches.length > 0) {
+    if (watches.length > 0) {
       watches.forEach((watch) => {
         const lastmod = watch.updated_at
           ? new Date(watch.updated_at).toISOString().split('T')[0]
           : new Date().toISOString().split('T')[0]
+        const watchSlug = buildWatchSlug(watch)
         xml += `  <url>
-    <loc>${baseUrl}/watch/${watch.id}</loc>
+    <loc>${baseUrl}/montre/${watchSlug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 `
       })
+
+      const brandSlugs = [
+        ...new Set(
+          watches
+            .map((watch) => slugifyBrand(watch.brand))
+            .filter((slug) => typeof slug === 'string' && slug.length > 0),
+        ),
+      ].sort()
+
+      brandSlugs.forEach((slug) => {
+        xml += `  <url>
+    <loc>${baseUrl}/collection/${slug}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+`
+      })
     }
 
-    // Ajouter les articles de blog
-    if (articles && articles.length > 0) {
+    if (articles.length > 0) {
       articles.forEach((article) => {
         const lastmod = article.updated_at
           ? new Date(article.updated_at).toISOString().split('T')[0]

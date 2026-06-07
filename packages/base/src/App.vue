@@ -3,7 +3,9 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { Mail, MapPin, Menu, Phone, ShoppingBag } from '@lucide/vue'
 import { useRoute } from 'vue-router'
 import { Head } from '@vueuse/head'
-import { WHATSAPP_NUMBER, EMAIL_CONTACT, PURCHASE_ENABLED } from '@/config'
+import { BASE_URL, WHATSAPP_NUMBER, EMAIL_CONTACT, PURCHASE_ENABLED } from '@/config'
+import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
+import { buildGlobalStructuredData } from '@/site/buildGlobalStructuredData.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { resolveMainNavigation, resolveFooterNavigation } from '@/site/mainNavigation.js'
 import MainNavDesktop from '@/components/layout/MainNavDesktop.vue'
@@ -21,6 +23,8 @@ import { useCart } from '@/composables/useCart.js'
 
 const site = getSiteConfig()
 const features = site.features
+
+const globalStructuredData = buildGlobalStructuredData(site, BASE_URL)
 const mainNavItems = resolveMainNavigation(site)
 const footerNavItems = resolveFooterNavigation(site)
 const suivezNous = site.social?.suivezNous
@@ -75,6 +79,7 @@ function displayMobileMenu() {
 
 <template>
   <Head />
+  <SeoStructuredData :schemas="globalStructuredData" />
   <MainNavMobile
     v-if="!isMaintenancePage && !isAdminPage"
     v-model:open="mobileMenuOpen"

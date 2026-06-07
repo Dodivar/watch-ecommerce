@@ -43,6 +43,8 @@ export default {
   storeMap: {
     enabled: true,
     provider: 'google',
+    /** Bonhomme Street View (vue 360°) — facturation Google « Dynamic Street View » si utilisé */
+    streetViewControl: true,
     center: { lat: 48.58185, lng: 7.74875 },
     zoom: 16,
     markerLabel: "Jack'N'Ed",

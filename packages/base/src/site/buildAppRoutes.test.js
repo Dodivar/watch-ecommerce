@@ -13,6 +13,8 @@ describe('buildAppRoutes', () => {
     const paths = getActiveRoutePaths({ ...DEFAULT_SITE_FEATURES, collection: false })
     expect(paths).not.toContain('/collection')
     expect(paths).not.toContain('/watch/:id')
+    expect(paths).not.toContain('/montre/:slug')
+    expect(paths).not.toContain('/collection/:brandSlug')
   })
 
   it('conserve toujours / et /maintenance', () => {
@@ -29,6 +31,13 @@ describe('buildAppRoutes', () => {
   it('inclut /guide-horloger quand guidePage est true', () => {
     const paths = getActiveRoutePaths({ ...DEFAULT_SITE_FEATURES, guidePage: true })
     expect(paths).toContain('/guide-horloger')
+  })
+
+  it('inclut les routes SEO collection quand collection est true', () => {
+    const paths = getActiveRoutePaths({ ...DEFAULT_SITE_FEATURES, collection: true })
+    expect(paths).toContain('/montre/:slug')
+    expect(paths).toContain('/collection/:brandSlug')
+    expect(paths).toContain('/watch/:id')
   })
 
   it('inclut /faq quand faq est true', () => {

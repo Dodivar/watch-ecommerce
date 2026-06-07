@@ -91,6 +91,7 @@ import { getFeaturedWatchesPublic } from '@/services/admin/adminFeaturedService'
 import WatchCard from '@/components/watch/WatchCard.vue'
 import WatchCardSkeleton from '@/components/watch/WatchCardSkeleton.vue'
 import { WATCH_CARD_CATALOG_PROPS } from '@/constants/watchCardDefaults.js'
+import { navigateToWatch } from '@/utils/watchSlug.js'
 
 const AUTO_SCROLL_DELAY_MS = 5000
 const SCROLL_SETTLE_DEBOUNCE_MS = 150
@@ -328,8 +329,8 @@ onUnmounted(() => {
   clearScrollSettleTimer()
 })
 
-const handleViewDetails = (watchId) => {
-  router.push(`/watch/${watchId}`)
+const handleViewDetails = (watch) => {
+  navigateToWatch(router, watch)
 }
 </script>
 

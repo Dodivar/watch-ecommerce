@@ -15,6 +15,8 @@ const props = defineProps({
 })
 
 const mapContainerRef = ref(null)
+const mapFrameRef = ref(null)
+const mapShouldLoad = ref(false)
 /** @type {google.maps.Map | null} */
 let mapInstance = null
 /** @type {google.maps.Marker | null} */
@@ -76,7 +78,7 @@ async function initMap() {
     zoom: resolvedZoom.value,
     scrollwheel: true,
     mapTypeControl: false,
-    streetViewControl: false,
+    streetViewControl: storeMap?.streetViewControl === true,
     fullscreenControl: true,
   })
 
@@ -87,15 +89,37 @@ async function initMap() {
   })
 }
 
+let mapVisibilityObserver = null
+
 onMounted(() => {
-  void initMap()
+  const target = mapFrameRef.value
+  if (!target || typeof IntersectionObserver === 'undefined') {
+    mapShouldLoad.value = true
+    void initMap()
+    return
+  }
+
+  mapVisibilityObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return
+      mapShouldLoad.value = true
+      mapVisibilityObserver?.disconnect()
+      mapVisibilityObserver = null
+      void initMap()
+    },
+    { rootMargin: '240px 0px' },
+  )
+  mapVisibilityObserver.observe(target)
 })
 
 onUnmounted(() => {
+  mapVisibilityObserver?.disconnect()
+  mapVisibilityObserver = null
   destroyMap()
 })
 
 watch([resolvedCenter, resolvedZoom], () => {
+  if (!mapShouldLoad.value) return
   void initMap()
 })
 </script>
@@ -106,6 +130,7 @@ watch([resolvedCenter, resolvedZoom], () => {
     class="store-location-map store-location-map--google w-full overflow-hidden rounded-lg shadow-md"
   >
     <div
+      ref="mapFrameRef"
       class="store-location-map__frame relative border border-cream-300"
       role="region"
       :aria-label="resolvedAriaLabel"
@@ -125,6 +150,12 @@ watch([resolvedCenter, resolvedZoom], () => {
       />
 
       <div
+        v-if="!mapShouldLoad"
+        class="store-location-map__google h-[min(420px,55vh)] w-full min-h-[280px] bg-cream-100"
+        aria-hidden="true"
+      />
+      <div
+        v-else
         ref="mapContainerRef"
         class="store-location-map__google h-[min(420px,55vh)] w-full min-h-[280px]"
       />

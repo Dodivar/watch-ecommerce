@@ -1,31 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /commande/
 
 Sitemap: https://demo-store.example.com/sitemap.xml
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen bg-cream">
+    <SeoStructuredData v-if="faqStructuredData" :schemas="faqStructuredData" />
     <FaqSection as-page />
   </div>
 </template>
@@ -8,6 +9,8 @@
 import { computed } from 'vue'
 import { useHead } from '@vueuse/head'
 import { BASE_URL } from '@/config'
+import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
+import { buildFaqStructuredData } from '@/site/buildFaqStructuredData.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import FaqSection from './Faq.vue'
 
@@ -24,6 +27,8 @@ const fallbackDescription = computed(
     faqConfig.subheading ||
     `Retrouvez les réponses aux questions les plus fréquentes sur ${brandDisplayName}.`,
 )
+
+const faqStructuredData = computed(() => buildFaqStructuredData(site, BASE_URL))
 
 const pageTitle = computed(() => seo?.title ?? fallbackTitle.value)
 const pageDescription = computed(() => seo?.metaDescription ?? fallbackDescription.value)

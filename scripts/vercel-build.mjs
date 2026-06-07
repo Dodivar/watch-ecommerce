@@ -14,10 +14,30 @@ try {
   process.exit(1)
 }
 
-const result = spawnSync('npm', ['run', 'build'], {
+const build = spawnSync('npm', ['run', 'build'], {
   stdio: 'inherit',
   shell: true,
   env: process.env,
 })
 
-process.exit(result.status === null ? 1 : result.status)
+if (build.status !== 0) {
+  process.exit(build.status === null ? 1 : build.status)
+}
+
+const seoRedirects = spawnSync('node', ['scripts/generate-vercel-seo-redirects.mjs'], {
+  stdio: 'inherit',
+  shell: true,
+  env: process.env,
+})
+
+if (seoRedirects.status !== 0) {
+  process.exit(seoRedirects.status === null ? 1 : seoRedirects.status)
+}
+
+const prerender = spawnSync('node', ['scripts/prerender-static-routes.mjs'], {
+  stdio: 'inherit',
+  shell: true,
+  env: process.env,
+})
+
+process.exit(prerender.status === null ? 1 : prerender.status)

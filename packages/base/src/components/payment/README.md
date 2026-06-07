@@ -56,6 +56,8 @@ storeMap: {
   googlePlaceId: 'ChIJ…',
   /** Recherche textuelle si googlePlaceId absent (avis uniquement) */
   googlePlaceQuery: 'Nom boutique, adresse complète',
+  /** Bonhomme Street View (vue 360°) sur la carte Google — défaut : désactivé */
+  streetViewControl: false,
 },
 ```
 

@@ -231,6 +231,7 @@ import {
   buildCollectionPaginationItems,
 } from '@/utils/collectionPagination.js'
 import { compareWatchesByRecent } from '@/utils/watchSort.js'
+import { navigateToWatch } from '@/utils/watchSlug.js'
 
 defineOptions({ name: 'WatchSearchResultsPage' })
 
@@ -311,8 +312,8 @@ function goToPage(page) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-function handleViewDetails(watchId) {
-  router.push(`/watch/${watchId}`)
+function handleViewDetails(watch) {
+  navigateToWatch(router, watch)
 }
 
 function syncPaginationViewport() {

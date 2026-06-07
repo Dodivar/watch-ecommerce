@@ -435,7 +435,7 @@ onUnmounted(() => {
 
 const handleCardClick = () => {
   if (props.clickable) {
-    emit('viewDetails', props.watch.id)
+    emit('viewDetails', props.watch)
   }
 }
 

@@ -159,12 +159,14 @@ export default {
     phoneDisplay: '03 88 22 40 40',
     phoneE164: '+33388224040',
     footerAddressHtml:
-      'Centre commercial Place des Halles<br />67000 Strasbourg, France',
+      '24 Place des Halles<br />Centre commercial Place des Halles<br />67000 Strasbourg, France',
   },
 
   storeMap: {
     enabled: true,
     provider: 'google',
+    /** Bonhomme Street View (vue 360°) — facturation Google « Dynamic Street View » si utilisé */
+    streetViewControl: true,
     center: { lat: 48.5864673, lng: 7.7411787 },
     zoom: 14,
     markerLabel: 'Place des Montres — Place des Halles',
@@ -186,7 +188,7 @@ export default {
 
   legal: {
     companyName: 'Place des Montres',
-    address: 'Centre commercial Place des Halles 67000 Strasbourg',
+    address: '24 Place des Halles, Centre commercial Place des Halles, 67000 Strasbourg, France',
     siret: '000 000 000 00000',
   },
 
@@ -216,7 +218,7 @@ export default {
       imageLayout: 'landscape',
     },
     stats: [
-      { value: '1995', label: 'Année de création', detail: 'Plus de 30 ans d\'expérience' },
+      { value: '30+', label: 'Années d\'expérience', detail: 'Spécialiste de la montre depuis 1995' },
       { value: '3 000', label: 'Montres en stock', detail: 'Un choix immédiat' },
       { value: '30', label: 'Marques', detail: 'Des plus prestigieuses' },
       { value: '1', label: 'Adresse à Strasbourg', detail: 'Place des Halles' },
@@ -729,6 +731,25 @@ export default {
   },
 
   seo: {
+    /**
+     * Redirections 301 depuis l’ancien PrestaShop (placedesmontres.fr).
+     * Les motifs couvrent les URL produit/catégorie ; `static` pour les pages CMS.
+     */
+    legacyRedirects: {
+      prestashop: {
+        productPattern: '/:prestashopId(\\d+)-:rewrite.html',
+        productDestination: '/montre/:rewrite',
+        categoryPattern: '/:prestashopId(\\d+)-:rewrite',
+        categoryDestination: '/collection/:rewrite',
+      },
+      static: [
+        { source: '/content/6-mentions-legales', destination: '/mentions-legales' },
+        { source: '/content/3-conditions-utilisation', destination: '/conditions-generales-utilisation' },
+        { source: '/content/1-livraison', destination: '/faq' },
+        { source: '/contactez-nous', destination: '/contact' },
+        { source: '/magasins', destination: '/a-propos' },
+      ],
+    },
     indexHtml: {
       title: 'Place des Montres — Montres à Strasbourg depuis 1995',
       metaDescription:

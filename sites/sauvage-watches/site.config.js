@@ -56,22 +56,25 @@ export default {
   contact: {
     whatsappE164: '+33612843926',
     email: 'contact@sauvage-watches.fr',
-    footerAddressHtml: '32 All. de la Robertsau<br />67000 Strasbourg, France',
+    footerAddressHtml: '32 Allée de la Robertsau<br />67000 Strasbourg, France',
   },
 
   storeMap: {
     enabled: true,
     provider: 'google',
+    /** Bonhomme Street View (vue 360°) — facturation Google « Dynamic Street View » si utilisé */
+    streetViewControl: false,
     center: { lat: 48.5946, lng: 7.7769 },
     zoom: 16,
     markerLabel: 'Sauvage Watches',
+    directionsAddress: '32 Allée de la Robertsau, 67000 Strasbourg, France',
     /** Logo bulle carte — remplacer par un PNG horizontal dans `public/` si besoin */
     popupLogoSrc: '/web-app-manifest-512x512.png',
   },
 
   legal: {
     companyName: 'Sauvage Watches',
-    address: '32 Allée de la Robertsau 67000 Strasbourg',
+    address: '32 Allée de la Robertsau, 67000 Strasbourg, France',
     siret: '931 523 393 00011',
   },
 

@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { ChevronRight, ChevronLeft, ShoppingBag, X, Search } from '@lucide/vue'
 import { useCart } from '@/composables/useCart.js'
-import { slugifyBrand } from '@/utils/brandSlug'
+import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { useCatalogBrands, prefetchCatalogBrands } from '@/composables/useCatalogBrands.js'
 import { navigationUsesCatalogBrands } from '@/site/mainNavigation.js'
 
@@ -123,7 +123,7 @@ function goBack() {
 }
 
 function brandRoute(brandName) {
-  return { path: '/collection', query: { marque: slugifyBrand(brandName) } }
+  return buildBrandCollectionPath(brandName)
 }
 </script>
 
