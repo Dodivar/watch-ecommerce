@@ -71,6 +71,7 @@ const COMPONENTS_BY_PATH = {
   '/admin': AdminDashboard,
   '/admin/watches/new': AdminWatchForm,
   '/admin/watches/:id/edit': AdminWatchForm,
+  '/admin/stats': AdminWatchStats,
   '/admin/watches/stats': AdminWatchStats,
   '/admin/articles': AdminArticleList,
   '/admin/articles/new': AdminArticleForm,
@@ -91,6 +92,7 @@ const COMPONENTS_BY_PATH = {
 const REDIRECTS_BY_PATH = {
   '/paiement-succes': '/commande/succes',
   '/paiement-annule': { path: '/commande/annulee' },
+  '/admin/watches/stats': '/admin/stats',
 }
 
 /**

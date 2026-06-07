@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Chart } from 'vue-chartjs'
+import { ref, computed, onMounted, onUnmounted, watch as vueWatch } from 'vue'
+import { Chart, Doughnut, Bar } from 'vue-chartjs'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,16 +8,27 @@ import {
   PointElement,
   LineElement,
   BarElement,
+  ArcElement,
   LineController,
   BarController,
+  DoughnutController,
   Title,
   Tooltip,
   Legend,
   Filler,
 } from 'chart.js'
-import { getWatchStatsByDay, getStorageStats, getTableSizes } from '@/services/admin/adminWatchService'
+import {
+  getWatchStatsByDay,
+  getWatchInventoryStats,
+  getStorageStats,
+  getTableSizes,
+} from '@/services/admin/adminWatchService'
+import { getSalesStatsByDay } from '@/services/admin/adminOrderService'
 import { getArticleStatsByDay } from '@/services/admin/adminArticleService'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
 import AdminShell from './AdminShell.vue'
+
+const isBlogEnabled = computed(() => !!getSiteConfig().features?.blog)
 
 // Enregistrer les composants Chart.js
 ChartJS.register(
@@ -26,13 +37,45 @@ ChartJS.register(
   PointElement,
   LineElement,
   BarElement,
+  ArcElement,
   LineController,
   BarController,
+  DoughnutController,
   Title,
   Tooltip,
   Legend,
   Filler
 )
+
+// Formatage monétaire (euros, sans décimales)
+const formatEuro = (value) =>
+  new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value || 0)
+
+// Sélecteur de période (filtre les séries temporelles + le CA des commandes)
+const PERIOD_OPTIONS = [
+  { value: 7, label: '7 jours' },
+  { value: 30, label: '30 jours' },
+  { value: 90, label: '90 jours' },
+  { value: 365, label: '12 mois' },
+  { value: null, label: 'Tout' },
+]
+const selectedPeriod = ref(null)
+
+const periodCutoff = computed(() => {
+  if (!selectedPeriod.value) return null
+  return new Date(Date.now() - selectedPeriod.value * 24 * 60 * 60 * 1000)
+})
+
+const filterByPeriod = (items) => {
+  const cutoff = periodCutoff.value
+  if (!cutoff) return items
+  return items.filter((item) => new Date(item.date) >= cutoff)
+}
 
 // State
 const stats = ref([])
@@ -40,6 +83,18 @@ const articleStats = ref([])
 const isLoading = ref(true)
 const error = ref(null)
 const isMobile = ref(false)
+
+// Inventaire & répartitions (snapshot courant + distributions toutes périodes)
+const inventoryStats = ref(null)
+const isLoadingInventory = ref(false)
+
+// Ventes réelles (commandes payées) sur la période sélectionnée
+const salesStats = ref({ daily: [], totalRevenueCents: 0, orderCount: 0, avgOrderValueCents: 0 })
+const isLoadingSales = ref(false)
+
+// Séries temporelles filtrées par période
+const filteredStats = computed(() => filterByPeriod(stats.value))
+const filteredArticleStats = computed(() => filterByPeriod(articleStats.value))
 
 // Storage stats
 const storageStats = ref(null)
@@ -74,7 +129,8 @@ onUnmounted(() => {
 
 // Computed
 const chartData = computed(() => {
-  if (!stats.value || stats.value.length === 0) {
+  const series = filteredStats.value
+  if (!series || series.length === 0) {
     return {
       labels: [],
       datasets: [], 
@@ -82,7 +138,7 @@ const chartData = computed(() => {
   }
 
   return {
-    labels: stats.value.map((item) => {
+    labels: series.map((item) => {
       // Formater la date pour l'affichage (format plus court sur mobile)
       const date = new Date(item.date)
       if (isMobile.value) {
@@ -101,7 +157,7 @@ const chartData = computed(() => {
       {
         type: 'line',
         label: 'Montres créées',
-        data: stats.value.map((item) => item.created),
+        data: series.map((item) => item.created),
         borderColor: 'rgb(34, 197, 94)', // green-500
         backgroundColor: 'rgba(34, 197, 94, 0.1)',
         borderWidth: 2,
@@ -117,7 +173,7 @@ const chartData = computed(() => {
       {
         type: 'line',
         label: 'Montres vendues',
-        data: stats.value.map((item) => item.sold),
+        data: series.map((item) => item.sold),
         borderColor: 'rgb(239, 68, 68)', // red-500
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
         borderWidth: 2,
@@ -133,7 +189,7 @@ const chartData = computed(() => {
       {
         type: 'bar',
         label: 'Valeur totale vendue (€)',
-        data: stats.value.map((item) => item.totalValue || 0),
+        data: series.map((item) => item.totalValue || 0),
         backgroundColor: 'rgba(59, 130, 246, 0.2)', // blue-500 with higher opacity
         borderColor: 'rgb(59, 130, 246)', // blue-500
         borderWidth: 1,
@@ -333,7 +389,8 @@ const dateRange = computed(() => {
 
 // Computed pour le graphique des articles
 const articleChartData = computed(() => {
-  if (!articleStats.value || articleStats.value.length === 0) {
+  const series = filteredArticleStats.value
+  if (!series || series.length === 0) {
     return {
       labels: [],
       datasets: [],
@@ -341,7 +398,7 @@ const articleChartData = computed(() => {
   }
 
   return {
-    labels: articleStats.value.map((item) => {
+    labels: series.map((item) => {
       // Formater la date pour l'affichage (format plus court sur mobile)
       const date = new Date(item.date)
       if (isMobile.value) {
@@ -360,7 +417,7 @@ const articleChartData = computed(() => {
       {
         type: 'bar',
         label: 'Articles créés',
-        data: articleStats.value.map((item) => item.created),
+        data: series.map((item) => item.created),
         backgroundColor: 'rgba(168, 85, 247, 0.6)', // purple-500
         borderColor: 'rgb(168, 85, 247)', // purple-500
         borderWidth: 1,
@@ -369,7 +426,7 @@ const articleChartData = computed(() => {
       {
         type: 'line',
         label: 'Articles vus',
-        data: articleStats.value.map((item) => item.views || 0),
+        data: series.map((item) => item.views || 0),
         borderColor: 'rgb(251, 146, 60)', // orange-500
         backgroundColor: 'rgba(251, 146, 60, 0.1)',
         borderWidth: 2,
@@ -466,6 +523,221 @@ const articleChartOptions = computed(() => {
 })
 
 
+// Palette commune pour les graphiques de répartition
+const DISTRIBUTION_COLORS = [
+  'rgb(59, 130, 246)', // blue-500
+  'rgb(34, 197, 94)', // green-500
+  'rgb(168, 85, 247)', // purple-500
+  'rgb(251, 146, 60)', // orange-500
+  'rgb(239, 68, 68)', // red-500
+  'rgb(14, 165, 233)', // sky-500
+  'rgb(234, 179, 8)', // yellow-500
+  'rgb(99, 102, 241)', // indigo-500
+]
+
+// Options communes des graphiques en anneau (doughnut)
+const doughnutOptions = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: isMobile.value ? 'bottom' : 'right',
+      labels: {
+        boxWidth: isMobile.value ? 10 : 12,
+        padding: isMobile.value ? 8 : 12,
+        font: { size: isMobile.value ? 10 : 12 },
+      },
+    },
+  },
+}))
+
+// Options communes des graphiques en barres horizontales
+const horizontalBarOptions = computed(() => ({
+  indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+  },
+  scales: {
+    x: {
+      beginAtZero: true,
+      ticks: { precision: 0, font: { size: isMobile.value ? 9 : 11 } },
+    },
+    y: {
+      ticks: { font: { size: isMobile.value ? 9 : 11 } },
+    },
+  },
+}))
+
+// Répartition par statut de stock (anneau)
+const statusChartData = computed(() => {
+  const items = inventoryStats.value?.byStatus || []
+  return {
+    labels: items.map((i) => i.label),
+    datasets: [
+      {
+        data: items.map((i) => i.count),
+        backgroundColor: DISTRIBUTION_COLORS,
+        borderWidth: 0,
+      },
+    ],
+  }
+})
+
+// Répartition par audience (anneau)
+const audienceChartData = computed(() => {
+  const items = inventoryStats.value?.byAudience || []
+  return {
+    labels: items.map((i) => i.label),
+    datasets: [
+      {
+        data: items.map((i) => i.count),
+        backgroundColor: DISTRIBUTION_COLORS,
+        borderWidth: 0,
+      },
+    ],
+  }
+})
+
+// Top marques (barres horizontales)
+const brandChartData = computed(() => {
+  const items = inventoryStats.value?.byBrand || []
+  return {
+    labels: items.map((i) => i.label),
+    datasets: [
+      {
+        label: 'Montres',
+        data: items.map((i) => i.count),
+        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+        borderColor: 'rgb(59, 130, 246)',
+        borderWidth: 1,
+      },
+    ],
+  }
+})
+
+// Répartition par tranche de prix (barres horizontales)
+const priceRangeChartData = computed(() => {
+  const items = inventoryStats.value?.byPriceRange || []
+  return {
+    labels: items.map((i) => i.label),
+    datasets: [
+      {
+        label: 'Montres',
+        data: items.map((i) => i.count),
+        backgroundColor: 'rgba(168, 85, 247, 0.7)',
+        borderColor: 'rgb(168, 85, 247)',
+        borderWidth: 1,
+      },
+    ],
+  }
+})
+
+const hasInventoryData = computed(() => (inventoryStats.value?.totalCount || 0) > 0)
+
+// Chiffre d'affaires réel (commandes payées) sur la période
+const revenueChartData = computed(() => {
+  const daily = salesStats.value?.daily || []
+  return {
+    labels: daily.map((item) => {
+      const date = new Date(item.date)
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: isMobile.value ? undefined : 'numeric',
+      })
+    }),
+    datasets: [
+      {
+        type: 'bar',
+        label: 'Chiffre d\'affaires (€)',
+        data: daily.map((item) => (item.revenueCents || 0) / 100),
+        backgroundColor: 'rgba(34, 197, 94, 0.5)',
+        borderColor: 'rgb(34, 197, 94)',
+        borderWidth: 1,
+        yAxisID: 'y',
+      },
+      {
+        type: 'line',
+        label: 'Commandes',
+        data: daily.map((item) => item.orderCount || 0),
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderWidth: 2,
+        tension: 0.4,
+        pointRadius: 3,
+        yAxisID: 'y1',
+      },
+    ],
+  }
+})
+
+const revenueChartOptions = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'top',
+      labels: { font: { size: isMobile.value ? 10 : 12 } },
+    },
+    tooltip: {
+      mode: 'index',
+      intersect: false,
+      callbacks: {
+        label: function (context) {
+          let label = context.dataset.label || ''
+          if (label) label += ': '
+          if (context.dataset.type === 'bar') {
+            label += formatEuro(context.parsed.y)
+          } else {
+            label += context.parsed.y
+          }
+          return label
+        },
+      },
+    },
+  },
+  scales: {
+    x: {
+      ticks: {
+        maxRotation: isMobile.value ? 45 : 0,
+        minRotation: isMobile.value ? 45 : 0,
+        font: { size: isMobile.value ? 9 : 11 },
+      },
+    },
+    y: {
+      type: 'linear',
+      position: 'left',
+      beginAtZero: true,
+      title: { display: !isMobile.value, text: 'CA (€)' },
+      ticks: {
+        font: { size: isMobile.value ? 9 : 11 },
+        callback: function (value) {
+          if (isMobile.value && value >= 1000) return (value / 1000).toFixed(1) + 'k€'
+          return formatEuro(value)
+        },
+      },
+    },
+    y1: {
+      type: 'linear',
+      position: 'right',
+      beginAtZero: true,
+      grid: { drawOnChartArea: false },
+      ticks: { stepSize: 1, precision: 0, font: { size: isMobile.value ? 9 : 11 } },
+      title: { display: !isMobile.value, text: 'Commandes' },
+    },
+  },
+}))
+
+const totalRevenue = computed(() => (salesStats.value?.totalRevenueCents || 0) / 100)
+const avgOrderValue = computed(() => (salesStats.value?.avgOrderValueCents || 0) / 100)
+
+const periodLabel = computed(() => {
+  const opt = PERIOD_OPTIONS.find((o) => o.value === selectedPeriod.value)
+  return opt ? opt.label : 'Tout'
+})
+
 // Methods
 const loadStats = async () => {
   try {
@@ -473,7 +745,7 @@ const loadStats = async () => {
     error.value = null
     const [watchData, articleData] = await Promise.all([
       getWatchStatsByDay(),
-      getArticleStatsByDay(),
+      isBlogEnabled.value ? getArticleStatsByDay() : Promise.resolve([]),
     ])
     stats.value = watchData
     articleStats.value = articleData
@@ -482,6 +754,34 @@ const loadStats = async () => {
     error.value = err.message || 'Une erreur est survenue lors du chargement des statistiques'
   } finally {
     isLoading.value = false
+  }
+}
+
+// Charger les statistiques d'inventaire et de répartition
+const loadInventoryStats = async () => {
+  try {
+    isLoadingInventory.value = true
+    inventoryStats.value = await getWatchInventoryStats()
+  } catch (err) {
+    console.error('Erreur lors du chargement des statistiques d\'inventaire:', err)
+    // Ne pas bloquer l'affichage si l'inventaire échoue
+  } finally {
+    isLoadingInventory.value = false
+  }
+}
+
+// Charger le chiffre d'affaires réel (commandes payées) sur la période sélectionnée
+const loadSalesStats = async () => {
+  try {
+    isLoadingSales.value = true
+    salesStats.value = await getSalesStatsByDay(
+      selectedPeriod.value ? { days: selectedPeriod.value } : {},
+    )
+  } catch (err) {
+    console.error('Erreur lors du chargement des statistiques de ventes:', err)
+    // Ne pas bloquer l'affichage si les ventes échouent
+  } finally {
+    isLoadingSales.value = false
   }
 }
 
@@ -513,13 +813,47 @@ const loadTableSizes = async () => {
   }
 }
 
+// Recharger le CA réel quand la période change (filtré côté serveur)
+vueWatch(selectedPeriod, () => {
+  loadSalesStats()
+})
+
 onMounted(async () => {
-  await Promise.all([loadStats(), loadStorageStats(), loadTableSizes()])
+  await Promise.all([
+    loadStats(),
+    loadInventoryStats(),
+    loadSalesStats(),
+    loadStorageStats(),
+    loadTableSizes(),
+  ])
 })
 </script>
 
 <template>
-  <AdminShell title="Statistiques des montres" :show-back-button="true">
+  <AdminShell title="Statistiques">
+      <!-- Period Selector -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <p class="text-sm text-gray-600">
+          Période des séries temporelles et du chiffre d'affaires : <span class="font-semibold text-text-main">{{ periodLabel }}</span>
+        </p>
+        <div class="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
+          <button
+            v-for="option in PERIOD_OPTIONS"
+            :key="option.label"
+            type="button"
+            @click="selectedPeriod = option.value"
+            :class="[
+              'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+              selectedPeriod === option.value
+                ? 'bg-primary text-white'
+                : 'text-gray-600 hover:bg-cream-100',
+            ]"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
+
       <!-- Error State -->
       <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
         {{ error }}
@@ -589,6 +923,99 @@ onMounted(async () => {
           </div>
         </div>
 
+        <!-- Business KPIs (inventaire + ventes réelles) -->
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Indicateurs clés</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-sm text-gray-600 mb-1">Valeur du stock actuel</div>
+            <div class="text-3xl font-bold text-text-main">{{ formatEuro(inventoryStats?.stockValue || 0) }}</div>
+            <div class="text-xs text-gray-500 mt-2">{{ inventoryStats?.stockCount || 0 }} montre{{ (inventoryStats?.stockCount || 0) > 1 ? 's' : '' }} en stock</div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-sm text-gray-600 mb-1">Taux d'écoulement</div>
+            <div class="text-3xl font-bold text-green-600">{{ (inventoryStats?.sellThroughRate || 0).toFixed(1) }}%</div>
+            <div class="text-xs text-gray-500 mt-2">Vendues vs total proposé</div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-sm text-gray-600 mb-1">Prix de vente moyen</div>
+            <div class="text-3xl font-bold text-blue-600">{{ formatEuro(inventoryStats?.avgSellingPrice || 0) }}</div>
+            <div class="text-xs text-gray-500 mt-2">Sur {{ inventoryStats?.soldCount || 0 }} vente{{ (inventoryStats?.soldCount || 0) > 1 ? 's' : '' }}</div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-sm text-gray-600 mb-1">Délai moyen de vente</div>
+            <div class="text-3xl font-bold text-text-main" v-if="inventoryStats?.avgTimeToSellDays != null">
+              {{ Math.round(inventoryStats.avgTimeToSellDays) }} j
+            </div>
+            <div v-else class="text-gray-400 text-2xl">N/A</div>
+            <div class="text-xs text-gray-500 mt-2">De la création à la vente</div>
+          </div>
+        </div>
+
+        <!-- Revenue from real orders -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Chiffre d'affaires réel (commandes payées)</h2>
+            <div class="flex gap-6">
+              <div class="text-right">
+                <div class="text-xs text-gray-500">CA ({{ periodLabel }})</div>
+                <div class="text-xl font-bold text-green-600">{{ formatEuro(totalRevenue) }}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs text-gray-500">Commandes</div>
+                <div class="text-xl font-bold text-text-main">{{ salesStats.orderCount }}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs text-gray-500">Panier moyen</div>
+                <div class="text-xl font-bold text-blue-600">{{ formatEuro(avgOrderValue) }}</div>
+              </div>
+            </div>
+          </div>
+          <div v-if="isLoadingSales" class="text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
+            <p class="text-gray-600 text-sm">Chargement du chiffre d'affaires...</p>
+          </div>
+          <div v-else-if="salesStats.daily.length === 0" class="text-center py-16">
+            <h3 class="text-lg text-gray-600 mb-2">Aucune commande payée sur cette période</h3>
+            <p class="text-gray-500 text-sm">Les commandes réglées apparaîtront ici.</p>
+          </div>
+          <div v-else class="h-64 sm:h-80 md:h-96">
+            <Chart :data="revenueChartData" :options="revenueChartOptions" />
+          </div>
+        </div>
+
+        <!-- Distributions -->
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Répartitions du catalogue</h2>
+        <div v-if="!hasInventoryData" class="bg-white rounded-lg shadow p-16 text-center mb-6">
+          <h3 class="text-lg text-gray-600 mb-2">Aucune donnée de catalogue</h3>
+          <p class="text-gray-500 text-sm">Ajoutez des montres pour voir les répartitions.</p>
+        </div>
+        <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Par statut de stock</h3>
+            <div class="h-64">
+              <Doughnut :data="statusChartData" :options="doughnutOptions" />
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Par audience</h3>
+            <div class="h-64">
+              <Doughnut :data="audienceChartData" :options="doughnutOptions" />
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Top marques</h3>
+            <div class="h-64">
+              <Bar :data="brandChartData" :options="horizontalBarOptions" />
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Par tranche de prix</h3>
+            <div class="h-64">
+              <Bar :data="priceRangeChartData" :options="horizontalBarOptions" />
+            </div>
+          </div>
+        </div>
+
         <!-- Chart -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Évolution des montres créées et vendues</h2>
@@ -612,7 +1039,7 @@ onMounted(async () => {
         </div>
 
         <!-- Article Chart -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div v-if="isBlogEnabled" class="bg-white rounded-lg shadow p-6 mb-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Évolution des articles créés et vus</h2>
           <div v-if="articleStats.length === 0" class="text-center py-16">
             <div class="text-gray-400 mb-4">

@@ -1029,6 +1029,156 @@ export async function getWatchStatsByDay() {
 }
 
 /**
+ * Statistiques d'inventaire et de répartition des montres.
+ * Requête légère (colonnes ciblées, sans images) pour éviter le coût de getAllWatchesForAdmin().
+ * @returns {Promise<{
+ *   stockCount: number, stockValue: number,
+ *   outOfStockCount: number,
+ *   soldCount: number, soldValue: number,
+ *   totalCount: number,
+ *   sellThroughRate: number,
+ *   avgSellingPrice: number,
+ *   avgTimeToSellDays: number|null,
+ *   byBrand: Array<{ label: string, count: number, value: number }>,
+ *   byPriceRange: Array<{ label: string, count: number }>,
+ *   byAudience: Array<{ label: string, count: number }>,
+ *   byStatus: Array<{ label: string, count: number }>,
+ * }>}
+ */
+export async function getWatchInventoryStats() {
+  try {
+    const { data, error } = await supabase
+      .from('watches')
+      .select('price, brand, audience, condition, is_available, is_sold, sale_date, created_at, stock_quantity')
+
+    if (error) {
+      throw new Error(`Erreur lors de la récupération des statistiques d'inventaire: ${error.message}`)
+    }
+
+    const watches = data || []
+
+    const retail = isRetailCatalog()
+
+    // Une montre est "vendue" en mode resale, ou en rupture de stock en mode retail.
+    const isOutOfStock = (w) =>
+      retail ? Number(w.stock_quantity) <= 0 : w.is_sold === true
+    const isSold = (w) => w.is_sold === true
+    const isInStock = (w) =>
+      retail
+        ? w.is_available !== false && Number(w.stock_quantity) > 0
+        : w.is_available !== false && w.is_sold !== true
+
+    const priceOf = (w) => parseFloat(w.price) || 0
+
+    const inStock = watches.filter(isInStock)
+    const soldWatches = watches.filter(isSold)
+    const outOfStock = watches.filter((w) => isOutOfStock(w) && !isSold(w))
+
+    const stockCount = inStock.length
+    const stockValue = inStock.reduce((sum, w) => sum + priceOf(w), 0)
+    const soldCount = soldWatches.length
+    const soldValue = soldWatches.reduce((sum, w) => sum + priceOf(w), 0)
+    const outOfStockCount = outOfStock.length
+    const totalCount = watches.length
+
+    // Taux d'écoulement = vendues / (vendues + actives en stock)
+    const sellThroughBase = soldCount + stockCount
+    const sellThroughRate = sellThroughBase > 0 ? (soldCount / sellThroughBase) * 100 : 0
+
+    const avgSellingPrice = soldCount > 0 ? soldValue / soldCount : 0
+
+    // Délai moyen de vente (jours) sur les montres vendues avec date de création + de vente
+    const sellDurations = soldWatches
+      .filter((w) => w.created_at && w.sale_date)
+      .map((w) => {
+        const created = new Date(w.created_at).getTime()
+        const sold = new Date(w.sale_date).getTime()
+        return (sold - created) / (1000 * 60 * 60 * 24)
+      })
+      .filter((d) => Number.isFinite(d) && d >= 0)
+    const avgTimeToSellDays =
+      sellDurations.length > 0
+        ? sellDurations.reduce((sum, d) => sum + d, 0) / sellDurations.length
+        : null
+
+    // Répartition par marque (top 8)
+    const brandMap = new Map()
+    for (const w of watches) {
+      const label = (w.brand || 'Sans marque').trim() || 'Sans marque'
+      if (!brandMap.has(label)) {
+        brandMap.set(label, { label, count: 0, value: 0 })
+      }
+      const entry = brandMap.get(label)
+      entry.count += 1
+      entry.value += priceOf(w)
+    }
+    const byBrand = Array.from(brandMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+
+    // Répartition par tranche de prix
+    const priceBuckets = [
+      { label: '< 1 000 €', min: 0, max: 1000, count: 0 },
+      { label: '1 000 - 5 000 €', min: 1000, max: 5000, count: 0 },
+      { label: '5 000 - 10 000 €', min: 5000, max: 10000, count: 0 },
+      { label: '10 000 - 25 000 €', min: 10000, max: 25000, count: 0 },
+      { label: '> 25 000 €', min: 25000, max: Infinity, count: 0 },
+    ]
+    for (const w of watches) {
+      const price = priceOf(w)
+      const bucket = priceBuckets.find((b) => price >= b.min && price < b.max)
+      if (bucket) bucket.count += 1
+    }
+    const byPriceRange = priceBuckets.map(({ label, count }) => ({ label, count }))
+
+    // Répartition par audience
+    const audienceLabels = {
+      homme: 'Homme',
+      femme: 'Femme',
+      unisexe: 'Unisexe',
+    }
+    const audienceMap = new Map()
+    for (const w of watches) {
+      const key = w.audience || 'unisexe'
+      const label = audienceLabels[key] || key
+      audienceMap.set(label, (audienceMap.get(label) || 0) + 1)
+    }
+    const byAudience = Array.from(audienceMap.entries()).map(([label, count]) => ({ label, count }))
+
+    // Répartition par statut
+    const byStatus = retail
+      ? [
+          { label: 'En stock', count: stockCount },
+          { label: 'Hors stock', count: outOfStockCount },
+        ]
+      : [
+          { label: 'En vente', count: stockCount },
+          { label: 'Hors stock', count: outOfStockCount },
+          { label: 'Vendues', count: soldCount },
+        ]
+
+    return {
+      stockCount,
+      stockValue,
+      outOfStockCount,
+      soldCount,
+      soldValue,
+      totalCount,
+      sellThroughRate,
+      avgSellingPrice,
+      avgTimeToSellDays,
+      byBrand,
+      byPriceRange,
+      byAudience,
+      byStatus,
+    }
+  } catch (error) {
+    console.error('Erreur dans getWatchInventoryStats:', error)
+    throw error
+  }
+}
+
+/**
  * Fonction récursive pour lister tous les fichiers dans un dossier et ses sous-dossiers
  * @param {string} folderPath - Chemin du dossier à lister
  * @returns {Promise<Array>} Liste de tous les fichiers

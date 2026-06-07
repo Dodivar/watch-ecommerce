@@ -174,6 +174,57 @@ export async function getOrderKpisForAdmin() {
 }
 
 /**
+ * Statistiques de ventes (commandes payées) groupées par jour.
+ * @param {{ days?: number }} [options] - Fenêtre temporelle en jours (omis = tout l'historique).
+ * @returns {Promise<{ daily: Array<{ date: string, revenueCents: number, orderCount: number }>, totalRevenueCents: number, orderCount: number, avgOrderValueCents: number }>}
+ */
+export async function getSalesStatsByDay({ days } = {}) {
+  const siteId = getAdminSiteId()
+
+  let query = supabase
+    .from('orders')
+    .select('total_cents, paid_at')
+    .eq('site_id', siteId)
+    .eq('status', 'paid')
+    .not('paid_at', 'is', null)
+    .order('paid_at', { ascending: true })
+
+  if (typeof days === 'number' && days > 0) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+    query = query.gte('paid_at', since)
+  }
+
+  const { data, error } = await query
+  if (error) throw new Error(error.message)
+
+  const orders = data || []
+  const statsMap = new Map()
+
+  for (const order of orders) {
+    if (!order.paid_at) continue
+    const dateKey = new Date(order.paid_at).toISOString().split('T')[0]
+    if (!statsMap.has(dateKey)) {
+      statsMap.set(dateKey, { date: dateKey, revenueCents: 0, orderCount: 0 })
+    }
+    const dayStats = statsMap.get(dateKey)
+    dayStats.revenueCents += order.total_cents || 0
+    dayStats.orderCount += 1
+  }
+
+  const daily = Array.from(statsMap.values()).sort((a, b) => a.date.localeCompare(b.date))
+  const totalRevenueCents = orders.reduce((sum, o) => sum + (o.total_cents || 0), 0)
+  const orderCount = orders.length
+  const avgOrderValueCents = orderCount > 0 ? Math.round(totalRevenueCents / orderCount) : 0
+
+  return {
+    daily,
+    totalRevenueCents,
+    orderCount,
+    avgOrderValueCents,
+  }
+}
+
+/**
  * @param {string} watchId
  */
 export async function getOrdersForWatchAdmin(watchId) {
