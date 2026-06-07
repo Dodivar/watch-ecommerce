@@ -216,7 +216,7 @@ export default {
       imageLayout: 'landscape',
     },
     stats: [
-      { value: '1995', label: 'Année de création', detail: 'Une référence à Strasbourg' },
+      { value: '1995', label: 'Année de création', detail: 'Plus de 30 ans d\'expérience' },
       { value: '3 000', label: 'Montres en stock', detail: 'Un choix immédiat' },
       { value: '30', label: 'Marques', detail: 'Des plus prestigieuses' },
       { value: '1', label: 'Adresse à Strasbourg', detail: 'Place des Halles' },
