@@ -92,6 +92,27 @@ export async function updateLeadStatus(leadId, status) {
 }
 
 /**
+ * Compte des leads non lus par type (badges accordéon admin).
+ * @returns {Promise<Record<string, number>>}
+ */
+export async function getUnreadLeadsCountByType() {
+  const siteId = getAdminSiteId()
+  const { data, error } = await supabase
+    .from('lead_submissions')
+    .select('type')
+    .eq('site_id', siteId)
+    .eq('status', 'new')
+
+  if (error) throw new Error(error.message)
+
+  const counts = Object.fromEntries(LEAD_TYPES.map((t) => [t, 0]))
+  for (const row of data || []) {
+    if (counts[row.type] != null) counts[row.type]++
+  }
+  return counts
+}
+
+/**
  * Compte des leads non lus pour badge nav.
  */
 export async function getUnreadLeadsCount() {
