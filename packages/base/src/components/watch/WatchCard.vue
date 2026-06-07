@@ -7,6 +7,13 @@
       >
         Nouveau
       </span>
+      <span
+        v-if="showCornerYearBadge"
+        class="absolute z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-medium rounded bg-white/90 text-gray-800 shadow-sm backdrop-blur-sm"
+        :class="showNewBadge ? 'top-9 left-2 md:top-10' : 'top-2 left-2'"
+      >
+        {{ watchItem.year }}
+      </span>
       <div
         v-if="!watchItem.images || watchItem.images.length === 0"
         class="absolute inset-0 flex items-center justify-center"
@@ -134,10 +141,10 @@
       </p>
 
       <div
-        v-if="showPrice || (catalogDisplay.showResaleFields && (watchItem.contenu || watchItem.details?.content || watchItem.year))"
-        class="flex items-center gap-2 text-[10px] md:text-sm text-gray-500"
+        v-if="showPrice || (catalogDisplay.showResaleFields && (watchItem.contenu || watchItem.details?.content || showInlineYear))"
+        class="mt-2 md:mt-3 flex items-center gap-2 text-[10px] md:text-sm text-gray-500"
       >
-        <span v-if="showPrice" class="text-base md:text-xl lg:text-2xl font-medium text-primary">
+        <span v-if="showPrice" class="text-base md:text-xl lg:text-2xl font-bold text-primary">
           {{ formatPrice(watchItem.price) }}
         </span>
         <span
@@ -146,7 +153,7 @@
         >
           {{ watchItem.contenu || watchItem.details?.content }}
         </span>
-        <span v-if="catalogDisplay.showResaleFields && watchItem.year" class="font-medium ml-auto">
+        <span v-if="showInlineYear" class="font-medium ml-auto">
           {{ watchItem.year }}
         </span>
       </div>
@@ -225,6 +232,20 @@ const effectiveShowReference = computed(
 
 const effectiveShowSoldBadge = computed(
   () => props.showSoldBadge && catalogDisplay.showSoldBadge,
+)
+
+const showCornerYearBadge = computed(
+  () =>
+    catalogDisplay.showResaleFields &&
+    catalogDisplay.yearBadgePosition === 'corner' &&
+    Boolean(watchItem.value.year),
+)
+
+const showInlineYear = computed(
+  () =>
+    catalogDisplay.showResaleFields &&
+    catalogDisplay.yearBadgePosition !== 'corner' &&
+    Boolean(watchItem.value.year),
 )
 
 const currentImageIndex = ref(0)

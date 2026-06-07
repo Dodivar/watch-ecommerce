@@ -107,7 +107,7 @@ export default {
 
   /** Mot de passe page « site en construction » (voir `MaintenancePage.vue`). */
   maintenance: {
-    password: '@sauvagE2025!',
+    password: 'dodi',
   },
 
   integrations: {
@@ -130,6 +130,8 @@ export default {
   /** Profil catalogue revente : année, état, contenu et référence visibles sur cartes et fiches. */
   watchCatalog: {
     mode: 'resale',
+    /** Année affichée en badge dans le coin haut-gauche de l'image ('corner') ou à droite du prix ('inline'). */
+    yearBadgePosition: 'corner',
   },
 
   checkout: {

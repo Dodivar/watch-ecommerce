@@ -37,14 +37,14 @@ const useCompactHero = computed(() => site.home?.hero?.variant === 'compact')
             <RouterLink
               v-if="features.collection"
               to="/collection"
-              class="inline-flex cursor-pointer items-center bg-primary px-8 py-4 text-lg font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-primary-hover"
+              class="inline-flex cursor-pointer items-center justify-center rounded-lg bg-primary px-8 py-4 text-lg font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-primary-hover"
             >
               Voir les montres en stock
             </RouterLink>
             <RouterLink
               v-if="features.recherche"
               to="/recherche"
-              class="inline-flex cursor-pointer items-center border-2 border-primary px-8 py-4 text-lg font-semibold text-primary shadow transition-colors duration-200 hover:bg-cream-100"
+              class="inline-flex cursor-pointer items-center justify-center rounded-lg border-2 border-primary px-8 py-4 text-lg font-semibold text-primary shadow transition-colors duration-200 hover:bg-cream-100"
             >
               Recherche personnalisée
             </RouterLink>
