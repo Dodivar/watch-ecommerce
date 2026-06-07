@@ -9,8 +9,12 @@ Interface back-office accessible après authentification Supabase.
   gestion des articles, y compris la génération assistée et l’aperçu.
 - `AdminWatchForm.vue` / `AdminWatchArticleSelector.vue` : création de fiches
   montres et association aux articles de blog.
-- `AdminWatchStats.vue` : métriques de visibilité (vues, disponibilité).
-- `AdminLogin.vue` + `AdminHeader.vue` : enveloppe d’authentification et navigation.
+- `AdminWatchStats.vue` : page dédiée `/admin/stats` (accessible depuis le menu).
+  KPIs métier (valeur du stock, taux d'écoulement, prix de vente moyen, délai
+  moyen de vente), chiffre d'affaires réel issu des commandes payées, séries
+  temporelles avec sélecteur de période, répartitions du catalogue (statut,
+  audience, marques, tranches de prix) et métriques infra (stockage, tables).
+- `AdminLogin.vue`, `AdminShell.vue` + `AdminSidebar.vue` : enveloppe d’authentification et navigation.
 
 ## Flux de données
 

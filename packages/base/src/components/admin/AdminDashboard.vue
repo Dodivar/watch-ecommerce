@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch as vueWatch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAllWatchesForAdmin, deleteWatch, toggleWatchAvailability, markWatchAsSold, reorderWatches } from '@/services/admin/adminWatchService'
 import { getOrderKpisForAdmin } from '@/services/admin/adminOrderService'
@@ -23,6 +23,10 @@ const selectedBrand = ref('')
 const showDeleteConfirm = ref(false)
 const watchToDelete = ref(null)
 const activeTab = ref('available') // 'available', 'unavailable', 'sold', ou 'all'
+
+// Pagination state (côté client)
+const currentPage = ref(1)
+const pageSize = ref(25)
 
 const orderKpis = ref({ todayCount: 0, weekRevenueCents: 0 })
 const unreadLeadsCount = ref(0)
@@ -124,6 +128,45 @@ const filteredWatches = computed(() => {
 
   return filtered
 })
+
+// Pagination dérivée de la liste filtrée
+const totalPages = computed(() => {
+  return Math.max(1, Math.ceil(filteredWatches.value.length / pageSize.value))
+})
+
+// Décalage de la page courante : convertit un index local de ligne rendue en index global dans filteredWatches
+const pageOffset = computed(() => (currentPage.value - 1) * pageSize.value)
+
+const paginatedWatches = computed(() => {
+  const start = pageOffset.value
+  return filteredWatches.value.slice(start, start + pageSize.value)
+})
+
+const paginationStart = computed(() => {
+  if (filteredWatches.value.length === 0) return 0
+  return (currentPage.value - 1) * pageSize.value + 1
+})
+
+const paginationEnd = computed(() => {
+  return Math.min(currentPage.value * pageSize.value, filteredWatches.value.length)
+})
+
+// Revenir à la page 1 dès qu'un filtre, une recherche ou un tri change
+vueWatch([searchQuery, selectedBrand, activeTab, sortColumn, sortDirection, pageSize], () => {
+  currentPage.value = 1
+})
+
+// Si le nombre de pages diminue (suppression, filtre), garder currentPage valide
+vueWatch(totalPages, (pages) => {
+  if (currentPage.value > pages) {
+    currentPage.value = pages
+  }
+})
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
 
 const totalWatches = computed(() => watches.value.length)
 
@@ -634,20 +677,6 @@ onMounted(async () => {
           </div>
           <div class="flex flex-col w-full gap-3 sm:w-auto sm:flex-row">
             <button
-              @click="router.push('/admin/watches/stats')"
-              class="w-full px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap flex items-center justify-center gap-2 sm:w-auto"
-            >
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              Statistiques
-            </button>
-            <button
               @click="router.push('/admin/watches/new')"
               class="w-full px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors whitespace-nowrap sm:w-auto"
             >
@@ -844,18 +873,18 @@ onMounted(async () => {
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr
-                v-for="(watch, index) in filteredWatches"
+                v-for="(watch, index) in paginatedWatches"
                 :key="watch.id"
                 :class="[
                   'hover:bg-cream transition-colors',
                   activeTab !== 'sold' ? 'cursor-move' : 'cursor-default',
-                  draggedOverIndex === index ? 'bg-blue-50 border-2 border-blue-300' : '',
+                  draggedOverIndex === pageOffset + index ? 'bg-blue-50 border-2 border-blue-300' : '',
                 ]"
                 :draggable="activeTab !== 'sold'"
                 @dragstart="handleDragStart($event, watch)"
-                @dragover.prevent="handleDragOver($event, index)"
+                @dragover.prevent="handleDragOver($event, pageOffset + index)"
                 @dragleave="handleDragLeave"
-                @drop="handleDrop($event, index)"
+                @drop="handleDrop($event, pageOffset + index)"
                 @dragend="handleDragEnd"
               >
                 <td v-if="activeTab !== 'sold'" class="px-6 py-4 whitespace-nowrap">
@@ -866,10 +895,10 @@ onMounted(async () => {
                     <div class="flex flex-col gap-1">
                       <button
                         @click.stop="moveWatchUp(watch.id)"
-                        :disabled="index === 0"
+                        :disabled="pageOffset + index === 0"
                         :class="[
                           'p-1 rounded hover:bg-cream-200 transition-colors',
-                          index === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+                          pageOffset + index === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
                         ]"
                         title="Déplacer vers le haut"
                       >
@@ -879,10 +908,10 @@ onMounted(async () => {
                       </button>
                       <button
                         @click.stop="moveWatchDown(watch.id)"
-                        :disabled="index === filteredWatches.length - 1"
+                        :disabled="pageOffset + index === filteredWatches.length - 1"
                         :class="[
                           'p-1 rounded hover:bg-cream-200 transition-colors',
-                          index === filteredWatches.length - 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+                          pageOffset + index === filteredWatches.length - 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
                         ]"
                         title="Déplacer vers le bas"
                       >
@@ -1081,10 +1110,50 @@ onMounted(async () => {
             </tbody>
           </table>
         </div>
-        <div class="px-6 py-3 border-t border-gray-200">
-          <p class="text-sm text-gray-500 italic">
-            {{ filteredWatches.length }} montre{{ filteredWatches.length > 1 ? 's' : '' }} affichée{{ filteredWatches.length > 1 ? 's' : '' }}
-          </p>
+        <div class="px-6 py-3 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="flex items-center gap-4">
+            <p class="text-sm text-gray-500 italic">
+              {{ paginationStart }}-{{ paginationEnd }} sur {{ filteredWatches.length }} montre{{ filteredWatches.length > 1 ? 's' : '' }}
+            </p>
+            <label class="text-sm text-gray-500 flex items-center gap-2">
+              Par page
+              <select
+                v-model.number="pageSize"
+                class="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </label>
+          </div>
+          <div v-if="totalPages > 1" class="flex items-center gap-2">
+            <button
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              :class="[
+                'px-3 py-1 rounded-md text-sm border transition-colors',
+                currentPage === 1
+                  ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                  : 'border-gray-300 text-gray-700 hover:bg-cream-100 cursor-pointer',
+              ]"
+            >
+              Précédent
+            </button>
+            <span class="text-sm text-gray-600">Page {{ currentPage }} / {{ totalPages }}</span>
+            <button
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              :class="[
+                'px-3 py-1 rounded-md text-sm border transition-colors',
+                currentPage === totalPages
+                  ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                  : 'border-gray-300 text-gray-700 hover:bg-cream-100 cursor-pointer',
+              ]"
+            >
+              Suivant
+            </button>
+          </div>
         </div>
       </div>
 

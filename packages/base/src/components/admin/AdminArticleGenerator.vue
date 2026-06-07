@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { generateArticleFromWatch } from '@/services/n8nService'
-import AdminHeader from './AdminHeader.vue'
+import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
 
@@ -65,16 +65,13 @@ const handleCancel = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-cream">
-    <div class="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-      <!-- Top Section -->
-      <AdminHeader
-        title="Générer un article"
-        :show-back-button="true"
-        back-button-text="Liste des articles"
-        back-button-route="/admin/articles"
-      />
-
+  <AdminShell
+    title="Générer un article"
+    :show-back-button="true"
+    back-button-text="Liste des articles"
+    back-button-route="/admin/articles"
+    content-class="max-w-4xl"
+  >
       <!-- Error State -->
       <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg mb-4 sm:mb-6 text-sm sm:text-base">
         <div class="flex items-start justify-between gap-2">
@@ -158,7 +155,6 @@ const handleCancel = () => {
           </div>
         </form>
       </div>
-    </div>
-  </div>
+  </AdminShell>
 </template>
 

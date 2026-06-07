@@ -42,6 +42,9 @@ const { badgeLabel, toggleDrawer, closeDrawer: closeCartDrawer } = useCart()
 // Vérifier si on est sur la page de maintenance
 const isMaintenancePage = computed(() => route.path === '/maintenance')
 
+// Masquer le chrome public (header, footer) en mode administration
+const isAdminPage = computed(() => route.path.startsWith('/admin'))
+
 // Bloquer l'accès au panier pendant le checkout
 const isCheckoutPage = computed(() => route.path === '/checkout')
 const cartAccessible = computed(() => PURCHASE_ENABLED && !isCheckoutPage.value)
@@ -73,7 +76,7 @@ function displayMobileMenu() {
 <template>
   <Head />
   <MainNavMobile
-    v-if="!isMaintenancePage"
+    v-if="!isMaintenancePage && !isAdminPage"
     v-model:open="mobileMenuOpen"
     :features="features"
     :is-admin="isAdmin"
@@ -85,7 +88,7 @@ function displayMobileMenu() {
 
   <!-- Menu desktop -->
   <header
-    v-if="!isMaintenancePage"
+    v-if="!isMaintenancePage && !isAdminPage"
     id="header"
     class="relative shadow-sm backdrop-blur-sm sticky top-0 z-20"
   >
@@ -140,7 +143,7 @@ function displayMobileMenu() {
   </main>
 
   <!-- Footer -->
-  <footer v-if="!isMaintenancePage" id="contact" class="bg-primary text-white py-12">
+  <footer v-if="!isMaintenancePage && !isAdminPage" id="contact" class="bg-primary text-white py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div :class="isAdmin ? 'grid md:grid-cols-5 gap-8' : 'grid md:grid-cols-4 gap-8'">
         <div class="sm:col-span-2">
@@ -342,7 +345,7 @@ function displayMobileMenu() {
               >
             </li>
             <li>
-              <RouterLink to="/admin/watches/stats" class="text-white/90 hover:text-white transition-colors"
+              <RouterLink to="/admin/stats" class="text-white/90 hover:text-white transition-colors"
                 >Stats Montres</RouterLink
               >
             </li>
@@ -382,7 +385,7 @@ function displayMobileMenu() {
     </div>
   </footer>
 
-  <CartDrawer v-if="cartAccessible && !isMaintenancePage" />
+  <CartDrawer v-if="cartAccessible && !isMaintenancePage && !isAdminPage" />
   <CookieBanner />
 </template>
 

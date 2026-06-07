@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { marked } from 'marked'
 import { createArticle, updateArticle, getArticleByIdForAdmin } from '@/services/admin/adminArticleService'
-import AdminHeader from './AdminHeader.vue'
+import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -139,16 +139,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-cream">
-    <div class="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-      <!-- Top Section -->
-      <AdminHeader
-        :title="isEditMode ? 'Modifier l\'article' : 'Nouvel article'"
-        :show-back-button="true"
-        back-button-text="Tableau de bord"
-        back-button-route="/admin"
-      />
-
+  <AdminShell
+    :title="isEditMode ? 'Modifier l\'article' : 'Nouvel article'"
+    :show-back-button="true"
+    back-button-text="Tableau de bord"
+    back-button-route="/admin"
+    content-class="max-w-4xl"
+  >
       <!-- Error State -->
       <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg mb-4 sm:mb-6 text-sm sm:text-base">
         <div class="flex items-start justify-between gap-2">
@@ -336,8 +333,7 @@ onMounted(async () => {
           </div>
         </form>
       </div>
-    </div>
-  </div>
+  </AdminShell>
 </template>
 
 <style scoped>
