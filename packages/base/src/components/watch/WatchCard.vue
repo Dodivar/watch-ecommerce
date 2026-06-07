@@ -134,6 +134,12 @@
         >
           Vendue
         </span>
+        <span
+          v-else-if="isOutOfStock"
+          class="ml-1 md:ml-2 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-orange-100 text-orange-800 whitespace-nowrap flex-shrink-0"
+        >
+          Hors stock
+        </span>
       </div>
 
       <p v-if="effectiveShowReference" class="text-[10px] md:text-sm text-gray-600 md:mb-2 font-light">
@@ -174,8 +180,10 @@ import {
   WATCH_CARD_IMAGE_SIZES,
 } from '@/utils/watchImageUrl.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
 
-const catalogDisplay = getSiteConfig().watchCatalog.display
+const site = getSiteConfig()
+const catalogDisplay = site.watchCatalog.display
 
 const props = defineProps({
   watch: {
@@ -233,6 +241,8 @@ const effectiveShowReference = computed(
 const effectiveShowSoldBadge = computed(
   () => props.showSoldBadge && catalogDisplay.showSoldBadge,
 )
+
+const isOutOfStock = computed(() => isWatchOutOfStock(site, watchItem.value))
 
 const showCornerYearBadge = computed(
   () =>

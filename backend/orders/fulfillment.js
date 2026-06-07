@@ -52,11 +52,14 @@ async function applyRetailStockDecrement(supabase, orderId) {
     if (watchError || !watch || watch.stock_quantity == null) continue
 
     const newStock = Math.max(0, watch.stock_quantity - line.quantity)
+    // Une rupture de stock (newStock === 0) ne depublie plus la montre :
+    // en mode retail (gestion de stock), elle reste visible au catalogue avec
+    // un badge "Hors stock". Seule une vente (is_sold, mode resale) la retire.
     const { error: updateError } = await supabase
       .from('watches')
       .update({
         stock_quantity: newStock,
-        is_available: newStock > 0 && !watch.is_sold,
+        is_available: !watch.is_sold,
       })
       .eq('id', line.watch_id)
 

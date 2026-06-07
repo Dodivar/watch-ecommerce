@@ -4,6 +4,7 @@ import {
   DEFAULT_WATCH_GUARANTEES,
   MAX_WATCH_GUARANTEES,
   MIN_WATCH_GUARANTEES,
+  isWatchOutOfStock,
   resolveRetailTrustHighlights,
   resolveWatchCatalogConfig,
   resolveWatchGuarantees,
@@ -17,6 +18,7 @@ describe('resolveWatchCatalogConfig', () => {
     expect(cfg.isRetail).toBe(true)
     expect(cfg.display.showReference).toBe(false)
     expect(cfg.display.showSoldBadge).toBe(false)
+    expect(cfg.display.showStockStatus).toBe(true)
   })
 
   it('active les flags resale pour mode resale', () => {
@@ -25,6 +27,7 @@ describe('resolveWatchCatalogConfig', () => {
     expect(cfg.isResale).toBe(true)
     expect(cfg.display.showReference).toBe(true)
     expect(cfg.display.showAdCode).toBe(true)
+    expect(cfg.display.showStockStatus).toBe(false)
   })
 
   it('conserve watchCatalog.guarantees', () => {
@@ -123,5 +126,31 @@ describe('resolveRetailTrustHighlights', () => {
     expect(
       resolveRetailTrustHighlights({ watchCatalog: { mode: 'resale' } }, {}),
     ).toEqual([])
+  })
+})
+
+describe('isWatchOutOfStock', () => {
+  it('retail : true quand stock <= 0', () => {
+    expect(isWatchOutOfStock({}, { stockQuantity: 0 })).toBe(true)
+    expect(isWatchOutOfStock({}, { stockQuantity: -1 })).toBe(true)
+  })
+
+  it('retail : false quand stock > 0', () => {
+    expect(isWatchOutOfStock({}, { stockQuantity: 3 })).toBe(false)
+  })
+
+  it('retail : false quand le stock est inconnu', () => {
+    expect(isWatchOutOfStock({}, { stockQuantity: null })).toBe(false)
+    expect(isWatchOutOfStock({}, {})).toBe(false)
+  })
+
+  it('resale : toujours false (pas de notion de stock)', () => {
+    expect(
+      isWatchOutOfStock({ watchCatalog: { mode: 'resale' } }, { stockQuantity: 0 }),
+    ).toBe(false)
+  })
+
+  it('gère un watchItem absent', () => {
+    expect(isWatchOutOfStock({}, null)).toBe(false)
   })
 })

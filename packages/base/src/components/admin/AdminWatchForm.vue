@@ -14,6 +14,7 @@ const route = useRoute()
 const isEditMode = computed(() => !!route.params.id)
 const watchId = computed(() => route.params.id)
 const isResaleCatalog = computed(() => getSiteConfig().watchCatalog?.mode === 'resale')
+const isBlogEnabled = computed(() => !!getSiteConfig().features?.blog)
 
 // Form state
 const formData = ref({
@@ -787,7 +788,7 @@ onMounted(async () => {
         </div>
 
         <!-- Linked Articles -->
-        <div v-if="isEditMode" class="bg-white rounded-lg shadow p-6">
+        <div v-if="isEditMode && isBlogEnabled" class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between mb-4">
             <div>
               <h2 class="text-xl font-semibold text-gray-900">Articles liés</h2>
@@ -919,7 +920,7 @@ onMounted(async () => {
 
     <!-- Article Selector Modal -->
     <AdminWatchArticleSelector
-      v-if="isEditMode"
+      v-if="isEditMode && isBlogEnabled"
       :is-open="showArticleSelector"
       :watch-id="watchId"
       @close="showArticleSelector = false"

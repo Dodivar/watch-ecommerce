@@ -50,4 +50,49 @@ describe('WatchCard', () => {
 
     expect(wrapper.text()).not.toContain('REF-001')
   })
+
+  it('affiche le badge Hors stock en retail quand le stock est à 0', () => {
+    getSiteConfigMock.mockReturnValue({
+      watchCatalog: {
+        mode: 'retail',
+        display: { showReference: false, showSoldBadge: false, showStockStatus: true },
+      },
+    })
+
+    const wrapper = mount(WatchCard, {
+      props: { watch: { ...baseWatch, stockQuantity: 0 } },
+    })
+
+    expect(wrapper.text()).toContain('Hors stock')
+  })
+
+  it('n’affiche pas Hors stock quand la montre est en stock', () => {
+    getSiteConfigMock.mockReturnValue({
+      watchCatalog: {
+        mode: 'retail',
+        display: { showReference: false, showSoldBadge: false, showStockStatus: true },
+      },
+    })
+
+    const wrapper = mount(WatchCard, {
+      props: { watch: { ...baseWatch, stockQuantity: 2 } },
+    })
+
+    expect(wrapper.text()).not.toContain('Hors stock')
+  })
+
+  it('n’affiche pas Hors stock en mode resale', () => {
+    getSiteConfigMock.mockReturnValue({
+      watchCatalog: {
+        mode: 'resale',
+        display: { showReference: true, showSoldBadge: true, showStockStatus: false },
+      },
+    })
+
+    const wrapper = mount(WatchCard, {
+      props: { watch: { ...baseWatch, stockQuantity: 0 } },
+    })
+
+    expect(wrapper.text()).not.toContain('Hors stock')
+  })
 })

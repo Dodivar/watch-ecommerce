@@ -32,6 +32,7 @@ export const APP_ROUTE_META = [
   { path: '/admin', feature: 'admin' },
   { path: '/admin/watches/new', feature: 'admin' },
   { path: '/admin/watches/:id/edit', feature: 'admin' },
+  { path: '/admin/stats', feature: 'admin' },
   { path: '/admin/watches/stats', feature: 'admin' },
   { path: '/admin/orders', feature: 'admin' },
   { path: '/admin/orders/:id', feature: 'admin' },

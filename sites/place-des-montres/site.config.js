@@ -210,7 +210,7 @@ export default {
       eyebrow: 'Qui sommes-nous ?',
       title: 'Place des Montres',
       lead:
-        "Depuis 1995, au cœur de Strasbourg, nous cultivons l'art de bien choisir sa montre — avec l'exigence d'un spécialiste qui a vu passer près de trois décennies de tendances, de marques et de sourires clients.",
+        "Depuis 1995, au cœur de Strasbourg, nous cultivons l'art de bien choisir sa montre : un conseil de spécialiste, un large choix de marques et l'envie de vous voir repartir avec la pièce qu'il vous faut.",
       sinceYear: 1995,
       image: '/places/place-des-montres-strasbourg_1.jpg',
       imageLayout: 'landscape',
@@ -225,11 +225,11 @@ export default {
       title: 'Une adresse de référence à Strasbourg',
       paragraphs: [
         "Installée au centre commercial Place des Halles, Place des Montres est bien plus qu'une boutique : c'est un lieu de rencontre entre les amateurs de belles montres et une équipe qui connaît chaque univers, chaque mécanisme, chaque nuance de cadran.",
-        "Notre force, c'est l'expérience accumulée depuis 1995. Derrière le comptoir comme en ligne, nous guidons chaque client — du premier garde-temps au cadeau qui marquera une occasion — avec la même attention et le même plaisir de conseiller.",
+        "Notre force, c'est le savoir-faire d'une enseigne installée de longue date à Strasbourg, que notre équipe d'aujourd'hui fait vivre au quotidien. Derrière le comptoir comme en ligne, nous guidons chaque client — du premier garde-temps au cadeau qui marquera une occasion — avec la même attention et le même plaisir de conseiller.",
         "Des montres de tous styles et à tous les prix : sport, élégance, mécanique automatique à fond transparent… nous vous aidons à trouver la pièce qui vous ressemble, pour vous faire plaisir ou faire plaisir à votre entourage.",
       ],
       pullQuote:
-        "Franchir la porte de notre magasin, c'est entrer dans près de trente ans de passion horlogère — et repartir avec une montre choisie pour vous.",
+        "Franchir la porte de notre magasin, c'est profiter d'un vrai conseil horloger — et repartir avec une montre choisie pour vous.",
     },
     styles: [
       {

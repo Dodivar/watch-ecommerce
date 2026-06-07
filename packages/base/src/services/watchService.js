@@ -70,6 +70,7 @@ function transformWatchData(watchData, details, accessories, images, articles = 
     description: watchData.description || '',
     isAvailable: watchData.is_available !== undefined ? watchData.is_available : true,
     isSold: watchData.is_sold !== undefined ? watchData.is_sold : false,
+    stockQuantity: watchData.stock_quantity ?? null,
     saleDate: watchData.sale_date || null,
     displayOrder: watchData.display_order || 0,
     createdAt: watchData.created_at || null,

@@ -100,6 +100,9 @@ export function resolveWatchCatalogConfig(siteConfig) {
       showReference: isResale,
       showResaleFields: isResale,
       showSoldBadge: isResale,
+      // Catalogue retail (gestion de stock) : afficher l'etat "Hors stock"
+      // (badge + achat desactive) au lieu de masquer la montre.
+      showStockStatus: !isResale,
       showAdCode: isResale,
       showDeliveryContent: isResale,
       showYearInDetails: isResale,
@@ -107,6 +110,26 @@ export function resolveWatchCatalogConfig(siteConfig) {
       yearBadgePosition,
     },
   }
+}
+
+/**
+ * Determine si une montre est en rupture de stock pour l'affichage catalogue.
+ * Concerne uniquement le mode retail (gestion de stock) : `stock_quantity <= 0`.
+ * En mode resale, la disponibilite repose sur `isSold` (pas de notion de stock).
+ *
+ * @param {Record<string, unknown>} siteConfig — manifest enrichi (`getSiteConfig()`)
+ * @param {Record<string, unknown> | null | undefined} watchItem
+ * @returns {boolean}
+ */
+export function isWatchOutOfStock(siteConfig, watchItem) {
+  const catalog = resolveWatchCatalogConfig(siteConfig)
+  if (!catalog.display.showStockStatus) return false
+  if (!watchItem) return false
+  const raw = watchItem.stockQuantity
+  // Stock inconnu (null/undefined) → ne pas afficher "Hors stock" par defaut.
+  if (raw === null || raw === undefined || raw === '') return false
+  const stock = Number(raw)
+  return Number.isFinite(stock) && stock <= 0
 }
 
 function stripHtml(value) {
