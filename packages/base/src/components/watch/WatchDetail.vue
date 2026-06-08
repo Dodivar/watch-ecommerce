@@ -75,6 +75,13 @@
                 Image non disponible
               </div>
 
+              <span
+                v-if="showNouveauBadge"
+                class="absolute top-2 left-2 lg:top-4 lg:left-4 z-10 px-2 py-0.5 lg:px-3 lg:py-1 text-xs lg:text-sm font-semibold rounded-full bg-primary text-white shadow-sm"
+              >
+                Nouveau
+              </span>
+
               <!-- Zoom Preview Encart -->
               <div
                 v-if="isHovering && watchItem && watchItem.images && watchItem.images.length > 0"
@@ -817,6 +824,7 @@ const isResaleCatalog = site.watchCatalog.isResale
 const appointmentEnabled = site.watchCatalog.appointmentEnabled
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { useCart } from '@/composables/useCart.js'
+import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import WatchDetailSkeleton from '@/components/watch/WatchDetailSkeleton.vue'
 import WatchAppointmentModal from '@/components/watch/WatchAppointmentModal.vue'
 import PaymentIcons from '@/components/payment/PaymentIcons.vue'
@@ -920,6 +928,10 @@ const showAddToCartButton = computed(
     !isOutOfStock.value,
 )
 const { add: addToCart, openDrawer: openCartDrawer } = useCart()
+const { isNouvelle } = useNouvellesWatchIds()
+const showNouveauBadge = computed(
+  () => Boolean(watchItem.value?.id && isNouvelle(watchItem.value.id)),
+)
 const isLoading = ref(true)
 const error = ref(null)
 const isUnavailable = ref(false)
