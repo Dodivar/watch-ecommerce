@@ -20,4 +20,6 @@ Prérequis : tables checkout existantes (`orders`, `order_lines`, `promo_codes`,
 
 - Table `home_carousel_slides` (ordre, marque optionnelle, métadonnées)
 - Bucket Storage public `home-carousel`
+
+`20260608130000_home_carousel_watch_link.sql` — lien optionnel vers une fiche montre (`watch_id`) sur chaque slide.
 - Policies RLS admin (lecture publique)

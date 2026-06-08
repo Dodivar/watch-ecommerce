@@ -7,14 +7,17 @@ import {
   getHomeCarouselSlidesForAdmin,
   saveHomeCarouselChanges,
 } from '@/services/admin/adminHomeCarouselService.js'
+import { getAllWatchesForAdmin } from '@/services/admin/adminWatchService.js'
 import { getAvailableCatalogBrands } from '@/services/watchService.js'
 
-/** @typedef {{ id: string, image_url: string, image_path?: string, alt_text: string, brand_name: string, _isNew?: false }} SavedDraftSlide */
-/** @typedef {{ localId: string, previewUrl: string, file: File, alt_text: string, brand_name: string, _isNew: true }} NewDraftSlide */
+/** @typedef {'none' | 'brand' | 'watch'} LinkMode */
+/** @typedef {{ id: string, image_url: string, image_path?: string, alt_text: string, brand_name: string, watch_id: string, _isNew?: false }} SavedDraftSlide */
+/** @typedef {{ localId: string, previewUrl: string, file: File, alt_text: string, brand_name: string, watch_id: string, _isNew: true }} NewDraftSlide */
 
 const savedSlides = ref(/** @type {SavedDraftSlide[]} */ ([]))
 const draftSlides = ref(/** @type {(SavedDraftSlide | NewDraftSlide)[]} */ ([]))
 const brands = ref([])
+const watches = ref([])
 const isLoading = ref(true)
 const isSaving = ref(false)
 const error = ref(null)
@@ -24,8 +27,33 @@ const ALT_TEXT_PLACEHOLDER = 'Ex. : Montres sport, bracelets acier'
 
 const uploadMeta = ref({
   altText: '',
+  linkMode: /** @type {LinkMode} */ ('none'),
   brandName: '',
+  watchId: '',
 })
+
+function getLinkMode(slide) {
+  if (slide.watch_id) return 'watch'
+  if (slide.brand_name?.trim()) return 'brand'
+  return 'none'
+}
+
+function setLinkMode(slide, mode) {
+  if (mode === 'none') {
+    slide.brand_name = ''
+    slide.watch_id = ''
+  } else if (mode === 'brand') {
+    slide.watch_id = ''
+  } else if (mode === 'watch') {
+    slide.brand_name = ''
+  }
+}
+
+function watchLabel(watchId) {
+  const watch = watches.value.find((w) => w.id === watchId)
+  if (!watch) return 'Montre sélectionnée'
+  return `${watch.brand} — ${watch.name}`
+}
 
 function isAltTextValid(value) {
   return typeof value === 'string' && value.trim().length >= 3
@@ -48,6 +76,7 @@ function normalizeSavedSlide(row) {
     image_path: row.image_path,
     alt_text: row.alt_text ?? '',
     brand_name: row.brand_name ?? '',
+    watch_id: row.watch_id ?? '',
   }
 }
 
@@ -80,6 +109,7 @@ function buildPayloadFromDraft() {
       file: s.file,
       alt_text: s.alt_text,
       brand_name: s.brand_name,
+      watch_id: s.watch_id,
     }))
 
   const slideUpdates = draftSlides.value
@@ -90,12 +120,14 @@ function buildPayloadFromDraft() {
       return (
         s.alt_text !== original.alt_text
         || s.brand_name !== original.brand_name
+        || s.watch_id !== original.watch_id
       )
     })
     .map((s) => ({
       id: s.id,
       alt_text: s.alt_text,
       brand_name: s.brand_name,
+      watch_id: s.watch_id,
     }))
 
   const orderedRefs = draftSlides.value.map((s) =>
@@ -116,6 +148,7 @@ const hasChanges = computed(() => {
     if (draft.id !== saved.id) return true
     if (draft.alt_text !== saved.alt_text) return true
     if (draft.brand_name !== saved.brand_name) return true
+    if (draft.watch_id !== saved.watch_id) return true
   }
 
   return false
@@ -138,14 +171,21 @@ async function load() {
   try {
     isLoading.value = true
     error.value = null
-    const [rows, catalogBrands] = await Promise.all([
+    const [rows, catalogBrands, catalogWatches] = await Promise.all([
       getHomeCarouselSlidesForAdmin(),
       getAvailableCatalogBrands().catch(() => []),
+      getAllWatchesForAdmin().catch(() => []),
     ])
     revokeNewSlideUrls(draftSlides.value.filter((s) => s._isNew))
     savedSlides.value = cloneSavedSlides(rows)
     draftSlides.value = cloneSavedSlides(rows)
     brands.value = catalogBrands
+    const availableWatches = catalogWatches.filter((w) => w.is_available !== false)
+    const linkedWatchIds = new Set(rows.map((row) => row.watch_id).filter(Boolean))
+    const linkedUnavailable = catalogWatches.filter(
+      (w) => linkedWatchIds.has(w.id) && w.is_available === false,
+    )
+    watches.value = [...availableWatches, ...linkedUnavailable]
   } catch (err) {
     error.value = err.message
   } finally {
@@ -167,11 +207,12 @@ function handleUpload(event) {
     file,
     previewUrl: URL.createObjectURL(file),
     alt_text: uploadMeta.value.altText,
-    brand_name: uploadMeta.value.brandName,
+    brand_name: uploadMeta.value.linkMode === 'brand' ? uploadMeta.value.brandName : '',
+    watch_id: uploadMeta.value.linkMode === 'watch' ? uploadMeta.value.watchId : '',
   }
 
   draftSlides.value.push(slide)
-  uploadMeta.value = { altText: '', brandName: '' }
+  uploadMeta.value = { altText: '', linkMode: 'none', brandName: '', watchId: '' }
   error.value = null
   if (fileInput.value) fileInput.value.value = ''
 }
@@ -287,7 +328,7 @@ onUnmounted(() => {
           <h3 class="mb-1 font-semibold text-text-main">Contenu et liens</h3>
           <ul class="list-disc space-y-1 pl-5">
             <li>Rédigez un <strong>texte alternatif descriptif</strong> par slide (accessibilité, SEO, lecteurs d'écran).</li>
-            <li>Associez une <strong>marque</strong> uniquement si vous souhaitez rediriger vers sa collection ; utilisez le libellé exact du catalogue.</li>
+            <li>Associez une <strong>redirection</strong> uniquement si le visuel doit mener vers une collection marque ou une fiche montre précise.</li>
             <li>Préférez un visuel = un message clair (promo, marque, nouveauté) plutôt qu'un montage trop chargé.</li>
           </ul>
         </div>
@@ -296,7 +337,7 @@ onUnmounted(() => {
           <h3 class="mb-1 font-semibold text-text-main">Publication</h3>
           <ul class="list-disc space-y-1 pl-5">
             <li>Préparez tout le carrousel en brouillon, vérifiez l'ordre et les textes alternatifs, puis publiez en une fois.</li>
-            <li>Après publication, contrôlez l'accueil sur <strong>desktop et mobile</strong>, ainsi que le clic vers la collection marque.</li>
+            <li>Après publication, contrôlez l'accueil sur <strong>desktop et mobile</strong>, ainsi que le clic vers la destination choisie.</li>
           </ul>
         </div>
       </div>
@@ -325,7 +366,7 @@ onUnmounted(() => {
     <div class="mb-6 rounded-lg bg-white p-6 shadow">
       <h2 class="mb-4 text-lg font-semibold text-text-main">Ajouter une image</h2>
       <div class="grid gap-4 sm:grid-cols-2">
-        <label class="block text-sm">
+        <label class="block text-sm sm:col-span-2">
           <span class="mb-1 block text-gray-600">Texte alternatif (optionnel à l'ajout)</span>
           <input
             v-model="uploadMeta.altText"
@@ -335,10 +376,31 @@ onUnmounted(() => {
           />
         </label>
         <label class="block text-sm">
-          <span class="mb-1 block text-gray-600">Marque (lien collection, optionnel)</span>
+          <span class="mb-1 block text-gray-600">Redirection au clic (optionnel)</span>
+          <select
+            v-model="uploadMeta.linkMode"
+            class="w-full rounded-lg border px-3 py-2"
+            @change="uploadMeta.brandName = ''; uploadMeta.watchId = ''"
+          >
+            <option value="none">Aucune redirection</option>
+            <option value="brand">Collection marque</option>
+            <option value="watch">Fiche montre</option>
+          </select>
+        </label>
+        <label v-if="uploadMeta.linkMode === 'brand'" class="block text-sm">
+          <span class="mb-1 block text-gray-600">Marque</span>
           <select v-model="uploadMeta.brandName" class="w-full rounded-lg border px-3 py-2">
-            <option value="">Aucune redirection</option>
+            <option value="">Choisir une marque…</option>
             <option v-for="brand in brands" :key="brand" :value="brand">{{ brand }}</option>
+          </select>
+        </label>
+        <label v-else-if="uploadMeta.linkMode === 'watch'" class="block text-sm">
+          <span class="mb-1 block text-gray-600">Montre</span>
+          <select v-model="uploadMeta.watchId" class="w-full rounded-lg border px-3 py-2">
+            <option value="">Choisir une montre…</option>
+            <option v-for="watch in watches" :key="watch.id" :value="watch.id">
+              {{ watch.brand }} — {{ watch.name }}
+            </option>
           </select>
         </label>
       </div>
@@ -417,11 +479,38 @@ onUnmounted(() => {
                 </p>
               </label>
               <label class="block text-sm">
-                <span class="mb-1 block text-gray-600">Marque (redirection)</span>
+                <span class="mb-1 block text-gray-600">Redirection au clic</span>
+                <select
+                  :value="getLinkMode(slide)"
+                  class="w-full rounded-lg border px-3 py-2"
+                  @change="setLinkMode(slide, $event.target.value)"
+                >
+                  <option value="none">Aucune redirection</option>
+                  <option value="brand">Collection marque</option>
+                  <option value="watch">Fiche montre</option>
+                </select>
+              </label>
+              <label v-if="getLinkMode(slide) === 'brand'" class="block text-sm">
+                <span class="mb-1 block text-gray-600">Marque</span>
                 <select v-model="slide.brand_name" class="w-full rounded-lg border px-3 py-2">
-                  <option value="">Aucune redirection</option>
+                  <option value="">Choisir une marque…</option>
                   <option v-for="brand in brands" :key="brand" :value="brand">{{ brand }}</option>
                 </select>
+              </label>
+              <label v-else-if="getLinkMode(slide) === 'watch'" class="block text-sm">
+                <span class="mb-1 block text-gray-600">Montre</span>
+                <select v-model="slide.watch_id" class="w-full rounded-lg border px-3 py-2">
+                  <option value="">Choisir une montre…</option>
+                  <option v-for="watch in watches" :key="watch.id" :value="watch.id">
+                    {{ watch.brand }} — {{ watch.name }}
+                  </option>
+                </select>
+                <p
+                  v-if="slide.watch_id && !watches.some((w) => w.id === slide.watch_id)"
+                  class="mt-1 text-xs text-amber-700"
+                >
+                  Montre liée : {{ watchLabel(slide.watch_id) }} (peut-être indisponible ou vendue).
+                </p>
               </label>
             </div>
             <div class="flex shrink-0 flex-row items-start gap-2 sm:flex-col">

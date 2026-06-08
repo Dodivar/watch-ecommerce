@@ -646,11 +646,11 @@ export default {
     },
     sections: [
       'homeCarousel',
-      'hero',
       'nouvelles',
       'selections',
       'stats',
       'aboutPreview',
+      // 'hero',
       // 'trust',
       // 'ventes',
       // 'suivezNous',

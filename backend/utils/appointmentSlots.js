@@ -73,11 +73,14 @@ function getAvailableAppointmentSlots(dateStr, now = new Date()) {
 }
 
 function validateAppointmentSubmission({ date, time_slot }, now = new Date()) {
-  if (!['morning', 'afternoon'].includes(time_slot)) {
-    return { valid: false, message: 'Créneau invalide.' }
-  }
   if (!isAppointmentDateEligible(date, now)) {
     return { valid: false, message: 'Date non disponible.' }
+  }
+  if (!time_slot) {
+    return { valid: true }
+  }
+  if (!['morning', 'afternoon'].includes(time_slot)) {
+    return { valid: false, message: 'Créneau invalide.' }
   }
   const slots = getAvailableAppointmentSlots(date, now)
   if (!slots.includes(time_slot)) {

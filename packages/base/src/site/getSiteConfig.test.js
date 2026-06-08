@@ -78,6 +78,18 @@ describe('resolveSiteConfig', () => {
     expect(resolved.checkout.shipping.methods).toHaveLength(1)
   })
 
+  it('dérive features.homeNouvelles depuis home.sections', () => {
+    const withNouvelles = resolveSiteConfig({
+      home: { sections: ['hero', 'nouvelles'] },
+    })
+    expect(withNouvelles.features.homeNouvelles).toBe(true)
+
+    const without = resolveSiteConfig({
+      home: { sections: ['hero', 'selections'] },
+    })
+    expect(without.features.homeNouvelles).toBe(false)
+  })
+
   it('conserve watchCatalog.guarantees après résolution', () => {
     const guarantees = {
       heading: 'Nos garanties et services',

@@ -34,6 +34,10 @@ export const DEFAULT_SITE_FEATURES = {
    */
   homeCarousel: false,
   /**
+   * Carrousel « nouveautés » sur l'accueil — dérivé de `home.sections` contenant `nouvelles` (voir resolveSiteConfig).
+   */
+  homeNouvelles: false,
+  /**
    * Afficher la référence montre sur les cartes catalogue et fiches produit.
    * Dérivé de `watchCatalog.mode === 'resale'` dans getSiteConfig() — ne pas surcharger sauf cas exceptionnel.
    */

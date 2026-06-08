@@ -10,6 +10,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { resolveMainNavigation, resolveFooterNavigation } from '@/site/mainNavigation.js'
 import MainNavDesktop from '@/components/layout/MainNavDesktop.vue'
 import MainNavMobile from '@/components/layout/MainNavMobile.vue'
+import AdminPublicModeBar from '@/components/layout/AdminPublicModeBar.vue'
 import HeaderQuickSearch from '@/components/layout/HeaderQuickSearch.vue'
 import logoMobileMenuVerticalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB vertical/Logo SW blanc vertical RVB.png'
 import logoHeaderIconGreen from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW verte RVB.png'
@@ -52,6 +53,10 @@ const isAdminPage = computed(() => route.path.startsWith('/admin'))
 // Bloquer l'accès au panier pendant le checkout
 const isCheckoutPage = computed(() => route.path === '/checkout')
 const cartAccessible = computed(() => PURCHASE_ENABLED && !isCheckoutPage.value)
+
+const showAdminPublicMode = computed(
+  () => features.admin && isAdmin.value && !isAdminPage.value && !isMaintenancePage.value,
+)
 
 // Vérifier si un admin est connecté
 const isAdmin = ref(false)
@@ -104,11 +109,7 @@ function displayMobileMenu() {
             <img width="50px" height="50px" :src="logoHeaderIconGreen" alt="" />
           </RouterLink>
         </div>
-        <MainNavDesktop
-          :features="features"
-          :is-admin="isAdmin"
-          :nav-items="mainNavItems"
-        />
+        <MainNavDesktop :nav-items="mainNavItems" />
         <div class="flex items-center gap-1 shrink-0">
           <HeaderQuickSearch
             v-if="features.collection"
@@ -136,6 +137,7 @@ function displayMobileMenu() {
         </div>
       </div>
     </nav>
+    <AdminPublicModeBar :visible="showAdminPublicMode" />
     <HeaderQuickSearch
       v-if="features.collection"
       v-model:open="catalogSearchOpen"

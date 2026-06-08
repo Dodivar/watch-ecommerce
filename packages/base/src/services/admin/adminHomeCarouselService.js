@@ -26,7 +26,9 @@ export async function getHomeCarouselSlidesPublic() {
   const siteId = getAdminSiteId()
   const { data, error } = await supabase
     .from('home_carousel_slides')
-    .select('id, image_url, image_path, alt_text, brand_name, display_order')
+    .select(
+      'id, image_url, image_path, alt_text, brand_name, watch_id, display_order, watches(id, slug, brand, name, reference)',
+    )
     .eq('site_id', siteId)
     .order('display_order', { ascending: true })
 
@@ -38,6 +40,8 @@ export async function getHomeCarouselSlidesPublic() {
   return (data || []).map((row) => ({
     ...row,
     image_url: resolveSlideImageUrl(row),
+    watch: row.watches ?? null,
+    watches: undefined,
   }))
 }
 
@@ -56,7 +60,7 @@ function resolveSlideImageUrl(row) {
 
 /**
  * @param {File} imageFile
- * @param {{ altText?: string, brandName?: string }} [meta]
+ * @param {{ altText?: string, brandName?: string, watchId?: string | null }} [meta]
  */
 export async function uploadHomeCarouselSlide(imageFile, meta = {}) {
   const siteId = getAdminSiteId()
@@ -97,6 +101,7 @@ export async function uploadHomeCarouselSlide(imageFile, meta = {}) {
       image_url: publicUrl,
       alt_text: meta.altText?.trim() || null,
       brand_name: meta.brandName?.trim() || null,
+      watch_id: meta.watchId?.trim() || null,
       display_order: displayOrder,
     })
     .select()
@@ -112,7 +117,7 @@ export async function uploadHomeCarouselSlide(imageFile, meta = {}) {
 
 /**
  * @param {string} slideId
- * @param {{ altText?: string, brandName?: string | null }} patch
+ * @param {{ altText?: string, brandName?: string | null, watchId?: string | null }} patch
  */
 export async function updateHomeCarouselSlide(slideId, patch) {
   const siteId = getAdminSiteId()
@@ -123,6 +128,9 @@ export async function updateHomeCarouselSlide(slideId, patch) {
   }
   if (patch.brandName !== undefined) {
     updates.brand_name = patch.brandName?.trim() || null
+  }
+  if (patch.watchId !== undefined) {
+    updates.watch_id = patch.watchId?.trim() || null
   }
 
   const { error } = await supabase
@@ -190,8 +198,8 @@ export async function reorderHomeCarouselSlides(slideOrders) {
  *
  * @param {{
  *   slideIdsToDelete?: string[],
- *   newSlides?: Array<{ localId: string, file: File, alt_text?: string, brand_name?: string }>,
- *   slideUpdates?: Array<{ id: string, alt_text?: string, brand_name?: string }>,
+ *   newSlides?: Array<{ localId: string, file: File, alt_text?: string, brand_name?: string, watch_id?: string }>,
+ *   slideUpdates?: Array<{ id: string, alt_text?: string, brand_name?: string, watch_id?: string }>,
  *   orderedRefs?: Array<{ id?: string, localId?: string }>,
  * }} payload
  */
@@ -213,6 +221,7 @@ export async function saveHomeCarouselChanges(payload) {
     const result = await uploadHomeCarouselSlide(slide.file, {
       altText: slide.alt_text,
       brandName: slide.brand_name || null,
+      watchId: slide.watch_id || null,
     })
     if (result.data?.id) {
       localIdToRealId.set(slide.localId, result.data.id)
@@ -223,6 +232,7 @@ export async function saveHomeCarouselChanges(payload) {
     await updateHomeCarouselSlide(update.id, {
       altText: update.alt_text,
       brandName: update.brand_name,
+      watchId: update.watch_id,
     })
   }
 

@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getHomeCarouselSlidesPublic } from '@/services/admin/adminHomeCarouselService.js'
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
+import { buildWatchPath } from '@/utils/watchSlug.js'
 
 const AUTOPLAY_MS = 6000
 const ALT_FALLBACK = 'Visuel promotionnel du carrousel d\'accueil'
@@ -37,14 +38,45 @@ const liveRegionMessage = computed(() => {
     ? `Image ${activeIndex.value + 1} sur ${slideCount.value}. `
     : ''
   const link = slideLink(activeSlide.value)
-  const action = link ? ` Lien vers la collection ${activeSlide.value.brand_name}.` : ''
+  const action = link ? ` ${slideLinkDescription(activeSlide.value)}` : ''
   return `${position}${activeSlideAlt.value}${action}`
 })
 
 function slideLink(slide) {
+  if (!site.features?.collection) return null
+
+  const watchId = slide?.watch_id?.trim?.() || slide?.watch_id
+  if (watchId) {
+    if (slide.watch) return buildWatchPath(slide.watch)
+    return `/watch/${watchId}`
+  }
+
   const brand = slide?.brand_name?.trim()
-  if (!brand || !site.features?.collection) return null
+  if (!brand) return null
   return buildBrandCollectionPath(brand)
+}
+
+function slideLinkDescription(slide) {
+  if (slide?.watch_id) {
+    const watch = slide.watch
+    const label = watch?.brand && watch?.name ? `${watch.brand} ${watch.name}` : 'la fiche montre'
+    return `Lien vers ${label}.`
+  }
+  if (slide?.brand_name?.trim()) {
+    return `Lien vers la collection ${slide.brand_name}.`
+  }
+  return ''
+}
+
+function slideLinkAriaLabel(slide) {
+  if (!slideLink(slide)) return undefined
+  const alt = slide?.alt_text?.trim() || ALT_FALLBACK
+  if (slide?.watch_id) {
+    const watch = slide.watch
+    const label = watch?.brand && watch?.name ? `${watch.brand} ${watch.name}` : 'la fiche montre'
+    return `${alt} — Voir ${label}`
+  }
+  return `${alt} — Voir la collection ${slide.brand_name}`
 }
 
 function goToSlide(index) {
@@ -171,11 +203,7 @@ watch(
             :type="slideLink(activeSlide) ? 'button' : undefined"
             class="absolute inset-0 block h-full w-full"
             :class="slideLink(activeSlide) ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2' : ''"
-            :aria-label="
-              slideLink(activeSlide)
-                ? `${activeSlideAlt} — Voir la collection ${activeSlide.brand_name}`
-                : undefined
-            "
+            :aria-label="slideLinkAriaLabel(activeSlide)"
             @click="handleSlideClick(activeSlide)"
           >
             <img
