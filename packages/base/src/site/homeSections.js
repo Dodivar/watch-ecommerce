@@ -3,6 +3,7 @@ import { resolveHomeSelectionsConfig } from './homeSelections.js'
 
 /** Identifiants de sections reconnus pour `site.config.js` → `home.sections`. */
 export const KNOWN_HOME_SECTION_IDS = [
+  'homeCarousel',
   'hero',
   'nouvelles',
   'selections',
@@ -58,6 +59,7 @@ export function filterHomeSectionsByFeatures(sections, features, siteConfig) {
         : 0
 
   return sections.filter((id) => {
+    if (id === 'homeCarousel') return Boolean(features.homeCarousel)
     if (id === 'hero') {
       return isHomeHeroRenderable(siteConfig?.home?.hero)
     }

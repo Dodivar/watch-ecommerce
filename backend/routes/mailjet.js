@@ -48,7 +48,7 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
     }
 
     if (type === 'appointment') {
-      const missing = ['name', 'email', 'date', 'time_slot', 'watch_name'].filter(
+      const missing = ['name', 'email', 'date', 'watch_name'].filter(
         (field) => !formData[field]?.trim(),
       )
       if (missing.length > 0) {

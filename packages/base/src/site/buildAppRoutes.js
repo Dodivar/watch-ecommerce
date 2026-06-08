@@ -22,6 +22,7 @@ import AdminLeadDetail from '@/components/admin/AdminLeadDetail.vue'
 import AdminPromoList from '@/components/admin/AdminPromoList.vue'
 import AdminPromoForm from '@/components/admin/AdminPromoForm.vue'
 import AdminHomeFeatured from '@/components/admin/AdminHomeFeatured.vue'
+import AdminHomeCarousel from '@/components/admin/AdminHomeCarousel.vue'
 import AdminUsersList from '@/components/admin/AdminUsersList.vue'
 import BlogList from '@/components/BlogList.vue'
 import BlogDetail from '@/components/BlogDetail.vue'
@@ -89,6 +90,7 @@ const COMPONENTS_BY_PATH = {
   '/admin/promo/new': AdminPromoForm,
   '/admin/promo/:id/edit': AdminPromoForm,
   '/admin/home-featured': AdminHomeFeatured,
+  '/admin/home-carousel': AdminHomeCarousel,
   '/admin/users': AdminUsersList,
   '/:pathMatch(.*)*': NotFound,
 }

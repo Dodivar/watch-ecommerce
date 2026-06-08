@@ -16,6 +16,7 @@ describe('resolveWatchCatalogConfig', () => {
     const cfg = resolveWatchCatalogConfig({})
     expect(cfg.mode).toBe('retail')
     expect(cfg.isRetail).toBe(true)
+    expect(cfg.appointmentEnabled).toBe(true)
     expect(cfg.display.showReference).toBe(false)
     expect(cfg.display.showSoldBadge).toBe(false)
     expect(cfg.display.showStockStatus).toBe(true)
@@ -25,9 +26,22 @@ describe('resolveWatchCatalogConfig', () => {
     const cfg = resolveWatchCatalogConfig({ watchCatalog: { mode: 'resale' } })
     expect(cfg.mode).toBe('resale')
     expect(cfg.isResale).toBe(true)
+    expect(cfg.appointmentEnabled).toBe(false)
     expect(cfg.display.showReference).toBe(true)
     expect(cfg.display.showAdCode).toBe(true)
     expect(cfg.display.showStockStatus).toBe(false)
+  })
+
+  it('active la prise de rendez-vous en resale si watchCatalog.appointment', () => {
+    const cfg = resolveWatchCatalogConfig({
+      watchCatalog: { mode: 'resale', appointment: true },
+    })
+    expect(cfg.appointmentEnabled).toBe(true)
+  })
+
+  it('active la prise de rendez-vous par défaut en retail', () => {
+    const cfg = resolveWatchCatalogConfig({ watchCatalog: { mode: 'retail' } })
+    expect(cfg.appointmentEnabled).toBe(true)
   })
 
   it('conserve watchCatalog.guarantees', () => {

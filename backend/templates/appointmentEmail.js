@@ -6,7 +6,13 @@ const SLOT_LABELS = {
 }
 
 function formatSlotLabel(timeSlot) {
+  if (!timeSlot?.trim()) return null
   return SLOT_LABELS[timeSlot] || timeSlot
+}
+
+function optionalFieldRow(label, value) {
+  if (!value?.trim()) return ''
+  return fieldRow(label, value)
 }
 
 function formatDateLabel(dateStr) {
@@ -154,7 +160,7 @@ function createAppointmentVendorEmail(site, formData) {
     <div class="section">
         <div class="section-title">Rendez-vous</div>
         ${fieldRow('Date', formatDateLabel(formData.date))}
-        ${fieldRow('Créneau', formatSlotLabel(formData.time_slot))}
+        ${optionalFieldRow('Créneau', formatSlotLabel(formData.time_slot))}
     </div>
     <div class="section">
         <div class="section-title">Montre concernée</div>
@@ -186,7 +192,7 @@ function createAppointmentCustomerEmail(site, formData) {
     <div class="section">
         <div class="section-title">Votre rendez-vous</div>
         ${fieldRow('Date', formatDateLabel(formData.date))}
-        ${fieldRow('Créneau', formatSlotLabel(formData.time_slot))}
+        ${optionalFieldRow('Créneau', formatSlotLabel(formData.time_slot))}
         ${fieldRow('Adresse', storeAddress.replace(/<[^>]+>/g, ''))}
         ${
           directionsUrl
@@ -195,7 +201,7 @@ function createAppointmentCustomerEmail(site, formData) {
         }
     </div>
     <div class="section">
-        <p>Notre équipe vous contactera si nécessaire pour confirmer ce créneau. À très bientôt en boutique !</p>
+        <p>Notre équipe vous contactera si nécessaire pour confirmer ce rendez-vous. À très bientôt en boutique !</p>
     </div>
   `
   return emailShell(site, 'Confirmation de votre rendez-vous', bodyHtml)
@@ -207,7 +213,8 @@ function formatAppointmentVendorText(formData) {
   content += `Email: ${formData.email}\n`
   content += `Téléphone: ${formData.tel || 'Non renseigné'}\n`
   content += `\nDate: ${formatDateLabel(formData.date)}\n`
-  content += `Créneau: ${formatSlotLabel(formData.time_slot)}\n`
+  const slotLabel = formatSlotLabel(formData.time_slot)
+  if (slotLabel) content += `Créneau: ${slotLabel}\n`
   content += `\nMontre: ${formData.watch_name}\n`
   if (formData.watch_price) content += `Prix: ${formData.watch_price} €\n`
   if (formData.watch_url) content += `Fiche: ${formData.watch_url}\n`
@@ -224,7 +231,8 @@ function formatAppointmentCustomerText(site, formData) {
   content += `Votre demande de rendez-vous a bien été enregistrée.\n\n`
   content += `Montre: ${formData.watch_name}\n`
   content += `Date: ${formatDateLabel(formData.date)}\n`
-  content += `Créneau: ${formatSlotLabel(formData.time_slot)}\n`
+  const slotLabel = formatSlotLabel(formData.time_slot)
+  if (slotLabel) content += `Créneau: ${slotLabel}\n`
   content += `Adresse: ${storeAddress.replace(/<[^>]+>/g, '')}\n`
   return content
 }

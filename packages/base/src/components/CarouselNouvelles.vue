@@ -68,7 +68,7 @@
                 <WatchCard
                   v-bind="WATCH_CARD_CATALOG_PROPS"
                   :watch="watch"
-                  :show-new-badge="true"
+                  :show-new-badge="isNouvelle(watch.id)"
                   :image-loading="i < 2 ? 'eager' : 'lazy'"
                   :image-fetch-priority="i === 0 ? 'high' : 'auto'"
                   @viewDetails="handleViewDetails"
@@ -86,8 +86,8 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
-import { getLatestAvailableWatches, getWatchById } from '@/services/watchService'
-import { getFeaturedWatchesPublic } from '@/services/admin/adminFeaturedService'
+import { loadNouvellesWatches } from '@/services/nouvellesWatchesService'
+import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import WatchCard from '@/components/watch/WatchCard.vue'
 import WatchCardSkeleton from '@/components/watch/WatchCardSkeleton.vue'
 import { WATCH_CARD_CATALOG_PROPS } from '@/constants/watchCardDefaults.js'
@@ -97,6 +97,7 @@ const AUTO_SCROLL_DELAY_MS = 5000
 const SCROLL_SETTLE_DEBOUNCE_MS = 150
 
 const router = useRouter()
+const { isNouvelle } = useNouvellesWatchIds()
 const nouvelles = getSiteConfig().home.nouvelles
 const latestWatches = ref([])
 const isLoading = ref(true)
@@ -294,16 +295,7 @@ const onResize = () => {
 onMounted(async () => {
   try {
     isLoading.value = true
-    const featured = await getFeaturedWatchesPublic('nouvelles')
-    if (featured?.length) {
-      const assembled = (
-        await Promise.all(featured.map((w) => getWatchById(w.id).catch(() => null)))
-      ).filter(Boolean)
-      latestWatches.value = assembled
-    }
-    if (!latestWatches.value.length) {
-      latestWatches.value = await getLatestAvailableWatches(7)
-    }
+    latestWatches.value = await loadNouvellesWatches()
     await nextTick()
     updateArrowVisibility()
     window.addEventListener('resize', onResize)

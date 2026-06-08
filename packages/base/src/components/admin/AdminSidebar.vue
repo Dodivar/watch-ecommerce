@@ -8,10 +8,12 @@ import {
   MessageSquare,
   FileText,
   Tag,
-  Home,
+  Sparkles,
+  Images,
   Users,
   ChartColumn,
   LogOut,
+  Globe,
   X,
 } from '@lucide/vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -33,23 +35,53 @@ const route = useRoute()
 const router = useRouter()
 const features = site.features
 
-const links = computed(() => {
+const carouselLinks = computed(() => {
+  const items = []
+  if (features.homeCarousel) {
+    items.push({
+      to: '/admin/home-carousel',
+      label: 'Carrousel accueil',
+      icon: Images,
+      match: (p) => p === '/admin/home-carousel',
+    })
+  }
+  if (features.homeNouvelles) {
+    items.push({
+      to: '/admin/home-featured',
+      label: 'Carrousel nouveautés',
+      icon: Sparkles,
+      match: (p) => p === '/admin/home-featured',
+    })
+  }
+  return items
+})
+
+const navItems = computed(() => {
   const items = [
-    { to: '/admin', label: 'Tableau de bord', icon: LayoutDashboard, match: (p) => p === '/admin' },
-    { to: '/admin/watches', label: 'Montres', icon: Watch, match: (p) => p.startsWith('/admin/watches') },
-    { to: '/admin/orders', label: 'Commandes', icon: ShoppingBag, match: (p) => p.startsWith('/admin/orders') },
-    { to: '/admin/leads', label: 'Messages', icon: MessageSquare, match: (p) => p.startsWith('/admin/leads') },
-    { to: '/admin/promo', label: 'Promos', icon: Tag, match: (p) => p.startsWith('/admin/promo') },
-    { to: '/admin/home-featured', label: 'Accueil', icon: Home, match: (p) => p === '/admin/home-featured' },
-    { to: '/admin/stats', label: 'Statistiques', icon: ChartColumn, match: (p) => p === '/admin/stats' },
-    { to: '/admin/users', label: 'Utilisateurs', icon: Users, match: (p) => p === '/admin/users' },
+    { type: 'link', to: '/admin', label: 'Tableau de bord', icon: LayoutDashboard, match: (p) => p === '/admin' },
+    { type: 'link', to: '/admin/watches', label: 'Montres', icon: Watch, match: (p) => p.startsWith('/admin/watches') },
+    { type: 'link', to: '/admin/orders', label: 'Commandes', icon: ShoppingBag, match: (p) => p.startsWith('/admin/orders') },
+    { type: 'link', to: '/admin/leads', label: 'Messages', icon: MessageSquare, match: (p) => p.startsWith('/admin/leads') },
+    { type: 'link', to: '/admin/promo', label: 'Promos', icon: Tag, match: (p) => p.startsWith('/admin/promo') },
   ]
   if (features.blog) {
     items.splice(3, 0, {
+      type: 'link',
       to: '/admin/articles',
       label: 'Articles',
       icon: FileText,
       match: (p) => p.startsWith('/admin/articles'),
+    })
+  }
+  items.push(
+    { type: 'link', to: '/admin/stats', label: 'Statistiques', icon: ChartColumn, match: (p) => p === '/admin/stats' },
+    { type: 'link', to: '/admin/users', label: 'Utilisateurs', icon: Users, match: (p) => p === '/admin/users' },
+  )
+  if (carouselLinks.value.length > 0) {
+    items.push({
+      type: 'group',
+      label: 'Carrousels',
+      items: carouselLinks.value,
     })
   }
   return items
@@ -109,23 +141,57 @@ onMounted(async () => {
     </div>
 
     <nav aria-label="Administration" class="flex-1 min-h-0 px-3 py-4 space-y-1">
+      <template v-for="(item, index) in navItems" :key="item.type === 'link' ? item.to : `group-${index}`">
+        <RouterLink
+          v-if="item.type === 'link'"
+          :to="item.to"
+          :aria-current="item.match(route.path) ? 'page' : undefined"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          :class="
+            item.match(route.path)
+              ? 'bg-primary text-white'
+              : 'text-gray-600 hover:bg-cream hover:text-text-main'
+          "
+          @click="emit('close')"
+        >
+          <component :is="item.icon" class="w-5 h-5 shrink-0" :stroke-width="1.75" />
+          <span class="truncate">{{ item.label }}</span>
+        </RouterLink>
+
+        <div v-else class="pt-2">
+          <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+            {{ item.label }}
+          </p>
+          <RouterLink
+            v-for="child in item.items"
+            :key="child.to"
+            :to="child.to"
+            :aria-current="child.match(route.path) ? 'page' : undefined"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            :class="
+              child.match(route.path)
+                ? 'bg-primary text-white'
+                : 'text-gray-600 hover:bg-cream hover:text-text-main'
+            "
+            @click="emit('close')"
+          >
+            <component :is="child.icon" class="w-5 h-5 shrink-0" :stroke-width="1.75" />
+            <span class="truncate">{{ child.label }}</span>
+          </RouterLink>
+        </div>
+      </template>
+    </nav>
+
+    <div class="px-3 py-2 shrink-0">
       <RouterLink
-        v-for="link in links"
-        :key="link.to"
-        :to="link.to"
-        :aria-current="link.match(route.path) ? 'page' : undefined"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        :class="
-          link.match(route.path)
-            ? 'bg-primary text-white'
-            : 'text-gray-600 hover:bg-cream hover:text-text-main'
-        "
+        to="/"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-cream hover:text-text-main transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         @click="emit('close')"
       >
-        <component :is="link.icon" class="w-5 h-5 shrink-0" :stroke-width="1.75" />
-        <span class="truncate">{{ link.label }}</span>
+        <Globe class="w-5 h-5 shrink-0" :stroke-width="1.75" />
+        <span>Site public</span>
       </RouterLink>
-    </nav>
+    </div>
 
     <div class="border-t border-gray-200 px-3 py-4 shrink-0">
       <p

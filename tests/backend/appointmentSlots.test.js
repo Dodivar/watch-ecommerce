@@ -12,6 +12,11 @@ const mondayAfternoon = new Date(2026, 4, 25, 14, 0, 0)
 const sundayMorning = new Date(2026, 4, 24, 10, 0, 0)
 
 describe('validateAppointmentSubmission', () => {
+  it('accepte une date seule sans créneau', () => {
+    const result = validateAppointmentSubmission({ date: '2026-05-27' }, mondayMorning)
+    expect(result).toEqual({ valid: true })
+  })
+
   it('accepte un créneau matin un jour ouvré futur', () => {
     const result = validateAppointmentSubmission(
       { date: '2026-05-27', time_slot: 'morning' },

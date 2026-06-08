@@ -100,6 +100,7 @@
             :key="watch.id"
             v-bind="WATCH_CARD_GRID_PROPS"
             :watch="watch"
+            :show-new-badge="isNouvelle(watch.id)"
             :image-loading="index < 4 ? 'eager' : 'lazy'"
             :image-fetch-priority="index === 0 ? 'high' : 'auto'"
             class="animate-fade-in"
@@ -225,6 +226,7 @@ import { BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
+import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import { parseSearchQuery, watchMatchesSearchQuery } from '@/utils/watchSearch.js'
 import {
   COLLECTION_PAGINATION_MOBILE_MQ,
@@ -240,6 +242,7 @@ const router = useRouter()
 const siteConfig = getSiteConfig()
 const features = siteConfig.features
 const listing = useWatchListing()
+const { isNouvelle } = useNouvellesWatchIds()
 
 const collectionPageSize = getResolvedCollectionPageSize(siteConfig)
 const currentPage = ref(1)

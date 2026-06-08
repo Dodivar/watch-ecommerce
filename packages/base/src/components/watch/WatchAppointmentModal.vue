@@ -60,6 +60,7 @@ const minDate = computed(() => formatDateISO(getMinAppointmentDate()))
 const minDateValue = computed(() => parseDateISO(minDate.value))
 
 const datePickerFormats = { input: 'dd/MM/yyyy' }
+const datePickerTimeConfig = { enableTimePicker: false }
 
 const datePickerInputAttrs = {
   id: 'appointment-date',
@@ -391,6 +392,7 @@ onUnmounted(() => {
                     :disabled-dates="isDateDisabled"
                     :formats="datePickerFormats"
                     :input-attrs="datePickerInputAttrs"
+                    :time-config="datePickerTimeConfig"
                     placeholder="Choisir une date"
                     :week-start="1"
                     auto-apply

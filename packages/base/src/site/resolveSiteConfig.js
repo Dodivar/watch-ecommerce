@@ -42,9 +42,14 @@ export function resolveSiteConfig(siteConfig) {
     siteConfig.home != null && typeof siteConfig.home === 'object'
       ? siteConfig.home
       : {}
+  const homeSections = resolveHomeSections(siteConfig)
   const selections = resolveHomeSelectionsConfig(siteConfig)
   const nouvelles = resolveHomeNouvellesConfig(siteConfig)
   const hero = resolveHomeHeroConfig(siteConfig)
+  features = {
+    ...features,
+    homeNouvelles: homeSections.includes('nouvelles'),
+  }
   const checkoutRaw = siteConfig.checkout || {}
   const shippingResolved = resolveCheckoutShipping(checkoutRaw)
   return {
@@ -61,7 +66,7 @@ export function resolveSiteConfig(siteConfig) {
     },
     home: {
       ...homeRest,
-      sections: resolveHomeSections(siteConfig),
+      sections: homeSections,
       selections,
       nouvelles,
       hero,

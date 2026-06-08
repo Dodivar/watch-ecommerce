@@ -85,7 +85,7 @@ watch(open, (isOpen) => {
 })
 
 onMounted(() => {
-  if (!props.isAdmin && navigationUsesCatalogBrands(props.navItems)) {
+  if (navigationUsesCatalogBrands(props.navItems)) {
     prefetchCatalogBrands()
   }
 })
@@ -181,57 +181,30 @@ function brandRoute(brandName) {
                 <img width="100" :src="logoSrc" :alt="logoAlt" />
               </RouterLink>
 
-              <template v-if="isAdmin && features.admin">
-                <RouterLink
-                  v-if="features.collection"
-                  to="/collection"
-                  @click="close"
-                  class="hover:text-cream-100 transition-colors"
-                  >Nos montres</RouterLink
-                >
-                <RouterLink to="/admin" @click="close" class="hover:text-cream-100 transition-colors"
-                  >Tableau de bord</RouterLink
-                >
-                <RouterLink
-                  to="/admin/orders"
-                  @click="close"
-                  class="hover:text-cream-100 transition-colors"
-                  >Commandes</RouterLink
-                >
-                <RouterLink
-                  to="/admin/leads"
-                  @click="close"
-                  class="hover:text-cream-100 transition-colors"
-                  >Messages</RouterLink
-                >
-                <RouterLink
-                  v-if="features.blog"
-                  to="/admin/articles"
-                  @click="close"
-                  class="hover:text-cream-100 transition-colors"
-                  >Articles</RouterLink
-                >
-              </template>
+              <p
+                v-if="isAdmin && features.admin"
+                class="text-sm font-normal text-white/75 text-center max-w-xs leading-snug"
+              >
+                <span class="font-semibold text-white">Mode admin</span> — vous voyez plus qu'un visiteur
+              </p>
 
-              <template v-else>
-                <template v-for="(item, idx) in navItems" :key="'mnav-' + idx + '-' + item.type">
-                  <RouterLink
-                    v-if="item.type === 'link'"
-                    :to="item.to"
-                    @click="close"
-                    class="hover:text-cream-100 transition-colors text-center"
-                    >{{ item.label }}</RouterLink
-                  >
-                  <button
-                    v-else-if="item.type === 'megaMenu'"
-                    type="button"
-                    class="flex items-center gap-2 hover:text-cream-100 transition-colors"
-                    @click="openMega(idx)"
-                  >
-                    <span>{{ item.label }}</span>
-                    <ChevronRight class="w-5 h-5 shrink-0" :stroke-width="2" />
-                  </button>
-                </template>
+              <template v-for="(item, idx) in navItems" :key="'mnav-' + idx + '-' + item.type">
+                <RouterLink
+                  v-if="item.type === 'link'"
+                  :to="item.to"
+                  @click="close"
+                  class="hover:text-cream-100 transition-colors text-center"
+                  >{{ item.label }}</RouterLink
+                >
+                <button
+                  v-else-if="item.type === 'megaMenu'"
+                  type="button"
+                  class="flex items-center gap-2 hover:text-cream-100 transition-colors"
+                  @click="openMega(idx)"
+                >
+                  <span>{{ item.label }}</span>
+                  <ChevronRight class="w-5 h-5 shrink-0" :stroke-width="2" />
+                </button>
               </template>
             </nav>
 

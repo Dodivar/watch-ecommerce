@@ -193,6 +193,7 @@
             :key="watch.id"
             v-bind="WATCH_CARD_GRID_PROPS"
             :watch="watch"
+            :show-new-badge="isNouvelle(watch.id)"
             :image-loading="index < 4 ? 'eager' : 'lazy'"
             :image-fetch-priority="index === 0 ? 'high' : 'auto'"
             class="animate-fade-in"
@@ -377,13 +378,14 @@ import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getMergedCollectionFilters, getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
+import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import { isValidCollectionPublicQuerySlug, getStaticWatchAudienceFilterOptions } from '@/constants/watchAudiences.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 import { WATCH_CARD_GRID_PROPS } from '@/constants/watchCardDefaults.js'
 import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
 import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredData.js'
 import { buildBrandCollectionPath, buildBrandCollectionUrl, resolveBrandSlugFromRoute } from '@/utils/collectionRoutes.js'
-import { resolveBrandFromSlug, slugifyBrand } from '@/utils/brandSlug.js'
+import { resolveBrandFromSlug } from '@/utils/brandSlug.js'
 import { navigateToWatch } from '@/utils/watchSlug.js'
 import {
   COLLECTION_PAGINATION_MOBILE_MQ,
@@ -416,6 +418,7 @@ const publicQuerySlug = computed(() => {
 })
 
 const listing = useWatchListing()
+const { isNouvelle } = useNouvellesWatchIds()
 
 const currentSortLabel = computed(() => {
   const match = sortOptions.find((option) => option.value === listing.sortOrder)

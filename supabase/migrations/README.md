@@ -13,3 +13,13 @@ Appliquer chaque fichier SQL dans l’ordre chronologique via le SQL Editor du p
 - Policies RLS admin
 
 Prérequis : tables checkout existantes (`orders`, `order_lines`, `promo_codes`, `admin_users`) — voir `backend/README.md`.
+
+## Carrousel d'accueil
+
+`20260608120000_home_carousel.sql` — requis pour les clients avec `features.homeCarousel` :
+
+- Table `home_carousel_slides` (ordre, marque optionnelle, métadonnées)
+- Bucket Storage public `home-carousel`
+
+`20260608130000_home_carousel_watch_link.sql` — lien optionnel vers une fiche montre (`watch_id`) sur chaque slide.
+- Policies RLS admin (lecture publique)
