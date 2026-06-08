@@ -1,6 +1,6 @@
 <template>
   <SeoStructuredData v-if="pageStructuredSchemas.length" :schemas="pageStructuredSchemas" />
-  <section class="lg:py-10 pb-20 lg:pb-10 min-h-screen">
+  <section class="lg:py-10 pb-10 min-h-screen">
     <div class="max-w-7xl mx-auto px-4">
       <!-- Loading State -->
       <WatchDetailSkeleton v-if="isLoading" />
@@ -247,14 +247,11 @@
             <div v-if="showAddToCartButton">
               <button
                 @click="handleAddToCart"
-                class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200 mb-3"
+                class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
               >
                 <ShoppingBag class="w-5 h-5 mr-2" :stroke-width="2" />
                 Ajouter au panier
               </button>
-
-              <!-- Payment Icons (resale only) -->
-              <PaymentIcons v-if="isResaleCatalog" />
             </div>
 
           <!-- Out of stock (retail) — achat indisponible -->
@@ -268,8 +265,8 @@
               </button>
             </div>
 
-          <!-- Retail appointment (always visible on retail catalog) -->
-          <div v-if="!isResaleCatalog && watchItem" class="mt-3">
+          <!-- Prise de rendez-vous boutique (retail ou `watchCatalog.appointment`) -->
+          <div v-if="appointmentEnabled && watchItem" class="mt-3">
             <button
               type="button"
               @click="openAppointmentModal"
@@ -279,6 +276,9 @@
               Prendre rendez-vous
             </button>
           </div>
+
+          <!-- Payment Icons (resale only) -->
+          <PaymentIcons v-if="isResaleCatalog" class="mt-3" />
 
           <!-- Trust highlights (retail) — carte compacte sous le bouton d'achat -->
           <div
@@ -609,13 +609,12 @@
     </div>
   </section>
 
-  <!-- Sticky Buy Button Mobile -->
+  <!-- Sticky Buy Button Mobile — désactivé temporairement
   <div
     v-if="showAddToCartButton"
     class="fixed bottom-0 left-0 right-0 lg:hidden z-20 bg-white shadow-lg border-t border-gray-200 px-4 py-3"
   >
     <div class="flex items-center justify-between gap-4 max-w-7xl mx-auto">
-      <!-- Watch Info and Price -->
       <div class="flex-1 min-w-0">
         <div class="text-sm font-medium text-gray-900 truncate mb-0.5">
           {{ watchItem.name }}
@@ -624,7 +623,6 @@
           {{ formatPrice(watchItem.price) }}
         </div>
       </div>
-      <!-- Buy Button -->
       <button
         @click="handleAddToCart"
         class="flex-shrink-0 inline-flex items-center justify-center px-4 py-2.5 border border-transparent text-sm font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
@@ -634,6 +632,7 @@
       </button>
     </div>
   </div>
+  -->
 
     <!-- Lightbox Modal -->
     <Teleport to="body">
@@ -770,7 +769,7 @@
     </Teleport>
 
     <WatchAppointmentModal
-      v-if="watchItem && !isResaleCatalog"
+      v-if="watchItem && appointmentEnabled"
       :open="appointmentModalOpen"
       :watch-context="watchAppointmentContext"
       @close="appointmentModalOpen = false"
@@ -815,6 +814,7 @@ const seoWatch = site.seo.watchDetail
 const browsePath = getBrowsePath(site.features)
 const catalogDisplay = site.watchCatalog.display
 const isResaleCatalog = site.watchCatalog.isResale
+const appointmentEnabled = site.watchCatalog.appointmentEnabled
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { useCart } from '@/composables/useCart.js'
 import WatchDetailSkeleton from '@/components/watch/WatchDetailSkeleton.vue'

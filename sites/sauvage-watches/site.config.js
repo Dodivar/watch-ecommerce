@@ -68,6 +68,11 @@ export default {
     zoom: 16,
     markerLabel: 'Sauvage Watches',
     directionsAddress: '32 Allée de la Robertsau, 67000 Strasbourg, France',
+    /** Horaires boutique — affichés dans la popup prise de rendez-vous */
+    openingHours: {
+      daysLabel: 'Lundi – samedi',
+      hoursLabel: 'Sur rendez-vous',
+    },
     /** Logo bulle carte — remplacer par un PNG horizontal dans `public/` si besoin */
     popupLogoSrc: '/web-app-manifest-512x512.png',
   },
@@ -99,7 +104,7 @@ export default {
     footerTagline:
       "Votre partenaire pour l'achat et la mise à disposition de montres de luxe authentifiées. Recherche personnalisée, estimation rapide, transparence garantie.",
     /** Footer legal line (verbatim for template parity). */
-    copyrightLine: '© 2025 Sauvage. Tous droits réservés.',
+    copyrightLine: '© 2026 Sauvage Watches. Tous droits réservés.',
     estimationProcessLead:
       'Chez Sauvage, nous croyons que la transparence est la clé de la confiance.',
     watchSecurityAuthentic:
@@ -133,6 +138,8 @@ export default {
   /** Profil catalogue revente : année, état, contenu et référence visibles sur cartes et fiches. */
   watchCatalog: {
     mode: 'resale',
+    /** Bouton « Prendre rendez-vous » sur les fiches montre (boutique Robertsau). */
+    appointment: true,
     /** Année affichée en badge dans le coin haut-gauche de l'image ('corner') ou à droite du prix ('inline'). */
     yearBadgePosition: 'corner',
   },

@@ -31,7 +31,7 @@ const activeLeadTypes = computed(() => {
       case 'contact':
         return features.contact
       case 'appointment':
-        return isRetail && features.collection
+        return (site.watchCatalog?.appointmentEnabled ?? isRetail) && features.collection
       case 'estimation':
         return features.estimation
       case 'search':

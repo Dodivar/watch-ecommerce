@@ -41,11 +41,11 @@ const contentClasses = computed(() => {
 </script>
 
 <template>
-  <div class="h-screen overflow-hidden bg-cream lg:flex">
+  <div class="flex h-screen flex-col overflow-hidden bg-cream lg:flex-row">
     <AdminSidebar :open="sidebarOpen" @close="sidebarOpen = false" />
 
     <div class="flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
-      <div class="flex-1 min-h-0 overflow-y-auto">
+      <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain">
         <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
           <div class="flex items-center gap-4 mb-8">
             <button

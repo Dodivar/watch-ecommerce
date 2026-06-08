@@ -87,10 +87,13 @@ export function resolveWatchCatalogConfig(siteConfig) {
   // de l'image) ou 'inline' (à droite du prix/contenu, comportement historique).
   const yearBadgePosition = raw.yearBadgePosition === 'corner' ? 'corner' : 'inline'
 
+  const appointmentEnabled = !isResale || raw.appointment === true
+
   return {
     mode,
     isResale,
     isRetail: !isResale,
+    appointmentEnabled,
     trustHighlights: Array.isArray(raw.trustHighlights) ? raw.trustHighlights : [],
     guarantees:
       raw.guarantees != null && typeof raw.guarantees === 'object'

@@ -124,7 +124,7 @@ onMounted(load)
             <dt class="font-medium text-gray-600 min-w-[140px]">Date</dt>
             <dd>{{ formatLeadDate(payload.date) }}</dd>
           </div>
-          <div class="flex gap-2">
+          <div v-if="payload.time_slot" class="flex gap-2">
             <dt class="font-medium text-gray-600 min-w-[140px]">Créneau</dt>
             <dd>{{ formatLeadSlot(payload.time_slot) }}</dd>
           </div>
