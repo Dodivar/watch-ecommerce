@@ -30,6 +30,10 @@ export const DEFAULT_SITE_FEATURES = {
    */
   cartMultiQuantity: false,
   /**
+   * Carrousel d'images pleine largeur en tête de page d'accueil (Supabase Storage + admin).
+   */
+  homeCarousel: false,
+  /**
    * Afficher la référence montre sur les cartes catalogue et fiches produit.
    * Dérivé de `watchCatalog.mode === 'resale'` dans getSiteConfig() — ne pas surcharger sauf cas exceptionnel.
    */

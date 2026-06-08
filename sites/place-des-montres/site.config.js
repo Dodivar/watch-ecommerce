@@ -471,6 +471,7 @@ export default {
     paymentReturn: true,
     admin: true,
     cartMultiQuantity: true,
+    homeCarousel: true,
   },
 
   /** Profil catalogue boutique : cartes épurées, bloc confiance sur fiche produit. */
@@ -644,6 +645,7 @@ export default {
       to: '/a-propos',
     },
     sections: [
+      'homeCarousel',
       'hero',
       'nouvelles',
       'selections',

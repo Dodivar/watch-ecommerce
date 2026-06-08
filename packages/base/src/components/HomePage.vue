@@ -11,6 +11,7 @@ import CarouselNouvelles from './CarouselNouvelles.vue'
 import CarouselVentes from './CarouselVentes.vue'
 import SuivezNous from './SuivezNous.vue'
 import FaqSection from './Faq.vue'
+import HomeCarouselSection from './home/HomeCarouselSection.vue'
 import HomeHeroSection from './home/HomeHeroSection.vue'
 import HomeTrustSection from './home/HomeTrustSection.vue'
 import HomeServicesSection from './home/HomeServicesSection.vue'
@@ -19,6 +20,7 @@ import HomeStatsSection from './home/HomeStatsSection.vue'
 import HomeAboutPreviewSection from './home/HomeAboutPreviewSection.vue'
 
 const SECTION_COMPONENTS = {
+  homeCarousel: HomeCarouselSection,
   hero: HomeHeroSection,
   nouvelles: CarouselNouvelles,
   selections: HomeSelectionsSection,

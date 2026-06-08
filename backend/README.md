@@ -215,6 +215,7 @@ Avant de déployer, appliquer côté Supabase de chaque client :
 2. `supabase/migrations/20260514120000_reserve_watches_for_checkout.sql` — panier multi-montres (legacy)
 3. `supabase/migrations/20260517120000_custom_checkout_orders.sql` — tables `orders*`, `promo_codes`, RPC `reserve_watches_for_order` / `fulfill_order_payment`
 4. `supabase/migrations/20260525120000_admin_phase1.sql` — admin Phase 1 : leads, stock retail, fulfillment commandes, sélections accueil, policies RLS admin
+5. `supabase/migrations/20260608120000_home_carousel.sql` — carrousel d'accueil (si `features.homeCarousel` activé)
 
 ### Checkout personnalisé (Payment Element)
 

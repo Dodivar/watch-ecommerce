@@ -9,6 +9,7 @@ import {
   FileText,
   Tag,
   Home,
+  Images,
   Users,
   ChartColumn,
   LogOut,
@@ -41,6 +42,14 @@ const links = computed(() => {
     { to: '/admin/leads', label: 'Messages', icon: MessageSquare, match: (p) => p.startsWith('/admin/leads') },
     { to: '/admin/promo', label: 'Promos', icon: Tag, match: (p) => p.startsWith('/admin/promo') },
     { to: '/admin/home-featured', label: 'Accueil', icon: Home, match: (p) => p === '/admin/home-featured' },
+    ...(features.homeCarousel
+      ? [{
+          to: '/admin/home-carousel',
+          label: 'Carrousel accueil',
+          icon: Images,
+          match: (p) => p === '/admin/home-carousel',
+        }]
+      : []),
     { to: '/admin/stats', label: 'Statistiques', icon: ChartColumn, match: (p) => p === '/admin/stats' },
     { to: '/admin/users', label: 'Utilisateurs', icon: Users, match: (p) => p === '/admin/users' },
   ]

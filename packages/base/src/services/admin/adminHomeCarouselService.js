@@ -1,0 +1,241 @@
+import { supabase } from '../supabase'
+import { getAdminSiteId } from './adminSiteContext.js'
+
+const BUCKET = 'home-carousel'
+
+/**
+ * @returns {Promise<Array>}
+ */
+export async function getHomeCarouselSlidesForAdmin() {
+  const siteId = getAdminSiteId()
+  const { data, error } = await supabase
+    .from('home_carousel_slides')
+    .select('*')
+    .eq('site_id', siteId)
+    .order('display_order', { ascending: true })
+
+  if (error) throw new Error(error.message)
+  return data || []
+}
+
+/**
+ * Slides publiques pour le carrousel d'accueil.
+ * @returns {Promise<Array>}
+ */
+export async function getHomeCarouselSlidesPublic() {
+  const siteId = getAdminSiteId()
+  const { data, error } = await supabase
+    .from('home_carousel_slides')
+    .select('id, image_url, image_path, alt_text, brand_name, display_order')
+    .eq('site_id', siteId)
+    .order('display_order', { ascending: true })
+
+  if (error) {
+    console.warn('getHomeCarouselSlidesPublic:', error.message)
+    return []
+  }
+
+  return (data || []).map((row) => ({
+    ...row,
+    image_url: resolveSlideImageUrl(row),
+  }))
+}
+
+/**
+ * @param {{ image_path?: string, image_url?: string }} row
+ * @returns {string|null}
+ */
+function resolveSlideImageUrl(row) {
+  if (row?.image_url) return row.image_url
+  if (row?.image_path) {
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(row.image_path)
+    return data.publicUrl
+  }
+  return null
+}
+
+/**
+ * @param {File} imageFile
+ * @param {{ altText?: string, brandName?: string }} [meta]
+ */
+export async function uploadHomeCarouselSlide(imageFile, meta = {}) {
+  const siteId = getAdminSiteId()
+  const fileExt = imageFile.name.split('.').pop()
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+  const filePath = `${siteId}/${fileName}`
+
+  const { error: uploadError } = await supabase.storage
+    .from(BUCKET)
+    .upload(filePath, imageFile, {
+      cacheControl: '3600',
+      upsert: false,
+    })
+
+  if (uploadError) {
+    throw new Error(`Erreur lors de l'upload : ${uploadError.message}`)
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(BUCKET).getPublicUrl(filePath)
+
+  const { data: maxRow } = await supabase
+    .from('home_carousel_slides')
+    .select('display_order')
+    .eq('site_id', siteId)
+    .order('display_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const displayOrder = (maxRow?.display_order ?? -1) + 1
+
+  const { data, error } = await supabase
+    .from('home_carousel_slides')
+    .insert({
+      site_id: siteId,
+      image_path: filePath,
+      image_url: publicUrl,
+      alt_text: meta.altText?.trim() || null,
+      brand_name: meta.brandName?.trim() || null,
+      display_order: displayOrder,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    await supabase.storage.from(BUCKET).remove([filePath])
+    throw new Error(error.message)
+  }
+
+  return { success: true, data }
+}
+
+/**
+ * @param {string} slideId
+ * @param {{ altText?: string, brandName?: string | null }} patch
+ */
+export async function updateHomeCarouselSlide(slideId, patch) {
+  const siteId = getAdminSiteId()
+  const updates = { updated_at: new Date().toISOString() }
+
+  if (patch.altText !== undefined) {
+    updates.alt_text = patch.altText?.trim() || null
+  }
+  if (patch.brandName !== undefined) {
+    updates.brand_name = patch.brandName?.trim() || null
+  }
+
+  const { error } = await supabase
+    .from('home_carousel_slides')
+    .update(updates)
+    .eq('id', slideId)
+    .eq('site_id', siteId)
+
+  if (error) throw new Error(error.message)
+  return { success: true }
+}
+
+/**
+ * @param {string} slideId
+ */
+export async function deleteHomeCarouselSlide(slideId) {
+  const siteId = getAdminSiteId()
+
+  const { data: row, error: fetchError } = await supabase
+    .from('home_carousel_slides')
+    .select('image_path')
+    .eq('id', slideId)
+    .eq('site_id', siteId)
+    .single()
+
+  if (fetchError) throw new Error(fetchError.message)
+
+  const { error } = await supabase
+    .from('home_carousel_slides')
+    .delete()
+    .eq('id', slideId)
+    .eq('site_id', siteId)
+
+  if (error) throw new Error(error.message)
+
+  if (row?.image_path) {
+    await supabase.storage.from(BUCKET).remove([row.image_path])
+  }
+
+  return { success: true }
+}
+
+/**
+ * @param {Array<{ id: string, display_order: number }>} slideOrders
+ */
+export async function reorderHomeCarouselSlides(slideOrders) {
+  const siteId = getAdminSiteId()
+  const results = await Promise.all(
+    slideOrders.map(({ id, display_order }) =>
+      supabase
+        .from('home_carousel_slides')
+        .update({ display_order, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('site_id', siteId),
+    ),
+  )
+
+  const failed = results.find((r) => r.error)
+  if (failed?.error) throw new Error(failed.error.message)
+  return { success: true }
+}
+
+/**
+ * Publie en une fois toutes les modifications du brouillon admin.
+ *
+ * @param {{
+ *   slideIdsToDelete?: string[],
+ *   newSlides?: Array<{ localId: string, file: File, alt_text?: string, brand_name?: string }>,
+ *   slideUpdates?: Array<{ id: string, alt_text?: string, brand_name?: string }>,
+ *   orderedRefs?: Array<{ id?: string, localId?: string }>,
+ * }} payload
+ */
+export async function saveHomeCarouselChanges(payload) {
+  const {
+    slideIdsToDelete = [],
+    newSlides = [],
+    slideUpdates = [],
+    orderedRefs = [],
+  } = payload
+
+  for (const slideId of slideIdsToDelete) {
+    await deleteHomeCarouselSlide(slideId)
+  }
+
+  const localIdToRealId = new Map()
+
+  for (const slide of newSlides) {
+    const result = await uploadHomeCarouselSlide(slide.file, {
+      altText: slide.alt_text,
+      brandName: slide.brand_name || null,
+    })
+    if (result.data?.id) {
+      localIdToRealId.set(slide.localId, result.data.id)
+    }
+  }
+
+  for (const update of slideUpdates) {
+    await updateHomeCarouselSlide(update.id, {
+      altText: update.alt_text,
+      brandName: update.brand_name,
+    })
+  }
+
+  const resolvedOrder = orderedRefs
+    .map((ref, index) => {
+      const id = ref.id ?? localIdToRealId.get(ref.localId)
+      return id ? { id, display_order: index } : null
+    })
+    .filter(Boolean)
+
+  if (resolvedOrder.length > 0) {
+    await reorderHomeCarouselSlides(resolvedOrder)
+  }
+
+  return { success: true }
+}
