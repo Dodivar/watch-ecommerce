@@ -217,11 +217,14 @@ Avant de déployer, appliquer côté Supabase de chaque client :
 4. `supabase/migrations/20260525120000_admin_phase1.sql` — admin Phase 1 : leads, stock retail, fulfillment commandes, sélections accueil, policies RLS admin
 5. `supabase/migrations/20260608120000_home_carousel.sql` — carrousel d'accueil (si `features.homeCarousel` activé)
 6. `supabase/migrations/20260608130000_home_carousel_watch_link.sql` — lien optionnel vers une fiche montre sur chaque slide
+7. `supabase/migrations/20260609120000_fulfill_order_payment_transition_flag.sql` — `fulfill_order_payment` ne renvoie `true` que lors de la transition réelle → paid (réconciliation idempotente au retour `/commande/succes`, en plus du webhook)
 
 ### Checkout personnalisé (Payment Element)
 
 - API : `POST /api/orders`, `PATCH …/customer`, `PATCH …/shipping`, `POST …/promo`, `POST …/pay`, `GET …/verify`
 - Webhooks Stripe : `payment_intent.succeeded` (plus de `checkout.session.*`)
+- Passage en `paid` : déclenché soit par le webhook, soit par `GET …/verify` qui réconcilie en interrogeant le PaymentIntent (utile si le webhook tarde ou, en dev local, sans `stripe listen`). Idempotent : les effets de bord (stock, promo, email) ne s'exécutent qu'une fois.
+- Dev local : pour recevoir le webhook, lancer `stripe listen --forward-to http://localhost:3000/api/stripe/webhook/<site-id>` et reporter le `whsec_…` dans `SITE_<ID>__STRIPE_WEBHOOK_SECRET`. La réconciliation `/verify` permet néanmoins de finaliser sans webhook.
 - Front : `VITE_STRIPE_PUBLISHABLE_KEY` + parcours `/checkout` → `/commande/succes`
 - Configuration livraison / promo : bloc `checkout` dans `sites/<id>/site.config.js`
 

@@ -372,7 +372,30 @@ function buildOrdersRouter(registry) {
       if (!access.ok) {
         return res.json({ valid: false, reason: access.error })
       }
-      if (order.status !== 'paid') {
+
+      // Réconciliation : au retour de Stripe, le webhook payment_intent.succeeded
+      // peut ne pas encore être arrivé (latence) voire être indisponible (dev
+      // local sans `stripe listen`). On interroge directement le PaymentIntent
+      // et on bascule la commande en paid sans attendre le webhook. Idempotent :
+      // fulfillOrderPayment ne déclenche les effets de bord que pour l'appelant
+      // qui effectue réellement la transition.
+      let currentOrder = order
+      if (currentOrder.status !== 'paid' && currentOrder.stripe_payment_intent_id) {
+        try {
+          const stripe = getStripeClient(site)
+          const paymentIntent = await stripe.paymentIntents.retrieve(
+            currentOrder.stripe_payment_intent_id,
+          )
+          if (paymentIntent.status === 'succeeded') {
+            await handlePaymentIntentSucceeded(supabase, site, paymentIntent)
+            currentOrder = await loadOrderForSite(supabase, site.id, orderId)
+          }
+        } catch (reconcileErr) {
+          console.error(`[${site.id}] Réconciliation paiement ${orderId}:`, reconcileErr)
+        }
+      }
+
+      if (!currentOrder || currentOrder.status !== 'paid') {
         return res.json({ valid: false, reason: 'Paiement non complété' })
       }
       const lines = await loadOrderLines(supabase, orderId)
@@ -384,10 +407,10 @@ function buildOrdersRouter(registry) {
       res.json({
         valid: true,
         order: {
-          id: order.id,
-          status: order.status,
-          totalCents: order.total_cents,
-          customerEmail: order.customer_email,
+          id: currentOrder.id,
+          status: currentOrder.status,
+          totalCents: currentOrder.total_cents,
+          customerEmail: currentOrder.customer_email,
           shippingMethodType: shippingRow?.method_type || null,
           shippingMethodLabel: shippingRow?.method_label || null,
           pickupLocation: shippingRow?.metadata?.pickupLocation || null,
@@ -712,7 +735,15 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
     )
   }
 
-  await fulfillOrderPayment(supabase, orderId, paymentIntent.id)
+  // fulfillOrderPayment ne renvoie true que pour l'appelant qui effectue
+  // réellement la transition -> paid (verrou de ligne atomique). Si false,
+  // une autre source (webhook ou réconciliation /verify) a déjà traité la
+  // commande : on évite de rejouer les effets de bord non-idempotents.
+  const transitioned = await fulfillOrderPayment(supabase, orderId, paymentIntent.id)
+  if (!transitioned) {
+    return
+  }
+
   await applyRetailStockDecrement(supabase, orderId)
 
   const { data: discountRow } = await supabase
