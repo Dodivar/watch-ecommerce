@@ -2,10 +2,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { verifyOrder } from '@/services/orderService.js'
-import { getWatchById } from '@/services/watchService'
+import { getWatchById, getAllWatchesForListing } from '@/services/watchService'
 import { useCart } from '@/composables/useCart.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
+import { isAdminAuthenticated } from '@/services/admin/adminAuthService.js'
 
 const route = useRoute()
 const site = getSiteConfig()
@@ -20,6 +21,7 @@ const lines = ref([])
 const watches = ref([])
 const loading = ref(true)
 const error = ref('')
+const isPreview = ref(false)
 
 function formatPrice(cents) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
@@ -42,11 +44,68 @@ function clearCheckoutSession() {
   sessionStorage.removeItem(key)
 }
 
+/**
+ * Aperçu de démonstration réservé aux admins : affiche une fausse confirmation
+ * de commande avec une montre d'exemple pour visualiser le rendu de la page,
+ * sans dépendre d'une vraie commande payée. Aucun panier n'est vidé ici.
+ */
+async function loadAdminPreview() {
+  isPreview.value = true
+  orderId.value = 'APERCU-DEMO-0001'
+  customerEmail.value = 'client.exemple@email.com'
+  shippingMethodType.value = 'shipping'
+
+  let exampleWatch = null
+  try {
+    const all = await getAllWatchesForListing()
+    exampleWatch = all?.[0] || null
+  } catch {
+    /* ignore : on retombe sur un exemple purement fictif */
+  }
+
+  if (exampleWatch) {
+    watches.value = [exampleWatch]
+    const unitCents = Math.round((Number(exampleWatch.price) || 0) * 100)
+    lines.value = [
+      {
+        id: 'preview-line-1',
+        watch_id: exampleWatch.id,
+        name: exampleWatch.name,
+        quantity: 1,
+        unit_price_cents: unitCents,
+      },
+    ]
+    totalCents.value = unitCents
+  } else {
+    lines.value = [
+      {
+        id: 'preview-line-1',
+        watch_id: null,
+        name: "Montre d'exemple",
+        quantity: 1,
+        unit_price_cents: 1250000,
+      },
+    ]
+    totalCents.value = 1250000
+  }
+
+  loading.value = false
+}
+
 onMounted(async () => {
   orderId.value = String(route.query.order || '')
   const token = String(route.query.token || '')
 
-  if (!orderId.value || !token) {
+  const wantsPreview =
+    route.query.preview === '1' || route.query.preview === 'true'
+
+  // Pas de commande réelle (ou aperçu explicitement demandé) : on propose un
+  // aperçu de démonstration uniquement si un admin est connecté.
+  if (!orderId.value || !token || wantsPreview) {
+    if (await isAdminAuthenticated()) {
+      await loadAdminPreview()
+      return
+    }
     error.value = 'Lien de confirmation invalide'
     loading.value = false
     return
@@ -98,6 +157,14 @@ onMounted(async () => {
       </template>
 
       <template v-else>
+        <div
+          v-if="isPreview"
+          class="mb-6 -mt-2 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-left text-sm text-amber-800"
+        >
+          <span class="font-semibold">Aperçu admin</span> — confirmation de commande
+          fictive avec une montre d'exemple. Aucune commande réelle n'a été passée.
+        </div>
+
         <div class="mb-6">
           <div class="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
             <svg class="w-12 h-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
