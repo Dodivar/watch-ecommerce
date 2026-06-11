@@ -105,7 +105,8 @@ export async function getOrderByIdForAdmin(orderId) {
       : null,
     discount: discount
       ? {
-          code: discount.metadata?.promo_code,
+          code: discount.promo_code,
+          discountType: discount.discount_type,
           discountCents: discount.discount_cents,
         }
       : null,

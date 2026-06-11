@@ -782,6 +782,18 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
     .eq('id', orderId)
     .maybeSingle()
 
+  const { data: shippingRow } = await supabase
+    .from('order_shipping')
+    .select('*')
+    .eq('order_id', orderId)
+    .maybeSingle()
+
+  const { data: discountRowForEmail } = await supabase
+    .from('order_discounts')
+    .select('*')
+    .eq('order_id', orderId)
+    .maybeSingle()
+
   if (linesError) {
     console.error(`[${site.id}] Erreur chargement lignes commande ${orderId}:`, linesError)
   }
@@ -792,7 +804,10 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
   const orderForEmail = refreshedOrder ?? { ...order.data, status: 'paid' }
 
   try {
-    await sendOrderConfirmationEmails(site, orderForEmail, lineRows || [])
+    await sendOrderConfirmationEmails(site, orderForEmail, lineRows || [], {
+      shipping: shippingRow || null,
+      discount: discountRowForEmail || null,
+    })
   } catch (mailErr) {
     console.error(`[${site.id}] Email commande:`, mailErr)
   }

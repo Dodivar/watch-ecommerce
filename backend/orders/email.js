@@ -5,8 +5,9 @@ const { createOrderConfirmationEmail } = require('../templates/orderConfirmation
  * @param {object} site
  * @param {object} order
  * @param {object[]} lines
+ * @param {{ shipping?: object|null, discount?: object|null }} [extras]
  */
-async function sendOrderConfirmationEmails(site, order, lines) {
+async function sendOrderConfirmationEmails(site, order, lines, extras = {}) {
   if (!order.customer_email) {
     return
   }
@@ -29,8 +30,8 @@ async function sendOrderConfirmationEmails(site, order, lines) {
     return
   }
 
-  const customerHtml = createOrderConfirmationEmail(site, order, lines, false)
-  const merchantHtml = createOrderConfirmationEmail(site, order, lines, true)
+  const customerHtml = createOrderConfirmationEmail(site, order, lines, false, extras)
+  const merchantHtml = createOrderConfirmationEmail(site, order, lines, true, extras)
 
   await mailjet.post('send', { version: 'v3.1' }).request({
     Messages: [

@@ -14,17 +14,43 @@ function formatEur(cents) {
   )
 }
 
+const DISCOUNT_TYPE_LABELS = {
+  percent: 'Pourcentage',
+  fixed: 'Montant fixe',
+  free_shipping: 'Livraison offerte',
+}
+
+/**
+ * Construit le bloc HTML de l'adresse de livraison.
+ * @param {object|null} address
+ * @returns {string}
+ */
+function buildAddressHtml(address) {
+  if (!address || typeof address !== 'object') return ''
+  const recipient = [address.firstName, address.lastName].filter(Boolean).join(' ').trim()
+  const cityLine = [address.postalCode, address.city].filter(Boolean).join(' ').trim()
+  const parts = [recipient, address.line1, address.line2, cityLine, address.country]
+    .map((p) => String(p || '').trim())
+    .filter(Boolean)
+  if (parts.length === 0) return ''
+  return parts.map((p) => escapeHtml(p)).join('<br>')
+}
+
 /**
  * @param {object} site Site registry entry
  * @param {object} order
  * @param {object[]} lines
  * @param {boolean} forMerchant
+ * @param {{ shipping?: object|null, discount?: object|null }} [extras]
  */
-function createOrderConfirmationEmail(site, order, lines, forMerchant = false) {
+function createOrderConfirmationEmail(site, order, lines, forMerchant = false, extras = {}) {
   const accent = site.config.backend.email.template.accentColor
   const logoText = site.config.backend.email.template.logoText
   const brandName = site.config.backend.email.fromName
   const title = forMerchant ? 'Nouvelle commande en ligne' : 'Confirmation de votre commande'
+
+  const shipping = extras.shipping || null
+  const discount = extras.discount || null
 
   const linesHtml = (lines || [])
     .map(
@@ -38,6 +64,67 @@ function createOrderConfirmationEmail(site, order, lines, forMerchant = false) {
     )
     .join('')
 
+  const hasDiscount = Boolean(discount) || (order.discount_cents || 0) > 0
+  const discountCents = discount?.discount_cents ?? order.discount_cents ?? 0
+
+  const summaryHtml = `
+    <table style="width:100%;border-collapse:collapse;margin:8px 0 24px;font-size:14px;color:#444;">
+      <tr>
+        <td style="padding:4px 0;">Sous-total</td>
+        <td style="padding:4px 0;text-align:right;">${formatEur(order.subtotal_cents)}</td>
+      </tr>
+      <tr>
+        <td style="padding:4px 0;">Livraison</td>
+        <td style="padding:4px 0;text-align:right;">${formatEur(order.shipping_cents)}</td>
+      </tr>
+      ${
+        hasDiscount
+          ? `<tr style="color:#15803d;">
+        <td style="padding:4px 0;">Réduction</td>
+        <td style="padding:4px 0;text-align:right;">-${formatEur(discountCents)}</td>
+      </tr>`
+          : ''
+      }
+      <tr style="font-weight:bold;color:#111;border-top:1px solid #eee;">
+        <td style="padding:8px 0 0;">Total</td>
+        <td style="padding:8px 0 0;text-align:right;">${formatEur(order.total_cents)}</td>
+      </tr>
+    </table>`
+
+  const discountHtml = hasDiscount
+    ? `
+    <div style="margin:0 0 24px;">
+      <h2 style="font-size:15px;color:#111;margin:0 0 8px;">Réduction appliquée</h2>
+      ${discount?.promo_code ? `<p style="color:#444;margin:2px 0;">Code promo : <strong>${escapeHtml(discount.promo_code)}</strong></p>` : ''}
+      ${
+        discount?.discount_type
+          ? `<p style="color:#444;margin:2px 0;">Type : ${escapeHtml(DISCOUNT_TYPE_LABELS[discount.discount_type] || discount.discount_type)}</p>`
+          : ''
+      }
+      <p style="color:#15803d;margin:2px 0;">Montant économisé : <strong>-${formatEur(discountCents)}</strong></p>
+    </div>`
+    : ''
+
+  const addressHtml = buildAddressHtml(order.shipping_address)
+  const shippingHtml =
+    shipping || addressHtml
+      ? `
+    <div style="margin:0 0 24px;">
+      <h2 style="font-size:15px;color:#111;margin:0 0 8px;">Livraison</h2>
+      ${
+        shipping
+          ? `<p style="color:#444;margin:2px 0;">Méthode : ${escapeHtml(shipping.method_label || shipping.method_type || '')}</p>`
+          : ''
+      }
+      ${
+        addressHtml
+          ? `<p style="color:#444;margin:8px 0 2px;font-weight:bold;">Adresse de livraison</p>
+      <p style="color:#444;margin:2px 0;line-height:1.5;">${addressHtml}</p>`
+          : ''
+      }
+    </div>`
+      : ''
+
   return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -50,6 +137,7 @@ function createOrderConfirmationEmail(site, order, lines, forMerchant = false) {
     <h1 style="font-size:22px;color:#111;margin:0 0 16px;">${escapeHtml(title)}</h1>
     <p style="color:#444;">Commande <strong>${escapeHtml(order.id)}</strong></p>
     ${order.customer_email ? `<p style="color:#444;">Client : ${escapeHtml(order.customer_email)}</p>` : ''}
+    ${order.customer_phone ? `<p style="color:#444;">Téléphone : ${escapeHtml(order.customer_phone)}</p>` : ''}
     <table style="width:100%;border-collapse:collapse;margin:24px 0;">
       <thead>
         <tr style="color:#666;font-size:12px;text-transform:uppercase;">
@@ -61,7 +149,9 @@ function createOrderConfirmationEmail(site, order, lines, forMerchant = false) {
       </thead>
       <tbody>${linesHtml}</tbody>
     </table>
-    <p style="text-align:right;color:#111;"><strong>Total : ${formatEur(order.total_cents)}</strong></p>
+    ${summaryHtml}
+    ${discountHtml}
+    ${shippingHtml}
     <p style="color:#888;font-size:12px;margin-top:32px;">${escapeHtml(brandName)}</p>
   </div>
 </body>
