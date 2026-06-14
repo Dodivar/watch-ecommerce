@@ -404,16 +404,31 @@ function buildOrdersRouter(registry) {
         .select('method_type, method_label, metadata')
         .eq('order_id', orderId)
         .maybeSingle()
+      const { data: discountRow } = await supabase
+        .from('order_discounts')
+        .select('promo_code, discount_type, discount_cents')
+        .eq('order_id', orderId)
+        .maybeSingle()
       res.json({
         valid: true,
         order: {
           id: currentOrder.id,
           status: currentOrder.status,
+          subtotalCents: currentOrder.subtotal_cents,
+          shippingCents: currentOrder.shipping_cents,
+          discountCents: currentOrder.discount_cents,
           totalCents: currentOrder.total_cents,
           customerEmail: currentOrder.customer_email,
           shippingMethodType: shippingRow?.method_type || null,
           shippingMethodLabel: shippingRow?.method_label || null,
           pickupLocation: shippingRow?.metadata?.pickupLocation || null,
+          discount: discountRow
+            ? {
+                code: discountRow.promo_code,
+                type: discountRow.discount_type,
+                discountCents: discountRow.discount_cents,
+              }
+            : null,
         },
         lines,
       })

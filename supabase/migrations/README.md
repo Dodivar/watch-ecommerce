@@ -23,3 +23,11 @@ Prérequis : tables checkout existantes (`orders`, `order_lines`, `promo_codes`,
 
 `20260608130000_home_carousel_watch_link.sql` — lien optionnel vers une fiche montre (`watch_id`) sur chaque slide.
 - Policies RLS admin (lecture publique)
+
+## Public / audience des montres
+
+`20260614120000_watch_audiences.sql` — requis pour le champ « Public » du formulaire admin et le filtre collection par audience :
+
+- Colonne `watches.audience` (slug, défaut `unisexe`)
+- Table de référence `watch_audiences` (slugs `unisexe`, `homme`, `femme`, `enfant`) + lecture publique RLS
+- Corrige l'erreur `Could not find the 'audience' column of 'watches' in the schema cache`

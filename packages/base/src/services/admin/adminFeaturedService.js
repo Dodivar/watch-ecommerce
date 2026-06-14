@@ -55,6 +55,49 @@ export async function addFeaturedWatch(context, watchId, selectionKey = null) {
 }
 
 /**
+ * Remplace l'ensemble des montres mises en avant pour un contexte donné.
+ * Supprime les lignes existantes puis réinsère la sélection ordonnée.
+ * Le premier `watchId` est affiché en tête (tri public par display_order décroissant).
+ * @param {'nouvelles' | 'selection'} context
+ * @param {string[]} orderedWatchIds
+ * @param {string} [selectionKey]
+ */
+export async function setFeaturedWatchesForAdmin(context, orderedWatchIds, selectionKey = null) {
+  const siteId = getAdminSiteId()
+
+  let deleteQuery = supabase
+    .from('home_featured_watches')
+    .delete()
+    .eq('site_id', siteId)
+    .eq('context', context)
+
+  if (selectionKey) {
+    deleteQuery = deleteQuery.eq('selection_key', selectionKey)
+  }
+
+  const { error: deleteError } = await deleteQuery
+  if (deleteError) throw new Error(deleteError.message)
+
+  const ids = (orderedWatchIds || []).filter(Boolean)
+  if (ids.length === 0) {
+    return { success: true }
+  }
+
+  const rows = ids.map((watchId, index) => ({
+    site_id: siteId,
+    watch_id: watchId,
+    context,
+    selection_key: selectionKey,
+    display_order: ids.length - index,
+  }))
+
+  const { error: insertError } = await supabase.from('home_featured_watches').insert(rows)
+  if (insertError) throw new Error(insertError.message)
+
+  return { success: true }
+}
+
+/**
  * @param {string} featuredId
  */
 export async function removeFeaturedWatch(featuredId) {
