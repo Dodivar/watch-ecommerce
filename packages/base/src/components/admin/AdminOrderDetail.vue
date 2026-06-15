@@ -1,11 +1,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Clock } from '@lucide/vue'
 import {
   getOrderByIdForAdmin,
   updateOrderFulfillmentStatus,
   FULFILLMENT_STATUSES,
 } from '@/services/admin/adminOrderService'
+import { watchCardImageUrl } from '@/utils/watchImageUrl.js'
 import AdminShell from './AdminShell.vue'
 
 const route = useRoute()
@@ -35,6 +37,11 @@ const discountTypeLabels = {
 function formatPrice(cents) {
   if (cents == null) return '—'
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100)
+}
+
+function lineImageSrc(line) {
+  if (!line?.imageUrl) return ''
+  return watchCardImageUrl(line.imageUrl, { width: 128 }) ?? line.imageUrl
 }
 
 const hasDiscount = computed(
@@ -169,20 +176,57 @@ onMounted(load)
 
         <div class="bg-white rounded-lg shadow p-6 mb-6">
           <h2 class="text-lg font-semibold mb-4">Lignes</h2>
-          <ul class="space-y-3">
-            <li v-for="line in detail.lines" :key="line.id" class="flex justify-between border-b pb-2">
-              <span>
-                <RouterLink
-                  v-if="line.watchId"
-                  :to="`/admin/watches/${line.watchId}/edit`"
-                  class="text-primary underline"
+          <ul class="space-y-4">
+            <li
+              v-for="line in detail.lines"
+              :key="line.id"
+              class="flex gap-3 border-b border-gray-100 pb-4 last:border-b-0 last:pb-0"
+            >
+              <component
+                :is="line.watchId ? 'RouterLink' : 'div'"
+                :to="line.watchId ? `/admin/watches/${line.watchId}/edit` : undefined"
+                class="relative shrink-0 focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
+                :aria-label="line.watchId ? 'Voir ' + line.name : undefined"
+              >
+                <div
+                  class="h-16 w-16 overflow-hidden rounded-lg bg-cream-100 flex items-center justify-center border border-gray-100"
                 >
-                  {{ line.name }}
-                </RouterLink>
-                <span v-else>{{ line.name }}</span>
-                × {{ line.quantity }}
-              </span>
-              <span>{{ formatPrice(line.unitPriceCents * line.quantity) }}</span>
+                  <img
+                    v-if="lineImageSrc(line)"
+                    :src="lineImageSrc(line)"
+                    :alt="line.name"
+                    loading="lazy"
+                    decoding="async"
+                    class="h-full w-full object-cover"
+                  />
+                  <Clock v-else class="h-7 w-7 text-gray-400" :stroke-width="1.5" />
+                </div>
+                <span
+                  class="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-medium text-white"
+                >
+                  {{ line.quantity }}
+                </span>
+              </component>
+              <div class="min-w-0 flex-1 flex justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-gray-900 leading-snug">
+                    <RouterLink
+                      v-if="line.watchId"
+                      :to="`/admin/watches/${line.watchId}/edit`"
+                      class="text-primary underline hover:no-underline"
+                    >
+                      {{ line.name }}
+                    </RouterLink>
+                    <span v-else>{{ line.name }}</span>
+                  </p>
+                  <p v-if="line.reference" class="text-xs text-gray-500 mt-0.5">
+                    Réf. {{ line.reference }}
+                  </p>
+                </div>
+                <p class="text-sm font-medium text-gray-900 whitespace-nowrap shrink-0">
+                  {{ formatPrice(line.unitPriceCents * line.quantity) }}
+                </p>
+              </div>
             </li>
           </ul>
         </div>

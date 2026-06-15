@@ -83,16 +83,46 @@ export async function getOrderByIdForAdmin(orderId) {
     supabase.from('order_discounts').select('*').eq('order_id', orderId).maybeSingle(),
   ])
 
+  const mappedLines = (lines || []).map((l) => ({
+    id: l.id,
+    watchId: l.watch_id,
+    name: l.name,
+    reference: l.reference,
+    quantity: l.quantity,
+    unitPriceCents: l.unit_price_cents,
+    imageUrl: l.image_url,
+  }))
+
+  const missingWatchIds = [
+    ...new Set(mappedLines.filter((l) => !l.imageUrl && l.watchId).map((l) => l.watchId)),
+  ]
+
+  const imageByWatch = new Map()
+  if (missingWatchIds.length > 0) {
+    const { data: allImages } = await supabase
+      .from('watch_images')
+      .select('watch_id, image_url, image_path, image_order')
+      .in('watch_id', missingWatchIds)
+      .order('image_order', { ascending: true })
+
+    for (const row of allImages || []) {
+      const watchKey = String(row.watch_id)
+      if (imageByWatch.has(watchKey)) continue
+      let url = null
+      if (row.image_url) url = row.image_url
+      else if (row.image_path) {
+        const { data } = supabase.storage.from('watch-images').getPublicUrl(row.image_path)
+        url = data.publicUrl
+      }
+      if (url) imageByWatch.set(watchKey, url)
+    }
+  }
+
   return {
     order: mapOrderRow(order),
-    lines: (lines || []).map((l) => ({
-      id: l.id,
-      watchId: l.watch_id,
-      name: l.name,
-      reference: l.reference,
-      quantity: l.quantity,
-      unitPriceCents: l.unit_price_cents,
-      imageUrl: l.image_url,
+    lines: mappedLines.map((l) => ({
+      ...l,
+      imageUrl: l.imageUrl || imageByWatch.get(String(l.watchId)) || null,
     })),
     shipping: shipping
       ? {
@@ -144,6 +174,7 @@ export async function getOrderKpisForAdmin() {
   const now = new Date()
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString()
 
   const { data: todayOrders, error: todayError } = await supabase
     .from('orders')
@@ -163,14 +194,56 @@ export async function getOrderKpisForAdmin() {
 
   if (weekError) throw new Error(weekError.message)
 
+  const { data: prevWeekOrders, error: prevWeekError } = await supabase
+    .from('orders')
+    .select('total_cents, status')
+    .eq('site_id', siteId)
+    .eq('status', 'paid')
+    .gte('paid_at', twoWeeksAgo)
+    .lt('paid_at', weekAgo)
+
+  if (prevWeekError) throw new Error(prevWeekError.message)
+
   const todayCount = todayOrders?.length ?? 0
   const todayRevenueCents = (todayOrders || []).reduce((s, o) => s + (o.total_cents || 0), 0)
   const weekRevenueCents = (weekOrders || []).reduce((s, o) => s + (o.total_cents || 0), 0)
+  const previousWeekRevenueCents = (prevWeekOrders || []).reduce((s, o) => s + (o.total_cents || 0), 0)
 
   return {
     todayCount,
     todayRevenueCents,
     weekRevenueCents,
+    previousWeekRevenueCents,
+  }
+}
+
+/**
+ * Compteurs d'actions commandes pour le dashboard admin.
+ * @returns {Promise<{ pendingFulfillmentCount: number, pendingPaymentCount: number }>}
+ */
+export async function getOrderActionCountsForAdmin() {
+  const siteId = getAdminSiteId()
+
+  const [fulfillmentResult, paymentResult] = await Promise.all([
+    supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('site_id', siteId)
+      .eq('status', 'paid')
+      .in('fulfillment_status', ['pending', 'preparing']),
+    supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('site_id', siteId)
+      .eq('status', 'pending_payment'),
+  ])
+
+  if (fulfillmentResult.error) throw new Error(fulfillmentResult.error.message)
+  if (paymentResult.error) throw new Error(paymentResult.error.message)
+
+  return {
+    pendingFulfillmentCount: fulfillmentResult.count ?? 0,
+    pendingPaymentCount: paymentResult.count ?? 0,
   }
 }
 

@@ -1,8 +1,14 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { VueDatePicker } from '@vuepic/vue-datepicker'
+import { fr } from 'date-fns/locale'
+import '@vuepic/vue-datepicker/dist/main.css'
 import { getPromoCodeByIdForAdmin, createPromoCode, updatePromoCode } from '@/services/admin/adminPromoService'
 import AdminShell from './AdminShell.vue'
+
+const datePickerFormats = { input: 'dd/MM/yyyy HH:mm' }
+const datePickerTimeConfig = { enableTimePicker: true, is24: true }
 
 const route = useRoute()
 const router = useRouter()
@@ -32,8 +38,8 @@ async function load() {
     active: promo.active,
     discountType: promo.discountType,
     discountValue: promo.discountValue,
-    startsAt: promo.startsAt ? promo.startsAt.slice(0, 16) : '',
-    endsAt: promo.endsAt ? promo.endsAt.slice(0, 16) : '',
+    startsAt: promo.startsAt || '',
+    endsAt: promo.endsAt || '',
     maxUses: promo.maxUses ?? '',
   }
 }
@@ -87,14 +93,42 @@ onMounted(load)
           <input v-model.number="form.discountValue" type="number" min="0" step="0.01" class="w-full px-3 py-2 border rounded-lg" />
         </div>
         <label class="flex items-center gap-2"><input v-model="form.active" type="checkbox" /> Actif</label>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm mb-1">Début</label>
-            <input v-model="form.startsAt" type="datetime-local" class="w-full px-3 py-2 border rounded-lg" />
+            <label for="promo-starts-at" class="block text-sm mb-1">Début</label>
+            <div class="promo-date-picker">
+              <VueDatePicker
+                v-model="form.startsAt"
+                model-type="iso"
+                :locale="fr"
+                :formats="datePickerFormats"
+                :time-config="datePickerTimeConfig"
+                :input-attrs="{ id: 'promo-starts-at', autocomplete: 'off' }"
+                placeholder="jj/mm/aaaa hh:mm"
+                :week-start="1"
+                auto-apply
+                clearable
+                teleport="body"
+              />
+            </div>
           </div>
           <div>
-            <label class="block text-sm mb-1">Fin</label>
-            <input v-model="form.endsAt" type="datetime-local" class="w-full px-3 py-2 border rounded-lg" />
+            <label for="promo-ends-at" class="block text-sm mb-1">Fin</label>
+            <div class="promo-date-picker">
+              <VueDatePicker
+                v-model="form.endsAt"
+                model-type="iso"
+                :locale="fr"
+                :formats="datePickerFormats"
+                :time-config="datePickerTimeConfig"
+                :input-attrs="{ id: 'promo-ends-at', autocomplete: 'off' }"
+                placeholder="jj/mm/aaaa hh:mm"
+                :week-start="1"
+                auto-apply
+                clearable
+                teleport="body"
+              />
+            </div>
           </div>
         </div>
         <div>
@@ -105,3 +139,30 @@ onMounted(load)
       </form>
   </AdminShell>
 </template>
+
+<style scoped>
+.promo-date-picker {
+  --dp-primary-color: var(--color-primary);
+  --dp-primary-disabled-color: color-mix(in srgb, var(--color-primary) 45%, white);
+  --dp-border-color-focus: var(--color-primary);
+  --dp-font-family: inherit;
+}
+
+.promo-date-picker :deep(.dp__input) {
+  border-color: #d1d5db;
+  border-radius: 0.5rem;
+  color: #111827;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.promo-date-picker :deep(.dp__input:hover:not(.dp__input_focus)) {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, #d1d5db);
+}
+
+.promo-date-picker :deep(.dp__input_focus) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+</style>

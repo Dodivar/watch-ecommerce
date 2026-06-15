@@ -4,7 +4,9 @@ Interface back-office accessible après authentification Supabase.
 
 ## Composants principaux
 
-- `AdminDashboard.vue` : vue d’ensemble (statistiques, raccourcis).
+- `AdminDashboard.vue` : vue d’ensemble — KPIs opérationnels, alertes, sparkline CA 7 jours,
+  inventaire condensé, dernières commandes et messages non lus.
+- `AdminKpiCard.vue` : carte KPI réutilisable (icône, alerte, lien).
 - `AdminArticleList.vue` / `AdminArticleForm.vue` / `AdminArticleGenerator.vue` :
   gestion des articles, y compris la génération assistée et l’aperçu.
 - `AdminWatchForm.vue` / `AdminWatchArticleSelector.vue` : création de fiches
