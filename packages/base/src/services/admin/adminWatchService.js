@@ -840,6 +840,53 @@ export async function duplicateWatch(watchId) {
 }
 
 /**
+ * Attache la première image à chaque montre (requête batch, évite le N+1).
+ * @param {Array<object>} watches
+ * @returns {Promise<Array<object>>}
+ */
+async function attachFirstImagesToWatches(watches) {
+  if (!watches || watches.length === 0) {
+    return []
+  }
+
+  const watchIds = watches.map((watch) => watch.id)
+  const { data: allImages, error: imagesError } = await supabase
+    .from('watch_images')
+    .select('watch_id, image_url, image_path, image_order')
+    .in('watch_id', watchIds)
+    .order('image_order', { ascending: true })
+
+  if (imagesError) {
+    console.error('Erreur lors du chargement des images des montres:', imagesError)
+  }
+
+  const firstImageByWatchId = new Map()
+  for (const image of allImages || []) {
+    if (!firstImageByWatchId.has(image.watch_id)) {
+      firstImageByWatchId.set(image.watch_id, image)
+    }
+  }
+
+  return watches.map((watch) => {
+    const firstImage = firstImageByWatchId.get(watch.id)
+    let imageUrl = null
+    if (firstImage) {
+      if (firstImage.image_url) {
+        imageUrl = firstImage.image_url
+      } else if (firstImage.image_path) {
+        const { data } = supabase.storage.from('watch-images').getPublicUrl(firstImage.image_path)
+        imageUrl = data.publicUrl
+      }
+    }
+
+    return {
+      ...watch,
+      images: imageUrl ? [imageUrl] : [],
+    }
+  })
+}
+
+/**
  * Récupère toutes les montres (pour l'admin, avec toutes les données)
  * @returns {Promise<Array>} Liste des montres avec la première image
  */
@@ -854,51 +901,82 @@ export async function getAllWatchesForAdmin() {
       throw new Error(`Erreur lors de la récupération des montres: ${error.message}`)
     }
 
-    if (!watches || watches.length === 0) {
-      return []
-    }
-
-    // Charger toutes les images des montres en une seule requête (évite le N+1)
-    const watchIds = watches.map((watch) => watch.id)
-    const { data: allImages, error: imagesError } = await supabase
-      .from('watch_images')
-      .select('watch_id, image_url, image_path, image_order')
-      .in('watch_id', watchIds)
-      .order('image_order', { ascending: true })
-
-    if (imagesError) {
-      console.error('Erreur lors du chargement des images des montres:', imagesError)
-    }
-
-    // Construire une Map watch_id -> première image (la plus petite image_order)
-    const firstImageByWatchId = new Map()
-    for (const image of allImages || []) {
-      if (!firstImageByWatchId.has(image.watch_id)) {
-        firstImageByWatchId.set(image.watch_id, image)
-      }
-    }
-
-    return watches.map((watch) => {
-      const firstImage = firstImageByWatchId.get(watch.id)
-      let imageUrl = null
-      if (firstImage) {
-        if (firstImage.image_url) {
-          imageUrl = firstImage.image_url
-        } else if (firstImage.image_path) {
-          const { data } = supabase.storage.from('watch-images').getPublicUrl(firstImage.image_path)
-          imageUrl = data.publicUrl
-        }
-      }
-
-      return {
-        ...watch,
-        images: imageUrl ? [imageUrl] : [],
-      }
-    })
+    return attachFirstImagesToWatches(watches || [])
   } catch (error) {
     console.error('Erreur dans getAllWatchesForAdmin:', error)
     throw error
   }
+}
+
+/**
+ * Recherche paginée de montres disponibles (sélecteur admin).
+ * @param {{ search?: string, page?: number, pageSize?: number, excludeIds?: string[] }} [options]
+ * @returns {Promise<{ watches: Array<object>, total: number, page: number, pageSize: number }>}
+ */
+export async function searchWatchesForAdmin({
+  search = '',
+  page = 1,
+  pageSize = 24,
+  excludeIds = [],
+} = {}) {
+  const pageNum = Math.max(1, page)
+  const size = Math.min(100, Math.max(1, pageSize))
+  const offset = (pageNum - 1) * size
+
+  let query = supabase
+    .from('watches')
+    .select('*', { count: 'exact' })
+    .eq('is_available', true)
+    .order('display_order', { ascending: false })
+
+  const term = search.trim()
+  if (term) {
+    const pattern = `%${term.replace(/[%_]/g, '')}%`
+    query = query.or(`brand.ilike.${pattern},name.ilike.${pattern}`)
+  }
+
+  const validExclude = (excludeIds || []).filter(Boolean)
+  if (validExclude.length > 0) {
+    query = query.not('id', 'in', `(${validExclude.map((id) => `"${id}"`).join(',')})`)
+  }
+
+  query = query.range(offset, offset + size - 1)
+
+  const { data: watches, error, count } = await query
+  if (error) {
+    throw new Error(`Erreur lors de la recherche de montres: ${error.message}`)
+  }
+
+  const withImages = await attachFirstImagesToWatches(watches || [])
+
+  return {
+    watches: withImages,
+    total: count ?? 0,
+    page: pageNum,
+    pageSize: size,
+  }
+}
+
+/**
+ * Récupère des montres par ID (ordre préservé), avec la première image.
+ * @param {string[]} ids
+ * @returns {Promise<Array<object>>}
+ */
+export async function getWatchesByIdsForAdmin(ids) {
+  const validIds = (ids || []).filter(Boolean)
+  if (validIds.length === 0) {
+    return []
+  }
+
+  const { data: watches, error } = await supabase.from('watches').select('*').in('id', validIds)
+
+  if (error) {
+    throw new Error(`Erreur lors de la récupération des montres: ${error.message}`)
+  }
+
+  const withImages = await attachFirstImagesToWatches(watches || [])
+  const byId = new Map(withImages.map((watch) => [watch.id, watch]))
+  return validIds.map((id) => byId.get(id)).filter(Boolean)
 }
 
 /**
