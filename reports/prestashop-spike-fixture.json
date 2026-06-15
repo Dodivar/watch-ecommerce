@@ -1,0 +1,186 @@
+{
+  "generatedAt": "2026-06-15T19:31:41.176Z",
+  "csv": "D:\\Github\\watch-ecommerce\\tests\\fixtures\\prestashop\\products-sample.csv",
+  "mapping": "D:\\Github\\watch-ecommerce\\sites\\place-des-montres\\prestashop-import.mapping.json",
+  "rowsTotal": 10,
+  "rowsValid": 9,
+  "transformErrors": 1,
+  "fields": {
+    "movement": {
+      "label": "movement",
+      "totalValid": 9,
+      "filledFromFeature": 8,
+      "filledEffective": 9,
+      "normalized": 9,
+      "partial": 0,
+      "fillFromFeatureRate": 0.889,
+      "fillEffectiveRate": 1,
+      "normalizeRate": 1,
+      "topUnmapped": [],
+      "topMapped": [
+        {
+          "value": "automatic",
+          "count": 2
+        },
+        {
+          "value": "manual",
+          "count": 2
+        },
+        {
+          "value": "quartz",
+          "count": 2
+        },
+        {
+          "value": "solar",
+          "count": 1
+        },
+        {
+          "value": "kinetic",
+          "count": 1
+        },
+        {
+          "value": "smart",
+          "count": 1
+        }
+      ]
+    },
+    "waterResistance": {
+      "label": "waterResistance",
+      "totalValid": 9,
+      "filledFromFeature": 8,
+      "filledEffective": 9,
+      "normalized": 9,
+      "partial": 0,
+      "fillFromFeatureRate": 0.889,
+      "fillEffectiveRate": 1,
+      "normalizeRate": 1,
+      "topUnmapped": [],
+      "topMapped": [
+        {
+          "value": "100",
+          "count": 3
+        },
+        {
+          "value": "50",
+          "count": 2
+        },
+        {
+          "value": "30",
+          "count": 2
+        },
+        {
+          "value": "300",
+          "count": 1
+        },
+        {
+          "value": "200",
+          "count": 1
+        }
+      ]
+    },
+    "caseSize": {
+      "label": "caseSize",
+      "totalValid": 9,
+      "filledFromFeature": 8,
+      "filledEffective": 9,
+      "normalized": 8,
+      "partial": 0,
+      "fillFromFeatureRate": 0.889,
+      "fillEffectiveRate": 1,
+      "normalizeRate": 0.889,
+      "topUnmapped": [
+        {
+          "value": "38-40 mm",
+          "count": 1
+        }
+      ],
+      "topMapped": [
+        {
+          "value": "41",
+          "count": 2
+        },
+        {
+          "value": "40",
+          "count": 2
+        },
+        {
+          "value": "42",
+          "count": 1
+        },
+        {
+          "value": "45.5",
+          "count": 1
+        },
+        {
+          "value": "36",
+          "count": 1
+        },
+        {
+          "value": "39.5",
+          "count": 1
+        }
+      ]
+    },
+    "functions": {
+      "label": "functions",
+      "totalValid": 9,
+      "filledFromFeature": 8,
+      "filledEffective": 9,
+      "normalized": 8,
+      "partial": 0,
+      "fillFromFeatureRate": 0.889,
+      "fillEffectiveRate": 1,
+      "normalizeRate": 0.889,
+      "topUnmapped": [
+        {
+          "value": "Heures",
+          "count": 1
+        }
+      ],
+      "topMapped": [
+        {
+          "value": "date",
+          "count": 4
+        },
+        {
+          "value": "chronograph, tachymeter",
+          "count": 1
+        },
+        {
+          "value": "alarm",
+          "count": 1
+        },
+        {
+          "value": "small_seconds",
+          "count": 1
+        },
+        {
+          "value": "alarm, gmt",
+          "count": 1
+        }
+      ]
+    },
+    "condition": {
+      "label": "condition",
+      "totalValid": 9,
+      "filledFromFeature": 1,
+      "filledEffective": 9,
+      "normalized": 9,
+      "partial": 0,
+      "fillFromFeatureRate": 0.111,
+      "fillEffectiveRate": 1,
+      "normalizeRate": 1,
+      "topUnmapped": [],
+      "topMapped": [
+        {
+          "value": "neuf",
+          "count": 8
+        },
+        {
+          "value": "tres_bon",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

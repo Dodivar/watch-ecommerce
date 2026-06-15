@@ -622,10 +622,10 @@ onMounted(async () => {
               <tr>
                 <th 
                   v-if="activeTab !== 'sold'"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-cream-100 transition-colors"
+                  class="w-0 px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-cream-100 transition-colors"
                   @click="handleSort('order')"
                 >
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-1">
                     <span>Ordre</span>
                     <div class="flex flex-col">
                       <svg 
@@ -797,22 +797,22 @@ onMounted(async () => {
                 @drop="handleDrop($event, pageOffset + index)"
                 @dragend="handleDragEnd"
               >
-                <td v-if="activeTab !== 'sold'" class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex flex-col items-center gap-1">
-                    <div class="text-xs text-gray-500 font-semibold mb-1">
+                <td v-if="activeTab !== 'sold'" class="w-0 px-2 py-4 whitespace-nowrap">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <div class="text-xs text-gray-500 font-semibold">
                       #{{ watch.display_order || 0 }}
                     </div>
-                    <div class="flex flex-col gap-1">
+                    <div class="flex flex-col">
                       <button
                         @click.stop="moveWatchUp(watch.id)"
                         :disabled="pageOffset + index === 0"
                         :class="[
-                          'p-1 rounded hover:bg-cream-200 transition-colors',
+                          'p-0.5 rounded hover:bg-cream-200 transition-colors',
                           pageOffset + index === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
                         ]"
                         title="Déplacer vers le haut"
                       >
-                        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="w-3.5 h-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
                         </svg>
                       </button>
@@ -820,12 +820,12 @@ onMounted(async () => {
                         @click.stop="moveWatchDown(watch.id)"
                         :disabled="pageOffset + index === filteredWatches.length - 1"
                         :class="[
-                          'p-1 rounded hover:bg-cream-200 transition-colors',
+                          'p-0.5 rounded hover:bg-cream-200 transition-colors',
                           pageOffset + index === filteredWatches.length - 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
                         ]"
                         title="Déplacer vers le bas"
                       >
-                        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="w-3.5 h-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
@@ -833,7 +833,7 @@ onMounted(async () => {
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="h-16 w-16 bg-cream-200 rounded overflow-hidden">
+                  <div class="h-24 w-24 bg-cream-200 rounded overflow-hidden">
                     <img
                       v-if="watch.images && watch.images.length > 0"
                       :src="watch.images[0]"

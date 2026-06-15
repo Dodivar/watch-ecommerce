@@ -1,4 +1,11 @@
 ID;Référence;Nom;Fabricant;Prix TTC;Actif;Quantité;Description;Description courte;Catégories;Feature (Name:Value:Position:Customized)
-1001;REF-001;Rolex Submariner Date;Rolex;8950.00;1;2;"Montre de plongée iconique.";"Submariner Date";"Montres > Homme";"Modèle:Submariner Date:1:0,Référence montre:126610LN:2:0,Mouvement:Automatique:3:0,Diamètre:41 mm:4:0,Boîte:Oui:5:0"
-1002;REF-002;Omega Speedmaster;Omega;6200.00;1;1;"Chronographe légendaire.";"Speedmaster";"Montres > Homme";"Modèle:Speedmaster:1:0,Mouvement:Manuel:2:0,Diamètre:42:3:0"
-1003;;Montre sans prix;;0;1;1;;;;
+1001;REF-001;Rolex Submariner Date;Rolex;8950.00;1;2;"Montre de plongée iconique.";"Submariner Date";"Montres > Homme";"Modèle:Submariner Date:1:0,Référence montre:126610LN:2:0,Mouvement:Automatique:3:0,Diamètre:41 mm:4:0,Étanchéité:300 m:5:0,Fonctions:Date, Chronographe:6:0,Boîte:Oui:7:0"
+1002;REF-002;Omega Speedmaster;Omega;6200.00;1;1;"Chronographe légendaire.";"Speedmaster";"Montres > Homme";"Modèle:Speedmaster:1:0,Mouvement:Manuel:2:0,Diamètre:42:3:0,Étanchéité:5 bar:4:0,Fonctions:Chronographe et tachymètre:5:0"
+1003;REF-003;Casio G-Shock;Casio;129.00;1;5;"Montre sport.";"G-Shock";"Montres > Homme";"Mouvement:Quartz:1:0,Diamètre:45.5 mm:2:0,Étanchéité:20 ATM:3:0,Fonctions:Alarme, date, 24 heures:4:0"
+1004;REF-004;Citizen Eco-Drive;Citizen;349.00;1;3;"Solaire.";"Eco-Drive";"Montres > Femme";"Mouvement:Solaire:1:0,Diamètre:36:2:0,Étanchéité:100 mètres:3:0,Fonctions:Dateur:4:0"
+1005;REF-005;Seiko Kinetic;Seiko;499.00;1;2;"Cinétique.";"Kinetic";"Montres > Homme";"Mouvement:Cinétique:1:0,Diamètre:40 mm:2:0,Étanchéité:10 bar:3:0,Fonctions:Heures, minutes, secondes:4:0"
+1006;REF-006;Montre vintage;Inconnue;890.00;1;1;"Occasion.";"Vintage";"Montres > Homme";"Mouvement:Mécanique:1:0,Diamètre:38-40 mm:2:0,Étanchéité:étanche 30m:3:0,État:Très bon:4:0,Fonctions:Petite seconde:5:0"
+1007;REF-007;Apple Watch;Apple;429.00;1;4;"Connectée.";"Series 9";"Montres > Unisexe";"Mouvement:Connectée:1:0,Diamètre:41mm:2:0,Étanchéité:WR50:3:0,Fonctions:Alarme / GMT:4:0"
+1008;REF-008;Tissot PRX;Tissot;595.00;1;1;"Quartz.";"PRX";"Montres > Homme";"Mouvement:à quartz:1:0,Diamètre:39.5:2:0,Étanchéité:100:3:0,Fonctions:Date du jour:4:0"
+1009;;Montre sans prix;;0;1;1;;;;
+1010;REF-010;Longines Heritage;Longines;2100.00;1;1;"Automatique ETA.";"Heritage";"Montres > Homme";"Mouvement:Automatique calibre ETA 2824-2:1:0,Diamètre:40.0 mm:2:0,Étanchéité:3 ATM:3:0,Fonctions:Date, phase de lune:4:0"

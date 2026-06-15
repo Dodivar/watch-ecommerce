@@ -36,7 +36,7 @@ describe('parsePrestashopCsv', () => {
     const { headers, rows } = parsePrestashopCsv(content)
     expect(headers).toContain('ID')
     expect(headers).toContain('Nom')
-    expect(rows).toHaveLength(3)
+    expect(rows).toHaveLength(10)
     expect(rows[0].ID).toBe('1001')
     expect(rows[0].Nom).toBe('Rolex Submariner Date')
   })
@@ -85,7 +85,8 @@ describe('transformPrestashopRow', () => {
     const content = readFileSync(resolve(fixturesDir, 'products-sample.csv'), 'utf8')
     const { rows } = parsePrestashopCsv(content)
 
-    const { error } = transformPrestashopRow(rows[2], mapping)
+    const invalidRow = rows.find((row) => row.Nom === 'Montre sans prix')
+    const { error } = transformPrestashopRow(invalidRow, mapping)
     expect(error).toMatch(/Prix invalide/)
   })
 

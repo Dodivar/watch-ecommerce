@@ -116,6 +116,24 @@ Ajuster les noms de colonnes après réception du premier export réel du client
 - **Ré-import** : upsert sur `prestashop_product_id` (ou `ad_code`) ; images remplacées en mode update
 - **Rapport** : compteurs créés / mis à jour / ignorés / erreurs + détail JSON optionnel
 
+## Spike normalisation (avant migration schéma)
+
+Mesure la couverture des parsers (mouvement, étanchéité, diamètre, fonctions, état) sur un export CSV réel **sans écrire en base** :
+
+```bash
+npm run db:prestashop-spike -- \
+  --csv ./exports/products.csv \
+  --mapping sites/place-des-montres/prestashop-import.mapping.json \
+  --report ./reports/prestashop-spike.json
+```
+
+Le rapport console + JSON indique, par champ :
+- taux de remplissage depuis les features PrestaShop ;
+- taux de normalisation vers des valeurs filtrables ;
+- top des valeurs non mappées (à enrichir dans `normalizeWatchSpecs.js`).
+
+Fixture locale : `tests/fixtures/prestashop/products-sample.csv`.
+
 ## Déroulé recommandé (nouveau client)
 
 1. Appliquer la migration SQL `prestashop_product_id`

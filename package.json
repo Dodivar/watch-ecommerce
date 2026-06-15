@@ -25,6 +25,7 @@
     "db:strip-case-size-mm:apply": "node scripts/strip-case-size-mm.mjs --apply",
     "db:import-prestashop": "node scripts/prestashop-import/import-prestashop-catalog.mjs",
     "db:import-prestashop:apply": "node scripts/prestashop-import/import-prestashop-catalog.mjs --apply",
+    "db:prestashop-spike": "node scripts/prestashop-import/spike-normalization-report.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run packages/base/src/site",
