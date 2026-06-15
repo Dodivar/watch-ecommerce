@@ -156,22 +156,6 @@ const chartData = computed(() => {
     datasets: [
       {
         type: 'line',
-        label: 'Montres créées',
-        data: series.map((item) => item.created),
-        borderColor: 'rgb(34, 197, 94)', // green-500
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        borderWidth: 2,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        pointBackgroundColor: 'rgb(34, 197, 94)',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        yAxisID: 'y',
-      },
-      {
-        type: 'line',
         label: 'Montres vendues',
         data: series.map((item) => item.sold),
         borderColor: 'rgb(239, 68, 68)', // red-500
@@ -320,10 +304,6 @@ const chartOptions = computed(() => {
   }
 })
 
-const totalWatches = computed(() => {
-  return stats.value.reduce((sum, item) => sum + item.created, 0)
-})
-
 const totalSold = computed(() => {
   return stats.value.reduce((sum, item) => sum + item.sold, 0)
 })
@@ -332,27 +312,9 @@ const totalValueSold = computed(() => {
   return stats.value.reduce((sum, item) => sum + (item.totalValue || 0), 0)
 })
 
-const averagePerDay = computed(() => {
-  if (stats.value.length === 0) return 0
-  return (totalWatches.value / stats.value.length).toFixed(2)
-})
-
 const averageSoldPerDay = computed(() => {
   if (stats.value.length === 0) return 0
   return (totalSold.value / stats.value.length).toFixed(2)
-})
-
-const maxDay = computed(() => {
-  if (stats.value.length === 0) return null
-  const maxItem = stats.value.reduce((max, item) => (item.created > max.created ? item : max), stats.value[0])
-  return {
-    date: new Date(maxItem.date).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }),
-    count: maxItem.created,
-  }
 })
 
 const maxSoldDay = computed(() => {
@@ -869,36 +831,16 @@ onMounted(async () => {
       <!-- Stats Content -->
       <div v-else>
         <!-- Summary Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div class="bg-white rounded-lg shadow p-6">
-            <div class="text-sm text-gray-600 mb-1">Total montres créées</div>
-            <div class="text-3xl font-bold text-text-main">{{ totalWatches }}</div>
-            <div class="text-xs text-gray-500 mt-2">Toutes périodes confondues</div>
-          </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div class="bg-white rounded-lg shadow p-6">
             <div class="text-sm text-gray-600 mb-1">Total montres vendues</div>
             <div class="text-3xl font-bold text-red-600">{{ totalSold }}</div>
             <div class="text-xs text-gray-500 mt-2">Toutes périodes confondues</div>
           </div>
           <div class="bg-white rounded-lg shadow p-6">
-            <div class="text-sm text-gray-600 mb-1">Moyenne créées/jour</div>
-            <div class="text-3xl font-bold text-text-main">{{ averagePerDay }}</div>
-            <div class="text-xs text-gray-500 mt-2">Sur {{ stats.length }} jour{{ stats.length > 1 ? 's' : '' }}</div>
-          </div>
-          <div class="bg-white rounded-lg shadow p-6">
             <div class="text-sm text-gray-600 mb-1">Moyenne vendues/jour</div>
             <div class="text-3xl font-bold text-red-600">{{ averageSoldPerDay }}</div>
             <div class="text-xs text-gray-500 mt-2">Sur {{ stats.length }} jour{{ stats.length > 1 ? 's' : '' }}</div>
-          </div>
-        </div>
-
-        <!-- Additional Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div class="bg-white rounded-lg shadow p-6">
-            <div class="text-sm text-gray-600 mb-1">Meilleur jour (créations)</div>
-            <div class="text-3xl font-bold text-text-main" v-if="maxDay">{{ maxDay.count }}</div>
-            <div class="text-xs text-gray-500 mt-2" v-if="maxDay">Le {{ maxDay.date }}</div>
-            <div v-else class="text-gray-400">Aucune donnée</div>
           </div>
           <div class="bg-white rounded-lg shadow p-6">
             <div class="text-sm text-gray-600 mb-1">Meilleur jour (ventes)</div>
@@ -906,6 +848,9 @@ onMounted(async () => {
             <div class="text-xs text-gray-500 mt-2" v-if="maxSoldDay">Le {{ maxSoldDay.date }}</div>
             <div v-else class="text-gray-400">Aucune vente</div>
           </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div class="bg-white rounded-lg shadow p-6">
             <div class="text-sm text-gray-600 mb-1">Valeur totale vendue</div>
             <div class="text-3xl font-bold text-blue-600">
@@ -1018,7 +963,7 @@ onMounted(async () => {
 
         <!-- Chart -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">Évolution des montres créées et vendues</h2>
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Évolution des montres vendues</h2>
           <div v-if="stats.length === 0" class="text-center py-16">
             <div class="text-gray-400 mb-4">
               <svg class="w-16 h-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1031,7 +976,7 @@ onMounted(async () => {
               </svg>
             </div>
             <h3 class="text-xl text-gray-600 mb-2">Aucune donnée disponible</h3>
-            <p class="text-gray-500">Aucune montre n'a encore été créée.</p>
+            <p class="text-gray-500">Aucune vente enregistrée pour le moment.</p>
           </div>
           <div v-else class="h-64 sm:h-80 md:h-96">
             <Chart :data="chartData" :options="chartOptions" />
