@@ -18,6 +18,8 @@ const { findShippingMethod, validateHomeAddress } = require('../orders/shipping'
 const { loadPromoCode, computeDiscountCents, validatePromoEligibility } = require('../orders/promo')
 const { fulfillOrderPayment, releaseOrderReservation, applyRetailStockDecrement } = require('../orders/fulfillment')
 const { sendOrderConfirmationEmails } = require('../orders/email')
+const { generateOrderReceiptPdf, receiptPdfFilename } = require('../orders/receiptPdf')
+const { resolveReceiptConfig } = require('../orders/receiptBranding')
 
 /**
  * @param {*} registry
@@ -677,6 +679,61 @@ function buildOrdersRouter(registry) {
       }
       console.error(`[${site.id}] POST pay:`, e)
       res.status(500).json({ success: false, error: e.message || 'Erreur paiement' })
+    }
+  })
+
+  router.get('/:orderId/receipt', resolveSite(registry), async (req, res) => {
+    const site = req.site
+    const orderId = req.params.orderId
+    const token = extractAccessToken(req)
+
+    if (!resolveReceiptConfig(site).enabled) {
+      return res.status(404).json({ success: false, error: 'Reçu indisponible' })
+    }
+
+    try {
+      const supabase = getSupabaseClient(site)
+      const order = await loadOrderForSite(supabase, site.id, orderId)
+      if (!order) {
+        return res.status(404).json({ success: false, error: 'Commande introuvable' })
+      }
+      const access = requireOrderAccess(site, order, token)
+      if (!access.ok) {
+        return res.status(access.status).json({ success: false, error: access.error })
+      }
+      if (order.status !== 'paid') {
+        return res.status(400).json({ success: false, error: 'Reçu disponible après paiement uniquement' })
+      }
+
+      const lines = await loadOrderLines(supabase, orderId)
+      const { data: shippingRow } = await supabase
+        .from('order_shipping')
+        .select('*')
+        .eq('order_id', orderId)
+        .maybeSingle()
+      const { data: discountRow } = await supabase
+        .from('order_discounts')
+        .select('*')
+        .eq('order_id', orderId)
+        .maybeSingle()
+
+      const pdfBuffer = await generateOrderReceiptPdf(site, order, lines, {
+        shipping: shippingRow || null,
+        discount: discountRow || null,
+      })
+      if (!pdfBuffer) {
+        return res.status(500).json({ success: false, error: 'Impossible de générer le reçu' })
+      }
+
+      res.setHeader('Content-Type', 'application/pdf')
+      res.setHeader('Content-Disposition', `attachment; filename="${receiptPdfFilename(orderId)}"`)
+      res.send(pdfBuffer)
+    } catch (e) {
+      if (e instanceof MissingSecretsError) {
+        return res.status(503).json({ success: false, error: e.message })
+      }
+      console.error(`[${site.id}] GET receipt:`, e)
+      res.status(500).json({ success: false, error: 'Erreur serveur' })
     }
   })
 

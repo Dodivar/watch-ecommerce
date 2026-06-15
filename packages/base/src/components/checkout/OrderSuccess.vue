@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { verifyOrder } from '@/services/orderService.js'
+import { verifyOrder, downloadOrderReceipt } from '@/services/orderService.js'
 import { getWatchById, getAllWatchesForListing } from '@/services/watchService'
 import { useCart } from '@/composables/useCart.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -32,6 +32,9 @@ const watches = ref([])
 const loading = ref(true)
 const error = ref('')
 const isPreview = ref(false)
+const accessToken = ref('')
+const receiptDownloading = ref(false)
+const receiptError = ref('')
 
 const DISCOUNT_TYPE_LABELS = {
   percent: 'Pourcentage',
@@ -90,6 +93,19 @@ function clearCheckoutSession() {
   sessionStorage.removeItem(key)
 }
 
+async function downloadReceipt() {
+  if (!orderId.value || !accessToken.value || isPreview.value) return
+  receiptError.value = ''
+  receiptDownloading.value = true
+  try {
+    await downloadOrderReceipt(orderId.value, accessToken.value)
+  } catch (err) {
+    receiptError.value = err.message || 'Impossible de télécharger le reçu'
+  } finally {
+    receiptDownloading.value = false
+  }
+}
+
 /**
  * Aperçu de démonstration réservé aux admins : affiche une fausse confirmation
  * de commande avec une montre d'exemple pour visualiser le rendu de la page,
@@ -146,6 +162,7 @@ async function loadAdminPreview() {
 onMounted(async () => {
   orderId.value = String(route.query.order || '')
   const token = String(route.query.token || '')
+  accessToken.value = token
 
   const wantsPreview =
     route.query.preview === '1' || route.query.preview === 'true'
@@ -267,7 +284,17 @@ onMounted(async () => {
               >
                 Retourner à la boutique
               </router-link>
+              <button
+                v-if="!isPreview"
+                type="button"
+                class="px-6 py-3 border border-gray-300 text-gray-800 rounded-lg font-medium text-center transition-colors hover:bg-gray-50 disabled:opacity-60"
+                :disabled="receiptDownloading"
+                @click="downloadReceipt"
+              >
+                {{ receiptDownloading ? 'Téléchargement…' : 'Télécharger le reçu PDF' }}
+              </button>
             </div>
+            <p v-if="receiptError" class="mt-3 text-sm text-red-600">{{ receiptError }}</p>
           </div>
 
           <!-- Colonne droite : reçu -->

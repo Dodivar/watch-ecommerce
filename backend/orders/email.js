@@ -1,5 +1,6 @@
 const { getMailjetClient, MissingSecretsError } = require('../utils/siteClients')
 const { createOrderConfirmationEmail } = require('../templates/orderConfirmationEmail')
+const { generateOrderReceiptPdf, receiptPdfFilename } = require('./receiptPdf')
 
 /**
  * @param {object} site
@@ -33,6 +34,21 @@ async function sendOrderConfirmationEmails(site, order, lines, extras = {}) {
   const customerHtml = createOrderConfirmationEmail(site, order, lines, false, extras)
   const merchantHtml = createOrderConfirmationEmail(site, order, lines, true, extras)
 
+  /** @type {object[]} */
+  const customerAttachments = []
+  try {
+    const pdfBuffer = await generateOrderReceiptPdf(site, order, lines, extras)
+    if (pdfBuffer) {
+      customerAttachments.push({
+        ContentType: 'application/pdf',
+        Filename: receiptPdfFilename(order.id),
+        Base64Content: pdfBuffer.toString('base64'),
+      })
+    }
+  } catch (pdfErr) {
+    console.error(`[${site.id}] PDF reçu commande ${order.id}:`, pdfErr)
+  }
+
   await mailjet.post('send', { version: 'v3.1' }).request({
     Messages: [
       {
@@ -40,6 +56,7 @@ async function sendOrderConfirmationEmails(site, order, lines, extras = {}) {
         To: [{ Email: order.customer_email, Name: order.customer_email }],
         Subject: `Confirmation de commande — ${emailCfg.fromName}`,
         HTMLPart: customerHtml,
+        ...(customerAttachments.length ? { Attachments: customerAttachments } : {}),
       },
       {
         From: { Email: fromAddress, Name: emailCfg.fromName },

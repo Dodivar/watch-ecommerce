@@ -573,6 +573,14 @@ export default {
     },
   },
 
+  receipt: {
+    enabled: true,
+    documentTitle: 'Reçu de paiement',
+    footerNote: 'Merci pour votre confiance — Place des Montres.',
+    showWatchImages: true,
+    logoPath: '/brand-logo.jpg',
+  },
+
   collection: {
     pageSize: 12,
     filters: {

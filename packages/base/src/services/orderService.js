@@ -108,3 +108,30 @@ export async function verifyOrder(orderId, accessToken) {
   )
   return response.json()
 }
+
+/**
+ * Télécharge le reçu PDF d'une commande payée.
+ * @param {string} orderId
+ * @param {string} accessToken
+ */
+export async function downloadOrderReceipt(orderId, accessToken) {
+  const params = new URLSearchParams({ token: accessToken })
+  const response = await fetch(
+    `${getBackendApiUrl()}/api/orders/${orderId}/receipt?${params.toString()}`,
+    { headers: apiHeaders(accessToken) },
+  )
+  if (!response.ok) {
+    const data = await readApiResponseBody(response)
+    throw new Error(data.error || data.message || 'Impossible de télécharger le reçu')
+  }
+  const blob = await response.blob()
+  const filename =
+    response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] ||
+    `receipt-${orderId}.pdf`
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(url)
+}
