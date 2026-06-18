@@ -6,7 +6,6 @@ const { getSupabaseClient, getStripeClient, MissingSecretsError } = require('../
 const {
   parseCartCheckoutLines,
   validateCartLines,
-  linesToRpcPayload,
 } = require('../orders/parseCartLines')
 const {
   hashOrderAccessToken,
@@ -17,6 +16,7 @@ const { buildOrderQuote } = require('../orders/pricing')
 const { findShippingMethod, validateHomeAddress } = require('../orders/shipping')
 const { loadPromoCode, computeDiscountCents, validatePromoEligibility } = require('../orders/promo')
 const { fulfillOrderPayment, releaseOrderReservation, applyRetailStockDecrement } = require('../orders/fulfillment')
+const { createDraftOrderViaRpc } = require('../orders/createDraftOrder')
 const { sendOrderConfirmationEmails } = require('../orders/email')
 const { generateOrderReceiptPdf, receiptPdfFilename } = require('../orders/receiptPdf')
 const { resolveReceiptConfig } = require('../orders/receiptBranding')
@@ -190,7 +190,6 @@ function buildOrdersRouter(registry) {
         return res.status(validation.status).json({ success: false, error: validation.error })
       }
       const lines = validation.lines
-      const watchIds = [...new Set(lines.map((l) => l.watchId))]
 
       if (!site.secrets.paymentCancelSecret) {
         return res.status(500).json({ success: false, error: 'Configuration serveur incomplète' })
@@ -206,125 +205,48 @@ function buildOrdersRouter(registry) {
         throw e
       }
 
-      const { data: watches, error: watchesError } = await supabase
-        .from('watches')
-        .select('id, name, reference, price, is_available, is_sold, stock_quantity')
-        .in('id', watchIds)
-
-      if (watchesError || !watches || watches.length !== watchIds.length) {
-        return res.status(400).json({ success: false, error: 'Une ou plusieurs montres sont introuvables' })
-      }
-
-      const byId = new Map(watches.map((w) => [String(w.id), w]))
-      for (const line of lines) {
-        const w = byId.get(line.watchId)
-        if (!w || !w.is_available || w.is_sold) {
-          return res.status(400).json({
-            success: false,
-            error: w ? `La montre « ${w.name} » n'est plus disponible` : 'Montre introuvable',
-          })
-        }
-        if (w.stock_quantity != null && line.quantity > w.stock_quantity) {
-          return res.status(400).json({
-            success: false,
-            error: `Stock insuffisant pour « ${w.name} »`,
-          })
-        }
-      }
-
       const reserveMinutes = getReserveMinutes(site)
       const expiresAt = new Date(Date.now() + reserveMinutes * 60 * 1000).toISOString()
       const checkoutConfig = getCheckoutConfig(site)
       const currency = (checkoutConfig.currency || 'EUR').toUpperCase()
 
-      const { data: orderRow, error: orderErr } = await supabase
-        .from('orders')
-        .insert({
-          site_id: site.id,
-          status: 'draft',
+      let draftResult
+      try {
+        draftResult = await createDraftOrderViaRpc(supabase, {
+          siteId: site.id,
           currency,
-          expires_at: expiresAt,
+          expiresAt,
+          reserveMinutes,
+          lines,
+          supabaseUrl: site.secrets?.supabase?.url,
         })
-        .select('id')
-        .single()
-
-      if (orderErr || !orderRow) {
-        console.error(`[${site.id}] create order:`, orderErr)
-        return res.status(500).json({ success: false, error: 'Impossible de créer la commande' })
-      }
-
-      const orderId = orderRow.id
-
-      const { data: reserved, error: rpcError } = await supabase.rpc('reserve_watches_for_order', {
-        p_order_id: orderId,
-        p_lines: linesToRpcPayload(lines),
-        p_reserve_minutes: reserveMinutes,
-      })
-
-      if (rpcError || reserved !== true) {
-        await supabase.from('orders').delete().eq('id', orderId)
-        const msg =
-          rpcError?.message?.includes('function') || rpcError?.code === '42883'
-            ? 'Migration SQL requise (reserve_watches_for_order). Voir supabase/migrations.'
-            : 'Une ou plusieurs montres ne sont plus disponibles'
-        return res.status(rpcError ? 500 : 409).json({ success: false, error: msg })
-      }
-
-      const { data: allImages } = await supabase
-        .from('watch_images')
-        .select('watch_id, image_url, image_path, image_order')
-        .in('watch_id', watchIds)
-        .order('image_order', { ascending: true })
-
-      const imageByWatch = new Map(watchIds.map((id) => [String(id), null]))
-      if (allImages) {
-        for (const row of allImages) {
-          const wid = String(row.watch_id)
-          if (imageByWatch.get(wid) != null) continue
-          let url = null
-          if (row.image_url) url = row.image_url
-          else if (row.image_path) {
-            const { data } = supabase.storage.from('watch-images').getPublicUrl(row.image_path)
-            url = data.publicUrl
-          }
-          imageByWatch.set(wid, url)
+      } catch (createErr) {
+        if (createErr.status) {
+          return res.status(createErr.status).json({ success: false, error: createErr.message })
         }
+        throw createErr
       }
 
-      const lineRows = lines.map((l) => {
-        const w = byId.get(l.watchId)
-        return {
-          order_id: orderId,
-          watch_id: l.watchId,
-          name: w.name,
-          reference: w.reference || null,
-          unit_price_cents: Math.round(w.price * 100),
-          quantity: l.quantity,
-          image_url: imageByWatch.get(l.watchId),
-        }
-      })
-
-      const { error: linesErr } = await supabase.from('order_lines').insert(lineRows)
-      if (linesErr) {
-        await releaseOrderReservation(supabase, orderId)
-        await supabase.from('orders').delete().eq('id', orderId)
-        return res.status(500).json({ success: false, error: "Impossible d'enregistrer les lignes" })
-      }
-
+      const orderId = draftResult.order.id
       const accessToken = signOrderAccessToken(site.secrets.paymentCancelSecret, orderId)
       const tokenHash = hashOrderAccessToken(accessToken)
-      await supabase
+      const { error: tokenErr } = await supabase
         .from('orders')
         .update({ access_token_hash: tokenHash })
         .eq('id', orderId)
 
-      const order = await loadOrderForSite(supabase, site.id, orderId)
-      const { quote, lines: savedLines } = await recalculateAndPersist(supabase, site, order)
+      if (tokenErr) {
+        await releaseOrderReservation(supabase, orderId)
+        await supabase.from('order_lines').delete().eq('order_id', orderId)
+        await supabase.from('orders').delete().eq('id', orderId)
+        console.error(`[${site.id}] create order token:`, tokenErr)
+        return res.status(500).json({ success: false, error: 'Impossible de créer la commande' })
+      }
 
       console.log(`[${site.id}] ✅ Commande draft ${orderId} (${lines.length} ligne(s))`)
 
       res.status(201).json({
-        ...orderToResponse(order, savedLines, quote),
+        ...orderToResponse(draftResult.order, draftResult.lines, draftResult.quote),
         orderId,
         accessToken,
         expiresAt,

@@ -87,6 +87,11 @@ let syncInFlight = false
 let syncQueued = false
 let lastPaymentTotalCents = null
 let lastClientSecret = null
+let stripePreloadPromise = null
+let paymentSectionObserver = null
+
+const paymentSectionRef = ref(null)
+const paymentSectionVisible = ref(false)
 
 const homeMethodsAll = computed(() => shippingMethods.filter((m) => m.type === 'home'))
 const pickupMethodsAll = computed(() => shippingMethods.filter((m) => m.type === 'pickup'))
@@ -256,6 +261,48 @@ function resetPaymentState() {
   elementsInstance = null
 }
 
+function preloadStripe() {
+  if (!STRIPE_PUBLISHABLE_KEY || stripePreloadPromise || stripeInstance) return
+  stripePreloadPromise = loadStripe(STRIPE_PUBLISHABLE_KEY).then((instance) => {
+    if (instance) stripeInstance = instance
+    return instance
+  })
+}
+
+async function ensureStripeInstance() {
+  if (stripeInstance) return stripeInstance
+  if (stripePreloadPromise) {
+    stripeInstance = await stripePreloadPromise
+    return stripeInstance
+  }
+  stripeInstance = await loadStripe(STRIPE_PUBLISHABLE_KEY)
+  return stripeInstance
+}
+
+function canInitPayment() {
+  return canShowPayment.value && (canSyncOrder.value || paymentSectionVisible.value)
+}
+
+async function maybeInitPayment() {
+  if (!canInitPayment()) return
+  await initPayment()
+}
+
+function setupPaymentSectionObserver() {
+  const el = paymentSectionRef.value
+  if (!el || !STRIPE_PUBLISHABLE_KEY || paymentSectionObserver) return
+  paymentSectionObserver = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        paymentSectionVisible.value = true
+        maybeInitPayment()
+      }
+    },
+    { rootMargin: '120px', threshold: 0.05 },
+  )
+  paymentSectionObserver.observe(el)
+}
+
 async function createOrderFromCart() {
   const lines = buildCartLinesPayload()
   if (!lines.length && !items.value.length) {
@@ -397,9 +444,9 @@ async function syncOrder() {
     const total = quote.value?.totalCents
     if (canShowPayment.value) {
       if (stripeReady.value && total != null && total !== lastPaymentTotalCents) {
-        await initPayment()
+        await maybeInitPayment()
       } else if (!stripeReady.value && !paymentLoading.value) {
-        await initPayment()
+        await maybeInitPayment()
       }
     }
   } catch (e) {
@@ -453,7 +500,7 @@ async function onApplyPromo() {
     promoMessage.value = 'Code appliqué'
     promoMessageType.value = 'success'
     if (canShowPayment.value) {
-      await initPayment()
+      await maybeInitPayment()
     }
   } catch (e) {
     promoMessage.value = e.message || 'Code promo invalide'
@@ -472,7 +519,7 @@ async function onRemovePromo() {
     promoMessage.value = ''
     promoMessageType.value = ''
     if (canShowPayment.value) {
-      await initPayment()
+      await maybeInitPayment()
     }
   } catch (e) {
     error.value = e.message
@@ -496,9 +543,7 @@ async function initPayment() {
     const clientSecretChanged = pay.clientSecret !== lastClientSecret
     const totalChanged = newTotal != null && newTotal !== lastPaymentTotalCents
 
-    if (!stripeInstance) {
-      stripeInstance = await loadStripe(STRIPE_PUBLISHABLE_KEY)
-    }
+    stripeInstance = await ensureStripeInstance()
     if (!stripeInstance) {
       throw new Error('Impossible de charger Stripe')
     }
@@ -662,7 +707,13 @@ watch(promoInput, () => {
   }
 })
 
+watch(canSyncOrder, (ready) => {
+  if (ready) maybeInitPayment()
+})
+
 onMounted(async () => {
+  preloadStripe()
+
   if (!shippingMethods.length) {
     error.value = 'Configuration livraison manquante'
     loading.value = false
@@ -691,21 +742,24 @@ onMounted(async () => {
     if (!selectedMethodId.value) {
       selectedMethodId.value = shippingMethods[0]?.id || ''
     }
-
-    if (canSyncOrder.value) {
-      await syncOrder()
-    } else if (canShowPayment.value) {
-      await initPayment()
-    }
   } catch (e) {
     error.value = e.message
   } finally {
     loading.value = false
   }
+
+  await nextTick()
+  setupPaymentSectionObserver()
+
+  if (canSyncOrder.value) {
+    void syncOrder()
+  }
 })
 
 onUnmounted(() => {
   if (syncDebounceTimer) clearTimeout(syncDebounceTimer)
+  paymentSectionObserver?.disconnect()
+  paymentSectionObserver = null
   if (paymentElement) {
     paymentElement.destroy()
     paymentElement = null
@@ -722,10 +776,90 @@ onUnmounted(() => {
       </p>
 
       <p v-if="error" class="mb-4 text-sm text-red-600">{{ error }}</p>
-      <p v-if="loading && !orderLines.length" class="text-gray-600">Chargement…</p>
 
       <div
-        v-if="orderLines.length && !loading"
+        v-if="loading"
+        class="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8 lg:gap-10 items-start animate-pulse"
+        aria-busy="true"
+        aria-label="Préparation de la commande"
+      >
+        <div class="order-1 lg:order-2">
+          <aside class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-6">
+            <ul v-if="items.length" class="space-y-4">
+              <li v-for="item in items" :key="item.watchId" class="flex gap-3">
+                <div class="relative shrink-0">
+                  <div
+                    class="h-16 w-16 overflow-hidden rounded-lg bg-gray-200 border border-gray-100"
+                  />
+                  <span
+                    class="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-gray-300 px-1 text-xs font-medium text-white"
+                  >
+                    {{ item.quantity || 1 }}
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1 flex justify-between gap-2">
+                  <div class="min-w-0 space-y-2 flex-1">
+                    <div class="h-4 bg-gray-200 rounded w-4/5" />
+                    <div class="h-3 bg-gray-100 rounded w-1/3" />
+                  </div>
+                  <div class="h-4 w-16 bg-gray-200 rounded shrink-0" />
+                </div>
+              </li>
+            </ul>
+            <div v-else class="space-y-4">
+              <div v-for="n in 2" :key="n" class="flex gap-3">
+                <div class="h-16 w-16 rounded-lg bg-gray-200 shrink-0" />
+                <div class="flex-1 space-y-2">
+                  <div class="h-4 bg-gray-200 rounded w-3/4" />
+                  <div class="h-3 bg-gray-100 rounded w-1/2" />
+                </div>
+              </div>
+            </div>
+            <div class="h-10 bg-gray-100 rounded-lg" />
+            <div class="border-t border-gray-200 pt-4 space-y-3">
+              <div v-for="n in 4" :key="n" class="flex justify-between gap-4">
+                <div class="h-4 bg-gray-100 rounded w-24" />
+                <div class="h-4 bg-gray-200 rounded w-16" />
+              </div>
+              <div class="flex justify-between items-baseline pt-2">
+                <div class="h-6 bg-gray-200 rounded w-16" />
+                <div class="h-6 bg-gray-300 rounded w-24" />
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="order-2 lg:order-1 space-y-6">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-8">
+            <section class="space-y-4">
+              <div class="h-6 bg-gray-200 rounded w-24" />
+              <div class="h-10 bg-gray-100 rounded-lg" />
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="h-10 bg-gray-100 rounded-lg" />
+                <div class="h-10 bg-gray-100 rounded-lg" />
+              </div>
+              <div class="h-10 bg-gray-100 rounded-lg" />
+            </section>
+            <section class="space-y-4">
+              <div class="h-6 bg-gray-200 rounded w-28" />
+              <div class="h-10 bg-gray-100 rounded-lg" />
+              <div class="h-10 bg-gray-100 rounded-lg" />
+              <div class="grid sm:grid-cols-3 gap-4">
+                <div class="h-10 bg-gray-100 rounded-lg" />
+                <div class="sm:col-span-2 h-10 bg-gray-100 rounded-lg" />
+              </div>
+            </section>
+          </div>
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-4">
+            <div class="h-6 bg-gray-200 rounded w-20" />
+            <div class="h-24 bg-gray-100 rounded-lg" />
+            <div class="h-12 bg-gray-200 rounded-lg" />
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-else-if="orderLines.length"
         class="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8 lg:gap-10 items-start"
       >
         <!-- Récap mobile en premier, sticky à droite sur desktop -->
@@ -1049,7 +1183,10 @@ onUnmounted(() => {
             </section>
           </form>
 
-          <section class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-4">
+          <section
+            ref="paymentSectionRef"
+            class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-4"
+          >
             <div>
               <h2 class="font-semibold text-lg text-gray-900">Paiement</h2>
               <p class="text-sm text-gray-500 mt-1">
