@@ -1,0 +1,28 @@
+# Ping périodique du backend Render pour limiter le cold start (plan Free : spin-down après 15 min).
+# Variable ou secret Actions requis : VITE_BACKEND_URL (ex. https://votre-app.onrender.com, sans slash final)
+name: Render backend warmup
+
+on:
+  schedule:
+    # Toutes les 10 minutes (UTC) — < 15 min pour éviter le spin-down Render
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping /api/health
+        env:
+          VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL || secrets.VITE_BACKEND_URL }}
+        run: |
+          if [ -z "$VITE_BACKEND_URL" ]; then
+            echo "::error::VITE_BACKEND_URL manquant (Settings → Secrets and variables → Actions)"
+            exit 1
+          fi
+          echo "Ping ${VITE_BACKEND_URL}/api/health"
+          curl --fail --silent --show-error --max-time 120 \
+            "${VITE_BACKEND_URL}/api/health"
+          echo ""
+          echo "OK"

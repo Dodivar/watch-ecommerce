@@ -218,6 +218,7 @@ Avant de déployer, appliquer côté Supabase de chaque client :
 5. `supabase/migrations/20260608120000_home_carousel.sql` — carrousel d'accueil (si `features.homeCarousel` activé)
 6. `supabase/migrations/20260608130000_home_carousel_watch_link.sql` — lien optionnel vers une fiche montre sur chaque slide
 7. `supabase/migrations/20260609120000_fulfill_order_payment_transition_flag.sql` — `fulfill_order_payment` ne renvoie `true` que lors de la transition réelle → paid (réconciliation idempotente au retour `/commande/succes`, en plus du webhook)
+8. `supabase/migrations/20260618120000_create_draft_order_rpc.sql` — RPC `create_draft_order` (création commande draft atomique : order + réservation + lignes + quote)
 
 ### Checkout personnalisé (Payment Element)
 

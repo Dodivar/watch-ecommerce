@@ -31,3 +31,7 @@ Prérequis : tables checkout existantes (`orders`, `order_lines`, `promo_codes`,
 - Colonne `watches.audience` (slug, défaut `unisexe`)
 - Table de référence `watch_audiences` (slugs `unisexe`, `homme`, `femme`, `enfant`) + lecture publique RLS
 - Corrige l'erreur `Could not find the 'audience' column of 'watches' in the schema cache`
+
+## Checkout — création commande optimisée
+
+`20260618120000_create_draft_order_rpc.sql` — RPC `create_draft_order` (insert commande + réservation stock + lignes + quote initiale en une transaction). Requis pour le backend checkout actuel (`POST /api/orders`). Prérequis : `reserve_watches_for_order`, `release_order_reservation`.
