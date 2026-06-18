@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
-import { MapPin, Package } from '@lucide/vue'
+import { Info, MapPin, Package } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { loadStripe } from '@stripe/stripe-js'
 import { useCart } from '@/composables/useCart.js'
@@ -1105,12 +1105,16 @@ onUnmounted(() => {
             <section v-if="showShippingMethodSection" class="space-y-4">
               <h2 class="font-semibold text-lg text-gray-900">Mode d’expédition</h2>
 
-              <div
+              <p
                 v-if="isHomeDelivery && !shippingAddressComplete"
-                class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                class="flex items-start gap-2 text-sm text-gray-500"
               >
-                Saisissez votre adresse d’expédition pour voir les modes d’expédition disponibles.
-              </div>
+                <Info class="h-4 w-4 shrink-0 mt-0.5" :stroke-width="1.5" aria-hidden="true" />
+                <span
+                  >Saisissez votre adresse d’expédition pour voir les modes d’expédition
+                  disponibles.</span
+                >
+              </p>
 
               <div
                 v-else-if="isPickup && !billingAddressComplete"
