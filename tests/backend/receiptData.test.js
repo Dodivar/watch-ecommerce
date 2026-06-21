@@ -2,7 +2,12 @@ import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { buildReceiptData, computeVatBreakdown, formatAddressLines } = require('../../backend/orders/receiptData.js')
+const {
+  buildReceiptData,
+  computeVatBreakdown,
+  formatAddressLines,
+  formatMoney,
+} = require('../../backend/orders/receiptData.js')
 const { resolveReceiptBranding } = require('../../backend/orders/receiptBranding.js')
 
 function mockSite(overrides = {}) {
@@ -56,6 +61,14 @@ describe('computeVatBreakdown', () => {
   })
 })
 
+describe('formatMoney', () => {
+  it('uses regular spaces instead of narrow no-break spaces for PDF-safe output', () => {
+    const formatted = formatMoney('fr', 'EUR', 5000000)
+    expect(formatted).not.toMatch(/[\u202f\u00a0]/)
+    expect(formatted).toMatch(/50 000/)
+  })
+})
+
 describe('formatAddressLines', () => {
   it('formats a full billing address', () => {
     const lines = formatAddressLines({
@@ -78,6 +91,14 @@ describe('resolveReceiptBranding', () => {
     expect(branding.vatRate).toBe(20)
     expect(branding.enabled).toBe(true)
     expect(branding.logoPath).toContain('brand-logo.jpg')
+  })
+
+  it('prefers theme primary over email accent color', () => {
+    const site = mockSite()
+    site.config.raw.theme = { colors: { primary: '#0f2a1d' } }
+    site.config.backend.email.template.accentColor = '#d4af37'
+    const branding = resolveReceiptBranding(site)
+    expect(branding.accentColor).toBe('#0f2a1d')
   })
 
   it('respects receipt.enabled = false', () => {

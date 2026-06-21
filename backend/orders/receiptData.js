@@ -60,10 +60,12 @@ function computeVatBreakdown(totalCents, vatRate) {
  * @param {number} cents
  */
 function formatMoney(locale, currency, cents) {
-  return new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : locale, {
+  const formatted = new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : locale, {
     style: 'currency',
     currency: (currency || 'EUR').toUpperCase(),
   }).format((cents || 0) / 100)
+  // PDFKit built-in fonts lack U+202F/U+00A0 — they render as "/" in receipt PDFs.
+  return formatted.replace(/\u202f/g, ' ').replace(/\u00a0/g, ' ')
 }
 
 /**

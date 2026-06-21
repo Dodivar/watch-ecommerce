@@ -94,7 +94,7 @@ function resolveReceiptBranding(site) {
     vatNumber: raw.legal?.vatNumber || '',
     contactEmail: raw.contact?.email || site.config?.contact?.email || '',
     copyrightLine: raw.copy?.copyrightLine || '',
-    accentColor: site.config?.backend?.email?.template?.accentColor || colors.primary || '#333333',
+    accentColor: colors.primary || site.config?.backend?.email?.template?.accentColor || '#333333',
     textColor: colors.textMain || '#111111',
     panelColor: colors.cream || '#f5f5f5',
     locale: raw.locale || 'fr',
