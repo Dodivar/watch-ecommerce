@@ -53,69 +53,66 @@
         />
       </div>
 
-      <div
+      <WatchImageSwipeCarousel
         v-else
         class="relative h-full"
+        ref="imageCarouselRef"
+        v-model="currentImageIndex"
+        :images="navigableImages"
+        :show-navigation="effectiveShowImageNavigation && hasMultipleNavigableImages"
+        navigation-button-class="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 md:p-2"
+        prev-navigation-class="left-1 md:left-2"
+        next-navigation-class="right-1 md:right-2"
+        :slide-key-fn="(image, index) => `${watchItem.id}-${index}`"
+        :slide-alt-fn="(_, index) => (index === currentImageIndex ? watchItem.name : '')"
+        @index-change="onCarouselIndexChange"
         @mouseenter="warmNavigableImages"
-        @touchstart="handleTouchStartWrapper"
-        @touchend="handleTouchEndWrapper"
       >
-        <img
-          v-for="(url, index) in navigableImages"
-          :key="`${watchItem.id}-${index}`"
-          :src="resolveImageSrc(url)"
-          :alt="index === shownImageIndex ? watchItem.name : ''"
-          :loading="navImageLoading(index)"
-          :fetchpriority="index === 0 ? imageFetchPriority : 'auto'"
-          decoding="async"
-          width="400"
-          height="400"
-          class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
-          :class="shownImageIndex === index ? 'z-[1] opacity-100' : 'z-0 opacity-0'"
-          :aria-hidden="shownImageIndex === index ? undefined : 'true'"
-          @load="onNavImageLoad(index)"
-          @error="onNavImageLoad(index)"
-          :ref="(el) => setNavImageRef(el, index)"
-        />
-
-        <button
-          v-if="effectiveShowImageNavigation && hasMultipleNavigableImages"
-          type="button"
-          aria-label="Image précédente"
-          @click.stop="previousImage"
-          class="absolute left-1 md:left-2 top-1/2 z-10 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 md:p-2 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
-        >
-          <ChevronLeft class="w-4 h-4 md:w-5 md:h-5" :stroke-width="2" />
-        </button>
-
-        <button
-          v-if="effectiveShowImageNavigation && hasMultipleNavigableImages"
-          type="button"
-          aria-label="Image suivante"
-          @click.stop="nextImage"
-          class="absolute right-1 md:right-2 top-1/2 z-10 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 md:p-2 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100"
-        >
-          <ChevronRight class="w-4 h-4 md:w-5 md:h-5" :stroke-width="2" />
-        </button>
-
-        <div
-          v-if="effectiveShowImageNavigation && hasMultipleNavigableImages"
-          class="absolute bottom-2 left-1/2 z-10 transform -translate-x-1/2 flex gap-1"
-        >
-          <button
-            v-for="(_, index) in navigableImages"
-            :key="index"
-            type="button"
-            :aria-label="`Image ${index + 1}`"
-            :aria-current="currentImageIndex === index ? 'true' : undefined"
-            @click.stop="goToImage(index)"
-            :class="[
-              'h-0.5 rounded-full transition-all duration-200',
-              currentImageIndex === index ? 'w-5 bg-white' : 'w-2 bg-white/40',
-            ]"
+        <template #slide="{ image, index, isActive }">
+          <img
+            :src="resolveImageSrc(image)"
+            :alt="isActive ? watchItem.name : ''"
+            :loading="navImageLoading(index)"
+            :fetchpriority="index === 0 ? imageFetchPriority : 'auto'"
+            decoding="async"
+            width="400"
+            height="400"
+            class="pointer-events-none h-full w-full object-cover object-center"
+            :aria-hidden="isActive ? undefined : 'true'"
+            @load="onNavImageLoad(index)"
+            @error="onNavImageLoad(index)"
+            :ref="(el) => setNavImageRef(el, index)"
           />
-        </div>
-      </div>
+        </template>
+
+        <template #prev-icon>
+          <ChevronLeft class="w-4 h-4 md:w-5 md:h-5" :stroke-width="2" />
+        </template>
+
+        <template #next-icon>
+          <ChevronRight class="w-4 h-4 md:w-5 md:h-5" :stroke-width="2" />
+        </template>
+
+        <template #overlay>
+          <div
+            v-if="effectiveShowImageNavigation && hasMultipleNavigableImages"
+            class="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1"
+          >
+            <button
+              v-for="(_, index) in navigableImages"
+              :key="index"
+              type="button"
+              :aria-label="`Image ${index + 1}`"
+              :aria-current="currentImageIndex === index ? 'true' : undefined"
+              @click.stop="goToImage(index)"
+              :class="[
+                'h-0.5 rounded-full transition-all duration-200',
+                currentImageIndex === index ? 'w-5 bg-white' : 'w-2 bg-white/40',
+              ]"
+            />
+          </div>
+        </template>
+      </WatchImageSwipeCarousel>
 
     </div>
 
@@ -170,6 +167,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch as vueWatch } from 'vue'
 import { ChevronLeft, ChevronRight } from '@lucide/vue'
+import WatchImageSwipeCarousel from '@/components/watch/WatchImageSwipeCarousel.vue'
 import {
   DESKTOP_HOVER_SECOND_IMAGE_MQ,
   WATCH_CARD_MAX_IMAGES,
@@ -259,7 +257,7 @@ const showInlineYear = computed(
 )
 
 const currentImageIndex = ref(0)
-const shownImageIndex = ref(0)
+const imageCarouselRef = ref(null)
 const warmedNavIndices = ref([0, 1])
 const navImageRefs = ref([])
 const decodedNavIndices = new Set()
@@ -355,7 +353,6 @@ async function revealImage(index) {
 
   const cachedEl = navImageRefs.value[index]
   if (decodedNavIndices.has(index) && cachedEl?.complete) {
-    shownImageIndex.value = index
     return
   }
 
@@ -373,13 +370,9 @@ async function revealImage(index) {
     try {
       await el.decode()
     } catch {
-      // Reveal after load when decode is unavailable or fails
+      // Decode when available; reveal even if decode fails
     }
     decodedNavIndices.add(index)
-  }
-
-  if (currentImageIndex.value === index) {
-    shownImageIndex.value = index
   }
 }
 
@@ -387,16 +380,21 @@ function onNavImageLoad(index) {
   revealImage(index)
 }
 
-function goToImage(index) {
-  const images = navigableImages.value
-  if (index < 0 || index >= images.length || index === currentImageIndex.value) return
-
-  currentImageIndex.value = index
+function warmAdjacentImages(index) {
   warmNavIndex(index)
   warmNavIndex(index - 1)
   warmNavIndex(index + 1)
+}
 
+function onCarouselIndexChange(index) {
+  warmAdjacentImages(index)
   revealImage(index)
+}
+
+function goToImage(index) {
+  const images = navigableImages.value
+  if (index < 0 || index >= images.length || index === currentImageIndex.value) return
+  imageCarouselRef.value?.goToIndex(index)
 }
 
 function onHoverSecondEnter() {
@@ -416,7 +414,6 @@ vueWatch(
   () => props.watch.id,
   () => {
     currentImageIndex.value = 0
-    shownImageIndex.value = 0
     warmedNavIndices.value = [0, 1]
     navImageRefs.value = []
     decodedNavIndices.clear()
@@ -439,22 +436,6 @@ const handleCardClick = () => {
   }
 }
 
-const nextImage = () => {
-  if (hasMultipleNavigableImages.value) {
-    goToImage((currentImageIndex.value + 1) % navigableImages.value.length)
-  }
-}
-
-const previousImage = () => {
-  if (hasMultipleNavigableImages.value) {
-    goToImage(
-      currentImageIndex.value === 0
-        ? navigableImages.value.length - 1
-        : currentImageIndex.value - 1,
-    )
-  }
-}
-
 const formatPrice = (price) => {
   const value = Number(price)
   if (!Number.isFinite(value)) return ''
@@ -465,40 +446,4 @@ const formatPrice = (price) => {
   }).format(value)
 }
 
-let touchStartX = 0
-let touchEndX = 0
-
-const handleTouchStartWrapper = (e) => {
-  if (effectiveShowImageNavigation.value) {
-    handleTouchStart(e)
-  }
-}
-
-const handleTouchEndWrapper = (e) => {
-  if (effectiveShowImageNavigation.value) {
-    handleTouchEnd(e)
-  }
-}
-
-const handleTouchStart = (e) => {
-  touchStartX = e.changedTouches[0].screenX
-}
-
-const handleTouchEnd = (e) => {
-  touchEndX = e.changedTouches[0].screenX
-  handleSwipe()
-}
-
-const handleSwipe = () => {
-  const swipeThreshold = 50
-  const diff = touchStartX - touchEndX
-
-  if (Math.abs(diff) > swipeThreshold) {
-    if (diff > 0) {
-      nextImage()
-    } else {
-      previousImage()
-    }
-  }
-}
 </script>

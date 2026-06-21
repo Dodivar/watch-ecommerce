@@ -60,87 +60,92 @@
               @mouseenter="handleMouseEnter"
               @mouseleave="handleMouseLeave"
               @mousemove="handleMouseMove"
-              @touchstart="handleTouchStart"
-              @touchmove="handleTouchMove"
-              @touchend="handleTouchEnd"
             >
-              <img
-                v-if="watchItem && watchItem.images && watchItem.images.length > 0"
-                :src="watchItem.images[currentImageIndex]"
-                :alt="watchItem.name"
-                class="w-full h-full object-cover object-center cursor-zoom-in"
-                @click="openLightbox"
-              />
-              <div v-else class="w-full h-full flex items-center justify-center bg-white text-gray-400">
+              <div
+                v-if="!watchItem?.images?.length"
+                class="flex h-full w-full items-center justify-center bg-white text-gray-400"
+              >
                 Image non disponible
               </div>
 
-              <span
-                v-if="showNouveauBadge"
-                class="absolute top-2 left-2 lg:top-4 lg:left-4 z-10 px-2 py-0.5 lg:px-3 lg:py-1 text-xs lg:text-sm font-semibold rounded-full bg-primary text-white shadow-sm"
+              <WatchImageSwipeCarousel
+                v-else
+                ref="mainImageCarouselRef"
+                v-model="currentImageIndex"
+                :images="watchItem.images"
+                :show-navigation="watchItem.images.length > 1"
+                navigation-button-class="bg-black bg-opacity-50 hover:bg-opacity-70 p-1.5 lg:p-3 transition-all duration-200"
+                prev-navigation-class="left-2 lg:left-4"
+                next-navigation-class="right-2 lg:right-4"
               >
-                Nouveau
-              </span>
+                <template #slide="{ image, isActive }">
+                  <img
+                    :src="image"
+                    :alt="watchItem.name"
+                    class="h-full w-full object-cover object-center"
+                    :class="isActive ? 'cursor-zoom-in' : ''"
+                    @click="isActive && openLightbox()"
+                  />
+                </template>
 
-              <!-- Zoom Preview Encart -->
-              <div
-                v-if="isHovering && watchItem && watchItem.images && watchItem.images.length > 0"
-                class="zoom-preview hidden lg:block"
-                :style="zoomPreviewStyle"
-              >
-                <div 
-                  class="zoom-preview-inner"
-                  :style="zoomImageStyle"
-                >
-                </div>
-              </div>
+                <template #prev-icon>
+                  <ChevronLeft class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
+                </template>
 
-              <!-- Action buttons (top right) -->
-              <div class="absolute top-2 right-2 lg:top-4 lg:right-4 flex flex-col gap-1.5 lg:gap-2 z-10">
-                <!-- Zoom button -->
-                <button
-                  @click.stop="openLightbox"
-                  class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1.5 lg:p-3 transition-all duration-200"
-                  title="Agrandir l'image"
-                  aria-label="Agrandir l'image"
-                >
-                  <Maximize2 class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
-                </button>
-                <!-- Share button -->
-                <button
-                  @click.stop="openShareLightbox"
-                  class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1.5 lg:p-3 transition-all duration-200"
-                  title="Partager"
-                  aria-label="Partager cette montre"
-                >
-                  <Share2 class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
-                </button>
-              </div>
+                <template #next-icon>
+                  <ChevronRight class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
+                </template>
 
-              <!-- Navigation arrows -->
-              <button
-                v-if="watchItem && watchItem.images && watchItem.images.length > 1"
-                @click="previousImage"
-                class="absolute left-2 lg:left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1.5 lg:p-3 transition-all duration-200"
-              >
-                <ChevronLeft class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
-              </button>
+                <template #overlay>
+                  <span
+                    v-if="showNouveauBadge"
+                    class="absolute top-2 left-2 lg:top-4 lg:left-4 z-10 px-2 py-0.5 lg:px-3 lg:py-1 text-xs lg:text-sm font-semibold rounded-full bg-primary text-white shadow-sm pointer-events-none"
+                  >
+                    Nouveau
+                  </span>
 
-              <button
-                v-if="watchItem && watchItem.images && watchItem.images.length > 1"
-                @click="nextImage"
-                class="absolute right-2 lg:right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1.5 lg:p-3 transition-all duration-200"
-              >
-                <ChevronRight class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
-              </button>
+                  <!-- Zoom Preview Encart -->
+                  <div
+                    v-if="isHovering && watchItem.images.length > 0"
+                    class="zoom-preview pointer-events-none hidden lg:block"
+                    :style="zoomPreviewStyle"
+                  >
+                    <div 
+                      class="zoom-preview-inner"
+                      :style="zoomImageStyle"
+                    >
+                    </div>
+                  </div>
 
-              <!-- Image Counter (Mobile only) -->
-              <div
-                v-if="watchItem && watchItem.images && watchItem.images.length > 1"
-                class="lg:hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm pointer-events-none"
-              >
-                {{ currentImageIndex + 1 }} / {{ watchItem.images.length }}
-              </div>
+                  <!-- Action buttons (top right) -->
+                  <div class="absolute top-2 right-2 lg:top-4 lg:right-4 flex flex-col gap-1.5 lg:gap-2 z-10">
+                    <button
+                      @click.stop="openLightbox"
+                      class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1.5 lg:p-3 transition-all duration-200"
+                      title="Agrandir l'image"
+                      aria-label="Agrandir l'image"
+                    >
+                      <Maximize2 class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
+                    </button>
+                    <button
+                      @click.stop="openShareLightbox"
+                      class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1.5 lg:p-3 transition-all duration-200"
+                      title="Partager"
+                      aria-label="Partager cette montre"
+                    >
+                      <Share2 class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
+                    </button>
+                  </div>
+
+                  <!-- Image Counter (Mobile only) -->
+                  <div
+                    v-if="watchItem.images.length > 1"
+                    class="lg:hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm pointer-events-none"
+                  >
+                    {{ currentImageIndex + 1 }} / {{ watchItem.images.length }}
+                  </div>
+                </template>
+              </WatchImageSwipeCarousel>
             </div>
           </div>
 
@@ -170,7 +175,7 @@
                 :key="index"
                 type="button"
                 :ref="(el) => setThumbnailRef(el, index)"
-                @click="currentImageIndex = index"
+                @click="selectImage(index)"
                 :class="[
                   'relative h-20 w-20 shrink-0 bg-white rounded-lg overflow-hidden border-2 transition-all duration-200',
                   currentImageIndex === index
@@ -199,7 +204,7 @@
         </div>
 
         <!-- watchItem Info Section -->
-        <div class="space-y-6 px-4 lg:px-0">
+        <div class="space-y-6">
           <!-- Header -->
           <div>
             <div class="flex items-start justify-between mb-2">
@@ -522,44 +527,33 @@
         </div>
       </div>
       
-      <!-- Description Section (Expandable) -->
-      <div class="bg-white rounded-md shadow-lg mb-8 overflow-hidden">
-        <button
-          @click="isDescriptionExpanded = !isDescriptionExpanded"
-          class="w-full flex items-center justify-between p-8 text-left hover:bg-gray-50 transition-colors"
-          :aria-expanded="isDescriptionExpanded"
-        >
-          <h2 class="text-lg lg:text-xl font-semibold text-gray-900">Description</h2>
-          <ChevronDown
-            :class="[
-              'w-6 h-6 text-gray-500 transition-transform duration-200',
-              isDescriptionExpanded ? 'transform rotate-180' : ''
-            ]"
-            :stroke-width="2"
-          />
-        </button>
-        <Transition
-          enter-active-class="transition-all duration-300 ease-out"
-          enter-from-class="opacity-0 -translate-y-2"
-          enter-to-class="opacity-100 translate-y-0"
-          leave-active-class="transition-all duration-300 ease-in"
-          leave-from-class="opacity-100 translate-y-0"
-          leave-to-class="opacity-0 -translate-y-2"
-        >
-          <div
-            v-show="isDescriptionExpanded"
-            class="px-8 pb-8"
-          >
-            <div class="prose max-w-none text-gray-700 leading-relaxed">
-              <div v-if="hasValue(watchItem.description)">
-                <p class="mb-4 whitespace-pre-line">{{ watchItem.description }}</p>
-              </div>
-              <div v-else class="text-gray-500 italic">
-                Aucune description disponible.
-              </div>
-            </div>
+      <!-- Description Section (preview + expand) -->
+      <div class="bg-white rounded-md shadow-lg mb-8 overflow-hidden p-8">
+        <h2 class="text-lg lg:text-xl font-semibold text-gray-900 mb-4">Description</h2>
+        <div class="prose max-w-none text-gray-700 leading-relaxed">
+          <div v-if="hasValue(watchItem.description)">
+            <p class="whitespace-pre-line">{{ displayedDescription }}</p>
+            <button
+              v-if="isDescriptionTruncatable"
+              type="button"
+              @click="isDescriptionExpanded = !isDescriptionExpanded"
+              class="mt-3 text-sm font-medium text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1"
+              :aria-expanded="isDescriptionExpanded"
+            >
+              {{ isDescriptionExpanded ? 'Réduire' : 'Lire la suite' }}
+              <ChevronDown
+                :class="[
+                  'w-4 h-4 transition-transform duration-200',
+                  isDescriptionExpanded ? 'transform rotate-180' : ''
+                ]"
+                :stroke-width="2"
+              />
+            </button>
           </div>
-        </Transition>
+          <div v-else class="text-gray-500 italic">
+            Aucune description disponible.
+          </div>
+        </div>
       </div>
 
       <!-- Contact Reminder Section -->
@@ -648,9 +642,6 @@
         class="lightbox-overlay fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-90 p-4"
         @click="closeLightbox"
         @keydown.esc="closeLightbox"
-        @touchstart="handleLightboxTouchStart"
-        @touchmove="handleLightboxTouchMove"
-        @touchend="handleLightboxTouchEnd"
         tabindex="-1"
       >
         <!-- Close button -->
@@ -663,33 +654,38 @@
           <X class="w-6 h-6" :stroke-width="2" />
         </button>
 
-        <!-- Main image in lightbox -->
-        <img
+        <div
           v-if="watchItem"
-          :src="watchItem.images[currentImageIndex]"
-          :alt="watchItem.name"
-          class="max-w-[90vw] max-h-[90vh] object-contain"
+          class="relative h-[90vh] w-[90vw]"
           @click.stop
-        />
-
-        <!-- Navigation arrows in lightbox -->
-        <button
-          v-if="watchItem && watchItem.images && watchItem.images.length > 1"
-          @click.stop="previousImage"
-          class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-full p-4 transition-all duration-200 z-10"
-          aria-label="Image précédente"
         >
-          <ChevronLeft class="w-8 h-8" :stroke-width="2" />
-        </button>
+          <WatchImageSwipeCarousel
+            v-model="currentImageIndex"
+            :images="watchItem.images"
+            :show-navigation="watchItem.images.length > 1"
+            navigation-button-class="bg-white bg-opacity-20 hover:bg-opacity-30 p-4 transition-all duration-200 z-10"
+            prev-navigation-class="left-4"
+            next-navigation-class="right-4"
+          >
+            <template #slide="{ image }">
+              <div class="flex h-full w-full items-center justify-center">
+                <img
+                  :src="image"
+                  :alt="watchItem.name"
+                  class="max-h-[90vh] max-w-[90vw] object-contain"
+                />
+              </div>
+            </template>
 
-        <button
-          v-if="watchItem && watchItem.images && watchItem.images.length > 1"
-          @click.stop="nextImage"
-          class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-full p-4 transition-all duration-200 z-10"
-          aria-label="Image suivante"
-        >
-          <ChevronRight class="w-8 h-8" :stroke-width="2" />
-        </button>
+            <template #prev-icon>
+              <ChevronLeft class="w-8 h-8" :stroke-width="2" />
+            </template>
+
+            <template #next-icon>
+              <ChevronRight class="w-8 h-8" :stroke-width="2" />
+            </template>
+          </WatchImageSwipeCarousel>
+        </div>
 
         <!-- Image counter -->
         <div
@@ -826,6 +822,7 @@ import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { useCart } from '@/composables/useCart.js'
 import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import WatchDetailSkeleton from '@/components/watch/WatchDetailSkeleton.vue'
+import WatchImageSwipeCarousel from '@/components/watch/WatchImageSwipeCarousel.vue'
 import WatchAppointmentModal from '@/components/watch/WatchAppointmentModal.vue'
 import PaymentIcons from '@/components/payment/PaymentIcons.vue'
 import TrustHighlightIcon from '@/components/watch/TrustHighlightIcon.vue'
@@ -835,6 +832,7 @@ const router = useRouter()
 
 // Current image index for slider
 const currentImageIndex = ref(0)
+const mainImageCarouselRef = ref(null)
 
 // Thumbnail strip navigation
 const thumbnailStripRef = ref(null)
@@ -902,14 +900,6 @@ const imageContainerRef = ref(null)
 const imageNaturalSize = ref({ width: 0, height: 0 })
 const zoomLevel = 1 // Niveau de zoom (3x pour garantir que l'image couvre toujours l'encart)
 
-// Swipe state for mobile/tablet
-const touchStartX = ref(0)
-const touchStartY = ref(0)
-const touchEndX = ref(0)
-const touchEndY = ref(0)
-const hasMoved = ref(false) // Track if user has moved finger during touch
-const minSwipeDistance = 50 // Distance minimale en pixels pour déclencher un swipe
-
 // State
 const watchItem = ref(null)
 const retailTrustHighlights = computed(() =>
@@ -938,6 +928,27 @@ const isUnavailable = ref(false)
 const isAdmin = ref(false)
 const activeTab = ref('details')
 const isDescriptionExpanded = ref(false)
+const DESCRIPTION_PREVIEW_LENGTH = 250
+
+const isDescriptionTruncatable = computed(() => {
+  const text = watchItem.value?.description
+  if (text == null || String(text).trim() === '') return false
+  return String(text).trim().length > DESCRIPTION_PREVIEW_LENGTH
+})
+
+const displayedDescription = computed(() => {
+  const text = watchItem.value?.description
+  if (text == null || String(text).trim() === '') return ''
+  const trimmed = String(text).trim()
+  if (!isDescriptionTruncatable.value || isDescriptionExpanded.value) {
+    return trimmed
+  }
+  const preview = trimmed.slice(0, DESCRIPTION_PREVIEW_LENGTH)
+  const lastSpace = preview.lastIndexOf(' ')
+  const cut =
+    lastSpace > DESCRIPTION_PREVIEW_LENGTH * 0.7 ? preview.slice(0, lastSpace) : preview
+  return `${cut}…`
+})
 
 
 const isSlugRoute = computed(() => route.path.startsWith('/montre/'))
@@ -987,18 +998,8 @@ const loadWatch = async () => {
   }
 }
 
-// Image navigation methods
-const nextImage = () => {
-  if (watchItem.value && watchItem.value.images.length > 1) {
-    currentImageIndex.value = (currentImageIndex.value + 1) % watchItem.value.images.length
-  }
-}
-
-const previousImage = () => {
-  if (watchItem.value && watchItem.value.images.length > 1) {
-    currentImageIndex.value =
-      currentImageIndex.value === 0 ? watchItem.value.images.length - 1 : currentImageIndex.value - 1
-  }
+function selectImage(index) {
+  mainImageCarouselRef.value?.goToIndex(index)
 }
 
 // Load image natural dimensions
@@ -1050,136 +1051,6 @@ const handleMouseMove = (event) => {
     x: Math.max(0, Math.min(x, rect.width)),
     y: Math.max(0, Math.min(y, rect.height))
   }
-}
-
-// Swipe handlers for mobile/tablet
-const handleTouchStart = (event) => {
-  if (!watchItem.value || !watchItem.value.images || watchItem.value.images.length <= 1) return
-  
-  const touch = event.touches[0]
-  touchStartX.value = touch.clientX
-  touchStartY.value = touch.clientY
-  touchEndX.value = touch.clientX
-  touchEndY.value = touch.clientY
-  hasMoved.value = false // Reset movement flag
-}
-
-const handleTouchMove = (event) => {
-  if (event.touches.length === 1) {
-    const touch = event.touches[0]
-    touchEndX.value = touch.clientX
-    touchEndY.value = touch.clientY
-    hasMoved.value = true // Mark that user has moved finger
-    
-    // Si le mouvement est principalement horizontal, empêcher le scroll
-    const deltaX = Math.abs(touch.clientX - touchStartX.value)
-    const deltaY = Math.abs(touch.clientY - touchStartY.value)
-    
-    if (deltaX > deltaY && deltaX > 10) {
-      event.preventDefault()
-    }
-  }
-}
-
-const handleTouchEnd = () => {
-  if (!watchItem.value || !watchItem.value.images || watchItem.value.images.length <= 1) return
-  
-  // Only change image if user actually moved finger (not just a tap)
-  if (!hasMoved.value) {
-    // Reset touch positions and return early - this was just a tap/click
-    touchStartX.value = 0
-    touchStartY.value = 0
-    touchEndX.value = 0
-    touchEndY.value = 0
-    hasMoved.value = false
-    return
-  }
-  
-  const deltaX = touchEndX.value - touchStartX.value
-  const deltaY = touchEndY.value - touchStartY.value
-  
-  // Vérifier que le swipe est principalement horizontal (plus horizontal que vertical)
-  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
-    if (deltaX > 0) {
-      // Swipe vers la droite = image précédente
-      previousImage()
-    } else {
-      // Swipe vers la gauche = image suivante
-      nextImage()
-    }
-  }
-  
-  // Reset touch positions
-  touchStartX.value = 0
-  touchStartY.value = 0
-  touchEndX.value = 0
-  touchEndY.value = 0
-  hasMoved.value = false
-}
-
-// Swipe handlers for lightbox
-const handleLightboxTouchStart = (event) => {
-  if (!watchItem.value || !watchItem.value.images || watchItem.value.images.length <= 1) return
-  
-  const touch = event.touches[0]
-  touchStartX.value = touch.clientX
-  touchStartY.value = touch.clientY
-  touchEndX.value = touch.clientX
-  touchEndY.value = touch.clientY
-  hasMoved.value = false // Reset movement flag
-}
-
-const handleLightboxTouchMove = (event) => {
-  if (event.touches.length === 1) {
-    const touch = event.touches[0]
-    touchEndX.value = touch.clientX
-    touchEndY.value = touch.clientY
-    hasMoved.value = true // Mark that user has moved finger
-    
-    // Si le mouvement est principalement horizontal, empêcher le scroll
-    const deltaX = Math.abs(touch.clientX - touchStartX.value)
-    const deltaY = Math.abs(touch.clientY - touchStartY.value)
-    
-    if (deltaX > deltaY && deltaX > 10) {
-      event.preventDefault()
-    }
-  }
-}
-
-const handleLightboxTouchEnd = () => {
-  if (!watchItem.value || !watchItem.value.images || watchItem.value.images.length <= 1) return
-  
-  // Only change image if user actually moved finger (not just a tap)
-  if (!hasMoved.value) {
-    // Reset touch positions and return early - this was just a tap/click
-    touchStartX.value = 0
-    touchStartY.value = 0
-    touchEndX.value = 0
-    touchEndY.value = 0
-    hasMoved.value = false
-    return
-  }
-  
-  const deltaX = touchEndX.value - touchStartX.value
-  const deltaY = touchEndY.value - touchStartY.value
-  
-  // Vérifier que le swipe est principalement horizontal (plus horizontal que vertical)
-  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
-    if (deltaX > 0) {
-      // Swipe vers la droite = image précédente
-      previousImage()
-    } else {
-      // Swipe vers la gauche = image suivante
-      nextImage()
-    }
-  }
-  
-  // Reset touch positions
-  touchStartX.value = 0
-  touchStartY.value = 0
-  touchEndX.value = 0
-  touchEndY.value = 0
-  hasMoved.value = false
 }
 
 // Computed styles for zoom preview
@@ -1461,62 +1332,59 @@ const structuredData = computed(() => {
   return baseData
 })
 
-// Update head when watch data changes
-watch([watchItem, pageTitle, pageDescription, ogImage, canonicalUrl], () => {
-  if (!watchItem.value) return
+const watchDetailHead = computed(() => ({
+  title: pageTitle.value,
+  meta: [
+    {
+      name: 'description',
+      content: pageDescription.value,
+    },
+    {
+      property: 'og:title',
+      content: pageTitle.value,
+    },
+    {
+      property: 'og:description',
+      content: pageDescription.value,
+    },
+    {
+      property: 'og:image',
+      content: ogImage.value,
+    },
+    {
+      property: 'og:url',
+      content: canonicalUrl.value,
+    },
+    {
+      property: 'og:type',
+      content: 'product',
+    },
+    {
+      name: 'twitter:card',
+      content: 'summary_large_image',
+    },
+    {
+      name: 'twitter:title',
+      content: pageTitle.value,
+    },
+    {
+      name: 'twitter:description',
+      content: pageDescription.value,
+    },
+    {
+      name: 'twitter:image',
+      content: ogImage.value,
+    },
+  ],
+  link: [
+    {
+      rel: 'canonical',
+      href: canonicalUrl.value,
+    },
+  ],
+}))
 
-  useHead({
-    title: pageTitle.value,
-    meta: [
-      {
-        name: 'description',
-        content: pageDescription.value,
-      },
-      {
-        property: 'og:title',
-        content: pageTitle.value,
-      },
-      {
-        property: 'og:description',
-        content: pageDescription.value,
-      },
-      {
-        property: 'og:image',
-        content: ogImage.value,
-      },
-      {
-        property: 'og:url',
-        content: canonicalUrl.value,
-      },
-      {
-        property: 'og:type',
-        content: 'product',
-      },
-      {
-        name: 'twitter:card',
-        content: 'summary_large_image',
-      },
-      {
-        name: 'twitter:title',
-        content: pageTitle.value,
-      },
-      {
-        name: 'twitter:description',
-        content: pageDescription.value,
-      },
-      {
-        name: 'twitter:image',
-        content: ogImage.value,
-      },
-    ],
-    link: [
-      {
-        rel: 'canonical',
-        href: canonicalUrl.value,
-      },
-    ],
-  })
-}, { immediate: true })
+useHead(watchDetailHead)
 
 const pageStructuredSchemas = computed(() =>
   [structuredData.value, breadcrumbStructuredData.value].filter(Boolean),
@@ -1718,6 +1586,7 @@ watch(currentImageIndex, async () => {
 
 // Load image dimensions when watch item changes
 watch(() => watchItem.value, async (newWatchItem) => {
+  isDescriptionExpanded.value = false
   thumbnailRefs.value = []
   if (newWatchItem && newWatchItem.images && newWatchItem.images.length > 0) {
     await loadImageDimensions(newWatchItem.images[currentImageIndex.value])
