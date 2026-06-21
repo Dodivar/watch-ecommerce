@@ -1,4 +1,7 @@
 const { getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
+const { resolveReceiptConfig } = require('../orders/receiptBranding')
+const { resolveOrderReceiptPdfBuffer } = require('../orders/receiptStorage')
+const { receiptPdfFilename } = require('../orders/receiptPdf')
 
 /**
  * Persiste un lead formulaire en base après envoi email réussi.
@@ -116,6 +119,76 @@ function requireAdminAuth(registry) {
 function buildAdminRouter(registry) {
   const express = require('express')
   const router = express.Router()
+
+  router.get('/orders/:orderId/receipt', requireAdminAuth(registry), async (req, res) => {
+    const site = req.site
+    const orderId = req.params.orderId
+
+    if (!resolveReceiptConfig(site).enabled) {
+      return res.status(404).json({ success: false, error: 'Reçu indisponible' })
+    }
+
+    try {
+      const supabase = getSupabaseClient(site)
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .eq('site_id', site.id)
+        .maybeSingle()
+
+      if (orderError) throw orderError
+      if (!order) {
+        return res.status(404).json({ success: false, error: 'Commande introuvable' })
+      }
+      if (order.status !== 'paid') {
+        return res.status(400).json({
+          success: false,
+          error: 'Reçu disponible après paiement uniquement',
+        })
+      }
+
+      const { data: lines, error: linesError } = await supabase
+        .from('order_lines')
+        .select('*')
+        .eq('order_id', orderId)
+        .order('created_at')
+
+      if (linesError) throw linesError
+
+      const { data: shippingRow } = await supabase
+        .from('order_shipping')
+        .select('*')
+        .eq('order_id', orderId)
+        .maybeSingle()
+
+      const { data: discountRow } = await supabase
+        .from('order_discounts')
+        .select('*')
+        .eq('order_id', orderId)
+        .maybeSingle()
+
+      const pdfBuffer = await resolveOrderReceiptPdfBuffer(supabase, site, order, lines || [], {
+        shipping: shippingRow || null,
+        discount: discountRow || null,
+      })
+
+      if (!pdfBuffer) {
+        return res.status(500).json({ success: false, error: 'Impossible de générer le reçu' })
+      }
+
+      res.setHeader('Content-Type', 'application/pdf')
+      res.setHeader('Content-Disposition', `attachment; filename="${receiptPdfFilename(orderId)}"`)
+      res.send(pdfBuffer)
+    } catch (e) {
+      if (e instanceof MissingSecretsError) {
+        return res.status(503).json({ success: false, error: e.message })
+      }
+      console.error(`[${site.id}] GET admin receipt:`, e)
+      res.status(500).json({ success: false, error: 'Erreur serveur' })
+    }
+  })
+
   return router
 }
 

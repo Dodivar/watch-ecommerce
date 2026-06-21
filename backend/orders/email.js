@@ -37,7 +37,10 @@ async function sendOrderConfirmationEmails(site, order, lines, extras = {}) {
   /** @type {object[]} */
   const customerAttachments = []
   try {
-    const pdfBuffer = await generateOrderReceiptPdf(site, order, lines, extras)
+    const pdfBuffer =
+      extras.pdfBuffer !== undefined
+        ? extras.pdfBuffer
+        : await generateOrderReceiptPdf(site, order, lines, extras)
     if (pdfBuffer) {
       customerAttachments.push({
         ContentType: 'application/pdf',

@@ -188,6 +188,8 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
       })
     }
 
+    const watchSubjectLabel = [formData.brand, formData.model].filter(Boolean).join(' ')
+
     const emailData = {
       Messages: [
         {
@@ -203,10 +205,14 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
           ],
           Subject:
             type === 'estimation'
-              ? `Nouvelle demande d'estimation - ${formData.brand || ''} ${formData.model || ''}`.trim()
+              ? watchSubjectLabel
+                ? `Nouvelle demande d'estimation — ${watchSubjectLabel}`
+                : "Nouvelle demande d'estimation"
               : type === 'contact'
                 ? `Nouveau message de contact — ${formData.name || 'visiteur'}`.trim()
-                : 'Nouvelle recherche personnalisée',
+                : watchSubjectLabel
+                  ? `Nouvelle recherche personnalisée — ${watchSubjectLabel}`
+                  : 'Nouvelle recherche personnalisée',
           TextPart: formatEmailContent({ type, ...formData }),
           HTMLPart: createEmailTemplate(site, { type, ...formData }),
           Attachments: attachments,

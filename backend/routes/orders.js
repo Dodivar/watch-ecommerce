@@ -20,6 +20,7 @@ const { createDraftOrderViaRpc } = require('../orders/createDraftOrder')
 const { sendOrderConfirmationEmails } = require('../orders/email')
 const { generateOrderReceiptPdf, receiptPdfFilename } = require('../orders/receiptPdf')
 const { resolveReceiptConfig } = require('../orders/receiptBranding')
+const { persistOrderReceiptPdf, resolveOrderReceiptPdfBuffer } = require('../orders/receiptStorage')
 
 /**
  * @param {*} registry
@@ -639,7 +640,7 @@ function buildOrdersRouter(registry) {
         .eq('order_id', orderId)
         .maybeSingle()
 
-      const pdfBuffer = await generateOrderReceiptPdf(site, order, lines, {
+      const pdfBuffer = await resolveOrderReceiptPdfBuffer(supabase, site, order, lines, {
         shipping: shippingRow || null,
         discount: discountRow || null,
       })
@@ -796,11 +797,36 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
   }
 
   const orderForEmail = refreshedOrder ?? { ...order.data, status: 'paid' }
+  const receiptExtras = {
+    shipping: shippingRow || null,
+    discount: discountRowForEmail || null,
+  }
+
+  /** @type {Buffer|null} */
+  let pdfBuffer = null
+  if (resolveReceiptConfig(site).enabled) {
+    try {
+      pdfBuffer = await generateOrderReceiptPdf(
+        site,
+        orderForEmail,
+        lineRows || [],
+        receiptExtras,
+      )
+      if (pdfBuffer) {
+        await persistOrderReceiptPdf(supabase, site, orderForEmail, lineRows || [], {
+          ...receiptExtras,
+          pdfBuffer,
+        })
+      }
+    } catch (receiptErr) {
+      console.error(`[${site.id}] Receipt storage commande ${orderId}:`, receiptErr)
+    }
+  }
 
   try {
     await sendOrderConfirmationEmails(site, orderForEmail, lineRows || [], {
-      shipping: shippingRow || null,
-      discount: discountRowForEmail || null,
+      ...receiptExtras,
+      pdfBuffer,
     })
   } catch (mailErr) {
     console.error(`[${site.id}] Email commande:`, mailErr)

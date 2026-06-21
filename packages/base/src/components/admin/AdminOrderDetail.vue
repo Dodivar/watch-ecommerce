@@ -5,6 +5,7 @@ import { Clock } from '@lucide/vue'
 import {
   getOrderByIdForAdmin,
   updateOrderFulfillmentStatus,
+  downloadOrderReceiptForAdmin,
   FULFILLMENT_STATUSES,
 } from '@/services/admin/adminOrderService'
 import { watchCardImageUrl } from '@/utils/watchImageUrl.js'
@@ -19,6 +20,8 @@ const isLoading = ref(true)
 const error = ref(null)
 const success = ref(null)
 const selectedFulfillment = ref('pending')
+const receiptDownloading = ref(false)
+const receiptError = ref(null)
 
 const fulfillmentLabels = {
   pending: 'En attente',
@@ -89,6 +92,18 @@ async function saveFulfillment() {
   }
 }
 
+async function downloadReceipt() {
+  try {
+    receiptDownloading.value = true
+    receiptError.value = null
+    await downloadOrderReceiptForAdmin(orderId.value)
+  } catch (err) {
+    receiptError.value = err.message || 'Impossible de télécharger le reçu'
+  } finally {
+    receiptDownloading.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -132,6 +147,18 @@ onMounted(load)
               <span>Total</span>
               <span>{{ formatPrice(detail.order.totalCents) }}</span>
             </p>
+          </div>
+
+          <div v-if="detail.order.status === 'paid'" class="border-t pt-4">
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-cream/50 disabled:opacity-50"
+              :disabled="receiptDownloading"
+              @click="downloadReceipt"
+            >
+              {{ receiptDownloading ? 'Téléchargement…' : 'Télécharger le reçu PDF' }}
+            </button>
+            <p v-if="receiptError" class="text-sm text-red-600 mt-2">{{ receiptError }}</p>
           </div>
         </div>
 

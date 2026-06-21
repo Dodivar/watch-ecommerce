@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { getBackendApiUrl, readApiResponseBody } from '../backendApiUrl.js'
 import { getAdminSiteId } from './adminSiteContext.js'
 
 const FULFILLMENT_STATUSES = ['pending', 'preparing', 'shipped', 'ready_for_pickup', 'completed']
@@ -23,6 +24,7 @@ function mapOrderRow(row) {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     paidAt: row.paid_at,
+    receiptStoragePath: row.receipt_storage_path || null,
   }
 }
 
@@ -325,3 +327,41 @@ export async function getOrdersForWatchAdmin(watchId) {
 }
 
 export { FULFILLMENT_STATUSES }
+
+/**
+ * Télécharge le reçu PDF d'une commande payée (admin).
+ * @param {string} orderId
+ */
+export async function downloadOrderReceiptForAdmin(orderId) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  const token = session?.access_token
+  if (!token) {
+    throw new Error('Session admin requise')
+  }
+
+  const siteId = getAdminSiteId()
+  const response = await fetch(`${getBackendApiUrl()}/api/admin/orders/${orderId}/receipt`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-Site-Id': siteId,
+    },
+  })
+
+  if (!response.ok) {
+    const data = await readApiResponseBody(response)
+    throw new Error(data.error || data.message || 'Impossible de télécharger le reçu')
+  }
+
+  const blob = await response.blob()
+  const filename =
+    response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] ||
+    `receipt-${orderId}.pdf`
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(url)
+}

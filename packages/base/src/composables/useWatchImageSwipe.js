@@ -144,7 +144,6 @@ export function useWatchImageSwipe({
     lastTouchX = touch.clientX
     lastTouchTime = now
 
-    const width = slideWidth.value
     const atStart = currentIndex.value === 0
     const atEnd = currentIndex.value === count.value - 1
 

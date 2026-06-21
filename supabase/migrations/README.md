@@ -35,3 +35,11 @@ Prérequis : tables checkout existantes (`orders`, `order_lines`, `promo_codes`,
 ## Checkout — création commande optimisée
 
 `20260618120000_create_draft_order_rpc.sql` — RPC `create_draft_order` (insert commande + réservation stock + lignes + quote initiale en une transaction). Requis pour le backend checkout actuel (`POST /api/orders`). Prérequis : `reserve_watches_for_order`, `release_order_reservation`.
+
+## Reçus PDF commandes (Storage privé)
+
+`20260621120000_order_receipts_storage.sql` — requis pour l'archivage des reçus PDF :
+
+- Colonne `orders.receipt_storage_path`
+- Bucket Storage privé `order-receipts` (PDF uniquement, accès backend service role)
+- Téléchargement admin via `GET /api/admin/orders/:orderId/receipt`
