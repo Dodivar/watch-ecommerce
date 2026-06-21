@@ -43,7 +43,9 @@ const { items, getCheckoutLines, cartMultiQuantity } = useCart()
 const loading = ref(true)
 const syncLoading = ref(false)
 const promoLoading = ref(false)
-const error = ref('')
+const pageError = ref('')
+const paymentError = ref('')
+const cgvError = ref('')
 const orderId = ref('')
 const accessToken = ref('')
 const orderSnapshot = ref(null)
@@ -91,6 +93,9 @@ let stripePreloadPromise = null
 let paymentSectionObserver = null
 
 const paymentSectionRef = ref(null)
+const contactSectionRef = ref(null)
+const shippingSectionRef = ref(null)
+const cgvInputRef = ref(null)
 const paymentSectionVisible = ref(false)
 
 const homeMethodsAll = computed(() => shippingMethods.filter((m) => m.type === 'home'))
@@ -198,6 +203,52 @@ function formatPrice(cents) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
     (cents || 0) / 100,
   )
+}
+
+async function scrollToElement(el, { focus = false } = {}) {
+  if (!el) return
+  await nextTick()
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  if (focus && typeof el.focus === 'function') {
+    el.focus({ preventScroll: true })
+  }
+}
+
+async function scrollToPaymentSection({ focusCgv = false } = {}) {
+  await scrollToElement(paymentSectionRef.value)
+  if (focusCgv) {
+    await scrollToElement(cgvInputRef.value, { focus: true })
+  }
+}
+
+function getFirstIncompleteFieldEl() {
+  if (!String(email.value).trim()) {
+    return contactSectionRef.value?.querySelector('input[type="email"]')
+  }
+  if (!String(billing.value.firstName).trim()) {
+    return contactSectionRef.value?.querySelector('input[autocomplete="given-name"]')
+  }
+  if (!String(billing.value.lastName).trim()) {
+    return contactSectionRef.value?.querySelector('input[autocomplete="family-name"]')
+  }
+  if (isHomeDelivery.value && !shippingAddressComplete.value) {
+    return shippingSectionRef.value?.querySelector('input[autocomplete="postal-code"]') ||
+      shippingSectionRef.value
+  }
+  if (isPickup.value && !billingAddressComplete.value) {
+    return shippingSectionRef.value?.querySelector('input[autocomplete="postal-code"]') ||
+      shippingSectionRef.value
+  }
+  return null
+}
+
+async function scrollToFirstIncompleteSection() {
+  await scrollToElement(getFirstIncompleteFieldEl(), { focus: true })
+}
+
+function clearPaymentErrors() {
+  paymentError.value = ''
+  cgvError.value = ''
 }
 
 const storageKey = () => `watch_checkout:${site.siteId || site.id || 'default'}`
@@ -450,7 +501,7 @@ async function syncOrder() {
       }
     }
   } catch (e) {
-    error.value = e.message || 'Erreur lors de la mise à jour de la commande'
+    pageError.value = e.message || 'Erreur lors de la mise à jour de la commande'
   } finally {
     syncInFlight = false
     syncLoading.value = false
@@ -481,7 +532,7 @@ function selectFirstMethodForMode(mode) {
 async function onApplyPromo() {
   promoMessage.value = ''
   promoMessageType.value = ''
-  error.value = ''
+  pageError.value = ''
   if (!String(promoInput.value).trim()) {
     promoMessage.value = 'Saisissez un code promo'
     promoMessageType.value = 'error'
@@ -512,7 +563,7 @@ async function onApplyPromo() {
 
 async function onRemovePromo() {
   promoLoading.value = true
-  error.value = ''
+  pageError.value = ''
   try {
     orderSnapshot.value = await removeOrderPromo(orderId.value, accessToken.value)
     promoInput.value = ''
@@ -522,7 +573,7 @@ async function onRemovePromo() {
       await maybeInitPayment()
     }
   } catch (e) {
-    error.value = e.message
+    pageError.value = e.message
   } finally {
     promoLoading.value = false
   }
@@ -534,7 +585,7 @@ async function initPayment() {
 
   const isFirstInit = !stripeReady.value
   if (isFirstInit) {
-    error.value = ''
+    paymentError.value = ''
     paymentLoading.value = true
   }
   try {
@@ -575,8 +626,9 @@ async function initPayment() {
 
     stripeReady.value = true
   } catch (e) {
-    error.value = e.message
+    paymentError.value = e.message || 'Impossible de préparer le paiement'
     stripeReady.value = false
+    await scrollToPaymentSection()
   } finally {
     if (isFirstInit) {
       paymentLoading.value = false
@@ -586,16 +638,20 @@ async function initPayment() {
 
 async function onConfirmPayment() {
   if (!stripeInstance || !elementsInstance) return
+  clearPaymentErrors()
+
   if (!canConfirmPayment.value) {
-    error.value = 'Complétez vos informations de contact et de livraison pour finaliser le paiement.'
+    await scrollToFirstIncompleteSection()
     return
   }
   if (checkoutConfig.legal?.requireAcceptance && !cgvAccepted.value) {
-    error.value = 'Veuillez accepter les conditions générales'
+    cgvError.value = 'Veuillez accepter les conditions générales pour continuer.'
+    await scrollToPaymentSection({ focusCgv: true })
     return
   }
+
   paymentLoading.value = true
-  error.value = ''
+  paymentError.value = ''
   try {
     await updateOrderDetailsPartial()
     await initPayment()
@@ -605,10 +661,12 @@ async function onConfirmPayment() {
       confirmParams: { return_url: returnUrl },
     })
     if (stripeError) {
-      error.value = stripeError.message || 'Paiement refusé'
+      paymentError.value = stripeError.message || 'Paiement refusé'
+      await scrollToPaymentSection()
     }
   } catch (e) {
-    error.value = e.message || 'Erreur lors du paiement'
+    paymentError.value = e.message || 'Erreur lors du paiement'
+    await scrollToPaymentSection()
   } finally {
     paymentLoading.value = false
   }
@@ -700,6 +758,10 @@ watch(
   { deep: true },
 )
 
+watch(cgvAccepted, (accepted) => {
+  if (accepted) cgvError.value = ''
+})
+
 watch(promoInput, () => {
   if (promoMessageType.value === 'error') {
     promoMessage.value = ''
@@ -715,7 +777,7 @@ onMounted(async () => {
   preloadStripe()
 
   if (!shippingMethods.length) {
-    error.value = 'Configuration livraison manquante'
+    pageError.value = 'Configuration livraison manquante'
     loading.value = false
     return
   }
@@ -743,7 +805,7 @@ onMounted(async () => {
       selectedMethodId.value = shippingMethods[0]?.id || ''
     }
   } catch (e) {
-    error.value = e.message
+    pageError.value = e.message
   } finally {
     loading.value = false
   }
@@ -775,7 +837,7 @@ onUnmounted(() => {
         Paiement sécurisé par carte bancaire.
       </p>
 
-      <p v-if="error" class="mb-4 text-sm text-red-600">{{ error }}</p>
+      <p v-if="pageError" class="mb-4 text-sm text-red-600" role="alert">{{ pageError }}</p>
 
       <div
         v-if="loading"
@@ -884,7 +946,7 @@ onUnmounted(() => {
         <!-- Formulaire -->
         <div class="order-2 lg:order-1 space-y-6">
           <form class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-8">
-            <section class="space-y-4">
+            <section ref="contactSectionRef" class="space-y-4">
               <h2 class="font-semibold text-lg text-gray-900">Contact</h2>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
@@ -931,7 +993,7 @@ onUnmounted(() => {
               </div>
             </section>
 
-            <section class="space-y-4">
+            <section ref="shippingSectionRef" class="space-y-4">
               <h2 class="font-semibold text-lg text-gray-900">
                 {{ isPickup ? 'Retrait en boutique' : 'Livraison' }}
               </h2>
@@ -1202,24 +1264,52 @@ onUnmounted(() => {
               v-if="!canConfirmPayment"
               class="text-sm text-gray-500"
             >
-              Le montant final sera recalculé une fois vos informations de livraison complétées.
+              Complétez vos informations de livraison pour afficher le montant final.
+              <button
+                type="button"
+                class="ml-1 text-primary underline font-medium"
+                @click="scrollToFirstIncompleteSection"
+              >
+                Compléter mes informations
+              </button>
             </p>
 
-            <label
-              v-if="checkoutConfig.legal?.requireAcceptance"
-              class="flex items-start gap-2 text-sm"
-            >
-              <input v-model="cgvAccepted" type="checkbox" class="mt-1 rounded" />
-              <span>
-                J'accepte les
-                <router-link
-                  :to="checkoutConfig.legal?.cgvUrl || '/conditions-generales-utilisation'"
-                  class="text-primary underline"
-                  target="_blank"
-                  >conditions générales</router-link
-                >.
-              </span>
-            </label>
+            <div v-if="checkoutConfig.legal?.requireAcceptance" class="space-y-1">
+              <label
+                class="flex items-start gap-2 text-sm rounded-lg p-2 -m-2 transition-colors"
+                :class="
+                  cgvError
+                    ? 'ring-2 ring-red-400 bg-red-50'
+                    : ''
+                "
+              >
+                <input
+                  ref="cgvInputRef"
+                  v-model="cgvAccepted"
+                  type="checkbox"
+                  class="mt-1 rounded"
+                  :aria-invalid="cgvError ? 'true' : 'false'"
+                  :aria-describedby="cgvError ? 'cgv-error' : undefined"
+                />
+                <span>
+                  J'accepte les
+                  <router-link
+                    :to="checkoutConfig.legal?.cgvUrl || '/conditions-generales-utilisation'"
+                    class="text-primary underline"
+                    target="_blank"
+                    >conditions générales</router-link
+                  >.
+                </span>
+              </label>
+              <p
+                v-if="cgvError"
+                id="cgv-error"
+                class="text-sm text-red-600"
+                role="alert"
+              >
+                {{ cgvError }}
+              </p>
+            </div>
 
             <div
               v-if="paymentLoading && !stripeReady"
@@ -1229,9 +1319,18 @@ onUnmounted(() => {
             </div>
             <div id="payment-element" class="min-h-[120px]" />
 
+            <div
+              v-if="paymentError"
+              class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+              role="alert"
+              aria-live="polite"
+            >
+              {{ paymentError }}
+            </div>
+
             <button
               type="button"
-              :disabled="paymentLoading || !stripeReady || !canConfirmPayment"
+              :disabled="paymentLoading || !stripeReady"
               class="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
               @click="onConfirmPayment"
             >
