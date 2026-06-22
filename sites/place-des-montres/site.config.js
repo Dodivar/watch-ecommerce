@@ -717,7 +717,7 @@ export default {
      * URL du backend Express (Render, etc.). Utilisée au build si VITE_BACKEND_URL
      * n’est pas fournie (ex. GitHub Pages). Sans slash final.
      */
-    publicApiUrl: '',
+    publicApiUrl: 'https://watch-ecommerce-mp9l.onrender.com',
     cors: {
       /** Origines front autorisées en plus de urls.production / staging / development */
       extraAllowedOrigins: ['https://dodivar.github.io'],

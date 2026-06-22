@@ -54,7 +54,7 @@ jobs:
       - name: Vérifier VITE_BACKEND_URL
         run: |
           if [ -z "${VITE_BACKEND_URL}" ]; then
-            echo "::error::VITE_BACKEND_URL est requis (Variable ou secret du repo / environnement github-pages). Ex. https://votre-app.onrender.com"
+            echo "::error::VITE_BACKEND_URL est requis (Variable ou secret du repo / environnement github-pages). Ex. https://watch-ecommerce-mp9l.onrender.com"
             exit 1
           fi
         env:

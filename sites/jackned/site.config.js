@@ -233,6 +233,7 @@ export default {
   },
 
   backend: {
+    publicApiUrl: 'https://watch-ecommerce-mp9l.onrender.com',
     cors: {
       extraAllowedOrigins: [],
     },

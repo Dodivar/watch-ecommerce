@@ -1,5 +1,5 @@
 # Ping périodique du backend Render pour limiter le cold start (plan Free : spin-down après 15 min).
-# Variable ou secret Actions requis : VITE_BACKEND_URL (ex. https://votre-app.onrender.com, sans slash final)
+# Variable ou secret Actions requis : VITE_BACKEND_URL (https://watch-ecommerce-mp9l.onrender.com, sans slash final)
 name: Render backend warmup
 
 on:
