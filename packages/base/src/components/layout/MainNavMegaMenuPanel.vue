@@ -33,6 +33,14 @@ function brandColumns(column) {
 function brandRoute(brandName) {
   return buildBrandCollectionPath(brandName)
 }
+
+const gridClass = computed(() => {
+  const count = props.item.columns?.length ?? 2
+  if (count >= 3) {
+    return 'grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]'
+  }
+  return 'grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]'
+})
 </script>
 
 <template>
@@ -44,10 +52,20 @@ function brandRoute(brandName) {
       @mouseleave="emit('mouseleave')"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-8 lg:gap-12">
+        <div class="grid gap-8 lg:gap-12" :class="gridClass">
           <template v-for="(column, columnIndex) in item.columns" :key="'col-' + columnIndex">
             <div v-if="column.source !== 'brands'" class="min-w-0">
-              <p class="font-heading font-semibold uppercase tracking-wide text-text-main mb-4">
+              <RouterLink
+                v-if="column.titleLink"
+                :to="column.titleLink"
+                class="inline-block font-heading font-semibold uppercase tracking-wide text-text-main hover:text-primary transition-colors mb-4"
+              >
+                {{ column.title }}
+              </RouterLink>
+              <p
+                v-else
+                class="font-heading font-semibold uppercase tracking-wide text-text-main mb-4"
+              >
                 {{ column.title }}
               </p>
               <ul class="space-y-2">

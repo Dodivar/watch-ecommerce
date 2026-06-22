@@ -5,6 +5,10 @@ import { createWatch, updateWatch, uploadWatchImage, deleteWatchImage, reorderWa
 import { getWatchAudiencesForAdminForm } from '@/services/watchService'
 import { DEFAULT_WATCH_AUDIENCE_SLUG, getStaticWatchAudienceAdminOptions } from '@/constants/watchAudiences'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import {
+  computeDiscountPercentFromPrices,
+  suggestPromotionPrice,
+} from '@/utils/watchPricing.js'
 import AdminShell from './AdminShell.vue'
 import AdminWatchArticleSelector from './AdminWatchArticleSelector.vue'
 
@@ -24,6 +28,9 @@ const formData = ref({
   model: '',
   reference: '',
   price: '',
+  isOnPromotion: false,
+  promotionPrice: '',
+  discountPercent: '',
   year: '',
   condition: '',
   description: '',
@@ -72,6 +79,9 @@ const newAccessoryIncluded = ref(false)
 const showArticleSelector = ref(false)
 const linkedArticles = ref([])
 
+/** Évite les boucles lors de la synchronisation prix promo / pourcentage. */
+const promotionFieldSyncSource = ref(null)
+
 /** @type {import('vue').Ref<Array<{ value: string, label: string }>>} */
 const audienceFormOptions = ref(getStaticWatchAudienceAdminOptions())
 
@@ -97,6 +107,9 @@ const loadWatch = async () => {
       model: watch.model || '',
       reference: watch.reference || '',
       price: watch.price?.toString() || '',
+      isOnPromotion: watch.isOnPromotion === true,
+      promotionPrice: watch.promotionPrice?.toString() || '',
+      discountPercent: watch.discountPercent?.toString() || '',
       year: watch.year?.toString() || '',
       condition: watch.condition || '',
       description: watch.description || '',
@@ -140,6 +153,10 @@ const loadWatch = async () => {
 
     // Load linked articles
     linkedArticles.value = watch.articles || []
+
+    if (formData.value.isOnPromotion && !formData.value.discountPercent) {
+      syncPromotionPercentFromPrice()
+    }
   } catch (err) {
     console.error('Erreur lors du chargement de la montre:', err)
     error.value = err.message || 'Erreur lors du chargement de la montre'
@@ -278,7 +295,78 @@ const validateForm = () => {
   if (!formData.value.price || parseFloat(formData.value.price) <= 0) {
     return 'Le prix doit être supérieur à 0'
   }
+  if (formData.value.isOnPromotion) {
+    const promo = parseFloat(formData.value.promotionPrice)
+    const base = parseFloat(formData.value.price)
+    if (!Number.isFinite(promo) || promo <= 0) {
+      return 'Le prix promo doit être supérieur à 0'
+    }
+    if (promo >= base) {
+      return 'Le prix promo doit être inférieur au prix catalogue'
+    }
+    const pct = parseInt(String(formData.value.discountPercent), 10)
+    if (formData.value.discountPercent !== '' && (!Number.isFinite(pct) || pct < 1 || pct > 99)) {
+      return 'La remise doit être entre 1 et 99 %'
+    }
+  }
   return null
+}
+
+watch(
+  () => formData.value.isOnPromotion,
+  (enabled) => {
+    if (!enabled) {
+      formData.value.promotionPrice = ''
+      formData.value.discountPercent = ''
+      return
+    }
+    if (!formData.value.discountPercent && formData.value.price) {
+      formData.value.discountPercent = '10'
+    }
+    syncPromotionPriceFromPercent()
+  },
+)
+
+watch(
+  () => formData.value.discountPercent,
+  () => {
+    if (promotionFieldSyncSource.value === 'price') return
+    syncPromotionPriceFromPercent()
+  },
+)
+
+watch(
+  () => formData.value.promotionPrice,
+  () => {
+    if (promotionFieldSyncSource.value === 'percent') return
+    syncPromotionPercentFromPrice()
+  },
+)
+
+watch(
+  () => formData.value.price,
+  () => {
+    if (!formData.value.isOnPromotion) return
+    syncPromotionPriceFromPercent()
+  },
+)
+
+function syncPromotionPriceFromPercent() {
+  if (!formData.value.isOnPromotion) return
+  const suggested = suggestPromotionPrice(formData.value.price, formData.value.discountPercent)
+  if (suggested == null) return
+  promotionFieldSyncSource.value = 'percent'
+  formData.value.promotionPrice = String(suggested)
+  promotionFieldSyncSource.value = null
+}
+
+function syncPromotionPercentFromPrice() {
+  if (!formData.value.isOnPromotion) return
+  const pct = computeDiscountPercentFromPrices(formData.value.price, formData.value.promotionPrice)
+  if (pct == null) return
+  promotionFieldSyncSource.value = 'price'
+  formData.value.discountPercent = String(pct)
+  promotionFieldSyncSource.value = null
 }
 
 const handleSubmit = async () => {
@@ -508,6 +596,47 @@ onMounted(async () => {
                 required
               />
             </div>
+            <div class="md:col-span-2">
+              <label class="flex items-center">
+                <input
+                  v-model="formData.isOnPromotion"
+                  type="checkbox"
+                  class="mr-2 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <span class="text-sm font-medium text-gray-700">En promotion</span>
+              </label>
+            </div>
+            <template v-if="formData.isOnPromotion">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Remise (%)
+                </label>
+                <input
+                  v-model="formData.discountPercent"
+                  type="number"
+                  min="1"
+                  max="99"
+                  step="1"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Prix promo (€) <span class="text-red-500">*</span>
+                </label>
+                <input
+                  v-model="formData.promotionPrice"
+                  type="number"
+                  step="1"
+                  min="1"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required
+                />
+                <p class="mt-1 text-xs text-gray-500">
+                  Le prix catalogue reste affiché barré. Ajustez le prix promo pour arrondir comme souhaité.
+                </p>
+              </div>
+            </template>
             <div v-if="isResaleCatalog">
               <label class="block text-sm font-medium text-gray-700 mb-2">Année</label>
               <input

@@ -221,6 +221,8 @@ Avant de déployer, appliquer côté Supabase de chaque client :
 6. `supabase/migrations/20260608130000_home_carousel_watch_link.sql` — lien optionnel vers une fiche montre sur chaque slide
 7. `supabase/migrations/20260609120000_fulfill_order_payment_transition_flag.sql` — `fulfill_order_payment` ne renvoie `true` que lors de la transition réelle → paid (réconciliation idempotente au retour `/commande/succes`, en plus du webhook)
 8. `supabase/migrations/20260618120000_create_draft_order_rpc.sql` — RPC `create_draft_order` (création commande draft atomique : order + réservation + lignes + quote)
+9. `supabase/migrations/20260621120000_order_receipts_storage.sql` — reçus PDF commandes (Storage privé)
+10. `supabase/migrations/20260622120000_watch_promotions.sql` — promotions par montre (`promotion_price`, `discount_percent`, prix effectif au checkout)
 
 ### Checkout personnalisé (Payment Element)
 

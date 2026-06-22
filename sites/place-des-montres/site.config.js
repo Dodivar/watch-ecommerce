@@ -586,6 +586,7 @@ export default {
       brand: true,
       audience: true,
       caseSize: true,
+      promotion: true,
     },
   },
 
@@ -690,6 +691,22 @@ export default {
               { label: 'Montre homme', to: '/collection?public=homme', feature: 'collection' },
               { label: 'Montre femme', to: '/collection?public=femme', feature: 'collection' },
               { label: 'Montre enfant', to: '/collection?public=enfant', feature: 'collection' },
+            ],
+          },
+          {
+            title: 'Promotions',
+            titleLink: '/collection?promotion=1',
+            items: [
+              {
+                label: 'Promotions homme',
+                to: '/collection?promotion=1&public=homme',
+                feature: 'collection',
+              },
+              {
+                label: 'Promotions femme',
+                to: '/collection?promotion=1&public=femme',
+                feature: 'collection',
+              },
             ],
           },
         ],

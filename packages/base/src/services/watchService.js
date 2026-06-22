@@ -1,6 +1,11 @@
 import { supabase } from './supabase'
 import { getWatchArticles } from './watchArticleService'
 import { normalizeCaseSizeValue } from '@/utils/caseSize'
+import {
+  getDisplayDiscountPercent,
+  getEffectiveWatchPrice,
+  isWatchOnPromotion,
+} from '@/utils/watchPricing.js'
 import { WATCH_CARD_MAX_IMAGES } from '@/constants/watchCardDefaults.js'
 import {
   getStaticWatchAudienceAdminOptions,
@@ -59,6 +64,11 @@ export async function getWatchAudiencesForAdminForm() {
  */
 function transformWatchData(watchData, details, accessories, images, articles = []) {
   const slug = watchData.slug || buildWatchSlug(watchData)
+  const baseWatch = {
+    price: watchData.price,
+    promotionPrice: watchData.promotion_price,
+    discountPercent: watchData.discount_percent,
+  }
   return {
     id: watchData.id,
     slug,
@@ -68,6 +78,11 @@ function transformWatchData(watchData, details, accessories, images, articles = 
     model: watchData.model,
     reference: watchData.reference,
     price: watchData.price,
+    promotionPrice: watchData.promotion_price ?? null,
+    discountPercent: watchData.discount_percent ?? null,
+    effectivePrice: getEffectiveWatchPrice(baseWatch),
+    isOnPromotion: isWatchOnPromotion(baseWatch),
+    displayDiscountPercent: getDisplayDiscountPercent(baseWatch),
     year: watchData.year,
     condition: watchData.condition,
     description: watchData.description || '',

@@ -43,3 +43,12 @@ Prérequis : tables checkout existantes (`orders`, `order_lines`, `promo_codes`,
 - Colonne `orders.receipt_storage_path`
 - Bucket Storage privé `order-receipts` (PDF uniquement, accès backend service role)
 - Téléchargement admin via `GET /api/admin/orders/:orderId/receipt`
+
+## Promotions montres
+
+`20260622120000_watch_promotions.sql` — prix promotionnels par montre :
+
+- Colonnes `watches.promotion_price`, `watches.discount_percent`
+- Fonction `watch_effective_price(price, promotion_price)`
+- Mise à jour RPC `create_draft_order` pour facturer le prix effectif
+- Prérequis : `20260618120000_create_draft_order_rpc.sql`

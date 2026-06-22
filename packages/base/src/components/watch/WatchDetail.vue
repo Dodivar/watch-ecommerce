@@ -227,8 +227,24 @@
               </div>
             </div>
             <p v-if="catalogDisplay.showReference && hasValue(watchItem.reference)" class="text-base lg:text-lg text-gray-600 mb-3">Réf. {{ watchItem.reference }}</p>
-            <div class="text-2xl lg:text-3xl font-medium text-primary mb-4">
-              {{ formatPrice(watchItem.price) }}
+            <div class="mb-4">
+              <div
+                v-if="watchItem.isOnPromotion"
+                class="inline-flex items-center px-2.5 py-1 mb-2 text-xs font-semibold rounded-full bg-red-100 text-red-800"
+              >
+                Promotion · -{{ watchItem.displayDiscountPercent }} %
+              </div>
+              <div class="flex flex-wrap items-baseline gap-3">
+                <span
+                  v-if="watchItem.isOnPromotion"
+                  class="text-lg lg:text-xl font-normal text-gray-400 line-through"
+                >
+                  {{ formatPrice(watchItem.price) }}
+                </span>
+                <span class="text-2xl lg:text-3xl font-medium text-primary">
+                  {{ formatPrice(watchItem.effectivePrice ?? watchItem.price) }}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -572,7 +588,7 @@
                   WHATSAPP_NUMBER +
                   '?text=' +
                   encodeURIComponent(
-                    `Bonjour, je suis intéressé par la montre ${watchItem.name}${catalogDisplay.showReference && watchItem.reference ? ` (Réf. ${watchItem.reference})` : ''} au prix de ${formatPrice(watchItem.price)}`,
+                    `Bonjour, je suis intéressé par la montre ${watchItem.name}${catalogDisplay.showReference && watchItem.reference ? ` (Réf. ${watchItem.reference})` : ''} au prix de ${formatPrice(watchItem.effectivePrice ?? watchItem.price)}`,
                   )
                 : '#'
             "
@@ -595,7 +611,7 @@
                   encodeURIComponent(`Demande d'information - ${watchItem.name}`) +
                   '&body=' +
                   encodeURIComponent(
-                    `Bonjour,\n\nJe souhaiterais avoir plus d'informations concernant la montre ${watchItem.name}${catalogDisplay.showReference && watchItem.reference ? ` (Réf. ${watchItem.reference})` : ''} proposée au prix de ${formatPrice(watchItem.price)}.\n\nCordialement`,
+                    `Bonjour,\n\nJe souhaiterais avoir plus d'informations concernant la montre ${watchItem.name}${catalogDisplay.showReference && watchItem.reference ? ` (Réf. ${watchItem.reference})` : ''} proposée au prix de ${formatPrice(watchItem.effectivePrice ?? watchItem.price)}.\n\nCordialement`,
                   )
                 : '#'
             "
@@ -819,6 +835,7 @@ const catalogDisplay = site.watchCatalog.display
 const isResaleCatalog = site.watchCatalog.isResale
 const appointmentEnabled = site.watchCatalog.appointmentEnabled
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
+import { getEffectiveWatchPrice } from '@/utils/watchPricing.js'
 import { useCart } from '@/composables/useCart.js'
 import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import WatchDetailSkeleton from '@/components/watch/WatchDetailSkeleton.vue'
@@ -884,7 +901,7 @@ const watchAppointmentContext = computed(() => {
   return {
     id: watchItem.value.id,
     name: watchItem.value.name,
-    price: watchItem.value.price,
+    price: getEffectiveWatchPrice(watchItem.value),
     url: `${BASE_URL}${route.fullPath}`,
   }
 })
@@ -1200,6 +1217,11 @@ const formatPrice = (price) => {
   }).format(price)
 }
 
+const displayPrice = computed(() => {
+  if (!watchItem.value) return 0
+  return getEffectiveWatchPrice(watchItem.value)
+})
+
 // Helper function to check if a value exists and is not empty
 const hasValue = (value) => {
   return value !== null && value !== undefined && value !== '' && String(value).trim() !== ''
@@ -1243,7 +1265,7 @@ const handleAddToCart = () => {
     watchId: watchItem.value.id,
     name: watchItem.value.name,
     reference: watchItem.value.reference,
-    price: watchItem.value.price,
+    price: displayPrice.value,
     imageUrl: watchItem.value.images?.[0] ?? null,
   })
   if (!result.ok) {
@@ -1256,7 +1278,7 @@ const handleAddToCart = () => {
 // SEO Meta Tags and Structured Data
 const pageTitle = computed(() => {
   if (!watchItem.value) return seoWatch.titleFallback
-  return `${watchItem.value.name} - ${formatPrice(watchItem.value.price)}${seoWatch.titlePriceSuffix}`
+  return `${watchItem.value.name} - ${formatPrice(displayPrice.value)}${seoWatch.titlePriceSuffix}`
 })
 
 const pageDescription = computed(() => {
@@ -1264,7 +1286,7 @@ const pageDescription = computed(() => {
   const desc = watchItem.value.description || ''
   const brand = watchItem.value.brand || ''
   const ref = watchItem.value.reference || ''
-  return `${desc || `Montre ${brand} ${ref}`.trim()}. Garantie 1 an, authentification certifiée. Prix: ${formatPrice(watchItem.value.price)}`
+  return `${desc || `Montre ${brand} ${ref}`.trim()}. Garantie 1 an, authentification certifiée. Prix: ${formatPrice(displayPrice.value)}`
 })
 
 const ogImage = computed(() => {
@@ -1310,7 +1332,7 @@ const structuredData = computed(() => {
     sku: watchItem.value.reference || watchItem.value.id,
     offers: {
       '@type': 'Offer',
-      price: watchItem.value.price,
+      price: displayPrice.value,
       priceCurrency: 'EUR',
       availability: watchItem.value.isAvailable && !watchItem.value.isSold
         ? 'https://schema.org/InStock'
@@ -1448,7 +1470,7 @@ const closeShareLightbox = () => {
 const shareOnFacebook = () => {
   if (!watchItem.value) return
   const url = encodeURIComponent(canonicalUrl.value)
-  const quote = watchItem.value.name ? encodeURIComponent(`${watchItem.value.name} - ${formatPrice(watchItem.value.price)}`) : ''
+  const quote = watchItem.value.name ? encodeURIComponent(`${watchItem.value.name} - ${formatPrice(displayPrice.value)}`) : ''
   const shareUrl = quote 
     ? `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${quote}`
     : `https://www.facebook.com/sharer/sharer.php?u=${url}`
@@ -1459,7 +1481,7 @@ const shareOnFacebook = () => {
 const shareOnTwitter = () => {
   if (!watchItem.value) return
   const url = encodeURIComponent(canonicalUrl.value)
-  const text = encodeURIComponent(`${watchItem.value.name} - ${formatPrice(watchItem.value.price)}`)
+  const text = encodeURIComponent(`${watchItem.value.name} - ${formatPrice(displayPrice.value)}`)
   window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400')
   closeShareLightbox()
 }
@@ -1471,7 +1493,7 @@ const shareByEmail = () => {
     catalogDisplay.showReference && watchItem.value.reference
       ? ` (Réf. ${watchItem.value.reference})`
       : ''
-  const body = encodeURIComponent(`Je vous partage cette montre : ${watchItem.value.name}${refPart}\n\nPrix : ${formatPrice(watchItem.value.price)}\n\n${canonicalUrl.value}`)
+  const body = encodeURIComponent(`Je vous partage cette montre : ${watchItem.value.name}${refPart}\n\nPrix : ${formatPrice(displayPrice.value)}\n\n${canonicalUrl.value}`)
   window.location.href = `mailto:?subject=${subject}&body=${body}`
   closeShareLightbox()
 }

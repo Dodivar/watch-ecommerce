@@ -247,7 +247,18 @@ function brandRoute(brandName) {
                 </button>
 
                 <div v-else class="py-4 border-b border-white/10 space-y-1">
-                  <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-white/60">
+                  <RouterLink
+                    v-if="column.titleLink"
+                    :to="column.titleLink"
+                    @click="close"
+                    class="mb-2 inline-block text-xs font-semibold uppercase tracking-wide text-white/60 hover:text-cream-100 transition-colors"
+                  >
+                    {{ column.title }}
+                  </RouterLink>
+                  <p
+                    v-else
+                    class="mb-2 text-xs font-semibold uppercase tracking-wide text-white/60"
+                  >
                     {{ column.title }}
                   </p>
                   <RouterLink

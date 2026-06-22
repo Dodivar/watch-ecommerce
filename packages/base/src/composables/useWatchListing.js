@@ -6,6 +6,7 @@ import {
   watchMatchesCaseSize,
 } from '@/utils/caseSize'
 import { compareWatchesByRecent } from '@/utils/watchSort.js'
+import { getEffectiveWatchPrice, isWatchOnPromotion } from '@/utils/watchPricing.js'
 
 function watchMatchesAudience(watchModel, selected) {
   if (!selected || selected === 'all') return true
@@ -30,6 +31,10 @@ function countAppliedCaseSizes(selectedCaseSizes) {
   return selectedCaseSizes.length
 }
 
+function countAppliedPromotionOnly(selectedPromotionOnly) {
+  return selectedPromotionOnly ? 1 : 0
+}
+
 /**
  * Filtre facettes collection (marque, public, diamètre, prix).
  * Prix appliqués : `priceMin` / `priceMax` (null = pas de borne).
@@ -45,6 +50,7 @@ function countAppliedCaseSizes(selectedCaseSizes) {
  *   priceRange?: [number, number],
  *   priceMinLimit?: number,
  *   priceMaxLimit?: number,
+ *   selectedPromotionOnly?: boolean,
  * }} options
  */
 function filterWatchesForListing(watchList, options) {
@@ -58,7 +64,12 @@ function filterWatchesForListing(watchList, options) {
     priceRange,
     priceMinLimit,
     priceMaxLimit,
+    selectedPromotionOnly,
   } = options
+
+  if (selectedPromotionOnly) {
+    filtered = filtered.filter((watch) => isWatchOnPromotion(watch))
+  }
 
   if (selectedBrands.length > 0) {
     filtered = filtered.filter((watch) => selectedBrands.includes(watch.brand))
@@ -79,13 +90,17 @@ function filterWatchesForListing(watchList, options) {
     (priceRange[0] !== priceMinLimit || priceRange[1] !== priceMaxLimit)
   ) {
     filtered = filtered.filter(
-      (watch) => watch.price >= priceRange[0] && watch.price <= priceRange[1],
+      (watch) => {
+        const effectivePrice = getEffectiveWatchPrice(watch)
+        return effectivePrice >= priceRange[0] && effectivePrice <= priceRange[1]
+      },
     )
   } else if (priceMin !== undefined || priceMax !== undefined) {
     if (priceMin !== null || priceMax !== null) {
       filtered = filtered.filter((watch) => {
-        const matchesMin = priceMin === null || watch.price >= priceMin
-        const matchesMax = priceMax === null || watch.price <= priceMax
+        const effectivePrice = getEffectiveWatchPrice(watch)
+        const matchesMin = priceMin === null || effectivePrice >= priceMin
+        const matchesMax = priceMax === null || effectivePrice <= priceMax
         return matchesMin && matchesMax
       })
     }
@@ -101,6 +116,7 @@ export function useWatchListing() {
   const selectedBrands = ref([])
   const selectedCaseSizes = ref(/** @type {string[]} */ ([]))
   const selectedAudience = ref(/** @type {AudienceFilter} */ ('all'))
+  const selectedPromotionOnly = ref(false)
   const priceMin = ref(null)
   const priceMax = ref(null)
   const sortOrder = ref('recent')
@@ -115,6 +131,8 @@ export function useWatchListing() {
   const tempPriceMaxInput = ref(150000)
   /** Brouillon « Public » dans le tiroir ; validé via `applyDrawerFilters`. */
   const tempAudience = ref(/** @type {AudienceFilter} */ ('all'))
+  /** Brouillon « Promotions » dans le tiroir ; validé via `applyDrawerFilters`. */
+  const tempPromotionOnly = ref(false)
 
   const watches = ref([])
   const isLoading = ref(true)
@@ -127,12 +145,12 @@ export function useWatchListing() {
 
   const priceMinLimit = computed(() => {
     if (scopedWatches.value.length === 0) return 0
-    return Math.min(...scopedWatches.value.map((w) => w.price))
+    return Math.min(...scopedWatches.value.map((w) => getEffectiveWatchPrice(w)))
   })
 
   const priceMaxLimit = computed(() => {
     if (scopedWatches.value.length === 0) return 150000
-    return Math.max(...scopedWatches.value.map((w) => w.price))
+    return Math.max(...scopedWatches.value.map((w) => getEffectiveWatchPrice(w)))
   })
 
   const quickPriceRanges = computed(() => {
@@ -193,6 +211,7 @@ export function useWatchListing() {
     n += countAppliedBrandFilters(selectedBrands.value)
     n += countAppliedCaseSizes(selectedCaseSizes.value)
     n += countAppliedAudience(selectedAudience.value)
+    n += countAppliedPromotionOnly(selectedPromotionOnly.value)
     n += countAppliedPriceActive(priceMin.value, priceMax.value)
     return n
   })
@@ -203,6 +222,7 @@ export function useWatchListing() {
     n += countAppliedBrandFilters(tempSelectedBrands.value)
     n += countAppliedCaseSizes(tempSelectedCaseSizes.value)
     n += countAppliedAudience(tempAudience.value)
+    n += countAppliedPromotionOnly(tempPromotionOnly.value)
     const priceActive =
       tempPriceRange.value[0] > priceMinLimit.value ||
       tempPriceRange.value[1] < priceMaxLimit.value
@@ -217,6 +237,7 @@ export function useWatchListing() {
       selectedBrands: selectedBrands.value,
       selectedAudience: selectedAudience.value,
       selectedCaseSizes: selectedCaseSizes.value,
+      selectedPromotionOnly: selectedPromotionOnly.value,
       priceMin: priceMin.value,
       priceMax: priceMax.value,
     })
@@ -224,10 +245,10 @@ export function useWatchListing() {
     const sorted = [...filtered]
     switch (sortOrder.value) {
       case 'price-asc':
-        sorted.sort((a, b) => a.price - b.price)
+        sorted.sort((a, b) => getEffectiveWatchPrice(a) - getEffectiveWatchPrice(b))
         break
       case 'price-desc':
-        sorted.sort((a, b) => b.price - a.price)
+        sorted.sort((a, b) => getEffectiveWatchPrice(b) - getEffectiveWatchPrice(a))
         break
       case 'recent':
       default:
@@ -243,6 +264,7 @@ export function useWatchListing() {
       selectedBrands: tempSelectedBrands.value,
       selectedAudience: tempAudience.value,
       selectedCaseSizes: tempSelectedCaseSizes.value,
+      selectedPromotionOnly: tempPromotionOnly.value,
       priceRange: tempPriceRange.value,
       priceMinLimit: priceMinLimit.value,
       priceMaxLimit: priceMaxLimit.value,
@@ -266,6 +288,9 @@ export function useWatchListing() {
         tempPriceRange.value[1] < priceMaxLimit.value
       return narrowed ? 1 : 0
     }
+    if (section === 'promotion') {
+      return tempPromotionOnly.value ? 1 : 0
+    }
     return 0
   }
 
@@ -278,6 +303,7 @@ export function useWatchListing() {
     tempSelectedBrands.value = [...selectedBrands.value]
     tempSelectedCaseSizes.value = [...selectedCaseSizes.value]
     tempAudience.value = selectedAudience.value
+    tempPromotionOnly.value = selectedPromotionOnly.value
     isFilterDrawerOpen.value = true
     document.body.style.overflow = 'hidden'
   }
@@ -291,6 +317,7 @@ export function useWatchListing() {
     tempSelectedBrands.value = []
     tempSelectedCaseSizes.value = []
     tempAudience.value = 'all'
+    tempPromotionOnly.value = false
     if (scopedWatches.value.length > 0) {
       const minPrice = Math.min(...scopedWatches.value.map((w) => w.price))
       const maxPrice = Math.max(...scopedWatches.value.map((w) => w.price))
@@ -318,6 +345,7 @@ export function useWatchListing() {
     }
 
     selectedAudience.value = tempAudience.value
+    selectedPromotionOnly.value = tempPromotionOnly.value
     selectedCaseSizes.value = [...tempSelectedCaseSizes.value]
     selectedBrands.value = [...tempSelectedBrands.value]
 
@@ -418,11 +446,12 @@ export function useWatchListing() {
     selectedBrands.value = []
     selectedCaseSizes.value = []
     selectedAudience.value = 'all'
+    selectedPromotionOnly.value = false
     priceMin.value = null
     priceMax.value = null
     if (scopedWatches.value.length > 0) {
-      const minPrice = Math.min(...scopedWatches.value.map((w) => w.price))
-      const maxPrice = Math.max(...scopedWatches.value.map((w) => w.price))
+      const minPrice = Math.min(...scopedWatches.value.map((w) => getEffectiveWatchPrice(w)))
+      const maxPrice = Math.max(...scopedWatches.value.map((w) => getEffectiveWatchPrice(w)))
       const roundedMin = roundToTen(minPrice)
       const roundedMax = roundToTen(maxPrice)
       tempPriceRange.value = [roundedMin, roundedMax]
@@ -432,6 +461,7 @@ export function useWatchListing() {
     tempSelectedBrands.value = []
     tempSelectedCaseSizes.value = []
     tempAudience.value = 'all'
+    tempPromotionOnly.value = false
   }
 
   const loadWatches = async () => {
@@ -442,8 +472,8 @@ export function useWatchListing() {
       watches.value = data
       const pool = data
       if (pool.length > 0) {
-        const minPrice = Math.min(...pool.map((w) => w.price))
-        const maxPrice = Math.max(...pool.map((w) => w.price))
+        const minPrice = Math.min(...pool.map((w) => getEffectiveWatchPrice(w)))
+        const maxPrice = Math.max(...pool.map((w) => getEffectiveWatchPrice(w)))
         const roundedMin = roundToTen(minPrice)
         const roundedMax = roundToTen(maxPrice)
         tempPriceRange.value = [roundedMin, roundedMax]
@@ -463,6 +493,7 @@ export function useWatchListing() {
     selectedBrands,
     selectedCaseSizes,
     selectedAudience,
+    selectedPromotionOnly,
     priceMin,
     priceMax,
     sortOrder,
@@ -474,6 +505,7 @@ export function useWatchListing() {
     tempPriceMinInput,
     tempPriceMaxInput,
     tempAudience,
+    tempPromotionOnly,
     watches,
     isLoading,
     error,

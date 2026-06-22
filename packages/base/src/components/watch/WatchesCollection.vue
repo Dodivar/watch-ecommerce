@@ -417,6 +417,12 @@ const publicQuerySlug = computed(() => {
   return isValidCollectionPublicQuerySlug(slug) ? slug : ''
 })
 
+const promotionQueryActive = computed(() => {
+  const q = route.query.promotion
+  const raw = Array.isArray(q) ? q[0] : q
+  return raw === '1' || raw === 'true'
+})
+
 const listing = useWatchListing()
 const { isNouvelle } = useNouvellesWatchIds()
 
@@ -444,6 +450,14 @@ watch(
   publicQuerySlug,
   (slug) => {
     listing.selectedAudience = slug || 'all'
+  },
+  { immediate: true },
+)
+
+watch(
+  promotionQueryActive,
+  (active) => {
+    listing.selectedPromotionOnly = active
   },
   { immediate: true },
 )
@@ -483,12 +497,14 @@ const collectionFilterFingerprint = computed(() =>
   [
     listing.sortOrder,
     listing.selectedAudience,
+    listing.selectedPromotionOnly,
     [...listing.selectedCaseSizes].slice().sort().join('\u0000'),
     listing.priceMin,
     listing.priceMax,
     [...listing.selectedBrands].slice().sort().join('\u0000'),
     marqueQuerySlug.value,
     publicQuerySlug.value,
+    promotionQueryActive.value,
   ].join('|'),
 )
 
@@ -497,6 +513,10 @@ function buildCollectionLocation(page) {
 
   if (listing.selectedAudience !== 'all') {
     query.public = listing.selectedAudience
+  }
+
+  if (listing.selectedPromotionOnly) {
+    query.promotion = '1'
   }
 
   if (page > 1) query.page = String(page)
@@ -582,6 +602,7 @@ const filterSections = computed(() => {
     brand: cfg.brand,
     audience: cfg.audience,
     caseSize: cfg.caseSize,
+    promotion: cfg.promotion,
   }
 })
 
@@ -632,6 +653,14 @@ const activeFilterChips = computed(() => {
     })
   }
 
+  if (listing.selectedPromotionOnly) {
+    chips.push({
+      id: 'promotion',
+      type: 'promotion',
+      label: 'Promotions',
+    })
+  }
+
   if (listing.priceMin !== null || listing.priceMax !== null) {
     const min = listing.priceMin ?? listing.priceMinLimit
     const max = listing.priceMax ?? listing.priceMaxLimit
@@ -655,6 +684,9 @@ function removeActiveFilter(chip) {
       break
     case 'audience':
       listing.selectedAudience = 'all'
+      break
+    case 'promotion':
+      listing.selectedPromotionOnly = false
       break
     case 'price':
       listing.priceMin = null
@@ -720,6 +752,9 @@ const collectionHead = computed(() => {
   const shareParams = new URLSearchParams()
   if (publicQuerySlug.value) {
     shareParams.set('public', publicQuerySlug.value)
+  }
+  if (promotionQueryActive.value) {
+    shareParams.set('promotion', '1')
   }
   const shareQuery = shareParams.toString()
   const brandPath = buildBrandCollectionPath(brand)
