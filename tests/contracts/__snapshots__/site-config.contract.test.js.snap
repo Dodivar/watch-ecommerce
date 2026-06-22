@@ -5,6 +5,7 @@ exports[`site contract: demo-store > charge et résout le manifest sans erreur 1
   "features": {
     "about": true,
     "admin": true,
+    "adminWatchPromotions": true,
     "blog": true,
     "cartMultiQuantity": false,
     "collection": true,
@@ -100,6 +101,7 @@ exports[`site contract: jackned > charge et résout le manifest sans erreur 1`] 
   "features": {
     "about": true,
     "admin": true,
+    "adminWatchPromotions": true,
     "blog": true,
     "cartMultiQuantity": false,
     "collection": true,
@@ -190,6 +192,7 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
   "features": {
     "about": true,
     "admin": true,
+    "adminWatchPromotions": true,
     "blog": false,
     "cartMultiQuantity": true,
     "collection": true,
@@ -281,6 +284,7 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
   "features": {
     "about": true,
     "admin": true,
+    "adminWatchPromotions": true,
     "blog": true,
     "cartMultiQuantity": false,
     "collection": true,
