@@ -253,6 +253,46 @@
               </button>
             </div>
           </section>
+
+          <!-- Promotion -->
+          <section v-if="sections.promotion" class="border-b border-gray-100">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 py-4 text-left"
+              @click="toggleSection('promotion')"
+            >
+              <span class="flex items-center gap-2 font-medium text-text-main">
+                Promotion
+                <span
+                  v-if="listing.getDraftSectionCount('promotion') > 0"
+                  class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
+                >
+                  {{ listing.getDraftSectionCount('promotion') }}
+                </span>
+              </span>
+              <ChevronDown
+                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': expanded.promotion }"
+                :stroke-width="2"
+              />
+            </button>
+            <div v-show="expanded.promotion" class="flex flex-wrap gap-2 pb-4">
+              <button
+                v-for="opt in promotionOptions"
+                :key="String(opt.id)"
+                type="button"
+                class="rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+                :class="
+                  listing.tempPromotionOnly === opt.id
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                "
+                @click="listing.tempPromotionOnly = opt.id"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+          </section>
         </div>
 
         <footer
@@ -293,9 +333,14 @@ const props = defineProps({
   /** Sections affichées (depuis `getMergedCollectionFilters` + contexte route) */
   sections: {
     type: Object,
-    default: () => ({ price: true, brand: true, audience: true, caseSize: true }),
+    default: () => ({ price: true, brand: true, audience: true, caseSize: true, promotion: true }),
   },
 })
+
+const promotionOptions = [
+  { id: false, label: 'Toutes' },
+  { id: true, label: 'En promotion' },
+]
 
 function formatCaseSizeLabel(size) {
   return formatCaseSizeDisplay(size)
@@ -316,6 +361,7 @@ const expanded = reactive({
   price: false,
   caseSize: false,
   audience: false,
+  promotion: false,
 })
 
 function toggleSection(key) {
@@ -362,6 +408,7 @@ watch(
       expanded.price = false
       expanded.caseSize = false
       expanded.audience = false
+      expanded.promotion = false
       document.addEventListener('keydown', onEscape)
     } else {
       document.removeEventListener('keydown', onEscape)

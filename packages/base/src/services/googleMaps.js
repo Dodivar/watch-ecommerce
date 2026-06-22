@@ -4,9 +4,11 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 
 const PLACES_READY = '__watch_google_places_initialized'
 const MAPS_READY = '__watch_google_maps_initialized'
+const MARKER_READY = '__watch_google_marker_initialized'
 
 let loaderConfigured = false
 let mapsLoadPromise = null
+let markerLoadPromise = null
 let placesLoadPromise = null
 
 function devLogPrefix() {
@@ -69,6 +71,55 @@ export async function ensureGoogleMaps() {
 }
 
 /**
+ * Charge la bibliothèque Marker (AdvancedMarkerElement).
+ * @returns {Promise<google.maps.MarkerLibrary | null>}
+ */
+export async function ensureGoogleMarkerLibrary() {
+  const maps = await ensureGoogleMaps()
+  if (!maps) return null
+
+  if (window[MARKER_READY] && window.google?.maps?.marker?.AdvancedMarkerElement) {
+    return window.google.maps.marker
+  }
+
+  if (!markerLoadPromise) {
+    markerLoadPromise = importLibrary('marker')
+      .then((lib) => {
+        window[MARKER_READY] = true
+        return lib
+      })
+      .catch((err) => {
+        markerLoadPromise = null
+        if (import.meta.env.DEV) {
+          console.warn('[Watch] Google Marker : échec du chargement.', err)
+        }
+        return null
+      })
+  }
+
+  return markerLoadPromise
+}
+
+function loadPlacesLibrary() {
+  if (!placesLoadPromise) {
+    placesLoadPromise = importLibrary('places')
+      .then((lib) => {
+        window[PLACES_READY] = true
+        return lib
+      })
+      .catch((err) => {
+        placesLoadPromise = null
+        if (import.meta.env.DEV) {
+          console.warn('[Watch] Google Places : échec du chargement.', err)
+        }
+        throw err
+      })
+  }
+
+  return placesLoadPromise
+}
+
+/**
  * Charge la bibliothèque Places (PlaceAutocompleteElement checkout).
  * @returns {Promise<typeof google.maps.places | null>}
  */
@@ -86,20 +137,10 @@ export async function ensureGooglePlaces() {
     return window.google.maps.places
   }
 
-  if (!placesLoadPromise) {
-    placesLoadPromise = importLibrary('places')
-      .then(() => {
-        window[PLACES_READY] = true
-        return window.google.maps.places
-      })
-      .catch((err) => {
-        placesLoadPromise = null
-        if (import.meta.env.DEV) {
-          console.warn('[Watch] Google Places : échec du chargement.', err)
-        }
-        return null
-      })
+  try {
+    await loadPlacesLibrary()
+    return window.google.maps.places
+  } catch {
+    return null
   }
-
-  return placesLoadPromise
 }

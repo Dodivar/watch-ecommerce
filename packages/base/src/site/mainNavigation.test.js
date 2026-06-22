@@ -42,6 +42,32 @@ describe('resolveMainNavigation', () => {
     expect(resolveMainNavigation(site)).toEqual([])
   })
 
+  it('conserve titleLink sur une colonne de megaMenu', () => {
+    const site = {
+      features: { ...DEFAULT_SITE_FEATURES, collection: true },
+      navigation: {
+        main: [
+          {
+            type: 'megaMenu',
+            label: 'Montres',
+            to: '/collection',
+            feature: 'collection',
+            columns: [
+              {
+                title: 'Promotions',
+                titleLink: '/collection?promotion=1',
+                items: [{ label: 'Promotions homme', to: '/collection?promotion=1&public=homme' }],
+              },
+            ],
+          },
+        ],
+      },
+    }
+    const nav = resolveMainNavigation(site)
+    expect(nav[0].columns[0].titleLink).toBe('/collection?promotion=1')
+    expect(nav[0].columns[0].items[0].to).toBe('/collection?promotion=1&public=homme')
+  })
+
   it('conserve un megaMenu avec source brands', () => {
     const site = {
       features: { ...DEFAULT_SITE_FEATURES, collection: true },

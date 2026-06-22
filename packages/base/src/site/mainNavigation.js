@@ -54,7 +54,7 @@ import { filterHomeSectionsByFeatures, resolveHomeSections } from './homeSection
  * - `feature` (optionnel) sur un lien ou sur un groupe : masque l’entrée (ou tout le groupe) si `site.features[feature]` est faux.
  * - Les liens `to: '/faq'` deviennent `/#faq` automatiquement si `home.sections` contient `faq` (section visible après garde-fous features).
  * - Sur un `group`, `to` (optionnel) rend le libellé du groupe cliquable (`RouterLink`) en plus du sous-menu.
- * - Sur un `megaMenu`, `columns` décrit les colonnes du panneau pleine largeur (items statiques ou `source: 'brands'`).
+ * - Sur un `megaMenu`, `columns` décrit les colonnes du panneau pleine largeur (items statiques, `source: 'brands'` ou `dynamicCampaigns: true` pour les événements promo actifs). `titleLink` rend le titre de colonne cliquable.
  * - Si `navigation.main` est absent ou vide, un menu principal par défaut est utilisé.
  * - Si `navigation.footer` est absent ou vide, la colonne footer reprend le comportement historique du template (sans lien FAQ ; Contact vers `/contact` si `features.contact`).
  */
@@ -112,16 +112,29 @@ export function navigationUsesCatalogBrands(navItems) {
 }
 
 /**
+ * Indique si la navigation affiche des liens campagnes promo actives dans le mega-menu.
+ * @param {MainNavItem[]} navItems
+ * @returns {boolean}
+ */
+export function navigationUsesMenuCampaigns(navItems) {
+  return navItems.some(
+    (item) =>
+      item.type === 'megaMenu' &&
+      item.columns?.some((column) => column.dynamicCampaigns),
+  )
+}
+
+/**
  * @typedef {{ label: string, to: string }} NavSubLinkResolved
  * @typedef {{ type: 'link', label: string, to: string }} NavLinkResolved
  * @typedef {{ type: 'group', label: string, items: NavSubLinkResolved[], to?: string }} NavGroupResolved
- * @typedef {{ title: string, items?: NavSubLinkResolved[], source?: 'brands', columns?: number, footerLink?: NavSubLinkResolved }} MegaMenuColumnResolved
+ * @typedef {{ title: string, titleLink?: string, items?: NavSubLinkResolved[], source?: 'brands', dynamicCampaigns?: boolean, columns?: number, footerLink?: NavSubLinkResolved }} MegaMenuColumnResolved
  * @typedef {{ type: 'megaMenu', label: string, to: string, columns: MegaMenuColumnResolved[] }} NavMegaMenuResolved
  * @typedef {NavLinkResolved | NavGroupResolved | NavMegaMenuResolved} MainNavItem
  */
 
 /**
- * @typedef {{ type?: 'link' | 'group' | 'megaMenu', label: string, to?: string, feature?: string, items?: Array<{ label: string, to: string, feature?: string }>, columns?: Array<{ title: string, items?: Array<{ label: string, to: string, feature?: string }>, source?: 'brands', columns?: number, footerLink?: { label: string, to: string } }> }} RawNavEntry
+ * @typedef {{ type?: 'link' | 'group' | 'megaMenu', label: string, to?: string, feature?: string, items?: Array<{ label: string, to: string, feature?: string }>, columns?: Array<{ title: string, titleLink?: string, items?: Array<{ label: string, to: string, feature?: string }>, source?: 'brands', dynamicCampaigns?: boolean, columns?: number, footerLink?: { label: string, to: string } }> }} RawNavEntry
  * @typedef {{ label: string, to: string, feature?: string }} RawFooterLink
  * @typedef {{ label: string, to: string }} FooterNavLinkResolved
  */
@@ -201,11 +214,20 @@ function resolveMegaMenuColumns(rawColumns, features, site) {
       continue
     }
     const items = (column.items ?? []).filter((sub) => !sub.feature || features[sub.feature])
-    if (items.length === 0) continue
-    out.push({
+    const titleLink = column.titleLink ? resolveNavTo(column.titleLink, site) : undefined
+    if (items.length === 0 && !titleLink && !column.dynamicCampaigns) continue
+    /** @type {MegaMenuColumnResolved} */
+    const staticColumn = {
       title: column.title,
       items: items.map(({ label, to }) => ({ label, to: resolveNavTo(to, site) })),
-    })
+    }
+    if (titleLink) {
+      staticColumn.titleLink = titleLink
+    }
+    if (column.dynamicCampaigns) {
+      staticColumn.dynamicCampaigns = true
+    }
+    out.push(staticColumn)
   }
   return out
 }

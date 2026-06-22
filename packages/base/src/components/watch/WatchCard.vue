@@ -8,9 +8,16 @@
         Nouveau
       </span>
       <span
+        v-if="watchItem.isOnPromotion"
+        class="absolute top-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-red-600 text-white shadow-sm"
+        :class="showNewBadge ? 'left-2 top-9 md:top-10' : 'left-2'"
+      >
+        -{{ watchItem.displayDiscountPercent }} %
+      </span>
+      <span
         v-if="showCornerYearBadge"
         class="absolute z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-medium rounded bg-white/90 text-gray-800 shadow-sm backdrop-blur-sm"
-        :class="showNewBadge ? 'top-9 left-2 md:top-10' : 'top-2 left-2'"
+        :class="showNewBadge || watchItem.isOnPromotion ? 'top-9 left-2 md:top-10' : 'top-2 left-2'"
       >
         {{ watchItem.year }}
       </span>
@@ -147,8 +154,16 @@
         v-if="showPrice || (catalogDisplay.showResaleFields && (watchItem.contenu || watchItem.details?.content || showInlineYear))"
         class="mt-2 md:mt-3 flex items-center gap-2 text-[10px] md:text-sm text-gray-500"
       >
-        <span v-if="showPrice" class="text-base md:text-xl lg:text-2xl font-bold text-primary">
-          {{ formatPrice(watchItem.price) }}
+        <span v-if="showPrice" class="inline-flex items-baseline gap-2">
+          <span
+            v-if="watchItem.isOnPromotion"
+            class="text-sm md:text-base font-normal text-gray-400 line-through"
+          >
+            {{ formatPrice(watchItem.price) }}
+          </span>
+          <span class="text-base md:text-xl lg:text-2xl font-bold text-primary">
+            {{ formatPrice(watchItem.effectivePrice ?? watchItem.price) }}
+          </span>
         </span>
         <span
           v-if="catalogDisplay.showResaleFields && (watchItem.contenu || watchItem.details?.content)"

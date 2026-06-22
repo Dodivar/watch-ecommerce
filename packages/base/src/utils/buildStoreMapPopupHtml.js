@@ -32,9 +32,9 @@ export function buildStoreMapPopupHtml({ title, addressHtml = '', logoUrl = null
     : ''
 
   if (logoUrl) {
-    return `<div class="store-map-popup" style="font-family:system-ui,-apple-system,sans-serif;min-width:220px;max-width:300px;padding:2px 0;">
+    return `<div class="store-map-popup" style="font-family:system-ui,-apple-system,sans-serif;min-width:220px;max-width:300px;padding:10px 12px;">
   <div style="display:flex;gap:12px;align-items:flex-start;">
-    <img src="${escapeHtml(logoUrl)}" alt="${safeAlt}" width="56" height="56" style="width:56px;height:56px;object-fit:contain;flex-shrink:0;border-radius:8px;background:#f9fafb;padding:4px;box-sizing:border-box;" />
+    <img src="${escapeHtml(logoUrl)}" alt="${safeAlt}" width="48" height="48" style="width:48px;height:48px;object-fit:contain;flex-shrink:0;border-radius:8px;background:#f9fafb;padding:4px;box-sizing:border-box;" />
     <div style="flex:1;min-width:0;">
       <div style="font-weight:600;font-size:15px;color:#111827;line-height:1.3;">${safeTitle}</div>
       ${addressBlock}
@@ -43,7 +43,7 @@ export function buildStoreMapPopupHtml({ title, addressHtml = '', logoUrl = null
 </div>`
   }
 
-  return `<div class="store-map-popup" style="font-family:system-ui,-apple-system,sans-serif;min-width:180px;max-width:280px;padding:2px 0;">
+  return `<div class="store-map-popup" style="font-family:system-ui,-apple-system,sans-serif;min-width:180px;max-width:280px;padding:10px 12px;">
   <div style="font-weight:600;font-size:15px;color:#111827;line-height:1.3;">${safeTitle}</div>
   ${addressBlock}
 </div>`

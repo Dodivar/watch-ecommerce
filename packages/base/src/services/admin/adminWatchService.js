@@ -15,6 +15,15 @@ function transformWatchToDB(watchData) {
   const stockQty = retail
     ? Math.max(0, parseInt(String(watchData.stockQuantity ?? 1), 10) || 0)
     : 1
+  const isOnPromotion = watchData.isOnPromotion === true
+  const promotionPrice =
+    isOnPromotion && watchData.promotionPrice != null && watchData.promotionPrice !== ''
+      ? parseFloat(watchData.promotionPrice)
+      : null
+  const discountPercent =
+    isOnPromotion && watchData.discountPercent != null && watchData.discountPercent !== ''
+      ? parseInt(String(watchData.discountPercent), 10)
+      : null
 
   const row = {
     ad_code: watchData.adCode,
@@ -23,6 +32,8 @@ function transformWatchToDB(watchData) {
     model: watchData.model,
     reference: watchData.reference,
     price: parseFloat(watchData.price),
+    promotion_price: promotionPrice,
+    discount_percent: discountPercent,
     year: watchData.year ? parseInt(watchData.year) : null,
     condition: watchData.condition || null,
     description: watchData.description || null,
@@ -712,6 +723,12 @@ export async function getWatchByIdForAdmin(watchId) {
       model: watch.model,
       reference: watch.reference,
       price: watch.price?.toString() || '',
+      isOnPromotion:
+        watch.promotion_price != null &&
+        parseFloat(watch.promotion_price) > 0 &&
+        parseFloat(watch.promotion_price) < parseFloat(watch.price || 0),
+      promotionPrice: watch.promotion_price?.toString() || '',
+      discountPercent: watch.discount_percent?.toString() || '',
       year: watch.year?.toString() || '',
       condition: watch.condition || '',
       description: watch.description || '',

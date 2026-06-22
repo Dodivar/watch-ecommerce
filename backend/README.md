@@ -136,7 +136,7 @@ Les variables historiques (`STRIPE_SECRET_KEY`, `MAILJET_API_KEY`, `BASE_URL`, e
 2. **Configurer les secrets** dans le dashboard Render : ajouter toutes les variables `SITE_<UPPER_ID>__`* correspondantes (Stripe, Supabase, Mailjet, PaymentCancel).
 3. **Configurer le webhook Stripe** : dans le dashboard Stripe du nouveau client, pointer le webhook vers :
   ```
-   https://<backend-render>.onrender.com/api/stripe/webhook/<nouveau-client>
+   https://watch-ecommerce-mp9l.onrender.com/api/stripe/webhook/<nouveau-client>
   ```
    Inclure au minimum `payment_intent.succeeded`, `payment_intent.payment_failed` et `payment_intent.canceled`.
 4. **Redéployer Render** : le boot charge automatiquement le nouveau `sites/<id>/site.config.js`. Aucune modification de code.
@@ -177,6 +177,8 @@ curl -H "X-Site-Id: demo-store" http://localhost:3000/api/health
 ```
 
 ## Déploiement Render
+
+URL de production : `https://watch-ecommerce-mp9l.onrender.com`
 
 1. Connecter le repo GitHub, dossier `backend/`.
 2. Build command : `npm install`. Start command : `npm start`.
@@ -219,6 +221,8 @@ Avant de déployer, appliquer côté Supabase de chaque client :
 6. `supabase/migrations/20260608130000_home_carousel_watch_link.sql` — lien optionnel vers une fiche montre sur chaque slide
 7. `supabase/migrations/20260609120000_fulfill_order_payment_transition_flag.sql` — `fulfill_order_payment` ne renvoie `true` que lors de la transition réelle → paid (réconciliation idempotente au retour `/commande/succes`, en plus du webhook)
 8. `supabase/migrations/20260618120000_create_draft_order_rpc.sql` — RPC `create_draft_order` (création commande draft atomique : order + réservation + lignes + quote)
+9. `supabase/migrations/20260621120000_order_receipts_storage.sql` — reçus PDF commandes (Storage privé)
+10. `supabase/migrations/20260622120000_watch_promotions.sql` — promotions par montre (`promotion_price`, `discount_percent`, prix effectif au checkout)
 
 ### Checkout personnalisé (Payment Element)
 

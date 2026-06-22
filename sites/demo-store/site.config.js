@@ -146,6 +146,7 @@ export default {
     purchase: true,
     paymentReturn: true,
     admin: true,
+    adminWatchPromotions: true,
   },
 
   /** Profil catalogue revente (démo plateforme). */
@@ -204,6 +205,7 @@ export default {
    * Les secrets sont fournis via `SITE_DEMO_STORE__<KEY>` côté Render.
    */
   backend: {
+    publicApiUrl: 'https://watch-ecommerce-mp9l.onrender.com',
     cors: {
       extraAllowedOrigins: [],
     },

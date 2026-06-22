@@ -6,6 +6,8 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getHomeCarouselSlidesPublic } from '@/services/admin/adminHomeCarouselService.js'
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { buildWatchPath } from '@/utils/watchSlug.js'
+import { buildCampaignCollectionQuery } from '@/services/watchPromotionCampaignService.js'
+import { resolveLiveCampaignStatus } from '@/utils/watchPromotionCampaign.js'
 
 const AUTOPLAY_MS = 6000
 const ALT_FALLBACK = 'Visuel promotionnel du carrousel d\'accueil'
@@ -51,6 +53,21 @@ function slideLink(slide) {
     return `/watch/${watchId}`
   }
 
+  const campaign = slide?.promotion_campaign
+  if (campaign?.slug) {
+    const liveStatus = resolveLiveCampaignStatus({
+      status: campaign.status,
+      startsAt: campaign.starts_at,
+      endsAt: campaign.ends_at,
+      starts_at: campaign.starts_at,
+      ends_at: campaign.ends_at,
+    })
+    if (liveStatus === 'active') {
+      return buildCampaignCollectionQuery(campaign.slug)
+    }
+    return null
+  }
+
   const brand = slide?.brand_name?.trim()
   if (!brand) return null
   return buildBrandCollectionPath(brand)
@@ -61,6 +78,10 @@ function slideLinkDescription(slide) {
     const watch = slide.watch
     const label = watch?.brand && watch?.name ? `${watch.brand} ${watch.name}` : 'la fiche montre'
     return `Lien vers ${label}.`
+  }
+  if (slide?.promotion_campaign?.slug) {
+    const name = slide.promotion_campaign.name || 'l\'événement promotionnel'
+    return `Lien vers la collection ${name}.`
   }
   if (slide?.brand_name?.trim()) {
     return `Lien vers la collection ${slide.brand_name}.`
@@ -75,6 +96,9 @@ function slideLinkAriaLabel(slide) {
     const watch = slide.watch
     const label = watch?.brand && watch?.name ? `${watch.brand} ${watch.name}` : 'la fiche montre'
     return `${alt} — Voir ${label}`
+  }
+  if (slide?.promotion_campaign?.name) {
+    return `${alt} — Voir ${slide.promotion_campaign.name}`
   }
   return `${alt} — Voir la collection ${slide.brand_name}`
 }

@@ -133,6 +133,7 @@ export default {
     /** Achats en ligne (Stripe) sur les fiches montre ; désactiver aussi `VITE_PURCHASE_ENABLED=false` en prod si besoin. */
     purchase: true,
     paymentReturn: true,
+    adminWatchPromotions: true,
   },
 
   /** Profil catalogue revente : année, état, contenu et référence visibles sur cartes et fiches. */
@@ -253,6 +254,8 @@ export default {
    * `SITE_<UPPER_SITE_ID>__<KEY>` (voir `backend/sites/secrets.js`).
    */
   backend: {
+    /** Backend Render multi-tenant — fallback au build si VITE_BACKEND_URL n'est pas fournie. */
+    publicApiUrl: 'https://watch-ecommerce-mp9l.onrender.com',
     cors: {
       /** Origines additionnelles à autoriser au-delà des urls.production/staging/development (et leur variante www). */
       extraAllowedOrigins: [],

@@ -15,6 +15,7 @@ import {
   LogOut,
   Globe,
   X,
+  Percent,
 } from '@lucide/vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { logoutAdmin, getCurrentAdmin } from '@/services/admin/adminAuthService'
@@ -62,8 +63,17 @@ const navItems = computed(() => {
     { type: 'link', to: '/admin/watches', label: 'Montres', icon: Watch, match: (p) => p.startsWith('/admin/watches') },
     { type: 'link', to: '/admin/orders', label: 'Commandes', icon: ShoppingBag, match: (p) => p.startsWith('/admin/orders') },
     { type: 'link', to: '/admin/leads', label: 'Messages', icon: MessageSquare, match: (p) => p.startsWith('/admin/leads') },
-    { type: 'link', to: '/admin/promo', label: 'Promos', icon: Tag, match: (p) => p.startsWith('/admin/promo') },
+    { type: 'link', to: '/admin/promo', label: 'Codes promo checkout', icon: Tag, match: (p) => p.startsWith('/admin/promo') && !p.startsWith('/admin/watch-promotions') },
   ]
+  if (features.adminWatchPromotions) {
+    items.push({
+      type: 'link',
+      to: '/admin/watch-promotions',
+      label: 'Promotions montres',
+      icon: Percent,
+      match: (p) => p.startsWith('/admin/watch-promotions'),
+    })
+  }
   if (features.blog) {
     items.splice(3, 0, {
       type: 'link',

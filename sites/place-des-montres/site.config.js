@@ -182,8 +182,6 @@ export default {
       daysLabel: 'Lundi – samedi',
       hoursLabel: '9h – 20h',
     },
-    /** Optionnel — note et avis via Places API (si clé Google configurée) */
-    googlePlaceQuery: 'Place des Montres, 24 Place des Halles, 67000 Strasbourg',
   },
 
   legal: {
@@ -470,6 +468,7 @@ export default {
     purchase: true,
     paymentReturn: true,
     admin: true,
+    adminWatchPromotions: true,
     cartMultiQuantity: true,
     homeCarousel: true,
   },
@@ -588,6 +587,7 @@ export default {
       brand: true,
       audience: true,
       caseSize: true,
+      promotion: true,
     },
   },
 
@@ -694,6 +694,23 @@ export default {
               { label: 'Montre enfant', to: '/collection?public=enfant', feature: 'collection' },
             ],
           },
+          {
+            title: 'Promotions',
+            titleLink: '/collection?promotion=1',
+            dynamicCampaigns: true,
+            items: [
+              {
+                label: 'Promotions homme',
+                to: '/collection?promotion=1&public=homme',
+                feature: 'collection',
+              },
+              {
+                label: 'Promotions femme',
+                to: '/collection?promotion=1&public=femme',
+                feature: 'collection',
+              },
+            ],
+          },
         ],
       },
       { type: 'link', label: 'Qui sommes-nous', to: '/a-propos', feature: 'about' },
@@ -717,7 +734,7 @@ export default {
      * URL du backend Express (Render, etc.). Utilisée au build si VITE_BACKEND_URL
      * n’est pas fournie (ex. GitHub Pages). Sans slash final.
      */
-    publicApiUrl: '',
+    publicApiUrl: 'https://watch-ecommerce-mp9l.onrender.com',
     cors: {
       /** Origines front autorisées en plus de urls.production / staging / development */
       extraAllowedOrigins: ['https://dodivar.github.io'],

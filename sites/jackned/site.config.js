@@ -122,9 +122,8 @@ export default {
     purchase: true,
     paymentReturn: true,
     admin: true,
+    adminWatchPromotions: true,
   },
-
-  /** Profil catalogue boutique : cartes épurées, bloc confiance sur fiche produit. */
   watchCatalog: {
     mode: 'retail',
     trustHighlights: [
@@ -233,6 +232,7 @@ export default {
   },
 
   backend: {
+    publicApiUrl: 'https://watch-ecommerce-mp9l.onrender.com',
     cors: {
       extraAllowedOrigins: [],
     },

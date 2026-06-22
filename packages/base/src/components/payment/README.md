@@ -52,12 +52,10 @@ storeMap: {
   googleMapsUrl: 'https://maps.app.goo.gl/…',
   /** Adresse postale exacte pour lancer l'itinéraire */
   directionsAddress: '24 rue Exemple, 75000 Paris, France',
-  /** Optionnel — note et avis via Places API (si clé Google configurée) */
-  googlePlaceId: 'ChIJ…',
-  /** Recherche textuelle si googlePlaceId absent (avis uniquement) */
-  googlePlaceQuery: 'Nom boutique, adresse complète',
   /** Bonhomme Street View (vue 360°) sur la carte Google — défaut : désactivé */
   streetViewControl: false,
+  /** Optionnel — Map ID Google Cloud (recommandé en prod). Défaut : `DEMO_MAP_ID` */
+  mapId: 'VOTRE_MAP_ID',
 },
 ```
 
@@ -67,6 +65,5 @@ Par défaut, le logo utilise `popupLogoSrc`, sinon `/apple-touch-icon.png` (doss
 
 1. Activer **Maps JavaScript API**, **Places API** et **Places API (New)**.
 2. Créer une clé API restreinte par **référent HTTP** (`localhost:5173`, domaines prod/recette du client).
-3. Ne pas activer **Address Validation API** (hors scope, coût supplémentaire).
-
-Option ultérieure : `storeMap.mapId` + marqueurs avancés (Map ID dans la console Google Cloud).
+3. Créer un **Map ID** (console Google Cloud → Maps → Map Management) et le renseigner dans `storeMap.mapId` pour la production. Sans Map ID client, la carte utilise `DEMO_MAP_ID` (adapté au dev).
+4. Ne pas activer **Address Validation API** (hors scope, coût supplémentaire).

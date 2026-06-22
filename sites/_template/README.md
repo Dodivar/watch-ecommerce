@@ -21,7 +21,7 @@ Ce dossier **n’est pas** un site buildable : il sert de référence pour crée
    Configurer le projet Vercel du client : `SITE_ID`, `VITE_SUPABASE_*`, `SUPABASE_*` pour `api/sitemap`, `BASE_URL` / `VITE_BASE_URL`, etc. Voir [documentation/multi-client.md](../../documentation/multi-client.md).
 
 6. **Backend**  
-   Si le front parle au serveur Express, renseigner `BACKEND_CORS_ORIGINS` avec les domaines du nouveau client.
+   Si le front parle au serveur Express, renseigner `backend.publicApiUrl` dans `site.config.js` (prod : `https://watch-ecommerce-mp9l.onrender.com`) et `BACKEND_CORS_ORIGINS` côté Render avec les domaines du nouveau client.
 
 7. **Catalogue (migration PrestaShop)**  
    Si le client vient de PrestaShop : import réalisé par l’équipe technique (pas d’accès admin client). Préparer `prestashop-import.mapping.json`, exporter le CSV produits (+ CSV images), appliquer la migration SQL documentée dans [`scripts/prestashop-import/README.md`](../../scripts/prestashop-import/README.md), puis lancer `npm run db:import-prestashop` (aperçu) avant `npm run db:import-prestashop:apply`.

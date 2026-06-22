@@ -42,6 +42,8 @@ export const DEFAULT_SITE_FEATURES = {
    * Dérivé de `watchCatalog.mode === 'resale'` dans getSiteConfig() — ne pas surcharger sauf cas exceptionnel.
    */
   watchReference: false,
+  /** Campagnes promotionnelles groupées dans l'admin (événements soldes, etc.). */
+  adminWatchPromotions: false,
 }
 
 export function mergeSiteFeatures(partial = {}) {

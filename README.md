@@ -10,7 +10,7 @@ Documentation détaillée : [documentation/multi-client.md](documentation/multi-
 - `**sites/<SITE_ID>/`** — un dossier par client ou marque : `site.config.js`, `index.html`, `main.js`, `public/`, `src/` (obligatoire pour l’alias `@site/*`). Exemples : `sauvage-watches`, `demo-store`, gabarit `_template`.
 - **Un projet Vercel par client** (recommandé) — même dépôt et branches (`staging` / `main`), mais `SITE_ID` et variables d’environnement propres à chaque déploiement.
 - **Un projet Supabase par client** — URL et clés injectées dans le projet Vercel correspondant.
-- **Backend Express** (`backend/`) — peut être déployé séparément ; en production, renseigner `BACKEND_CORS_ORIGINS` avec les domaines des fronts autorisés.
+- **Backend Express** (`backend/`) — déployé sur Render (`https://watch-ecommerce-mp9l.onrender.com`) ; en production, renseigner `BACKEND_CORS_ORIGINS` avec les domaines des fronts autorisés.
 
 ### Évolution récente : passage multi-clients
 
