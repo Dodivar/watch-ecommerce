@@ -468,6 +468,7 @@ export default {
     purchase: true,
     paymentReturn: true,
     admin: true,
+    adminWatchPromotions: true,
     cartMultiQuantity: true,
     homeCarousel: true,
   },
@@ -696,6 +697,7 @@ export default {
           {
             title: 'Promotions',
             titleLink: '/collection?promotion=1',
+            dynamicCampaigns: true,
             items: [
               {
                 label: 'Promotions homme',

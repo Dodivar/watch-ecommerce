@@ -304,8 +304,16 @@
           <div class="text-gray-400 mb-3">
             <Clock class="w-16 h-16 mx-auto mb-3" :stroke-width="1" />
           </div>
-          <h3 class="text-xl text-gray-600 mb-2">Aucune montre trouvée</h3>
-          <p class="text-gray-500">Essayez de modifier vos critères de recherche</p>
+          <h3 class="text-xl text-gray-600 mb-2">
+            {{ campaignLoadError ? 'Événement promotionnel indisponible' : 'Aucune montre trouvée' }}
+          </h3>
+          <p class="text-gray-500">
+            {{
+              campaignLoadError
+                ? 'Cet événement est terminé ou n\'existe pas. Consultez nos autres promotions.'
+                : 'Essayez de modifier vos critères de recherche'
+            }}
+          </p>
         </div>
 
         <!-- Contact -->
@@ -391,6 +399,8 @@ import {
   COLLECTION_PAGINATION_MOBILE_MQ,
   buildCollectionPaginationItems,
 } from '@/utils/collectionPagination.js'
+import { getActiveCampaignBySlugPublic } from '@/services/watchPromotionCampaignService.js'
+import { isValidCampaignSlug } from '@/utils/campaignSlug.js'
 
 const props = defineProps({
   showFilters: { type: Boolean, default: true },
@@ -422,6 +432,15 @@ const promotionQueryActive = computed(() => {
   const raw = Array.isArray(q) ? q[0] : q
   return raw === '1' || raw === 'true'
 })
+
+const eventQuerySlug = computed(() => {
+  const q = route.query.event
+  const raw = Array.isArray(q) ? q[0] : q
+  const slug = raw ? String(raw).trim().toLowerCase() : ''
+  return isValidCampaignSlug(slug) ? slug : ''
+})
+
+const campaignLoadError = ref(false)
 
 const listing = useWatchListing()
 const { isNouvelle } = useNouvellesWatchIds()
@@ -457,7 +476,31 @@ watch(
 watch(
   promotionQueryActive,
   (active) => {
+    if (eventQuerySlug.value) return
     listing.selectedPromotionOnly = active
+  },
+  { immediate: true },
+)
+
+watch(
+  eventQuerySlug,
+  async (slug) => {
+    if (!slug) {
+      listing.clearCampaignFilter()
+      campaignLoadError.value = false
+      return
+    }
+
+    listing.selectedPromotionOnly = false
+    const campaign = await getActiveCampaignBySlugPublic(slug)
+    if (!campaign) {
+      listing.setCampaignFilter(slug, [], '')
+      campaignLoadError.value = true
+      return
+    }
+
+    campaignLoadError.value = false
+    listing.setCampaignFilter(slug, campaign.watchIds, campaign.name)
   },
   { immediate: true },
 )
@@ -498,6 +541,7 @@ const collectionFilterFingerprint = computed(() =>
     listing.sortOrder,
     listing.selectedAudience,
     listing.selectedPromotionOnly,
+    listing.selectedEventSlug,
     [...listing.selectedCaseSizes].slice().sort().join('\u0000'),
     listing.priceMin,
     listing.priceMax,
@@ -505,6 +549,7 @@ const collectionFilterFingerprint = computed(() =>
     marqueQuerySlug.value,
     publicQuerySlug.value,
     promotionQueryActive.value,
+    eventQuerySlug.value,
   ].join('|'),
 )
 
@@ -515,7 +560,9 @@ function buildCollectionLocation(page) {
     query.public = listing.selectedAudience
   }
 
-  if (listing.selectedPromotionOnly) {
+  if (listing.selectedEventSlug) {
+    query.event = listing.selectedEventSlug
+  } else if (listing.selectedPromotionOnly) {
     query.promotion = '1'
   }
 
@@ -615,9 +662,11 @@ const singleBrandLabel = computed(() => {
 
 const resolvedTitle = computed(() => singleBrandLabel.value || 'Marque')
 
-const pageHeadingTitle = computed(() =>
-  singleBrandLabel.value ? singleBrandLabel.value : 'Toutes nos montres',
-)
+const pageHeadingTitle = computed(() => {
+  if (listing.campaignFilterLabel) return listing.campaignFilterLabel
+  if (singleBrandLabel.value) return singleBrandLabel.value
+  return 'Toutes nos montres'
+})
 
 const audienceLabelBySlug = Object.fromEntries(
   getStaticWatchAudienceFilterOptions().map((opt) => [opt.id, opt.label]),
@@ -661,6 +710,15 @@ const activeFilterChips = computed(() => {
     })
   }
 
+  if (listing.selectedEventSlug && listing.campaignFilterLabel) {
+    chips.push({
+      id: `event:${listing.selectedEventSlug}`,
+      type: 'event',
+      value: listing.selectedEventSlug,
+      label: listing.campaignFilterLabel,
+    })
+  }
+
   if (listing.priceMin !== null || listing.priceMax !== null) {
     const min = listing.priceMin ?? listing.priceMinLimit
     const max = listing.priceMax ?? listing.priceMaxLimit
@@ -687,6 +745,9 @@ function removeActiveFilter(chip) {
       break
     case 'promotion':
       listing.selectedPromotionOnly = false
+      break
+    case 'event':
+      listing.clearCampaignFilter()
       break
     case 'price':
       listing.priceMin = null

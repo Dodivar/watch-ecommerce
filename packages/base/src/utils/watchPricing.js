@@ -1,4 +1,15 @@
 /**
+ * Prix catalogue (hors promotion) pour filtres et plages min/max.
+ * @param {{ price?: number | null }} watch
+ * @returns {number}
+ */
+export function getCatalogWatchPrice(watch) {
+  const base = parseFloat(watch?.price)
+  if (!Number.isFinite(base) || base <= 0) return 0
+  return base
+}
+
+/**
  * Prix effectif et affichage promotion montre.
  * @param {{ price?: number | null, promotionPrice?: number | null, promotion_price?: number | null }} watch
  * @returns {number}

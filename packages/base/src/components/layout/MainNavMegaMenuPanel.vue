@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue'
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { useCatalogBrands, splitIntoColumns } from '@/composables/useCatalogBrands.js'
+import { useMenuCampaigns } from '@/composables/useMenuCampaigns.js'
 
 const props = defineProps({
   item: { type: Object, required: true },
@@ -11,9 +12,19 @@ const props = defineProps({
 const emit = defineEmits(['mouseenter', 'mouseleave'])
 
 const { brands, isLoading, error, load } = useCatalogBrands()
+const {
+  links: campaignLinks,
+  isLoading: campaignsLoading,
+  error: campaignsError,
+  load: loadCampaigns,
+} = useMenuCampaigns()
 
 const hasBrandsColumn = computed(() =>
   props.item.columns?.some((column) => column.source === 'brands'),
+)
+
+const hasCampaignsColumn = computed(() =>
+  props.item.columns?.some((column) => column.dynamicCampaigns),
 )
 
 watch(
@@ -21,6 +32,9 @@ watch(
   (isVisible) => {
     if (isVisible && hasBrandsColumn.value) {
       load()
+    }
+    if (isVisible && hasCampaignsColumn.value) {
+      loadCampaigns()
     }
   },
 )
@@ -77,6 +91,21 @@ const gridClass = computed(() => {
                     {{ link.label }}
                   </RouterLink>
                 </li>
+                <template v-if="column.dynamicCampaigns">
+                  <li v-if="campaignsLoading" class="text-sm text-gray-400">Chargement…</li>
+                  <li v-else-if="campaignsError" class="text-sm text-gray-500">{{ campaignsError }}</li>
+                  <li
+                    v-for="campaignLink in campaignLinks"
+                    :key="'campaign-' + campaignLink.slug"
+                  >
+                    <RouterLink
+                      :to="campaignLink.to"
+                      class="text-sm text-gray-700 hover:text-primary transition-colors"
+                    >
+                      {{ campaignLink.label }}
+                    </RouterLink>
+                  </li>
+                </template>
               </ul>
             </div>
 

@@ -52,3 +52,19 @@ Prérequis : tables checkout existantes (`orders`, `order_lines`, `promo_codes`,
 - Fonction `watch_effective_price(price, promotion_price)`
 - Mise à jour RPC `create_draft_order` pour facturer le prix effectif
 - Prérequis : `20260618120000_create_draft_order_rpc.sql`
+
+## Campagnes promotionnelles (admin)
+
+`20260622140000_watch_promotion_campaigns.sql` — événements promo groupés :
+
+- Tables `watch_promotion_campaigns`, `watch_promotion_campaign_items`
+- Prérequis : `20260525120000_admin_phase1.sql` (`is_admin_user()`)
+
+`20260622150000_watch_promotion_campaigns_rls.sql` — à appliquer si les tables existent déjà sans policies RLS (corrige `new row violates row-level security policy`).
+
+`20260622160000_watch_promotion_menu_carousel.sql` — menu dynamique + filtre collection + carrousel :
+
+- Colonnes `slug`, `show_in_menu`, `menu_label`, `menu_order` sur `watch_promotion_campaigns`
+- Colonne `promotion_campaign_id` sur `home_carousel_slides`
+- Policies RLS lecture publique campagnes et items (filtrage actif côté app)
+- Prérequis : `20260622140000_watch_promotion_campaigns.sql`, `20260608120000_home_carousel.sql`

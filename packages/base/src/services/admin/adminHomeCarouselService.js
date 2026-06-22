@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { getAdminSiteId } from './adminSiteContext.js'
+import { getActiveWatchPromotionCampaignsForCarousel } from './adminWatchPromotionService.js'
 
 const BUCKET = 'home-carousel'
 
@@ -27,7 +28,7 @@ export async function getHomeCarouselSlidesPublic() {
   const { data, error } = await supabase
     .from('home_carousel_slides')
     .select(
-      'id, image_url, image_path, alt_text, brand_name, watch_id, display_order, watches(id, slug, brand, name, reference)',
+      'id, image_url, image_path, alt_text, brand_name, watch_id, promotion_campaign_id, display_order, watches(id, slug, brand, name, reference), watch_promotion_campaigns(id, slug, name, starts_at, ends_at, status)',
     )
     .eq('site_id', siteId)
     .order('display_order', { ascending: true })
@@ -42,6 +43,8 @@ export async function getHomeCarouselSlidesPublic() {
     image_url: resolveSlideImageUrl(row),
     watch: row.watches ?? null,
     watches: undefined,
+    promotion_campaign: row.watch_promotion_campaigns ?? null,
+    watch_promotion_campaigns: undefined,
   }))
 }
 
@@ -60,7 +63,7 @@ function resolveSlideImageUrl(row) {
 
 /**
  * @param {File} imageFile
- * @param {{ altText?: string, brandName?: string, watchId?: string | null }} [meta]
+ * @param {{ altText?: string, brandName?: string, watchId?: string | null, promotionCampaignId?: string | null }} [meta]
  */
 export async function uploadHomeCarouselSlide(imageFile, meta = {}) {
   const siteId = getAdminSiteId()
@@ -102,6 +105,7 @@ export async function uploadHomeCarouselSlide(imageFile, meta = {}) {
       alt_text: meta.altText?.trim() || null,
       brand_name: meta.brandName?.trim() || null,
       watch_id: meta.watchId?.trim() || null,
+      promotion_campaign_id: meta.promotionCampaignId?.trim() || null,
       display_order: displayOrder,
     })
     .select()
@@ -117,7 +121,7 @@ export async function uploadHomeCarouselSlide(imageFile, meta = {}) {
 
 /**
  * @param {string} slideId
- * @param {{ altText?: string, brandName?: string | null, watchId?: string | null }} patch
+ * @param {{ altText?: string, brandName?: string | null, watchId?: string | null, promotionCampaignId?: string | null }} patch
  */
 export async function updateHomeCarouselSlide(slideId, patch) {
   const siteId = getAdminSiteId()
@@ -131,6 +135,9 @@ export async function updateHomeCarouselSlide(slideId, patch) {
   }
   if (patch.watchId !== undefined) {
     updates.watch_id = patch.watchId?.trim() || null
+  }
+  if (patch.promotionCampaignId !== undefined) {
+    updates.promotion_campaign_id = patch.promotionCampaignId?.trim() || null
   }
 
   const { error } = await supabase
@@ -198,11 +205,36 @@ export async function reorderHomeCarouselSlides(slideOrders) {
  *
  * @param {{
  *   slideIdsToDelete?: string[],
- *   newSlides?: Array<{ localId: string, file: File, alt_text?: string, brand_name?: string, watch_id?: string }>,
- *   slideUpdates?: Array<{ id: string, alt_text?: string, brand_name?: string, watch_id?: string }>,
+ *   newSlides?: Array<{ localId: string, file: File, alt_text?: string, brand_name?: string, watch_id?: string, promotion_campaign_id?: string }>,
+ *   slideUpdates?: Array<{ id: string, alt_text?: string, brand_name?: string, watch_id?: string, promotion_campaign_id?: string }>,
  *   orderedRefs?: Array<{ id?: string, localId?: string }>,
  * }} payload
  */
+/**
+ * @param {Array<{ promotion_campaign_id?: string }>} slides
+ */
+async function assertActiveCarouselCampaignLinks(slides) {
+  const campaignIds = [
+    ...new Set(
+      slides
+        .map((slide) => slide.promotion_campaign_id?.trim?.() || slide.promotion_campaign_id)
+        .filter(Boolean),
+    ),
+  ]
+
+  if (campaignIds.length === 0) return
+
+  const activeCampaigns = await getActiveWatchPromotionCampaignsForCarousel()
+  const activeIds = new Set(activeCampaigns.map((campaign) => campaign.id))
+  const invalidId = campaignIds.find((id) => !activeIds.has(id))
+
+  if (invalidId) {
+    throw new Error(
+      'Une slide pointe vers un événement promotionnel inactif ou expiré. Choisissez un événement en cours ou retirez le lien.',
+    )
+  }
+}
+
 export async function saveHomeCarouselChanges(payload) {
   const {
     slideIdsToDelete = [],
@@ -210,6 +242,8 @@ export async function saveHomeCarouselChanges(payload) {
     slideUpdates = [],
     orderedRefs = [],
   } = payload
+
+  await assertActiveCarouselCampaignLinks([...newSlides, ...slideUpdates])
 
   for (const slideId of slideIdsToDelete) {
     await deleteHomeCarouselSlide(slideId)
@@ -222,6 +256,7 @@ export async function saveHomeCarouselChanges(payload) {
       altText: slide.alt_text,
       brandName: slide.brand_name || null,
       watchId: slide.watch_id || null,
+      promotionCampaignId: slide.promotion_campaign_id || null,
     })
     if (result.data?.id) {
       localIdToRealId.set(slide.localId, result.data.id)
@@ -233,6 +268,7 @@ export async function saveHomeCarouselChanges(payload) {
       altText: update.alt_text,
       brandName: update.brand_name,
       watchId: update.watch_id,
+      promotionCampaignId: update.promotion_campaign_id,
     })
   }
 

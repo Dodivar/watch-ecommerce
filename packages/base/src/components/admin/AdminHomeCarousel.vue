@@ -9,15 +9,17 @@ import {
 } from '@/services/admin/adminHomeCarouselService.js'
 import { getAllWatchesForAdmin } from '@/services/admin/adminWatchService.js'
 import { getAvailableCatalogBrands } from '@/services/watchService.js'
+import { getActiveWatchPromotionCampaignsForCarousel } from '@/services/admin/adminWatchPromotionService.js'
 
-/** @typedef {'none' | 'brand' | 'watch'} LinkMode */
-/** @typedef {{ id: string, image_url: string, image_path?: string, alt_text: string, brand_name: string, watch_id: string, _isNew?: false }} SavedDraftSlide */
-/** @typedef {{ localId: string, previewUrl: string, file: File, alt_text: string, brand_name: string, watch_id: string, _isNew: true }} NewDraftSlide */
+/** @typedef {'none' | 'brand' | 'watch' | 'campaign'} LinkMode */
+/** @typedef {{ id: string, image_url: string, image_path?: string, alt_text: string, brand_name: string, watch_id: string, promotion_campaign_id: string, _isNew?: false }} SavedDraftSlide */
+/** @typedef {{ localId: string, previewUrl: string, file: File, alt_text: string, brand_name: string, watch_id: string, promotion_campaign_id: string, _isNew: true }} NewDraftSlide */
 
 const savedSlides = ref(/** @type {SavedDraftSlide[]} */ ([]))
 const draftSlides = ref(/** @type {(SavedDraftSlide | NewDraftSlide)[]} */ ([]))
 const brands = ref([])
 const watches = ref([])
+const campaigns = ref([])
 const isLoading = ref(true)
 const isSaving = ref(false)
 const error = ref(null)
@@ -30,10 +32,12 @@ const uploadMeta = ref({
   linkMode: /** @type {LinkMode} */ ('none'),
   brandName: '',
   watchId: '',
+  promotionCampaignId: '',
 })
 
 function getLinkMode(slide) {
   if (slide.watch_id) return 'watch'
+  if (slide.promotion_campaign_id) return 'campaign'
   if (slide.brand_name?.trim()) return 'brand'
   return 'none'
 }
@@ -42,11 +46,22 @@ function setLinkMode(slide, mode) {
   if (mode === 'none') {
     slide.brand_name = ''
     slide.watch_id = ''
+    slide.promotion_campaign_id = ''
   } else if (mode === 'brand') {
     slide.watch_id = ''
+    slide.promotion_campaign_id = ''
   } else if (mode === 'watch') {
     slide.brand_name = ''
+    slide.promotion_campaign_id = ''
+  } else if (mode === 'campaign') {
+    slide.brand_name = ''
+    slide.watch_id = ''
   }
+}
+
+function campaignLabel(campaignId) {
+  const campaign = campaigns.value.find((entry) => entry.id === campaignId)
+  return campaign?.name || 'Événement sélectionné'
 }
 
 function watchLabel(watchId) {
@@ -67,7 +82,15 @@ const slidesWithMissingAlt = computed(() =>
 
 const hasValidAltTexts = computed(() => slidesWithMissingAlt.value.length === 0)
 
-const canPublish = computed(() => hasChanges.value && hasValidAltTexts.value)
+const hasValidCampaignLinks = computed(() =>
+  draftSlides.value.every((slide) => {
+    if (getLinkMode(slide) !== 'campaign') return true
+    if (!slide.promotion_campaign_id) return false
+    return campaigns.value.some((entry) => entry.id === slide.promotion_campaign_id)
+  }),
+)
+
+const canPublish = computed(() => hasChanges.value && hasValidAltTexts.value && hasValidCampaignLinks.value)
 
 function normalizeSavedSlide(row) {
   return {
@@ -77,6 +100,7 @@ function normalizeSavedSlide(row) {
     alt_text: row.alt_text ?? '',
     brand_name: row.brand_name ?? '',
     watch_id: row.watch_id ?? '',
+    promotion_campaign_id: row.promotion_campaign_id ?? '',
   }
 }
 
@@ -110,6 +134,7 @@ function buildPayloadFromDraft() {
       alt_text: s.alt_text,
       brand_name: s.brand_name,
       watch_id: s.watch_id,
+      promotion_campaign_id: s.promotion_campaign_id,
     }))
 
   const slideUpdates = draftSlides.value
@@ -121,6 +146,7 @@ function buildPayloadFromDraft() {
         s.alt_text !== original.alt_text
         || s.brand_name !== original.brand_name
         || s.watch_id !== original.watch_id
+        || s.promotion_campaign_id !== original.promotion_campaign_id
       )
     })
     .map((s) => ({
@@ -128,6 +154,7 @@ function buildPayloadFromDraft() {
       alt_text: s.alt_text,
       brand_name: s.brand_name,
       watch_id: s.watch_id,
+      promotion_campaign_id: s.promotion_campaign_id,
     }))
 
   const orderedRefs = draftSlides.value.map((s) =>
@@ -149,6 +176,7 @@ const hasChanges = computed(() => {
     if (draft.alt_text !== saved.alt_text) return true
     if (draft.brand_name !== saved.brand_name) return true
     if (draft.watch_id !== saved.watch_id) return true
+    if (draft.promotion_campaign_id !== saved.promotion_campaign_id) return true
   }
 
   return false
@@ -171,10 +199,11 @@ async function load() {
   try {
     isLoading.value = true
     error.value = null
-    const [rows, catalogBrands, catalogWatches] = await Promise.all([
+    const [rows, catalogBrands, catalogWatches, activeCampaigns] = await Promise.all([
       getHomeCarouselSlidesForAdmin(),
       getAvailableCatalogBrands().catch(() => []),
       getAllWatchesForAdmin().catch(() => []),
+      getActiveWatchPromotionCampaignsForCarousel().catch(() => []),
     ])
     revokeNewSlideUrls(draftSlides.value.filter((s) => s._isNew))
     savedSlides.value = cloneSavedSlides(rows)
@@ -186,6 +215,7 @@ async function load() {
       (w) => linkedWatchIds.has(w.id) && w.is_available === false,
     )
     watches.value = [...availableWatches, ...linkedUnavailable]
+    campaigns.value = activeCampaigns
   } catch (err) {
     error.value = err.message
   } finally {
@@ -209,10 +239,18 @@ function handleUpload(event) {
     alt_text: uploadMeta.value.altText,
     brand_name: uploadMeta.value.linkMode === 'brand' ? uploadMeta.value.brandName : '',
     watch_id: uploadMeta.value.linkMode === 'watch' ? uploadMeta.value.watchId : '',
+    promotion_campaign_id:
+      uploadMeta.value.linkMode === 'campaign' ? uploadMeta.value.promotionCampaignId : '',
   }
 
   draftSlides.value.push(slide)
-  uploadMeta.value = { altText: '', linkMode: 'none', brandName: '', watchId: '' }
+  uploadMeta.value = {
+    altText: '',
+    linkMode: 'none',
+    brandName: '',
+    watchId: '',
+    promotionCampaignId: '',
+  }
   error.value = null
   if (fileInput.value) fileInput.value.value = ''
 }
@@ -241,6 +279,12 @@ async function saveChanges() {
   if (!hasValidAltTexts.value) {
     error.value =
       'Chaque image doit avoir un texte alternatif descriptif avant publication.'
+    return
+  }
+
+  if (!hasValidCampaignLinks.value) {
+    error.value =
+      'Chaque slide liée à un événement promotionnel doit pointer vers un événement en cours.'
     return
   }
 
@@ -353,6 +397,15 @@ onUnmounted(() => {
     <div v-if="error" class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-red-700">{{ error }}</div>
 
     <div
+      v-if="hasChanges && !hasValidCampaignLinks"
+      class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+      role="alert"
+    >
+      Une ou plusieurs slides pointent vers un événement promotionnel inactif ou non sélectionné.
+      Choisissez un événement en cours ou retirez la redirection.
+    </div>
+
+    <div
       v-if="hasChanges && !hasValidAltTexts"
       class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
       role="alert"
@@ -380,11 +433,12 @@ onUnmounted(() => {
           <select
             v-model="uploadMeta.linkMode"
             class="w-full rounded-lg border px-3 py-2"
-            @change="uploadMeta.brandName = ''; uploadMeta.watchId = ''"
+            @change="uploadMeta.brandName = ''; uploadMeta.watchId = ''; uploadMeta.promotionCampaignId = ''"
           >
             <option value="none">Aucune redirection</option>
             <option value="brand">Collection marque</option>
             <option value="watch">Fiche montre</option>
+            <option value="campaign">Événement promotionnel (actif)</option>
           </select>
         </label>
         <label v-if="uploadMeta.linkMode === 'brand'" class="block text-sm">
@@ -402,6 +456,21 @@ onUnmounted(() => {
               {{ watch.brand }} — {{ watch.name }}
             </option>
           </select>
+        </label>
+        <label v-else-if="uploadMeta.linkMode === 'campaign'" class="block text-sm sm:col-span-2">
+          <span class="mb-1 block text-gray-600">Événement en cours</span>
+          <select
+            v-model="uploadMeta.promotionCampaignId"
+            class="w-full rounded-lg border px-3 py-2"
+          >
+            <option value="">Choisir un événement…</option>
+            <option v-for="campaign in campaigns" :key="campaign.id" :value="campaign.id">
+              {{ campaign.name }}
+            </option>
+          </select>
+          <p v-if="campaigns.length === 0" class="mt-1 text-xs text-amber-700">
+            Aucun événement promotionnel actif pour le moment.
+          </p>
         </label>
       </div>
       <button
@@ -488,6 +557,7 @@ onUnmounted(() => {
                   <option value="none">Aucune redirection</option>
                   <option value="brand">Collection marque</option>
                   <option value="watch">Fiche montre</option>
+                  <option value="campaign">Événement promotionnel (actif)</option>
                 </select>
               </label>
               <label v-if="getLinkMode(slide) === 'brand'" class="block text-sm">
@@ -510,6 +580,33 @@ onUnmounted(() => {
                   class="mt-1 text-xs text-amber-700"
                 >
                   Montre liée : {{ watchLabel(slide.watch_id) }} (peut-être indisponible ou vendue).
+                </p>
+              </label>
+              <label v-else-if="getLinkMode(slide) === 'campaign'" class="block text-sm">
+                <span class="mb-1 block text-gray-600">Événement en cours</span>
+                <select
+                  v-model="slide.promotion_campaign_id"
+                  class="w-full rounded-lg border px-3 py-2"
+                  :class="{
+                    'border-red-400 ring-1 ring-red-200':
+                      slide.promotion_campaign_id
+                      && !campaigns.some((entry) => entry.id === slide.promotion_campaign_id),
+                  }"
+                >
+                  <option value="">Choisir un événement…</option>
+                  <option v-for="campaign in campaigns" :key="campaign.id" :value="campaign.id">
+                    {{ campaign.name }}
+                  </option>
+                </select>
+                <p
+                  v-if="slide.promotion_campaign_id && !campaigns.some((entry) => entry.id === slide.promotion_campaign_id)"
+                  class="mt-1 text-xs text-red-600"
+                  role="alert"
+                >
+                  Événement lié : {{ campaignLabel(slide.promotion_campaign_id) }} (inactif ou expiré).
+                </p>
+                <p v-else-if="campaigns.length === 0" class="mt-1 text-xs text-amber-700">
+                  Aucun événement promotionnel actif pour le moment.
                 </p>
               </label>
             </div>

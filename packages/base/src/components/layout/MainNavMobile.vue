@@ -4,7 +4,8 @@ import { ChevronRight, ChevronLeft, ShoppingBag, X, Search } from '@lucide/vue'
 import { useCart } from '@/composables/useCart.js'
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { useCatalogBrands, prefetchCatalogBrands } from '@/composables/useCatalogBrands.js'
-import { navigationUsesCatalogBrands } from '@/site/mainNavigation.js'
+import { useMenuCampaigns, prefetchMenuCampaigns } from '@/composables/useMenuCampaigns.js'
+import { navigationUsesCatalogBrands, navigationUsesMenuCampaigns } from '@/site/mainNavigation.js'
 
 const props = defineProps({
   features: { type: Object, required: true },
@@ -19,6 +20,11 @@ const open = defineModel('open', { type: Boolean, default: false })
 
 const { badgeLabel, toggleDrawer } = useCart()
 const { brands, isLoading, error, load } = useCatalogBrands()
+const {
+  links: campaignLinks,
+  isLoading: campaignsLoading,
+  load: loadCampaigns,
+} = useMenuCampaigns()
 
 const SEARCH_THRESHOLD = 12
 
@@ -88,6 +94,9 @@ onMounted(() => {
   if (navigationUsesCatalogBrands(props.navItems)) {
     prefetchCatalogBrands()
   }
+  if (navigationUsesMenuCampaigns(props.navItems)) {
+    prefetchMenuCampaigns()
+  }
 })
 
 function resetNavigation() {
@@ -108,6 +117,10 @@ function openCartFromMenu() {
 function openMega(index) {
   direction.value = 'forward'
   navStack.value = [...navStack.value, { type: 'mega', index }]
+  const item = props.navItems[index]
+  if (item?.columns?.some((column) => column.dynamicCampaigns)) {
+    loadCampaigns()
+  }
 }
 
 function openBrands(index) {
@@ -270,6 +283,18 @@ function brandRoute(brandName) {
                   >
                     {{ link.label }}
                   </RouterLink>
+                  <template v-if="column.dynamicCampaigns">
+                    <p v-if="campaignsLoading" class="py-2.5 text-sm text-white/60">Chargement…</p>
+                    <RouterLink
+                      v-for="campaignLink in campaignLinks"
+                      :key="'mcampaign-' + campaignLink.slug"
+                      :to="campaignLink.to"
+                      @click="close"
+                      class="block py-2.5 text-base hover:text-cream-100 transition-colors"
+                    >
+                      {{ campaignLink.label }}
+                    </RouterLink>
+                  </template>
                 </div>
               </template>
             </div>

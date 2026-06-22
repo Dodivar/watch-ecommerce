@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   computeDiscountPercentFromPrices,
+  getCatalogWatchPrice,
   getDisplayDiscountPercent,
   getEffectiveWatchPrice,
   isWatchOnPromotion,
@@ -17,6 +18,12 @@ describe('watchPricing', () => {
     const watch = { price: 2000, promotionPrice: 1600 }
     expect(getEffectiveWatchPrice(watch)).toBe(1600)
     expect(isWatchOnPromotion(watch)).toBe(true)
+  })
+
+  it('returns catalog price regardless of promotion', () => {
+    const watch = { price: 2000, promotionPrice: 1600 }
+    expect(getCatalogWatchPrice(watch)).toBe(2000)
+    expect(getCatalogWatchPrice({ price: 2000 })).toBe(2000)
   })
 
   it('suggests rounded promotion price from percent', () => {

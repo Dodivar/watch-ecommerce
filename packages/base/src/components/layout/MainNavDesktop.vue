@@ -2,8 +2,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { ChevronDown } from '@lucide/vue'
 import MainNavMegaMenuPanel from '@/components/layout/MainNavMegaMenuPanel.vue'
-import { navigationUsesCatalogBrands } from '@/site/mainNavigation.js'
+import { navigationUsesCatalogBrands, navigationUsesMenuCampaigns } from '@/site/mainNavigation.js'
 import { prefetchCatalogBrands } from '@/composables/useCatalogBrands.js'
+import { prefetchMenuCampaigns } from '@/composables/useMenuCampaigns.js'
 
 const props = defineProps({
   navItems: { type: Array, required: true },
@@ -21,6 +22,9 @@ const activeMegaMenuItem = computed(() => {
 onMounted(() => {
   if (navigationUsesCatalogBrands(props.navItems)) {
     prefetchCatalogBrands()
+  }
+  if (navigationUsesMenuCampaigns(props.navItems)) {
+    prefetchMenuCampaigns()
   }
 })
 

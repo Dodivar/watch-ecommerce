@@ -1,12 +1,18 @@
 import { ref, computed, watch, reactive } from 'vue'
 import { getAllWatchesForListing } from '@/services/watchService'
+import { getActiveCampaignWatchPricingPublic } from '@/services/watchPromotionCampaignService.js'
+import { enrichWatchesWithActiveCampaignPricing } from '@/utils/watchPromotionCampaign.js'
 import {
   compareCaseSizeValues,
   normalizeCaseSizeValue,
   watchMatchesCaseSize,
 } from '@/utils/caseSize'
 import { compareWatchesByRecent } from '@/utils/watchSort.js'
-import { getEffectiveWatchPrice, isWatchOnPromotion } from '@/utils/watchPricing.js'
+import {
+  getCatalogWatchPrice,
+  getEffectiveWatchPrice,
+  isWatchOnPromotion,
+} from '@/utils/watchPricing.js'
 
 function watchMatchesAudience(watchModel, selected) {
   if (!selected || selected === 'all') return true
@@ -35,10 +41,15 @@ function countAppliedPromotionOnly(selectedPromotionOnly) {
   return selectedPromotionOnly ? 1 : 0
 }
 
+function countAppliedCampaignFilter(selectedCampaignWatchIds) {
+  return selectedCampaignWatchIds?.size > 0 ? 1 : 0
+}
+
 /**
  * Filtre facettes collection (marque, public, diamètre, prix).
  * Prix appliqués : `priceMin` / `priceMax` (null = pas de borne).
- * Prix brouillon : `priceRange` + limites ; filtre si la plage diffère des limites catalogue.
+ * Limites slider : prix catalogue (plage stable). Filtrage : prix effectif (promo incluse).
+ * Prix brouillon : `priceRange` + limites catalogue ; filtre si la plage diffère des limites.
  *
  * @param {Array<{ brand: string, price: number, audience?: string, details?: { caseSize?: string } }>} watchList
  * @param {{
@@ -51,6 +62,7 @@ function countAppliedPromotionOnly(selectedPromotionOnly) {
  *   priceMinLimit?: number,
  *   priceMaxLimit?: number,
  *   selectedPromotionOnly?: boolean,
+ *   selectedCampaignWatchIds?: Set<string> | null,
  * }} options
  */
 function filterWatchesForListing(watchList, options) {
@@ -65,9 +77,12 @@ function filterWatchesForListing(watchList, options) {
     priceMinLimit,
     priceMaxLimit,
     selectedPromotionOnly,
+    selectedCampaignWatchIds,
   } = options
 
-  if (selectedPromotionOnly) {
+  if (selectedCampaignWatchIds?.size > 0) {
+    filtered = filtered.filter((watch) => selectedCampaignWatchIds.has(watch.id))
+  } else if (selectedPromotionOnly) {
     filtered = filtered.filter((watch) => isWatchOnPromotion(watch))
   }
 
@@ -91,16 +106,16 @@ function filterWatchesForListing(watchList, options) {
   ) {
     filtered = filtered.filter(
       (watch) => {
-        const effectivePrice = getEffectiveWatchPrice(watch)
-        return effectivePrice >= priceRange[0] && effectivePrice <= priceRange[1]
+        const filterPrice = getEffectiveWatchPrice(watch)
+        return filterPrice >= priceRange[0] && filterPrice <= priceRange[1]
       },
     )
   } else if (priceMin !== undefined || priceMax !== undefined) {
     if (priceMin !== null || priceMax !== null) {
       filtered = filtered.filter((watch) => {
-        const effectivePrice = getEffectiveWatchPrice(watch)
-        const matchesMin = priceMin === null || effectivePrice >= priceMin
-        const matchesMax = priceMax === null || effectivePrice <= priceMax
+        const filterPrice = getEffectiveWatchPrice(watch)
+        const matchesMin = priceMin === null || filterPrice >= priceMin
+        const matchesMax = priceMax === null || filterPrice <= priceMax
         return matchesMin && matchesMax
       })
     }
@@ -117,6 +132,9 @@ export function useWatchListing() {
   const selectedCaseSizes = ref(/** @type {string[]} */ ([]))
   const selectedAudience = ref(/** @type {AudienceFilter} */ ('all'))
   const selectedPromotionOnly = ref(false)
+  const selectedEventSlug = ref('')
+  const campaignFilterLabel = ref('')
+  const selectedCampaignWatchIds = ref(/** @type {Set<string> | null} */ (null))
   const priceMin = ref(null)
   const priceMax = ref(null)
   const sortOrder = ref('recent')
@@ -145,12 +163,12 @@ export function useWatchListing() {
 
   const priceMinLimit = computed(() => {
     if (scopedWatches.value.length === 0) return 0
-    return Math.min(...scopedWatches.value.map((w) => getEffectiveWatchPrice(w)))
+    return Math.min(...scopedWatches.value.map((w) => getCatalogWatchPrice(w)))
   })
 
   const priceMaxLimit = computed(() => {
     if (scopedWatches.value.length === 0) return 150000
-    return Math.max(...scopedWatches.value.map((w) => getEffectiveWatchPrice(w)))
+    return Math.max(...scopedWatches.value.map((w) => getCatalogWatchPrice(w)))
   })
 
   const quickPriceRanges = computed(() => {
@@ -212,6 +230,7 @@ export function useWatchListing() {
     n += countAppliedCaseSizes(selectedCaseSizes.value)
     n += countAppliedAudience(selectedAudience.value)
     n += countAppliedPromotionOnly(selectedPromotionOnly.value)
+    n += countAppliedCampaignFilter(selectedCampaignWatchIds.value)
     n += countAppliedPriceActive(priceMin.value, priceMax.value)
     return n
   })
@@ -238,6 +257,7 @@ export function useWatchListing() {
       selectedAudience: selectedAudience.value,
       selectedCaseSizes: selectedCaseSizes.value,
       selectedPromotionOnly: selectedPromotionOnly.value,
+      selectedCampaignWatchIds: selectedCampaignWatchIds.value,
       priceMin: priceMin.value,
       priceMax: priceMax.value,
     })
@@ -265,6 +285,7 @@ export function useWatchListing() {
       selectedAudience: tempAudience.value,
       selectedCaseSizes: tempSelectedCaseSizes.value,
       selectedPromotionOnly: tempPromotionOnly.value,
+      selectedCampaignWatchIds: selectedCampaignWatchIds.value,
       priceRange: tempPriceRange.value,
       priceMinLimit: priceMinLimit.value,
       priceMaxLimit: priceMaxLimit.value,
@@ -319,8 +340,8 @@ export function useWatchListing() {
     tempAudience.value = 'all'
     tempPromotionOnly.value = false
     if (scopedWatches.value.length > 0) {
-      const minPrice = Math.min(...scopedWatches.value.map((w) => w.price))
-      const maxPrice = Math.max(...scopedWatches.value.map((w) => w.price))
+      const minPrice = Math.min(...scopedWatches.value.map((w) => getCatalogWatchPrice(w)))
+      const maxPrice = Math.max(...scopedWatches.value.map((w) => getCatalogWatchPrice(w)))
       const roundedMin = roundToTen(minPrice)
       const roundedMax = roundToTen(maxPrice)
       tempPriceRange.value = [roundedMin, roundedMax]
@@ -442,16 +463,33 @@ export function useWatchListing() {
     }
   })
 
+  function setCampaignFilter(slug, watchIds, label = '') {
+    selectedEventSlug.value = slug || ''
+    campaignFilterLabel.value = label || ''
+    selectedCampaignWatchIds.value =
+      watchIds?.length > 0 ? new Set(watchIds) : slug ? new Set() : null
+    if (slug) {
+      selectedPromotionOnly.value = false
+    }
+  }
+
+  function clearCampaignFilter() {
+    selectedEventSlug.value = ''
+    campaignFilterLabel.value = ''
+    selectedCampaignWatchIds.value = null
+  }
+
   const resetAllFilters = () => {
     selectedBrands.value = []
     selectedCaseSizes.value = []
     selectedAudience.value = 'all'
     selectedPromotionOnly.value = false
+    clearCampaignFilter()
     priceMin.value = null
     priceMax.value = null
     if (scopedWatches.value.length > 0) {
-      const minPrice = Math.min(...scopedWatches.value.map((w) => getEffectiveWatchPrice(w)))
-      const maxPrice = Math.max(...scopedWatches.value.map((w) => getEffectiveWatchPrice(w)))
+      const minPrice = Math.min(...scopedWatches.value.map((w) => getCatalogWatchPrice(w)))
+      const maxPrice = Math.max(...scopedWatches.value.map((w) => getCatalogWatchPrice(w)))
       const roundedMin = roundToTen(minPrice)
       const roundedMax = roundToTen(maxPrice)
       tempPriceRange.value = [roundedMin, roundedMax]
@@ -468,12 +506,15 @@ export function useWatchListing() {
     try {
       isLoading.value = true
       error.value = null
-      const data = await getAllWatchesForListing()
-      watches.value = data
-      const pool = data
+      const [data, campaignPricing] = await Promise.all([
+        getAllWatchesForListing(),
+        getActiveCampaignWatchPricingPublic(),
+      ])
+      watches.value = enrichWatchesWithActiveCampaignPricing(data, campaignPricing)
+      const pool = watches.value
       if (pool.length > 0) {
-        const minPrice = Math.min(...pool.map((w) => getEffectiveWatchPrice(w)))
-        const maxPrice = Math.max(...pool.map((w) => getEffectiveWatchPrice(w)))
+        const minPrice = Math.min(...pool.map((w) => getCatalogWatchPrice(w)))
+        const maxPrice = Math.max(...pool.map((w) => getCatalogWatchPrice(w)))
         const roundedMin = roundToTen(minPrice)
         const roundedMax = roundToTen(maxPrice)
         tempPriceRange.value = [roundedMin, roundedMax]
@@ -494,6 +535,11 @@ export function useWatchListing() {
     selectedCaseSizes,
     selectedAudience,
     selectedPromotionOnly,
+    selectedEventSlug,
+    campaignFilterLabel,
+    selectedCampaignWatchIds,
+    setCampaignFilter,
+    clearCampaignFilter,
     priceMin,
     priceMax,
     sortOrder,

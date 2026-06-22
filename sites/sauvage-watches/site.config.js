@@ -133,6 +133,7 @@ export default {
     /** Achats en ligne (Stripe) sur les fiches montre ; désactiver aussi `VITE_PURCHASE_ENABLED=false` en prod si besoin. */
     purchase: true,
     paymentReturn: true,
+    adminWatchPromotions: true,
   },
 
   /** Profil catalogue revente : année, état, contenu et référence visibles sur cartes et fiches. */

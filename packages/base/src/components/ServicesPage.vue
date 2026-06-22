@@ -144,7 +144,7 @@
     </section>
 
     <!-- CTA -->
-    <section v-if="content.cta" class="py-14 lg:py-16 bg-gradient-to-br from-cream-100 to-cream-200">
+    <section v-if="content.cta" class="py-14 lg:py-16 bg-white">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">{{ content.cta.title }}</h2>
         <p class="text-lg text-gray-600 mb-8">{{ content.cta.subtitle }}</p>
