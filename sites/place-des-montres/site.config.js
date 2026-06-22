@@ -182,8 +182,6 @@ export default {
       daysLabel: 'Lundi – samedi',
       hoursLabel: '9h – 20h',
     },
-    /** Optionnel — note et avis via Places API (si clé Google configurée) */
-    googlePlaceQuery: 'Place des Montres, 24 Place des Halles, 67000 Strasbourg',
   },
 
   legal: {

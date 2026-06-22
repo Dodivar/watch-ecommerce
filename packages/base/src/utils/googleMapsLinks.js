@@ -45,17 +45,3 @@ export function buildGoogleMapsDirectionsUrl({ address, placeId, lat, lng, query
   }
   return null
 }
-
-/**
- * Étoiles visuelles pour une note sur 5 (demi-étoile incluse).
- * @param {number | null | undefined} rating
- * @returns {string}
- */
-export function formatGoogleRatingStars(rating) {
-  if (typeof rating !== 'number' || !Number.isFinite(rating)) return ''
-  const clamped = Math.max(0, Math.min(5, rating))
-  const rounded = Math.round(clamped * 2) / 2
-  const full = Math.floor(rounded)
-  const half = rounded - full >= 0.5
-  return `${'★'.repeat(full)}${half ? '½' : ''}${'☆'.repeat(Math.max(0, 5 - full - (half ? 1 : 0)))}`
-}
