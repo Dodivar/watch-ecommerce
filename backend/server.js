@@ -49,6 +49,11 @@ async function main() {
 
   const app = express()
 
+  // Render (et la plupart des PaaS) passent par un reverse proxy qui envoie X-Forwarded-For.
+  if (isProductionBoot) {
+    app.set('trust proxy', 1)
+  }
+
   // CORS dynamique (origines = registre + BACKEND_CORS_ORIGINS + dev defaults).
   const { middleware: corsMiddleware, options: corsOptions, allowed } = corsFromRegistry(registry)
   console.log('🔧 Configuration CORS dynamique :', {
