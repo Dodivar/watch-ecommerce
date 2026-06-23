@@ -9,15 +9,14 @@
       </span>
       <span
         v-if="watchItem.isOnPromotion"
-        class="absolute top-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-red-600 text-white shadow-sm"
-        :class="showNewBadge ? 'left-2 top-9 md:top-10' : 'left-2'"
+        class="absolute top-2 right-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-red-600 text-white shadow-sm"
       >
         -{{ watchItem.displayDiscountPercent }} %
       </span>
       <span
         v-if="showCornerYearBadge"
         class="absolute z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-medium rounded bg-white/90 text-gray-800 shadow-sm backdrop-blur-sm"
-        :class="showNewBadge || watchItem.isOnPromotion ? 'top-9 left-2 md:top-10' : 'top-2 left-2'"
+        :class="showNewBadge ? 'top-9 left-2 md:top-10' : 'top-2 left-2'"
       >
         {{ watchItem.year }}
       </span>

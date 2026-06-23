@@ -95,4 +95,37 @@ describe('WatchCard', () => {
 
     expect(wrapper.text()).not.toContain('Hors stock')
   })
+
+  it('affiche la promotion en haut à droite quand une année est en coin', () => {
+    getSiteConfigMock.mockReturnValue({
+      watchCatalog: {
+        mode: 'resale',
+        display: {
+          showReference: true,
+          showSoldBadge: false,
+          showResaleFields: true,
+          yearBadgePosition: 'corner',
+        },
+      },
+    })
+
+    const wrapper = mount(WatchCard, {
+      props: {
+        watch: {
+          ...baseWatch,
+          year: 2016,
+          isOnPromotion: true,
+          displayDiscountPercent: 10,
+        },
+        showNewBadge: true,
+      },
+    })
+
+    const promotionBadge = wrapper.find('.bg-red-600')
+    expect(promotionBadge.exists()).toBe(true)
+    expect(promotionBadge.text()).toContain('-10 %')
+    expect(promotionBadge.classes()).toContain('right-2')
+    expect(promotionBadge.classes()).not.toContain('left-2')
+    expect(wrapper.text()).toContain('2016')
+  })
 })
