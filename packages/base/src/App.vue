@@ -30,6 +30,16 @@ const mainNavItems = resolveMainNavigation(site)
 const footerNavItems = resolveFooterNavigation(site)
 const suivezNous = site.social?.suivezNous
 
+// CTA « appeler » du menu mobile — rendu uniquement si le site déclare un téléphone.
+const mobileMenuPhone = (() => {
+  const contact = site.contact || {}
+  if (!contact.phoneE164 && !contact.phoneDisplay) return null
+  return {
+    display: contact.phoneDisplay || contact.phoneE164,
+    href: `tel:${(contact.phoneE164 || contact.phoneDisplay).replace(/\s+/g, '')}`,
+  }
+})()
+
 const hasFooterSocialLinks = computed(
   () =>
     Boolean(site.social?.footerTiktokUrl) ||
@@ -94,6 +104,7 @@ function displayMobileMenu() {
     :logo-src="logoMobileMenuVerticalWhite"
     :logo-alt="site.brand.logoAlt"
     :purchase-enabled="cartAccessible"
+    :phone="mobileMenuPhone"
   />
 
   <!-- Menu desktop -->

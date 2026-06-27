@@ -1,11 +1,13 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { ChevronRight, ChevronLeft, ShoppingBag, X, Search } from '@lucide/vue'
+import { useRouter } from 'vue-router'
+import { ChevronRight, ChevronLeft, ShoppingBag, X, Search, Phone } from '@lucide/vue'
 import { useCart } from '@/composables/useCart.js'
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { useCatalogBrands, prefetchCatalogBrands } from '@/composables/useCatalogBrands.js'
 import { useMenuCampaigns, prefetchMenuCampaigns } from '@/composables/useMenuCampaigns.js'
 import { navigationUsesCatalogBrands, navigationUsesMenuCampaigns } from '@/site/mainNavigation.js'
+import { parseSearchQuery } from '@/utils/watchSearch.js'
 
 const props = defineProps({
   features: { type: Object, required: true },
@@ -14,10 +16,13 @@ const props = defineProps({
   logoSrc: { type: String, required: true },
   logoAlt: { type: String, required: true },
   purchaseEnabled: { type: Boolean, default: false },
+  /** Tap-to-call CTA affiché en bas du menu racine. `null` si le site n'a pas de téléphone. */
+  phone: { type: Object, default: null },
 })
 
 const open = defineModel('open', { type: Boolean, default: false })
 
+const router = useRouter()
 const { badgeLabel, toggleDrawer } = useCart()
 const { brands, isLoading, error, load } = useCatalogBrands()
 const {
@@ -33,6 +38,10 @@ const SEARCH_THRESHOLD = 12
 const navStack = ref([])
 const direction = ref('forward')
 const brandQuery = ref('')
+
+// Recherche catalogue depuis le menu racine (visible si features.collection).
+const searchQuery = ref('')
+const searchInvalid = ref(false)
 
 const currentView = computed(() => navStack.value[navStack.value.length - 1] ?? null)
 const viewKey = computed(() => {
@@ -103,10 +112,23 @@ function resetNavigation() {
   navStack.value = []
   direction.value = 'forward'
   brandQuery.value = ''
+  searchQuery.value = ''
+  searchInvalid.value = false
 }
 
 function close() {
   open.value = false
+}
+
+function submitSearch() {
+  const parsed = parseSearchQuery(searchQuery.value)
+  if (!parsed) {
+    searchInvalid.value = true
+    return
+  }
+  searchInvalid.value = false
+  close()
+  router.push({ path: '/collection/recherche', query: { q: parsed } })
 }
 
 function openCartFromMenu() {
@@ -186,40 +208,106 @@ function brandRoute(brandName) {
         <Transition :name="'mnav-slide-' + direction">
           <div :key="viewKey" class="absolute inset-0 overflow-y-auto">
             <!-- Niveau racine : liens principaux -->
-            <nav
+            <div
               v-if="!currentView"
-              class="flex flex-col items-center justify-center min-h-full w-full px-4 py-24 space-y-8 text-xl font-semibold"
+              class="flex flex-col min-h-full w-full px-5 pt-20 pb-8"
             >
-              <RouterLink to="/" @click="close">
+              <RouterLink to="/" @click="close" class="self-center shrink-0">
                 <img width="100" :src="logoSrc" :alt="logoAlt" />
               </RouterLink>
 
               <p
                 v-if="isAdmin && features.admin"
-                class="text-sm font-normal text-white/75 text-center max-w-xs leading-snug"
+                class="mt-5 text-sm font-normal text-white/75 text-center max-w-xs mx-auto leading-snug"
               >
                 <span class="font-semibold text-white">Mode admin</span> — vous voyez plus qu'un visiteur
               </p>
 
-              <template v-for="(item, idx) in navItems" :key="'mnav-' + idx + '-' + item.type">
-                <RouterLink
-                  v-if="item.type === 'link'"
-                  :to="item.to"
-                  @click="close"
-                  class="hover:text-cream-100 transition-colors text-center"
-                  >{{ item.label }}</RouterLink
-                >
-                <button
-                  v-else-if="item.type === 'megaMenu'"
-                  type="button"
-                  class="flex items-center gap-2 hover:text-cream-100 transition-colors"
-                  @click="openMega(idx)"
-                >
-                  <span>{{ item.label }}</span>
-                  <ChevronRight class="w-5 h-5 shrink-0" :stroke-width="2" />
-                </button>
-              </template>
-            </nav>
+              <!-- Recherche catalogue -->
+              <form
+                v-if="features.collection"
+                role="search"
+                class="relative mt-6 shrink-0"
+                @submit.prevent="submitSearch"
+              >
+                <label for="mnav-search" class="sr-only">Rechercher une montre</label>
+                <Search
+                  class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50"
+                  :stroke-width="2"
+                />
+                <input
+                  id="mnav-search"
+                  v-model="searchQuery"
+                  type="search"
+                  name="q"
+                  inputmode="search"
+                  autocomplete="off"
+                  placeholder="Rechercher marque, modèle, référence…"
+                  :aria-invalid="searchInvalid ? 'true' : 'false'"
+                  class="w-full rounded-lg bg-white/10 py-3 pl-10 pr-3 text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/60"
+                  :class="searchInvalid ? 'ring-2 ring-red-300' : ''"
+                  @input="searchInvalid = false"
+                />
+              </form>
+
+              <!-- Liens principaux : grande tuile en tête, puis lignes -->
+              <nav class="mt-7 flex flex-col text-lg font-semibold">
+                <template v-for="(item, idx) in navItems" :key="'mnav-' + idx + '-' + item.type">
+                  <!-- Entrée mise en avant (1ʳᵉ entrée du menu) -->
+                  <RouterLink
+                    v-if="idx === 0 && item.type === 'link'"
+                    :to="item.to"
+                    @click="close"
+                    class="mb-3 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-4 text-xl hover:bg-white/15 transition-colors"
+                  >
+                    <span>{{ item.label }}</span>
+                    <ChevronRight class="w-6 h-6 shrink-0 text-white/70" :stroke-width="2" />
+                  </RouterLink>
+                  <button
+                    v-else-if="idx === 0 && item.type === 'megaMenu'"
+                    type="button"
+                    class="mb-3 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-4 text-xl hover:bg-white/15 transition-colors"
+                    @click="openMega(idx)"
+                  >
+                    <span>{{ item.label }}</span>
+                    <ChevronRight class="w-6 h-6 shrink-0 text-white/70" :stroke-width="2" />
+                  </button>
+
+                  <!-- Entrées secondaires : lignes pleine largeur -->
+                  <RouterLink
+                    v-else-if="item.type === 'link'"
+                    :to="item.to"
+                    @click="close"
+                    class="flex items-center justify-between py-4 border-b border-white/10 hover:text-cream-100 transition-colors"
+                  >
+                    <span>{{ item.label }}</span>
+                    <ChevronRight class="w-5 h-5 shrink-0 text-white/40" :stroke-width="2" />
+                  </RouterLink>
+                  <button
+                    v-else-if="item.type === 'megaMenu'"
+                    type="button"
+                    class="flex items-center justify-between py-4 border-b border-white/10 hover:text-cream-100 transition-colors"
+                    @click="openMega(idx)"
+                  >
+                    <span>{{ item.label }}</span>
+                    <ChevronRight class="w-5 h-5 shrink-0 text-white/60" :stroke-width="2" />
+                  </button>
+                </template>
+              </nav>
+
+              <!-- Espace flexible pour pousser le CTA téléphone en bas -->
+              <div class="flex-1" aria-hidden="true"></div>
+
+              <!-- Appel direct (affiché si le site a un téléphone configuré) -->
+              <a
+                v-if="phone"
+                :href="phone.href"
+                class="mt-8 shrink-0 flex items-center justify-center gap-2 rounded-xl border border-white/25 py-3.5 text-base font-medium text-white hover:bg-white/10 transition-colors"
+              >
+                <Phone class="w-5 h-5 shrink-0" :stroke-width="2" />
+                <span>{{ phone.display }}</span>
+              </a>
+            </div>
 
             <!-- Niveau 1 : détail d'un mega-menu -->
             <div
