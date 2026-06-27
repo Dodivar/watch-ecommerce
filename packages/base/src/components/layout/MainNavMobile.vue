@@ -191,7 +191,7 @@ function brandRoute(brandName) {
           aria-label="Ouvrir le panier"
           @click="openCartFromMenu"
         >
-          <ShoppingBag class="w-8 h-8" :stroke-width="2" />
+          <ShoppingBag class="w-6 h-6" :stroke-width="2" />
           <span
             v-if="badgeLabel"
             class="absolute -top-0.5 -right-0.5 min-h-[1.125rem] min-w-[1.125rem] px-1 flex items-center justify-center rounded-full bg-white text-[10px] font-bold text-primary leading-none"
@@ -205,7 +205,7 @@ function brandRoute(brandName) {
           class="text-white focus:outline-none p-2"
           aria-label="Fermer le menu"
         >
-          <X class="w-8 h-8" :stroke-width="2" />
+          <X class="w-6 h-6" :stroke-width="2" />
         </button>
       </div>
 

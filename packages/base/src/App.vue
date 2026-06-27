@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { Mail, MapPin, Menu, Phone, ShoppingBag } from '@lucide/vue'
 import { useRoute } from 'vue-router'
-import { Head } from '@vueuse/head'
+import { Head, useHead } from '@vueuse/head'
 import { BASE_URL, WHATSAPP_NUMBER, EMAIL_CONTACT, PURCHASE_ENABLED } from '@/config'
 import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
 import { buildGlobalStructuredData } from '@/site/buildGlobalStructuredData.js'
@@ -51,6 +51,19 @@ const hasFooterSocialLinks = computed(
 const mobileMenuOpen = ref(false)
 const catalogSearchOpen = ref(false)
 const route = useRoute()
+
+// Couleur de la barre d'état mobile (theme-color) : fond du menu quand il est
+// ouvert, couleur par défaut (chrome navigateur, blanc sinon) le reste du temps.
+const themeColorDefault = site.theme?.colors?.browserChrome ?? '#ffffff'
+const themeColorMenuOpen = site.theme?.colors?.primary ?? themeColorDefault
+useHead({
+  meta: [
+    {
+      name: 'theme-color',
+      content: computed(() => (mobileMenuOpen.value ? themeColorMenuOpen : themeColorDefault)),
+    },
+  ],
+})
 
 const { badgeLabel, toggleDrawer, closeDrawer: closeCartDrawer } = useCart()
 
