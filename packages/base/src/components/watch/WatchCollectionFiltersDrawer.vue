@@ -214,6 +214,74 @@
             </div>
           </section>
 
+          <!-- Couleur du bracelet -->
+          <section v-if="sections.braceletColor" class="border-b border-gray-100">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 py-4 text-left"
+              @click="toggleSection('braceletColor')"
+            >
+              <span class="flex items-center gap-2 font-medium text-text-main">
+                Couleur du bracelet
+                <span
+                  v-if="listing.getDraftSectionCount('braceletColor') > 0"
+                  class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
+                >
+                  {{ listing.getDraftSectionCount('braceletColor') }}
+                </span>
+              </span>
+              <ChevronDown
+                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': expanded.braceletColor }"
+                :stroke-width="2"
+              />
+            </button>
+            <div v-show="expanded.braceletColor" class="pb-4">
+              <p
+                v-if="listing.availableBraceletColors.length === 0"
+                class="text-sm text-gray-500"
+              >
+                Aucune couleur de bracelet renseignée sur les montres en stock.
+              </p>
+              <div v-else class="flex flex-wrap gap-5">
+                <button
+                  v-for="color in listing.availableBraceletColors"
+                  :key="color.slug"
+                  type="button"
+                  class="flex flex-col items-center gap-1.5 focus:outline-none"
+                  :aria-pressed="listing.tempSelectedBraceletColors.includes(color.slug)"
+                  :title="color.label"
+                  @click="listing.toggleBraceletColor(color.slug)"
+                >
+                  <span
+                    class="relative inline-flex h-11 w-11 items-center justify-center rounded-full ring-offset-2 transition-all"
+                    :class="
+                      listing.tempSelectedBraceletColors.includes(color.slug)
+                        ? 'ring-2 ring-primary'
+                        : 'ring-1 ring-gray-300 hover:ring-gray-400'
+                    "
+                  >
+                    <span
+                      class="h-9 w-9 rounded-full shadow-inner"
+                      :style="{ backgroundImage: color.gradient }"
+                    />
+                    <svg
+                      v-if="listing.tempSelectedBraceletColors.includes(color.slug)"
+                      class="absolute h-5 w-5 text-white drop-shadow"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <span class="text-xs text-text-main">{{ color.label }}</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
           <!-- Public -->
           <section v-if="sections.audience" class="border-b border-gray-100">
             <button
@@ -333,7 +401,14 @@ const props = defineProps({
   /** Sections affichées (depuis `getMergedCollectionFilters` + contexte route) */
   sections: {
     type: Object,
-    default: () => ({ price: true, brand: true, audience: true, caseSize: true, promotion: true }),
+    default: () => ({
+      price: true,
+      brand: true,
+      audience: true,
+      caseSize: true,
+      braceletColor: true,
+      promotion: true,
+    }),
   },
 })
 
@@ -360,6 +435,7 @@ const expanded = reactive({
   brand: false,
   price: false,
   caseSize: false,
+  braceletColor: false,
   audience: false,
   promotion: false,
 })
@@ -407,6 +483,7 @@ watch(
       expanded.brand = false
       expanded.price = false
       expanded.caseSize = false
+      expanded.braceletColor = false
       expanded.audience = false
       expanded.promotion = false
       document.addEventListener('keydown', onEscape)

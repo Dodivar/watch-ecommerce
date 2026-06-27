@@ -68,3 +68,16 @@ Prérequis : tables checkout existantes (`orders`, `order_lines`, `promo_codes`,
 - Colonne `promotion_campaign_id` sur `home_carousel_slides`
 - Policies RLS lecture publique campagnes et items (filtrage actif côté app)
 - Prérequis : `20260622140000_watch_promotion_campaigns.sql`, `20260608120000_home_carousel.sql`
+
+## Couleur du bracelet
+
+`20260627120000_watch_bracelet_colors.sql` — requis pour le filtre collection « Couleur du bracelet » (pastilles rondes) et le champ correspondant du formulaire admin :
+
+- Colonne `watch_details.bracelet_colors` (`text[]`, défaut `{}`) — une montre peut être bicolore
+- Valeurs validées côté application (`packages/base/src/constants/watchBraceletColors.js` : `gold`, `silver`)
+- Corrige l'erreur `Could not find the 'bracelet_colors' column of 'watch_details' in the schema cache`
+
+```sql
+alter table public.watch_details
+  add column if not exists bracelet_colors text[] not null default '{}'::text[];
+```

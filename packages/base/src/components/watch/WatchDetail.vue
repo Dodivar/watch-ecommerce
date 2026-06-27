@@ -402,6 +402,22 @@
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Matière du bracelet</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.braceletMaterial }}</span>
               </div>
+              <div v-if="watchItem.details?.braceletColors?.length" class="flex gap-4 py-3 border-b border-gray-200">
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Couleur du bracelet</span>
+                <div class="flex flex-wrap items-center gap-3 flex-1">
+                  <span
+                    v-for="slug in watchItem.details.braceletColors"
+                    :key="slug"
+                    class="inline-flex items-center gap-2 font-medium text-gray-900"
+                  >
+                    <span
+                      class="h-5 w-5 rounded-full shadow-inner ring-1 ring-gray-300"
+                      :style="{ backgroundImage: getBraceletColorBySlug(slug)?.gradient }"
+                    />
+                    {{ getBraceletColorBySlug(slug)?.label || slug }}
+                  </span>
+                </div>
+              </div>
               <div v-if="catalogDisplay.showYearInDetails && hasValue(watchItem.year)" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Année de fabrication</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.year }}</span>
@@ -826,6 +842,7 @@ import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredD
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { buildWatchPath, isLegacyWatchIdParam } from '@/utils/watchSlug.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
+import { getBraceletColorBySlug } from '@/constants/watchBraceletColors'
 
 const site = getSiteConfig()
 const siteCopy = site.copy

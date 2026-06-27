@@ -1,6 +1,7 @@
 import { supabase } from '../supabase'
 import { getWatchArticlesForAdmin } from '../watchArticleService'
 import { normalizeCaseSizeValue } from '@/utils/caseSize'
+import { normalizeBraceletColors } from '@/constants/watchBraceletColors'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 
 function isRetailCatalog() {
@@ -66,6 +67,7 @@ function transformDetailsToDB(watchId, details) {
     movement: details.movement || null,
     case_material: details.caseMaterial || null,
     bracelet_material: details.braceletMaterial || null,
+    bracelet_colors: normalizeBraceletColors(details.braceletColors),
     case_size: details.caseSize ? normalizeCaseSizeValue(details.caseSize) : null,
     thickness: details.thickness || null,
     dial_color: details.dialColor || null,
@@ -744,6 +746,7 @@ export async function getWatchByIdForAdmin(watchId) {
         movement: details?.movement || '',
         caseMaterial: details?.case_material || '',
         braceletMaterial: details?.bracelet_material || '',
+        braceletColors: normalizeBraceletColors(details?.bracelet_colors),
         caseSize: normalizeCaseSizeValue(details?.case_size || ''),
         thickness: details?.thickness || '',
         dialColor: details?.dial_color || '',
