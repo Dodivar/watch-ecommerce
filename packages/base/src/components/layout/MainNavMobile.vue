@@ -43,6 +43,9 @@ const brandQuery = ref('')
 const searchQuery = ref('')
 const searchInvalid = ref(false)
 
+// Incrémenté à chaque ouverture : sert de `key` pour rejouer l'apparition en cascade.
+const reveal = ref(0)
+
 const currentView = computed(() => navStack.value[navStack.value.length - 1] ?? null)
 const viewKey = computed(() => {
   const view = currentView.value
@@ -94,7 +97,9 @@ function scrollToLetter(letter) {
 }
 
 watch(open, (isOpen) => {
-  if (!isOpen) {
+  if (isOpen) {
+    reveal.value++
+  } else {
     resetNavigation()
   }
 })
@@ -210,9 +215,15 @@ function brandRoute(brandName) {
             <!-- Niveau racine : liens principaux -->
             <div
               v-if="!currentView"
-              class="flex flex-col min-h-full w-full px-5 pt-20 pb-8"
+              :key="reveal"
+              class="flex flex-col min-h-full w-full px-5 pt-20 pb-8 bg-gradient-to-b from-primary via-primary to-primary-hover"
             >
-              <RouterLink to="/" @click="close" class="self-center shrink-0">
+              <RouterLink
+                to="/"
+                @click="close"
+                class="mnav-reveal-item self-center shrink-0"
+                :style="{ animationDelay: '0ms' }"
+              >
                 <img width="100" :src="logoSrc" :alt="logoAlt" />
               </RouterLink>
 
@@ -227,7 +238,8 @@ function brandRoute(brandName) {
               <form
                 v-if="features.collection"
                 role="search"
-                class="relative mt-6 shrink-0"
+                class="mnav-reveal-item relative mt-6 shrink-0"
+                :style="{ animationDelay: '60ms' }"
                 @submit.prevent="submitSearch"
               >
                 <label for="mnav-search" class="sr-only">Rechercher une montre</label>
@@ -251,14 +263,15 @@ function brandRoute(brandName) {
               </form>
 
               <!-- Liens principaux : grande tuile en tête, puis lignes -->
-              <nav class="mt-7 flex flex-col text-lg font-semibold">
+              <nav class="mt-7 flex flex-col font-heading text-lg tracking-wide">
                 <template v-for="(item, idx) in navItems" :key="'mnav-' + idx + '-' + item.type">
                   <!-- Entrée mise en avant (1ʳᵉ entrée du menu) -->
                   <RouterLink
                     v-if="idx === 0 && item.type === 'link'"
                     :to="item.to"
                     @click="close"
-                    class="mb-3 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-4 text-xl hover:bg-white/15 transition-colors"
+                    class="mnav-reveal-item mb-3 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-4 text-xl hover:bg-white/15 transition-colors"
+                    :style="{ animationDelay: 120 + idx * 60 + 'ms' }"
                   >
                     <span>{{ item.label }}</span>
                     <ChevronRight class="w-6 h-6 shrink-0 text-white/70" :stroke-width="2" />
@@ -266,7 +279,8 @@ function brandRoute(brandName) {
                   <button
                     v-else-if="idx === 0 && item.type === 'megaMenu'"
                     type="button"
-                    class="mb-3 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-4 text-xl hover:bg-white/15 transition-colors"
+                    class="mnav-reveal-item mb-3 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-4 text-xl hover:bg-white/15 transition-colors"
+                    :style="{ animationDelay: 120 + idx * 60 + 'ms' }"
                     @click="openMega(idx)"
                   >
                     <span>{{ item.label }}</span>
@@ -278,7 +292,8 @@ function brandRoute(brandName) {
                     v-else-if="item.type === 'link'"
                     :to="item.to"
                     @click="close"
-                    class="flex items-center justify-between py-4 border-b border-white/10 hover:text-cream-100 transition-colors"
+                    class="mnav-reveal-item flex items-center justify-between py-4 border-b border-white/10 hover:text-cream-100 transition-colors"
+                    :style="{ animationDelay: 120 + idx * 60 + 'ms' }"
                   >
                     <span>{{ item.label }}</span>
                     <ChevronRight class="w-5 h-5 shrink-0 text-white/40" :stroke-width="2" />
@@ -286,7 +301,8 @@ function brandRoute(brandName) {
                   <button
                     v-else-if="item.type === 'megaMenu'"
                     type="button"
-                    class="flex items-center justify-between py-4 border-b border-white/10 hover:text-cream-100 transition-colors"
+                    class="mnav-reveal-item flex items-center justify-between py-4 border-b border-white/10 hover:text-cream-100 transition-colors"
+                    :style="{ animationDelay: 120 + idx * 60 + 'ms' }"
                     @click="openMega(idx)"
                   >
                     <span>{{ item.label }}</span>
@@ -302,7 +318,8 @@ function brandRoute(brandName) {
               <a
                 v-if="phone"
                 :href="phone.href"
-                class="mt-8 shrink-0 flex items-center justify-center gap-2 rounded-xl border border-white/25 py-3.5 text-base font-medium text-white hover:bg-white/10 transition-colors"
+                class="mnav-reveal-item mt-8 shrink-0 flex items-center justify-center gap-2 rounded-xl border border-white/25 py-3.5 text-base font-medium text-white hover:bg-white/10 transition-colors"
+                :style="{ animationDelay: 120 + navItems.length * 60 + 'ms' }"
               >
                 <Phone class="w-5 h-5 shrink-0" :stroke-width="2" />
                 <span>{{ phone.display }}</span>
@@ -500,6 +517,31 @@ function brandRoute(brandName) {
 </template>
 
 <style scoped>
+/* Apparition en cascade des éléments du menu racine (polish). */
+.mnav-reveal-item {
+  opacity: 0;
+  animation: mnav-reveal-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes mnav-reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mnav-reveal-item {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
 .mnav-slide-forward-enter-active,
 .mnav-slide-forward-leave-active,
 .mnav-slide-back-enter-active,
