@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { createWatch, updateWatch, uploadWatchImage, deleteWatchImage, reorderWatchImages, getWatchByIdForAdmin, duplicateWatch } from '@/services/admin/adminWatchService'
 import { getWatchAudiencesForAdminForm } from '@/services/watchService'
 import { DEFAULT_WATCH_AUDIENCE_SLUG, getStaticWatchAudienceAdminOptions } from '@/constants/watchAudiences'
+import { WATCH_BRACELET_COLORS, normalizeBraceletColors } from '@/constants/watchBraceletColors'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import {
   computeDiscountPercentFromPrices,
@@ -44,6 +45,7 @@ const formData = ref({
     movement: '',
     caseMaterial: '',
     braceletMaterial: '',
+    braceletColors: [],
     caseSize: '',
     thickness: '',
     dialColor: '',
@@ -123,6 +125,7 @@ const loadWatch = async () => {
         movement: watch.details?.movement || '',
         caseMaterial: watch.details?.caseMaterial || '',
         braceletMaterial: watch.details?.braceletMaterial || '',
+        braceletColors: normalizeBraceletColors(watch.details?.braceletColors),
         caseSize: watch.details?.caseSize || '',
         thickness: watch.details?.thickness || '',
         dialColor: watch.details?.dialColor || '',
@@ -163,6 +166,15 @@ const loadWatch = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const braceletColorOptions = WATCH_BRACELET_COLORS
+
+const toggleBraceletColor = (slug) => {
+  const colors = formData.value.details.braceletColors
+  const index = colors.indexOf(slug)
+  if (index > -1) colors.splice(index, 1)
+  else colors.push(slug)
 }
 
 const addAccessory = () => {
@@ -744,6 +756,48 @@ onMounted(async () => {
                 placeholder="Ex: Acier inoxydable"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Couleur du bracelet
+                <span class="font-normal text-gray-400">(plusieurs possibles pour un bracelet bicolore)</span>
+              </label>
+              <div class="flex flex-wrap items-center gap-4">
+                <button
+                  v-for="color in braceletColorOptions"
+                  :key="color.slug"
+                  type="button"
+                  class="flex flex-col items-center gap-1.5 focus:outline-none"
+                  :aria-pressed="formData.details.braceletColors.includes(color.slug)"
+                  :title="color.label"
+                  @click="toggleBraceletColor(color.slug)"
+                >
+                  <span
+                    class="relative inline-flex h-11 w-11 items-center justify-center rounded-full ring-offset-2 transition-all"
+                    :class="
+                      formData.details.braceletColors.includes(color.slug)
+                        ? 'ring-2 ring-primary'
+                        : 'ring-1 ring-gray-300 hover:ring-gray-400'
+                    "
+                  >
+                    <span
+                      class="h-9 w-9 rounded-full shadow-inner"
+                      :style="{ backgroundImage: color.gradient }"
+                    />
+                    <svg
+                      v-if="formData.details.braceletColors.includes(color.slug)"
+                      class="absolute h-5 w-5 text-white drop-shadow"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <span class="text-xs text-gray-600">{{ color.label }}</span>
+                </button>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Diamètre du boîtier</label>

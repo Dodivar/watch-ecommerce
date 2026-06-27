@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import { getWatchArticles } from './watchArticleService'
 import { normalizeCaseSizeValue } from '@/utils/caseSize'
+import { normalizeBraceletColors } from '@/constants/watchBraceletColors'
 import {
   getDisplayDiscountPercent,
   getEffectiveWatchPrice,
@@ -101,6 +102,7 @@ function transformWatchData(watchData, details, accessories, images, articles = 
       movement: details?.movement || '',
       caseMaterial: details?.case_material || '',
       braceletMaterial: details?.bracelet_material || '',
+      braceletColors: normalizeBraceletColors(details?.bracelet_colors),
       caseSize: normalizeCaseSizeValue(details?.case_size || ''),
       thickness: details?.thickness || '',
       dialColor: details?.dial_color || '',
