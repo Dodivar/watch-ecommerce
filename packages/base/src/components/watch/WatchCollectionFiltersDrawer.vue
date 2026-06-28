@@ -282,6 +282,54 @@
             </div>
           </section>
 
+          <!-- Matière du bracelet -->
+          <section v-if="sections.braceletMaterial" class="border-b border-gray-100">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 py-4 text-left"
+              @click="toggleSection('braceletMaterial')"
+            >
+              <span class="flex items-center gap-2 font-medium text-text-main">
+                Matière du bracelet
+                <span
+                  v-if="listing.getDraftSectionCount('braceletMaterial') > 0"
+                  class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
+                >
+                  {{ listing.getDraftSectionCount('braceletMaterial') }}
+                </span>
+              </span>
+              <ChevronDown
+                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': expanded.braceletMaterial }"
+                :stroke-width="2"
+              />
+            </button>
+            <div v-show="expanded.braceletMaterial" class="pb-4">
+              <p
+                v-if="listing.availableBraceletMaterials.length === 0"
+                class="text-sm text-gray-500"
+              >
+                Aucune matière de bracelet renseignée sur les montres en stock.
+              </p>
+              <div v-else class="flex flex-wrap gap-2">
+                <button
+                  v-for="material in listing.availableBraceletMaterials"
+                  :key="material.slug"
+                  type="button"
+                  class="rounded-md border px-3 py-2 text-left text-sm font-medium transition-colors"
+                  :class="
+                    listing.tempSelectedBraceletMaterials.includes(material.slug)
+                      ? 'border-primary bg-primary text-white'
+                      : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                  "
+                  @click="listing.toggleBraceletMaterial(material.slug)"
+                >
+                  {{ material.label }}
+                </button>
+              </div>
+            </div>
+          </section>
+
           <!-- Public -->
           <section v-if="sections.audience" class="border-b border-gray-100">
             <button
@@ -407,6 +455,7 @@ const props = defineProps({
       audience: true,
       caseSize: true,
       braceletColor: true,
+      braceletMaterial: true,
       promotion: true,
     }),
   },
@@ -436,6 +485,7 @@ const expanded = reactive({
   price: false,
   caseSize: false,
   braceletColor: false,
+  braceletMaterial: false,
   audience: false,
   promotion: false,
 })
@@ -484,6 +534,7 @@ watch(
       expanded.price = false
       expanded.caseSize = false
       expanded.braceletColor = false
+      expanded.braceletMaterial = false
       expanded.audience = false
       expanded.promotion = false
       document.addEventListener('keydown', onEscape)

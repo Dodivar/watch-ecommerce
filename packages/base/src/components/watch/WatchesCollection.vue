@@ -390,6 +390,7 @@ import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import { isValidCollectionPublicQuerySlug, getStaticWatchAudienceFilterOptions } from '@/constants/watchAudiences.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 import { getBraceletColorLabel } from '@/constants/watchBraceletColors'
+import { getBraceletMaterialLabel } from '@/constants/watchBraceletMaterials'
 import { WATCH_CARD_GRID_PROPS } from '@/constants/watchCardDefaults.js'
 import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
 import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredData.js'
@@ -544,6 +545,7 @@ const collectionFilterFingerprint = computed(() =>
     listing.selectedPromotionOnly,
     listing.selectedEventSlug,
     [...listing.selectedBraceletColors].slice().sort().join('|'),
+    [...listing.selectedBraceletMaterials].slice().sort().join('|'),
     [...listing.selectedCaseSizes].slice().sort().join('\u0000'),
     listing.priceMin,
     listing.priceMax,
@@ -652,6 +654,7 @@ const filterSections = computed(() => {
     audience: cfg.audience,
     caseSize: cfg.caseSize,
     braceletColor: cfg.braceletColor,
+    braceletMaterial: cfg.braceletMaterial,
     promotion: cfg.promotion,
   }
 })
@@ -705,6 +708,15 @@ const activeFilterChips = computed(() => {
     })
   }
 
+  for (const material of listing.selectedBraceletMaterials) {
+    chips.push({
+      id: `braceletMaterial:${material}`,
+      type: 'braceletMaterial',
+      value: material,
+      label: getBraceletMaterialLabel(material),
+    })
+  }
+
   if (listing.selectedAudience !== 'all') {
     chips.push({
       id: `audience:${listing.selectedAudience}`,
@@ -755,6 +767,11 @@ function removeActiveFilter(chip) {
     case 'braceletColor':
       listing.selectedBraceletColors = listing.selectedBraceletColors.filter(
         (color) => color !== chip.value,
+      )
+      break
+    case 'braceletMaterial':
+      listing.selectedBraceletMaterials = listing.selectedBraceletMaterials.filter(
+        (material) => material !== chip.value,
       )
       break
     case 'audience':

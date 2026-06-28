@@ -1,4 +1,5 @@
 import { normalizeCaseSizeValue } from '../../packages/base/src/utils/caseSize.js'
+import { normalizeBraceletMaterials } from '../../packages/base/src/constants/watchBraceletMaterials.js'
 import { getMappedColumn } from './parsePrestashopCsv.js'
 import { parsePrestashopFeaturesStrict } from './parsePrestashopFeatures.js'
 
@@ -67,7 +68,7 @@ export function transformPrestashopRow(row, mapping, context = {}) {
       content: null,
       movement: null,
       caseMaterial: null,
-      braceletMaterial: null,
+      braceletMaterials: [],
       caseSize: null,
       thickness: null,
       dialColor: null,
@@ -111,6 +112,16 @@ export function transformPrestashopRow(row, mapping, context = {}) {
   if (!record.reference) {
     record.reference = record.adCode
   }
+
+  if (record.details.caseSize) {
+    record.details.caseSize = normalizeCaseSizeValue(record.details.caseSize)
+  }
+  record.details.braceletMaterials = normalizeBraceletMaterials(
+    record.details.braceletMaterials?.length
+      ? record.details.braceletMaterials
+      : record.details.braceletMaterial
+  )
+  delete record.details.braceletMaterial
 
   return { record }
 }
@@ -300,7 +311,7 @@ export function recordToDbPayloads(record, displayOrder) {
     content: record.details.content ?? null,
     movement: record.details.movement ?? null,
     case_material: record.details.caseMaterial ?? null,
-    bracelet_material: record.details.braceletMaterial ?? null,
+    bracelet_materials: normalizeBraceletMaterials(record.details.braceletMaterials),
     case_size: record.details.caseSize ? normalizeCaseSizeValue(record.details.caseSize) : null,
     thickness: record.details.thickness ?? null,
     dial_color: record.details.dialColor ?? null,

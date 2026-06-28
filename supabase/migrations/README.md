@@ -74,10 +74,84 @@ Prérequis : tables checkout existantes (`orders`, `order_lines`, `promo_codes`,
 `20260627120000_watch_bracelet_colors.sql` — requis pour le filtre collection « Couleur du bracelet » (pastilles rondes) et le champ correspondant du formulaire admin :
 
 - Colonne `watch_details.bracelet_colors` (`text[]`, défaut `{}`) — une montre peut être bicolore
-- Valeurs validées côté application (`packages/base/src/constants/watchBraceletColors.js` : `gold`, `silver`)
+- Valeurs validées côté application (`packages/base/src/constants/watchBraceletColors.js` : `gold`, `silver`, `black`, `rose_gold`, `bronze`, `blue`)
 - Corrige l'erreur `Could not find the 'bracelet_colors' column of 'watch_details' in the schema cache`
 
 ```sql
 alter table public.watch_details
   add column if not exists bracelet_colors text[] not null default '{}'::text[];
 ```
+
+## Matières du bracelet (filtre collection + admin multi-sélection)
+
+`20260628120000_watch_bracelet_materials.sql` — requis pour sélectionner plusieurs matières par montre (ex. acier + or) :
+
+- Colonne `watch_details.bracelet_materials` (`text[]`, défaut `{}`) — une montre peut combiner plusieurs matières
+- Valeurs validées côté application (`packages/base/src/constants/watchBraceletMaterials.js` : `steel`, `gold`, `leather`, `rubber`, `titanium`, `ceramic`, `fabric`)
+- Backfill automatique depuis l'ancienne colonne `bracelet_material` (singulier, legacy — lecture de repli uniquement côté app)
+- Corrige l'erreur `Could not find the 'bracelet_materials' column of 'watch_details' in the schema cache`
+
+```sql
+alter table public.watch_details
+  add column if not exists bracelet_materials text[] not null default '{}'::text[];
+
+update public.watch_details
+set bracelet_materials = array[bracelet_material]
+where bracelet_material is not null
+  and bracelet_material <> ''
+  and (bracelet_materials is null or bracelet_materials = '{}'::text[]);
+```
+
+Activer le filtre dans le manifest client :
+
+```js
+collection: {
+  filters: {
+    braceletMaterial: true,
+    braceletColor: true,
+  },
+},
+```
+
+### Backfill des libellés texte existants (une fois par projet Supabase)
+
+À exécuter après déploiement si des montres ont encore des libellés PrestaShop en clair :
+
+```sql
+-- Acier
+update public.watch_details set bracelet_material = 'steel'
+where bracelet_material is not null and bracelet_material not in ('steel','gold','leather','rubber','titanium','ceramic','fabric')
+  and (bracelet_material ilike '%acier%' or bracelet_material ilike '%inox%' or bracelet_material ilike 'steel');
+
+-- Or
+update public.watch_details set bracelet_material = 'gold'
+where bracelet_material is not null and bracelet_material not in ('steel','gold','leather','rubber','titanium','ceramic','fabric')
+  and (bracelet_material ilike '% or %' or bracelet_material ilike 'or %' or bracelet_material ilike '% or' or bracelet_material = 'or' or bracelet_material ilike 'gold');
+
+-- Cuir
+update public.watch_details set bracelet_material = 'leather'
+where bracelet_material is not null and bracelet_material not in ('steel','gold','leather','rubber','titanium','ceramic','fabric')
+  and (bracelet_material ilike '%cuir%' or bracelet_material ilike 'leather');
+
+-- Caoutchouc / silicone
+update public.watch_details set bracelet_material = 'rubber'
+where bracelet_material is not null and bracelet_material not in ('steel','gold','leather','rubber','titanium','ceramic','fabric')
+  and (bracelet_material ilike '%caoutchouc%' or bracelet_material ilike '%silicone%' or bracelet_material ilike 'rubber');
+
+-- Titane
+update public.watch_details set bracelet_material = 'titanium'
+where bracelet_material is not null and bracelet_material not in ('steel','gold','leather','rubber','titanium','ceramic','fabric')
+  and (bracelet_material ilike '%titane%' or bracelet_material ilike 'titanium');
+
+-- Céramique
+update public.watch_details set bracelet_material = 'ceramic'
+where bracelet_material is not null and bracelet_material not in ('steel','gold','leather','rubber','titanium','ceramic','fabric')
+  and (bracelet_material ilike '%céramique%' or bracelet_material ilike '%ceramique%' or bracelet_material ilike 'ceramic');
+
+-- Tissu / NATO
+update public.watch_details set bracelet_material = 'fabric'
+where bracelet_material is not null and bracelet_material not in ('steel','gold','leather','rubber','titanium','ceramic','fabric')
+  and (bracelet_material ilike '%tissu%' or bracelet_material ilike '%nato%' or bracelet_material ilike '%nylon%' or bracelet_material ilike 'fabric');
+```
+
+Les valeurs non reconnues restent en texte libre : elles n'apparaissent pas dans le filtre collection tant qu'elles ne sont pas corrigées via l'admin ou un import.

@@ -8,6 +8,7 @@ import {
   watchMatchesCaseSize,
 } from '@/utils/caseSize'
 import { WATCH_BRACELET_COLORS } from '@/constants/watchBraceletColors'
+import { WATCH_BRACELET_MATERIALS } from '@/constants/watchBraceletMaterials'
 import { compareWatchesByRecent } from '@/utils/watchSort.js'
 import {
   getCatalogWatchPrice,
@@ -42,11 +43,22 @@ function countAppliedBraceletColors(selectedBraceletColors) {
   return selectedBraceletColors.length
 }
 
+function countAppliedBraceletMaterials(selectedBraceletMaterials) {
+  return selectedBraceletMaterials.length
+}
+
 /** Une montre correspond si elle possède AU MOINS une des couleurs cochées. */
 function watchMatchesBraceletColors(watchModel, selectedColors) {
   const colors = watchModel.details?.braceletColors
   if (!Array.isArray(colors) || colors.length === 0) return false
   return selectedColors.some((c) => colors.includes(c))
+}
+
+/** Une montre correspond si elle possède AU MOINS une des matières cochées. */
+function watchMatchesBraceletMaterial(watchModel, selectedMaterials) {
+  const materials = watchModel.details?.braceletMaterials
+  if (!Array.isArray(materials) || materials.length === 0) return false
+  return selectedMaterials.some((m) => materials.includes(m))
 }
 
 function countAppliedPromotionOnly(selectedPromotionOnly) {
@@ -84,6 +96,7 @@ function filterWatchesForListing(watchList, options) {
     selectedAudience,
     selectedCaseSizes,
     selectedBraceletColors,
+    selectedBraceletMaterials,
     priceMin,
     priceMax,
     priceRange,
@@ -113,6 +126,10 @@ function filterWatchesForListing(watchList, options) {
 
   if (selectedBraceletColors?.length > 0) {
     filtered = filtered.filter((w) => watchMatchesBraceletColors(w, selectedBraceletColors))
+  }
+
+  if (selectedBraceletMaterials?.length > 0) {
+    filtered = filtered.filter((w) => watchMatchesBraceletMaterial(w, selectedBraceletMaterials))
   }
 
   if (
@@ -148,6 +165,7 @@ export function useWatchListing() {
   const selectedBrands = ref([])
   const selectedCaseSizes = ref(/** @type {string[]} */ ([]))
   const selectedBraceletColors = ref(/** @type {string[]} */ ([]))
+  const selectedBraceletMaterials = ref(/** @type {string[]} */ ([]))
   const selectedAudience = ref(/** @type {AudienceFilter} */ ('all'))
   const selectedPromotionOnly = ref(false)
   const selectedEventSlug = ref('')
@@ -164,6 +182,7 @@ export function useWatchListing() {
   const tempSelectedBrands = ref([])
   const tempSelectedCaseSizes = ref(/** @type {string[]} */ ([]))
   const tempSelectedBraceletColors = ref(/** @type {string[]} */ ([]))
+  const tempSelectedBraceletMaterials = ref(/** @type {string[]} */ ([]))
   const tempPriceMinInput = ref(0)
   const tempPriceMaxInput = ref(150000)
   /** Brouillon « Public » dans le tiroir ; validé via `applyDrawerFilters`. */
@@ -251,12 +270,22 @@ export function useWatchListing() {
     return WATCH_BRACELET_COLORS.filter((c) => present.has(c.slug))
   })
 
+  /** Matières de bracelet présentes dans la collection, ordonnées comme le référentiel. */
+  const availableBraceletMaterials = computed(() => {
+    const present = new Set()
+    for (const watch of scopedWatches.value) {
+      for (const slug of watch.details?.braceletMaterials || []) present.add(slug)
+    }
+    return WATCH_BRACELET_MATERIALS.filter((m) => present.has(m.slug))
+  })
+
   /** Compte filtres **appliqués** (hors tri), pour le badge « Filtrer ». */
   const activeFilterCount = computed(() => {
     let n = 0
     n += countAppliedBrandFilters(selectedBrands.value)
     n += countAppliedCaseSizes(selectedCaseSizes.value)
     n += countAppliedBraceletColors(selectedBraceletColors.value)
+    n += countAppliedBraceletMaterials(selectedBraceletMaterials.value)
     n += countAppliedAudience(selectedAudience.value)
     n += countAppliedPromotionOnly(selectedPromotionOnly.value)
     n += countAppliedCampaignFilter(selectedCampaignWatchIds.value)
@@ -270,6 +299,7 @@ export function useWatchListing() {
     n += countAppliedBrandFilters(tempSelectedBrands.value)
     n += countAppliedCaseSizes(tempSelectedCaseSizes.value)
     n += countAppliedBraceletColors(tempSelectedBraceletColors.value)
+    n += countAppliedBraceletMaterials(tempSelectedBraceletMaterials.value)
     n += countAppliedAudience(tempAudience.value)
     n += countAppliedPromotionOnly(tempPromotionOnly.value)
     const priceActive =
@@ -287,6 +317,7 @@ export function useWatchListing() {
       selectedAudience: selectedAudience.value,
       selectedCaseSizes: selectedCaseSizes.value,
       selectedBraceletColors: selectedBraceletColors.value,
+      selectedBraceletMaterials: selectedBraceletMaterials.value,
       selectedPromotionOnly: selectedPromotionOnly.value,
       selectedCampaignWatchIds: selectedCampaignWatchIds.value,
       priceMin: priceMin.value,
@@ -316,6 +347,7 @@ export function useWatchListing() {
       selectedAudience: tempAudience.value,
       selectedCaseSizes: tempSelectedCaseSizes.value,
       selectedBraceletColors: tempSelectedBraceletColors.value,
+      selectedBraceletMaterials: tempSelectedBraceletMaterials.value,
       selectedPromotionOnly: tempPromotionOnly.value,
       selectedCampaignWatchIds: selectedCampaignWatchIds.value,
       priceRange: tempPriceRange.value,
@@ -338,6 +370,9 @@ export function useWatchListing() {
     if (section === 'braceletColor') {
       return tempSelectedBraceletColors.value.length
     }
+    if (section === 'braceletMaterial') {
+      return tempSelectedBraceletMaterials.value.length
+    }
     if (section === 'price') {
       const narrowed =
         tempPriceRange.value[0] > priceMinLimit.value ||
@@ -359,6 +394,7 @@ export function useWatchListing() {
     tempSelectedBrands.value = [...selectedBrands.value]
     tempSelectedCaseSizes.value = [...selectedCaseSizes.value]
     tempSelectedBraceletColors.value = [...selectedBraceletColors.value]
+    tempSelectedBraceletMaterials.value = [...selectedBraceletMaterials.value]
     tempAudience.value = selectedAudience.value
     tempPromotionOnly.value = selectedPromotionOnly.value
     isFilterDrawerOpen.value = true
@@ -374,6 +410,7 @@ export function useWatchListing() {
     tempSelectedBrands.value = []
     tempSelectedCaseSizes.value = []
     tempSelectedBraceletColors.value = []
+    tempSelectedBraceletMaterials.value = []
     tempAudience.value = 'all'
     tempPromotionOnly.value = false
     if (scopedWatches.value.length > 0) {
@@ -406,6 +443,7 @@ export function useWatchListing() {
     selectedPromotionOnly.value = tempPromotionOnly.value
     selectedCaseSizes.value = [...tempSelectedCaseSizes.value]
     selectedBraceletColors.value = [...tempSelectedBraceletColors.value]
+    selectedBraceletMaterials.value = [...tempSelectedBraceletMaterials.value]
     selectedBrands.value = [...tempSelectedBrands.value]
 
     closeFilterDrawer()
@@ -476,6 +514,12 @@ export function useWatchListing() {
     else tempSelectedBraceletColors.value.push(slug)
   }
 
+  const toggleBraceletMaterial = (slug) => {
+    const index = tempSelectedBraceletMaterials.value.indexOf(slug)
+    if (index > -1) tempSelectedBraceletMaterials.value.splice(index, 1)
+    else tempSelectedBraceletMaterials.value.push(slug)
+  }
+
   watch(
     () => [tempPriceRange.value[0], tempPriceRange.value[1]],
     ([min, max], [prevMin, prevMax]) => {
@@ -527,6 +571,7 @@ export function useWatchListing() {
     selectedBrands.value = []
     selectedCaseSizes.value = []
     selectedBraceletColors.value = []
+    selectedBraceletMaterials.value = []
     selectedAudience.value = 'all'
     selectedPromotionOnly.value = false
     clearCampaignFilter()
@@ -544,6 +589,7 @@ export function useWatchListing() {
     tempSelectedBrands.value = []
     tempSelectedCaseSizes.value = []
     tempSelectedBraceletColors.value = []
+    tempSelectedBraceletMaterials.value = []
     tempAudience.value = 'all'
     tempPromotionOnly.value = false
   }
@@ -580,6 +626,7 @@ export function useWatchListing() {
     selectedBrands,
     selectedCaseSizes,
     selectedBraceletColors,
+    selectedBraceletMaterials,
     selectedAudience,
     selectedPromotionOnly,
     selectedEventSlug,
@@ -596,6 +643,7 @@ export function useWatchListing() {
     tempSelectedBrands,
     tempSelectedCaseSizes,
     tempSelectedBraceletColors,
+    tempSelectedBraceletMaterials,
     tempPriceMinInput,
     tempPriceMaxInput,
     tempAudience,
@@ -609,6 +657,7 @@ export function useWatchListing() {
     availableBrands,
     availableCaseSizes,
     availableBraceletColors,
+    availableBraceletMaterials,
     hasActiveFilters,
     activeFilterCount,
     draftFilterCount,
@@ -629,6 +678,7 @@ export function useWatchListing() {
     toggleBrand,
     toggleCaseSize,
     toggleBraceletColor,
+    toggleBraceletMaterial,
     resetAllFilters,
     loadWatches,
   })

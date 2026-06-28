@@ -5,6 +5,10 @@ import { createWatch, updateWatch, uploadWatchImage, deleteWatchImage, reorderWa
 import { getWatchAudiencesForAdminForm } from '@/services/watchService'
 import { DEFAULT_WATCH_AUDIENCE_SLUG, getStaticWatchAudienceAdminOptions } from '@/constants/watchAudiences'
 import { WATCH_BRACELET_COLORS, normalizeBraceletColors } from '@/constants/watchBraceletColors'
+import {
+  WATCH_BRACELET_MATERIALS,
+  normalizeBraceletMaterials,
+} from '@/constants/watchBraceletMaterials'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import {
   computeDiscountPercentFromPrices,
@@ -44,7 +48,7 @@ const formData = ref({
     content: '',
     movement: '',
     caseMaterial: '',
-    braceletMaterial: '',
+    braceletMaterials: [],
     braceletColors: [],
     caseSize: '',
     thickness: '',
@@ -124,7 +128,7 @@ const loadWatch = async () => {
         content: watch.details?.content || '',
         movement: watch.details?.movement || '',
         caseMaterial: watch.details?.caseMaterial || '',
-        braceletMaterial: watch.details?.braceletMaterial || '',
+        braceletMaterials: normalizeBraceletMaterials(watch.details?.braceletMaterials),
         braceletColors: normalizeBraceletColors(watch.details?.braceletColors),
         caseSize: watch.details?.caseSize || '',
         thickness: watch.details?.thickness || '',
@@ -169,12 +173,20 @@ const loadWatch = async () => {
 }
 
 const braceletColorOptions = WATCH_BRACELET_COLORS
+const braceletMaterialOptions = WATCH_BRACELET_MATERIALS
 
 const toggleBraceletColor = (slug) => {
   const colors = formData.value.details.braceletColors
   const index = colors.indexOf(slug)
   if (index > -1) colors.splice(index, 1)
   else colors.push(slug)
+}
+
+const toggleBraceletMaterial = (slug) => {
+  const materials = formData.value.details.braceletMaterials
+  const index = materials.indexOf(slug)
+  if (index > -1) materials.splice(index, 1)
+  else materials.push(slug)
 }
 
 const addAccessory = () => {
@@ -749,13 +761,26 @@ onMounted(async () => {
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Matériau bracelet</label>
-              <input
-                v-model="formData.details.braceletMaterial"
-                type="text"
-                placeholder="Ex: Acier inoxydable"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Matériau bracelet
+                <span class="font-normal text-gray-400">(plusieurs possibles)</span>
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="material in braceletMaterialOptions"
+                  :key="material.slug"
+                  type="button"
+                  class="rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+                  :class="
+                    formData.details.braceletMaterials.includes(material.slug)
+                      ? 'border-primary bg-primary text-white'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary'
+                  "
+                  @click="toggleBraceletMaterial(material.slug)"
+                >
+                  {{ material.label }}
+                </button>
+              </div>
             </div>
             <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-2">

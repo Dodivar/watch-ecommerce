@@ -2,6 +2,7 @@ import { supabase } from './supabase'
 import { getWatchArticles } from './watchArticleService'
 import { normalizeCaseSizeValue } from '@/utils/caseSize'
 import { normalizeBraceletColors } from '@/constants/watchBraceletColors'
+import { normalizeBraceletMaterials } from '@/constants/watchBraceletMaterials'
 import {
   getDisplayDiscountPercent,
   getEffectiveWatchPrice,
@@ -101,7 +102,11 @@ function transformWatchData(watchData, details, accessories, images, articles = 
       content: details?.content || '',
       movement: details?.movement || '',
       caseMaterial: details?.case_material || '',
-      braceletMaterial: details?.bracelet_material || '',
+      braceletMaterials: normalizeBraceletMaterials(
+        details?.bracelet_materials?.length
+          ? details.bracelet_materials
+          : details?.bracelet_material
+      ),
       braceletColors: normalizeBraceletColors(details?.bracelet_colors),
       caseSize: normalizeCaseSizeValue(details?.case_size || ''),
       thickness: details?.thickness || '',

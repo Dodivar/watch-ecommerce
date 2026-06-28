@@ -398,9 +398,17 @@
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Boîtier</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.caseMaterial }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.braceletMaterial)" class="flex gap-4 py-3 border-b border-gray-200">
+              <div v-if="watchItem.details?.braceletMaterials?.length" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Matière du bracelet</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.braceletMaterial }}</span>
+                <div class="flex flex-wrap items-center gap-3 flex-1">
+                  <span
+                    v-for="slug in watchItem.details.braceletMaterials"
+                    :key="slug"
+                    class="font-medium text-gray-900"
+                  >
+                    {{ getBraceletMaterialLabel(slug) }}
+                  </span>
+                </div>
               </div>
               <div v-if="watchItem.details?.braceletColors?.length" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">Couleur du bracelet</span>
@@ -843,6 +851,7 @@ import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { buildWatchPath, isLegacyWatchIdParam } from '@/utils/watchSlug.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 import { getBraceletColorBySlug } from '@/constants/watchBraceletColors'
+import { getBraceletMaterialLabel } from '@/constants/watchBraceletMaterials'
 
 const site = getSiteConfig()
 const siteCopy = site.copy

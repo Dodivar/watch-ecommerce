@@ -2,6 +2,7 @@ import { supabase } from '../supabase'
 import { getWatchArticlesForAdmin } from '../watchArticleService'
 import { normalizeCaseSizeValue } from '@/utils/caseSize'
 import { normalizeBraceletColors } from '@/constants/watchBraceletColors'
+import { normalizeBraceletMaterials } from '@/constants/watchBraceletMaterials'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 
 function isRetailCatalog() {
@@ -66,7 +67,7 @@ function transformDetailsToDB(watchId, details) {
     content: details.content || null,
     movement: details.movement || null,
     case_material: details.caseMaterial || null,
-    bracelet_material: details.braceletMaterial || null,
+    bracelet_materials: normalizeBraceletMaterials(details.braceletMaterials),
     bracelet_colors: normalizeBraceletColors(details.braceletColors),
     case_size: details.caseSize ? normalizeCaseSizeValue(details.caseSize) : null,
     thickness: details.thickness || null,
@@ -745,7 +746,11 @@ export async function getWatchByIdForAdmin(watchId) {
         content: details?.content || '',
         movement: details?.movement || '',
         caseMaterial: details?.case_material || '',
-        braceletMaterial: details?.bracelet_material || '',
+        braceletMaterials: normalizeBraceletMaterials(
+          details?.bracelet_materials?.length
+            ? details.bracelet_materials
+            : details?.bracelet_material
+        ),
         braceletColors: normalizeBraceletColors(details?.bracelet_colors),
         caseSize: normalizeCaseSizeValue(details?.case_size || ''),
         thickness: details?.thickness || '',
