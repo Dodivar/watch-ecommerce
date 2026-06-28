@@ -1,8 +1,8 @@
 /**
  * Couleurs de bracelet sélectionnables (filtre collection + formulaire admin).
  *
- * Chaque couleur expose un `gradient` CSS pour rendre l'aspect métallique des
- * pastilles rondes. Stockage côté base : un tableau de `slug` dans
+ * Chaque couleur expose un `gradient` CSS pour le rendu des pastilles rondes
+ * (aspect métallique ou finition mate pour le noir). Stockage côté base : un tableau de `slug` dans
  * `watch_details.bracelet_colors` (une montre peut être bicolore).
  *
  * Pour ajouter une couleur : ajouter une ligne ici (slug stable) puis la rendre
@@ -23,6 +23,30 @@ export const WATCH_BRACELET_COLORS = [
     label: 'Argenté',
     gradient:
       'linear-gradient(135deg, #ffffff 0%, #e6e8ea 28%, #b7bcc1 55%, #8a9096 80%, #5f656b 100%)',
+  },
+  {
+    slug: 'black',
+    label: 'Noir',
+    gradient:
+      'linear-gradient(135deg, #5c5c5c 0%, #3d3d3d 25%, #262626 55%, #141414 80%, #050505 100%)',
+  },
+  {
+    slug: 'rose_gold',
+    label: 'Or rose',
+    gradient:
+      'linear-gradient(135deg, #fde8e0 0%, #e8b4a8 28%, #d4897a 55%, #b86b5c 80%, #8f4f45 100%)',
+  },
+  {
+    slug: 'bronze',
+    label: 'Bronze',
+    gradient:
+      'linear-gradient(135deg, #e8c9a8 0%, #c9956a 28%, #a87340 55%, #7a5228 80%, #4a3218 100%)',
+  },
+  {
+    slug: 'blue',
+    label: 'Bleu',
+    gradient:
+      'linear-gradient(135deg, #dce8f5 0%, #8eb4d9 28%, #4a7eb5 55%, #2d5a8a 80%, #1a3d5c 100%)',
   },
 ]
 

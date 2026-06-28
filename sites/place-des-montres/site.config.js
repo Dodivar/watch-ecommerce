@@ -5,7 +5,7 @@ import { publicPath } from '../../packages/base/src/utils/publicPath.js'
 /**
  * Manifest client — Place des Montres (placedesmontres.fr), horlogerie e-commerce à Strasbourg.
  * Données publiques issues du site vitrine (PrestaShop) : contact, adresse magasin, livraison, réseaux.
- * SIRET : placeholder — à remplacer par les mentions légales officielles.
+ * Mentions légales : LHN S.A.R.L. — SIRET 418 198 792 000 32 (R.C.S. Strasbourg B 418 198 792).
  *
  * FAQ : inline uniquement (pas de faq.config.js) — exigence démo monorepo.
  */
@@ -186,9 +186,9 @@ export default {
   },
 
   legal: {
-    companyName: 'Place des Montres',
+    companyName: 'LHN S.A.R.L. (Place des Montres)',
     address: '24 Place des Halles, Centre commercial Place des Halles, 67000 Strasbourg, France',
-    siret: '000 000 000 00000',
+    siret: '418 198 792 000 32',
   },
 
   urls: {
@@ -588,6 +588,8 @@ export default {
       brand: true,
       audience: true,
       caseSize: true,
+      braceletColor: true,
+      braceletMaterial: true,
       promotion: true,
     },
   },
