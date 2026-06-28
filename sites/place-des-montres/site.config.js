@@ -1,5 +1,6 @@
 import homeSelectionCards from './homeSelections.config.js'
 import guidePage from './guide.config.js'
+import { publicPath } from '../../packages/base/src/utils/publicPath.js'
 
 /**
  * Manifest client — Place des Montres (placedesmontres.fr), horlogerie e-commerce à Strasbourg.
@@ -105,7 +106,7 @@ export default {
         id: 15,
         question: 'Ajustez-vous le bracelet métal avant la livraison ?',
         answer:
-          'Oui. Pour toute commande de montre avec <strong>bracelet métal</strong>, nous proposons un <strong>ajustement gratuit</strong> à votre tour de poignet avant expédition. Imprimez notre <a href="/documents/aide-ajustement-montres.pdf" class="text-primary underline" target="_blank" rel="noopener">guide de mesure (PDF)</a> à l’échelle 100&nbsp;%, mesurez votre poignet puis communiquez le résultat par e-mail à <strong>service.client@placedesmontres.fr</strong>.',
+          `Oui. Pour toute commande de montre avec <strong>bracelet métal</strong>, nous proposons un <strong>ajustement gratuit</strong> à votre tour de poignet avant expédition. Imprimez notre <a href="${publicPath('documents/aide-ajustement-montres.pdf')}" class="text-primary underline" target="_blank" rel="noopener">guide de mesure (PDF)</a> à l’échelle 100&nbsp;%, mesurez votre poignet puis communiquez le résultat par e-mail à <strong>service.client@placedesmontres.fr</strong>.`,
       },
     ],
   },
@@ -171,7 +172,7 @@ export default {
     zoom: 14,
     markerLabel: 'Place des Montres — Place des Halles',
     /** Logo bulle carte (`public/brand-logo.jpg`) */
-    popupLogoSrc: '/brand-logo.jpg',
+    popupLogoSrc: publicPath('brand-logo.jpg'),
     /** Fiche Google Maps (Partager → Copier le lien) */
     googleMapsUrl:
       'https://www.google.com/maps/place/Place+des+Montres/@48.5864673,7.7411787,17z/data=!3m1!4b1!4m6!3m5!1s0x4796c84892d71677:0xed78782525eaaaa8!8m2!3d48.5864673!4d7.7411787!16s%2Fg%2F1tqck4qt?hl=fr',
@@ -212,7 +213,7 @@ export default {
       lead:
         "Depuis 1995, au cœur de Strasbourg, nous cultivons l'art de bien choisir sa montre : un conseil de spécialiste, un large choix de marques et l'envie de vous voir repartir avec la pièce qu'il vous faut.",
       sinceYear: 1995,
-      image: '/places/place-des-montres-strasbourg_1.jpg',
+      image: publicPath('places/place-des-montres-strasbourg_1.jpg'),
       imageLayout: 'landscape',
     },
     stats: [
@@ -380,7 +381,7 @@ export default {
             description:
               'Pour toute montre avec bracelet métal commandée en ligne, nous ajustons gratuitement le bracelet à votre tour de poignet avant l’envoi.',
             link: {
-              href: '/documents/aide-ajustement-montres.pdf',
+              href: publicPath('documents/aide-ajustement-montres.pdf'),
               label: 'Guide de mesure (PDF)',
             },
           },
@@ -421,7 +422,7 @@ export default {
       guideLabel: "Le Guide de l'horloger",
       guideTo: '/guide-horloger',
       documentLabel: 'Guide ajustement bracelet (PDF)',
-      documentHref: '/documents/aide-ajustement-montres.pdf',
+      documentHref: publicPath('documents/aide-ajustement-montres.pdf'),
     },
   },
 
@@ -577,7 +578,7 @@ export default {
     documentTitle: 'Reçu de paiement',
     footerNote: 'Merci pour votre confiance — Place des Montres.',
     showWatchImages: true,
-    logoPath: '/brand-logo.jpg',
+    logoPath: publicPath('brand-logo.jpg'),
   },
 
   collection: {
@@ -647,7 +648,7 @@ export default {
       title: 'Une adresse horlogère au cœur des Place des Halles',
       description:
         'Installée à Strasbourg depuis 1995, notre équipe conseille chaque client avec la même attention : choisir le bon style, comparer les marques, trouver le cadeau idéal ou entretenir sa montre au quotidien.',
-      image: '/places/place-des-montres-strasbourg_1.jpg',
+      image: publicPath('places/place-des-montres-strasbourg_1.jpg'),
       imageAlt: 'Boutique Place des Montres au centre commercial Place des Halles à Strasbourg',
       ctaLabel: 'Découvrir notre histoire',
       to: '/a-propos',

@@ -2,6 +2,8 @@
  * Contenu éditorial — Le Guide de l'horloger (Place des Montres).
  * Images : placer les fichiers dans `sites/place-des-montres/public/guide/`.
  */
+import { publicPath } from '../../packages/base/src/utils/publicPath.js'
+
 export default {
   hero: {
     eyebrow: "Conseils d'entretien",
@@ -9,7 +11,7 @@ export default {
     lead:
       "Pile, étanchéité, mouvements, verres et fonctions : les réponses essentielles pour entretenir votre montre et préserver sa garantie.",
     image: {
-      src: '/guide/hero.jpg',
+      src: publicPath('guide/hero.jpg'),
       alt: 'Atelier horloger Place des Montres — Place des Halles, Strasbourg',
       placeholderLabel: 'Atelier horloger — Place des Halles',
     },
@@ -32,7 +34,7 @@ export default {
       layout: 'faq',
       intro: "Lorsque la montre ne fonctionne plus, c'est la première chose à vérifier.",
       image: {
-        src: '/guide/pile.jpg',
+        src: publicPath('guide/pile.jpg'),
         alt: 'Changement de pile de montre en atelier horloger',
         placeholderLabel: 'Changement de pile en atelier',
       },
@@ -60,7 +62,7 @@ export default {
       icon: 'water',
       layout: 'mixed',
       image: {
-        src: '/guide/etancheite.jpg',
+        src: publicPath('guide/etancheite.jpg'),
         alt: "Contrôle d'étanchéité d'une montre sous cloche",
         placeholderLabel: "Contrôle d'étanchéité sous cloche",
       },
@@ -137,7 +139,7 @@ export default {
       intro:
         "Le mouvement désigne l'ensemble des mécanismes qui indiquent les unités de temps : heures, minutes, secondes.",
       image: {
-        src: '/guide/mouvement.jpg',
+        src: publicPath('guide/mouvement.jpg'),
         alt: 'Mouvement mécanique, automatique et quartz',
         placeholderLabel: 'Mouvement mécanique / automatique / quartz',
       },
@@ -173,7 +175,7 @@ export default {
       icon: 'glass',
       layout: 'cards',
       image: {
-        src: '/guide/verre.jpg',
+        src: publicPath('guide/verre.jpg'),
         alt: 'Verre plexiglas, minéral et saphir sur montres',
         placeholderLabel: 'Plexiglas, minéral et saphir',
       },
@@ -201,7 +203,7 @@ export default {
       icon: 'case',
       layout: 'cards',
       image: {
-        src: '/guide/boitiers.jpg',
+        src: publicPath('guide/boitiers.jpg'),
         alt: 'Boîtiers de montre en acier, PVD, céramique et titane',
         placeholderLabel: 'Acier, PVD, céramique, titane',
       },
@@ -234,7 +236,7 @@ export default {
       icon: 'functions',
       layout: 'features',
       image: {
-        src: '/guide/fonctions.jpg',
+        src: publicPath('guide/fonctions.jpg'),
         alt: 'Cadran de montre avec complications et fonctions',
         placeholderLabel: 'Cadran et complications',
       },
