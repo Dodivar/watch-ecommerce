@@ -207,14 +207,14 @@ watch(
 
     <div
       v-if="isLoading"
-      class="aspect-[21/9] w-full max-h-[min(70vh,520px)] animate-pulse bg-cream-200 motion-reduce:animate-none"
+      class="aspect-[14/9] sm:aspect-[21/9] w-full max-h-[min(70vh,520px)] animate-pulse bg-cream-200 motion-reduce:animate-none"
       role="status"
       aria-label="Chargement du carrousel"
     />
 
     <template v-else-if="hasSlides">
       <div
-        class="relative aspect-[21/9] w-full max-h-[min(70vh,520px)]"
+        class="relative aspect-[14/9] sm:aspect-[21/9] w-full max-h-[min(70vh,520px)]"
         role="group"
         :aria-label="`Diapositive ${activeIndex + 1} sur ${slideCount}`"
         :aria-roledescription="hasMultipleSlides ? 'diapositive' : undefined"
