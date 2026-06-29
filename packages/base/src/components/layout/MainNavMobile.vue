@@ -211,7 +211,7 @@ function brandRoute(brandName) {
 
       <div class="relative flex-1 overflow-hidden text-white">
         <Transition :name="'mnav-slide-' + direction">
-          <div :key="viewKey" class="absolute inset-0 overflow-y-auto">
+          <div :key="viewKey" class="absolute inset-0 overflow-y-auto bg-primary">
             <!-- Niveau racine : liens principaux -->
             <div
               v-if="!currentView"
@@ -547,8 +547,21 @@ function brandRoute(brandName) {
 .mnav-slide-back-enter-active,
 .mnav-slide-back-leave-active {
   transition:
-    transform 0.28s ease,
-    opacity 0.28s ease;
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* La vue entrante glisse PAR-DESSUS la vue sortante (effet « push » iOS).
+   Comme chaque vue est opaque (bg-primary), l'ancienne n'est jamais visible
+   par transparence pendant la transition. */
+.mnav-slide-forward-enter-active,
+.mnav-slide-back-enter-active {
+  z-index: 2;
+}
+
+.mnav-slide-forward-leave-active,
+.mnav-slide-back-leave-active {
+  z-index: 1;
 }
 
 .mnav-slide-forward-enter-from {
