@@ -42,6 +42,8 @@ style: |
     font-size: 0.95em;
     margin-top: 0.4em;
   }
+  small { display: block; color: #9a916f; font-size: 0.62em; margin-top: 0.3em; }
+  section img { vertical-align: top; }
   section::after {
     color: #b8a96a;
     font-weight: 600;
@@ -96,6 +98,60 @@ Une solution e-commerce **sur-mesure**, dédiée à votre maison — hébergemen
 3. **Continuité boutique / web** — ajustement bracelet, retrait magasin, guide entretien
 
 Plus de **60 %** du trafic e-commerce mode & accessoires se fait sur mobile — un site lent ou peu lisible, ce sont des ventes perdues **en ligne et en boutique** (clients qui comparent avant de passer aux Halles).
+
+---
+
+## Le mobile est devenu la norme
+
+**Le smartphone n'est plus un canal secondaire : c'est le premier écran de vos clients.** La part des achats finalisés sur mobile progresse chaque année.
+
+![w:580](assets/charts/mobile-share.svg)
+
+> Sur PrestaShop, ce trafic mobile arrive sur un parcours pensé pour l'ordinateur. C'est exactement là que se perdent les ventes.
+
+<small>Sources : observatoires e-commerce FR/EU 2020–2025 — ordres de grandeur.</small>
+
+---
+
+## Votre site, pensé mobile-first
+
+**Chaque écran est d'abord conçu pour le pouce — pas un site ordinateur rétréci après coup.**
+
+- **Mega-menu tactile** — marques, genre et promos accessibles en un geste
+- **Recherche instantanée** — la bonne montre en quelques lettres
+- **Fiches optimisées** — photos rapides, prix et stock lisibles sans zoomer
+- **Achat toujours à portée** — bouton « ajouter au panier » collant en bas d'écran
+- **Checkout en 2 minutes** — Apple Pay / Google Pay en un toucher, sans formulaire interminable
+- **Pages ultra-rapides** — images compressées, rendu quasi instantané
+
+> *« Vos clients comparent les modèles depuis les Halles, sur leur téléphone — votre site doit gagner ce moment-là. »*
+
+---
+
+## L'impact sur vos ventes
+
+Le mobile concentre le trafic… mais c'est aussi là que les paniers se perdent le plus. Deux leviers décisifs : **réduire l'abandon** et **accélérer le chargement**.
+
+![w:345](assets/charts/cart-abandonment.svg) ![w:345](assets/charts/load-time.svg)
+
+> **53 %** des visites mobiles sont abandonnées si la page met plus de **3 s** à charger. Un parcours fluide et rapide récupère ces ventes.
+
+<small>Sources : Google / benchmarks e-commerce FR/EU — ordres de grandeur.</small>
+
+---
+
+## Paiement : tous les moyens attendus
+
+**Stripe natif couvre nativement ce que vos clients réclament** — sans module tiers à acheter ni à maintenir.
+
+![w:540](assets/charts/payment-methods.svg)
+
+- **CB 3D Secure, Apple Pay & Google Pay** dès le lancement — un toucher sur mobile
+- **PayPal** et **paiement fractionné** (3x / 4x) activables en option
+
+> Moins de friction au paiement = moins d'abandons, surtout sur smartphone.
+
+<small>Sources : baromètres paiement e-commerce FR — plusieurs réponses possibles.</small>
 
 ---
 

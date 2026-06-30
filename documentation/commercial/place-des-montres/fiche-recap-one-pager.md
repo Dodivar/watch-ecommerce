@@ -36,6 +36,7 @@ Une **solution e-commerce sur-mesure, dédiée à votre maison**, avec **héberg
 
 ## Fonctionnalités clés (déjà en place pour vous)
 
+- **Expérience mobile-first** : navigation tactile, pages rapides, paiement Apple Pay / Google Pay en un toucher — là où se fait +60 % de votre trafic
 - Catalogue retail 3 000+ références, filtres marque / genre / promo
 - Checkout : Colissimo + retrait Place des Halles, codes promo, réservation stock 30 min
 - Pages : À propos, Services, Guide de l'horloger, FAQ (15 questions), Contact + carte

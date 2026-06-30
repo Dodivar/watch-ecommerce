@@ -18,6 +18,8 @@ Parcours recommandé pour un rendez-vous client de **45 minutes**. Ouvrir par la
 
 ## Déroulé (45 min)
 
+> **Astuce mobile (fil rouge) :** ouvrez la démo **sur un vrai smartphone** ou en mode responsive (F12 → vue mobile) et gardez-le en main tout au long du rendez-vous. Le mobile représente +60 % du trafic : montrer le mega-menu tactile, le bouton d'achat collant et le paiement Apple Pay / Google Pay en direct vaut tous les arguments. Renvoie aux slides 5 à 8.
+
 ### 1. Accroche visuelle (5 min) — « C'est déjà votre site »
 
 **URL :** `/` (accueil)
@@ -129,4 +131,4 @@ Capture : `assets/apres-admin-plateforme.png`
 - [ ] Stripe en mode test si démo paiement
 - [ ] Slides exportées (`presentation-slides.md` → PDF via Marp)
 - [ ] Fiche récap imprimée (`fiche-recap-one-pager.md`)
-- [ ] Devis signable avec grille tarifaire slides 12–13
+- [ ] Devis signable avec grille tarifaire slides 16–17

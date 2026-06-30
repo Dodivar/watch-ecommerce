@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" font-family="Segoe UI, Tahoma, Arial, sans-serif">
+  <style>
+    .val { fill:#2c2412; font-size:26px; font-weight:700; }
+    .cat { fill:#2c2412; font-size:22px; }
+    .axis { fill:#8a8a8a; font-size:16px; }
+  </style>
+  <line x1="90" y1="300" x2="720" y2="300" stroke="#d8d2c2" stroke-width="2"/>
+  <!-- px/% = 2.5, baseline y=300 : Desktop 73, Tablette 80, Mobile 85 -->
+  <rect x="125" y="117.5" width="110" height="182.5" rx="4" fill="#c7c0ad"/>
+  <text class="val" x="180" y="102" text-anchor="middle">73 %</text>
+  <text class="cat" x="180" y="328" text-anchor="middle">Ordinateur</text>
+
+  <rect x="325" y="100" width="110" height="200" rx="4" fill="#b8a96a"/>
+  <text class="val" x="380" y="85" text-anchor="middle">80 %</text>
+  <text class="cat" x="380" y="328" text-anchor="middle">Tablette</text>
+
+  <rect x="525" y="87.5" width="110" height="212.5" rx="4" fill="#7c6300"/>
+  <text class="val" x="580" y="72" text-anchor="middle">85 %</text>
+  <text class="cat" x="580" y="328" text-anchor="middle">Mobile</text>
+
+  <text class="axis" x="90" y="352">Taux d'abandon de panier par type d'appareil — moyenne e-commerce</text>
+</svg>

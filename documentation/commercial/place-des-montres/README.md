@@ -6,12 +6,12 @@ Livrables pour le rendez-vous client [placedesmontres.fr](https://www.placedesmo
 
 | Fichier | Usage |
 |---|---|
-| [presentation-slides.md](presentation-slides.md) | Source du deck 14 slides (Marp) |
+| [presentation-slides.md](presentation-slides.md) | Source du deck 18 slides (Marp) |
 | [presentation-slides.pdf](presentation-slides.pdf) | Export PDF prêt à présenter |
 | [presentation-slides.pptx](presentation-slides.pptx) | Export PowerPoint |
 | [guide-demo.md](guide-demo.md) | Parcours démo 45 min + checklist + objections |
 | [fiche-recap-one-pager.md](fiche-recap-one-pager.md) | Fiche 1 page à imprimer et remettre au client |
-| [assets/](assets/) | Captures avant/après pour les slides |
+| [assets/](assets/) | Captures avant/après + graphiques (`assets/charts/`) pour les slides |
 
 ## Exporter les slides
 
@@ -36,16 +36,27 @@ Copier le contenu slide par slide depuis `presentation-slides.md` ; charte coule
 
 | Fichier | Source | Slide |
 |---|---|---|
-| `avant-accueil-prestashop.png` | placedesmontres.fr (PrestaShop) | 3, 6 |
-| `apres-accueil-plateforme.png` | localhost:5173 (SITE_ID=place-des-montres) | 2, 6 |
-| `apres-collection-plateforme.png` | localhost:5173/collection | 6 |
-| `apres-admin-plateforme.png` | localhost:5173/admin/login | 7 |
+| `avant-accueil-prestashop.png` | placedesmontres.fr (PrestaShop) | 3, 10 |
+| `apres-accueil-plateforme.png` | localhost:5173 (SITE_ID=place-des-montres) | 2, 10 |
+| `apres-collection-plateforme.png` | localhost:5173/collection | 10 |
+| `apres-admin-plateforme.png` | localhost:5173/admin/login | 11 |
 
 > **Note :** `recette.placedesmontres.fr` renvoyait 503 au 25/06/2026 — réactiver le déploiement Vercel avant le RDV, ou utiliser la démo locale.
 
+## Graphiques (slides mobile)
+
+Graphiques vectoriels SVG dans `assets/charts/`, éditables directement (valeurs en clair) et reflétant des **ordres de grandeur de benchmarks e-commerce FR/EU** (à actualiser si vous disposez de chiffres plus récents).
+
+| Fichier | Slide | Donnée |
+|---|---|---|
+| `mobile-share.svg` | 5 | Part des ventes e-commerce sur mobile (2020 → 2026) |
+| `cart-abandonment.svg` | 7 | Taux d'abandon panier par appareil |
+| `load-time.svg` | 7 | Probabilité de rebond mobile selon le temps de chargement |
+| `payment-methods.svg` | 8 | Répartition des moyens de paiement (FR) |
+
 ## Grille tarifaire
 
-Voir slides 12–13 dans `presentation-slides.md` :
+Voir slides 16–17 dans `presentation-slides.md` :
 
 - Migration : **4 900 € HT**
 - Abonnement : **249 € HT / mois** (2 h support, réponse 4 h ouvrées)
