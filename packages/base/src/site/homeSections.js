@@ -7,6 +7,7 @@ export const KNOWN_HOME_SECTION_IDS = [
   'hero',
   'nouvelles',
   'selections',
+  'collectionHighlight',
   'stats',
   'aboutPreview',
   'trust',
@@ -66,6 +67,9 @@ export function filterHomeSectionsByFeatures(sections, features, siteConfig) {
     if (id === 'faq') return Boolean(features.faq)
     if (id === 'selections') {
       return Boolean(features.collection && selectionsCards > 0)
+    }
+    if (id === 'collectionHighlight') {
+      return Boolean(features.collection)
     }
     if (id === 'services') {
       return Boolean(

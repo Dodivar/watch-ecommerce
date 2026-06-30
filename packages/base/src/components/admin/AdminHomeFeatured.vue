@@ -6,9 +6,41 @@ import {
   setFeaturedWatchesForAdmin,
 } from '@/services/admin/adminFeaturedService'
 import { resetNouvellesWatchesCache } from '@/services/nouvellesWatchesService'
+import { resetCollectionHighlightCache } from '@/services/collectionHighlightService'
 import WatchCard from '@/components/watch/WatchCard.vue'
 import { WATCH_CARD_CATALOG_PROPS } from '@/constants/watchCardDefaults.js'
 import AdminShell from './AdminShell.vue'
+
+const props = defineProps({
+  /** Contexte `home_featured_watches` géré par cet écran. */
+  context: {
+    type: String,
+    default: 'nouvelles',
+  },
+  /** Titre de la page admin (AdminShell). */
+  title: {
+    type: String,
+    default: 'Sélection accueil — Nouveautés',
+  },
+  /** Texte d'aide affiché en tête de page. */
+  description: {
+    type: String,
+    default:
+      'Si la sélection est vide, le carrousel affiche automatiquement les dernières montres disponibles.',
+  },
+  /** Libellé de l'état vide / aperçu. */
+  emptyHint: {
+    type: String,
+    default:
+      'Aucune montre sélectionnée — le carrousel affichera automatiquement les dernières montres disponibles.',
+  },
+})
+
+/** Invalidation du cache front associé au contexte courant. */
+const CACHE_RESET_BY_CONTEXT = {
+  nouvelles: resetNouvellesWatchesCache,
+  collection: resetCollectionHighlightCache,
+}
 
 const PAGE_SIZE = 24
 const SEARCH_DEBOUNCE_MS = 300
@@ -91,7 +123,7 @@ async function load() {
   try {
     isLoading.value = true
     error.value = null
-    const featuredRows = await getFeaturedWatchesForAdmin('nouvelles')
+    const featuredRows = await getFeaturedWatchesForAdmin(props.context)
     originalIds.value = featuredRows.map((row) => row.watch_id).filter(Boolean)
     selectedIds.value = [...originalIds.value]
     await loadSelectedWatches()
@@ -185,9 +217,9 @@ async function save() {
     isSaving.value = true
     error.value = null
     success.value = null
-    await setFeaturedWatchesForAdmin('nouvelles', selectedIds.value)
+    await setFeaturedWatchesForAdmin(props.context, selectedIds.value)
     originalIds.value = [...selectedIds.value]
-    resetNouvellesWatchesCache()
+    CACHE_RESET_BY_CONTEXT[props.context]?.()
     success.value = 'Sélection enregistrée.'
   } catch (err) {
     error.value = err.message
@@ -208,9 +240,9 @@ onMounted(load)
 </script>
 
 <template>
-  <AdminShell title="Sélection accueil — Nouveautés" content-class="max-w-5xl">
+  <AdminShell :title="title" content-class="max-w-5xl">
     <p class="text-sm text-gray-600 mb-4">
-      Si la sélection est vide, le carrousel affiche automatiquement les dernières montres disponibles.
+      {{ description }}
     </p>
 
     <div v-if="error" class="bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-4">{{ error }}</div>
@@ -411,7 +443,7 @@ onMounted(load)
           </div>
         </div>
         <p v-else class="text-sm text-gray-500 py-6 text-center">
-          Aucune montre sélectionnée — le carrousel affichera automatiquement les dernières montres disponibles.
+          {{ emptyHint }}
         </p>
       </section>
 

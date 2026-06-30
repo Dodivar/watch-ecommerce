@@ -54,6 +54,14 @@ const carouselLinks = computed(() => {
       match: (p) => p === '/admin/home-featured',
     })
   }
+  if (features.collection) {
+    items.push({
+      to: '/admin/home-collection',
+      label: 'Aperçu collection',
+      icon: Watch,
+      match: (p) => p === '/admin/home-collection',
+    })
+  }
   return items
 })
 
