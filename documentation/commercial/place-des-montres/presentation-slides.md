@@ -2,16 +2,42 @@
 marp: true
 theme: default
 paginate: true
+header: 'Place des Montres'
+footer: 'placedesmontres.fr · Proposition commerciale'
 size: 16:9
 style: |
   section {
     font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
     font-size: 24px;
     color: #2c2412;
-    background: #ffffff;
-    padding: 56px 64px;
-    justify-content: flex-start;
-    border-top: 6px solid #7c6300;
+    background:
+      radial-gradient(120% 80% at 100% 0%, #f6f1e4 0%, rgba(246,241,228,0) 38%),
+      linear-gradient(180deg, #fcfbf7 0%, #f7f3ea 100%);
+    padding: 92px 76px 78px;
+    justify-content: center;
+    border-top: 4px solid transparent;
+    border-image: linear-gradient(90deg, #7c6300 0%, #d8b54a 50%, #7c6300 100%) 1;
+  }
+  /* Bandeau de marque (en-tête courant) */
+  header {
+    position: absolute;
+    top: 30px; left: 76px; right: 76px;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.30em;
+    text-transform: uppercase;
+    color: #a8975c;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e9e2cf;
+  }
+  /* Pied de page courant */
+  footer {
+    left: 76px; bottom: 26px;
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: #b3a988;
   }
   section.lead {
     background: linear-gradient(135deg, #2c2412 0%, #7c6300 100%);
@@ -28,6 +54,7 @@ style: |
   section.cover {
     padding: 0;
     border-top: none;
+    border-image: none;
     color: #f9f7f1;
     overflow: hidden;
     justify-content: stretch;
@@ -130,19 +157,59 @@ style: |
     color: #7c6300;
     font-family: 'Segoe UI', Tahoma, sans-serif;
   }
-  h1 { font-size: 1.7em; }
+  h1 {
+    font-size: 1.7em;
+    position: relative;
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+  }
+  h1::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 62px; height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #7c6300 0%, #d8b54a 100%);
+  }
   h2 { font-size: 1.45em; }
   h3 { color: #2c2412; }
+  h1 strong, h2 strong, h3 strong { color: #7c6300; }
   ul, ol { line-height: 1.5; }
+  li::marker { color: #b8972e; }
   strong { color: #7c6300; }
-  table { font-size: 0.74em; width: 100%; }
-  th { background: #7c6300; color: #fff; }
-  td, th { padding: 6px 12px; }
+  a { color: #7c6300; text-decoration: none; border-bottom: 1px solid rgba(124,99,0,0.35); }
+  table {
+    display: table;
+    font-size: 0.74em;
+    width: 100%;
+    table-layout: auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #ece4cf;
+    box-shadow: 0 12px 30px rgba(44, 36, 18, 0.09);
+  }
+  th {
+    background: linear-gradient(90deg, #6f5900 0%, #8a6f08 100%);
+    color: #fff;
+    text-align: left;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  td, th { padding: 9px 14px; }
+  td { border-bottom: 1px solid #efe9d8; }
+  tbody tr:nth-child(even) td { background: #f7f2e6; }
+  tbody tr:last-child td { border-bottom: none; }
   blockquote {
-    border-left: 4px solid #7c6300;
-    color: #555;
+    background: #f5f0e2;
+    border-left: 4px solid #c9a93c;
+    border-radius: 0 10px 10px 0;
+    color: #5a5240;
     font-size: 0.95em;
-    margin-top: 0.4em;
+    margin-top: 0.6em;
+    padding: 14px 22px;
+    box-shadow: 0 6px 18px rgba(44, 36, 18, 0.06);
   }
   small { display: block; color: #9a916f; font-size: 0.62em; margin-top: 0.3em; }
   section img { vertical-align: top; }
@@ -151,13 +218,16 @@ style: |
   .shots { display: flex; gap: 16px; flex: 0 0 auto; }
   .shots img { border-radius: 16px; box-shadow: 0 6px 22px rgba(0,0,0,.20); border: 1px solid #e3ddcd; }
   section::after {
-    color: #b8a96a;
+    color: #a8975c;
     font-weight: 600;
+    font-size: 0.62em;
   }
 ---
 
 <!-- _class: cover -->
 <!-- _paginate: false -->
+<!-- _header: '' -->
+<!-- _footer: '' -->
 
 <div class="cover-wrap">
 <div class="cover-text">
