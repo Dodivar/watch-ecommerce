@@ -24,6 +24,108 @@ style: |
   }
   section.lead h1 { font-size: 2.4em; }
   section.lead a { color: #f0e6c0; }
+  /* --- Page de garde graphique (slide 1) --- */
+  section.cover {
+    padding: 0;
+    border-top: none;
+    color: #f9f7f1;
+    overflow: hidden;
+    justify-content: stretch;
+    align-items: stretch;
+  }
+  section.cover .cover-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    background:
+      radial-gradient(115% 95% at 86% 52%, rgba(216,181,74,0.40) 0%, rgba(124,99,0,0.14) 30%, rgba(20,17,10,0) 58%),
+      linear-gradient(112deg, #100d07 0%, #1d1810 42%, #2c2412 100%);
+  }
+  section.cover .cover-wrap::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #7c6300 0%, #d8b54a 50%, #7c6300 100%);
+  }
+  section.cover .cover-text {
+    position: relative;
+    z-index: 2;
+    width: 54%;
+    padding: 72px 0 78px 76px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  section.cover .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.34em;
+    font-size: 0.60em;
+    font-weight: 700;
+    color: #d8b54a;
+    margin: 0 0 20px;
+    display: flex;
+    align-items: center;
+  }
+  section.cover .eyebrow::before {
+    content: "";
+    width: 42px;
+    height: 2px;
+    background: #d8b54a;
+    margin-right: 16px;
+  }
+  section.cover h1 {
+    color: #ffffff;
+    font-size: 3.2em;
+    line-height: 1.0;
+    margin: 0 0 24px;
+    letter-spacing: -0.6px;
+    font-weight: 700;
+  }
+  section.cover .tagline {
+    font-size: 1.18em;
+    color: #efe9d8;
+    margin: 0 0 18px;
+    max-width: 14em;
+    line-height: 1.32;
+  }
+  section.cover .tagline strong,
+  section.cover .sub strong { color: #d8b54a; }
+  section.cover .sub {
+    font-size: 0.80em;
+    color: #b6ad96;
+    max-width: 23em;
+    line-height: 1.5;
+    margin: 0 0 38px;
+  }
+  section.cover .by {
+    font-size: 0.72em;
+    color: #e2dac4;
+    margin: 0;
+  }
+  section.cover .by .label {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.20em;
+    font-size: 0.78em;
+    color: #8c8260;
+    margin-bottom: 5px;
+  }
+  section.cover .by a { color: #d8b54a; text-decoration: none; }
+  section.cover .cover-visual {
+    position: absolute;
+    right: -52px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 54%;
+    z-index: 1;
+    text-align: right;
+  }
+  section.cover .cover-visual img {
+    width: 100%;
+    max-width: 660px;
+    filter: drop-shadow(0 34px 64px rgba(0,0,0,0.60));
+  }
   h1, h2 {
     color: #7c6300;
     font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -54,15 +156,29 @@ style: |
   }
 ---
 
-<!-- _class: lead -->
+<!-- _class: cover -->
+<!-- _paginate: false -->
+
+<div class="cover-wrap">
+<div class="cover-text">
+
+<p class="eyebrow">Présentation commerciale</p>
 
 # Place des Montres
 
-## Une boutique en ligne à la hauteur de votre expertise depuis 1995
+<p class="tagline">Une boutique en ligne à la hauteur de votre expertise <strong>depuis 1995</strong></p>
 
-Une solution e-commerce **sur-mesure**, dédiée à votre maison — hébergement, maintenance et évolutions inclus.
+<p class="sub">Une solution e-commerce <strong>sur-mesure</strong>, dédiée à votre maison — hébergement, maintenance et évolutions inclus.</p>
 
-**Présenté par** Doryan Dillen · [doryandillen@gmail.com](mailto:doryandillen@gmail.com)
+<p class="by"><span class="label">Présenté par</span> Doryan Dillen · <a href="mailto:doryandillen@gmail.com">doryandillen@gmail.com</a></p>
+
+</div>
+<div class="cover-visual">
+
+![Montre Tudor Black Bay](assets/cover-watch.png)
+
+</div>
+</div>
 
 ---
 
