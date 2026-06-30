@@ -44,6 +44,10 @@ style: |
   }
   small { display: block; color: #9a916f; font-size: 0.62em; margin-top: 0.3em; }
   section img { vertical-align: top; }
+  .mobile-cols { display: flex; gap: 32px; align-items: center; }
+  .mobile-cols .txt { flex: 1; }
+  .shots { display: flex; gap: 16px; flex: 0 0 auto; }
+  .shots img { border-radius: 16px; box-shadow: 0 6px 22px rgba(0,0,0,.20); border: 1px solid #e3ddcd; }
   section::after {
     color: #b8a96a;
     font-weight: 600;
@@ -113,18 +117,26 @@ Plus de **60 %** du trafic e-commerce mode & accessoires se fait sur mobile — 
 
 ---
 
-## Votre site, pensé mobile-first
+## Votre site sur mobile — réel, pas une maquette
 
-**Chaque écran est d'abord conçu pour le pouce — pas un site ordinateur rétréci après coup.**
+<div class="mobile-cols">
+<div class="txt">
 
-- **Mega-menu tactile** — marques, genre et promos accessibles en un geste
+**Chaque écran est d'abord conçu pour le pouce.** Captures réelles de votre site — accueil et menu :
+
+- **Mega-menu tactile** — marques, genre, promos en un geste
 - **Recherche instantanée** — la bonne montre en quelques lettres
-- **Fiches optimisées** — photos rapides, prix et stock lisibles sans zoomer
-- **Achat toujours à portée** — bouton « ajouter au panier » collant en bas d'écran
-- **Checkout en 2 minutes** — Apple Pay / Google Pay en un toucher, sans formulaire interminable
-- **Pages ultra-rapides** — images compressées, rendu quasi instantané
+- **Achat toujours à portée** — bouton panier collant en bas d'écran
+- **Checkout en 2 min** — Apple Pay / Google Pay en un toucher
+- **Pages ultra-rapides** — images compressées, rendu instantané
 
-> *« Vos clients comparent les modèles depuis les Halles, sur leur téléphone — votre site doit gagner ce moment-là. »*
+</div>
+<div class="shots">
+
+![w:188](assets/mobile/apres-accueil-mobile.png) ![w:188](assets/mobile/apres-menu-mobile.png)
+
+</div>
+</div>
 
 ---
 

@@ -43,6 +43,17 @@ Copier le contenu slide par slide depuis `presentation-slides.md` ; charte coule
 
 > **Note :** `recette.placedesmontres.fr` renvoyait 503 au 25/06/2026 — réactiver le déploiement Vercel avant le RDV, ou utiliser la démo locale.
 
+### Captures mobiles réelles (`assets/mobile/`)
+
+Rendus réels du nouveau site en vue smartphone (iPhone, 390×844 @2x), utilisés sur la slide 6.
+
+| Fichier | Source | Slide |
+|---|---|---|
+| `apres-accueil-mobile.png` | localhost:5173 — accueil, vue mobile | 6 |
+| `apres-menu-mobile.png` | localhost:5173 — mega-menu « Nos montres » ouvert, vue mobile | 6 |
+
+> **À compléter — « avant » mobile :** la capture mobile du site PrestaShop actuel (placedesmontres.fr) n'a pas pu être générée depuis l'environnement (egress réseau bloqué). Pour un vrai avant/après côte à côte, ajouter `assets/mobile/avant-accueil-mobile.png` (capture de `www.placedesmontres.fr` en vue mobile) ; la slide 6 pourra alors afficher les deux colonnes.
+
 ## Graphiques (slides mobile)
 
 Graphiques vectoriels SVG dans `assets/charts/`, éditables directement (valeurs en clair) et reflétant des **ordres de grandeur de benchmarks e-commerce FR/EU** (à actualiser si vous disposez de chiffres plus récents).
