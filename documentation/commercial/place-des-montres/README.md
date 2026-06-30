@@ -6,7 +6,7 @@ Livrables pour le rendez-vous client [placedesmontres.fr](https://www.placedesmo
 
 | Fichier | Usage |
 |---|---|
-| [presentation-slides.md](presentation-slides.md) | Source du deck 12 slides (Marp) |
+| [presentation-slides.md](presentation-slides.md) | Source du deck 14 slides (Marp) |
 | [presentation-slides.pdf](presentation-slides.pdf) | Export PDF prêt à présenter |
 | [presentation-slides.pptx](presentation-slides.pptx) | Export PowerPoint |
 | [guide-demo.md](guide-demo.md) | Parcours démo 45 min + checklist + objections |
@@ -45,7 +45,7 @@ Copier le contenu slide par slide depuis `presentation-slides.md` ; charte coule
 
 ## Grille tarifaire
 
-Voir slide 11 dans `presentation-slides.md` :
+Voir slides 12–13 dans `presentation-slides.md` :
 
 - Migration : **4 900 € HT**
 - Abonnement : **249 € HT / mois** (2 h support, réponse 4 h ouvrées)
