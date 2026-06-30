@@ -245,7 +245,7 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
     "homeCarousel",
     "nouvelles",
     "selections",
-    "stats",
+    "collectionHighlight",
     "aboutPreview",
   ],
   "mainNav": [
