@@ -70,13 +70,15 @@
                 v-if="showFilters"
                 type="button"
                 class="inline-flex flex-1 shrink-0 items-center justify-center gap-2 rounded-lg border border-primary bg-primary px-3 py-2 text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:flex-none sm:px-4 sm:py-2.5"
+                :aria-label="filterButtonAriaLabel"
                 @click="listing.openFilterDrawer"
               >
                 <SlidersHorizontal class="h-5 w-5 shrink-0" :stroke-width="2" />
                 <span class="text-sm font-semibold uppercase tracking-wide">Filtrer</span>
                 <span
                   v-if="listing.activeFilterCount > 0"
-                  class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold text-text-main"
+                  class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold leading-none text-text-main shadow-sm ring-1 ring-primary/10"
+                  aria-hidden="true"
                 >
                   {{ listing.activeFilterCount }}
                 </span>
@@ -217,7 +219,12 @@
           <p
             class="order-2 text-center text-sm text-gray-500 sm:order-1 sm:text-center"
           >
-            {{ totalFiltered }} montre{{ totalFiltered > 1 ? 's' : '' }}
+            <template v-if="showFilteredTotal">
+              {{ totalFiltered }} montre{{ totalFiltered > 1 ? 's' : '' }} sur {{ totalCount }}
+            </template>
+            <template v-else>
+              {{ totalFiltered }} montre{{ totalFiltered > 1 ? 's' : '' }}
+            </template>
           </p>
           <nav
             v-if="totalPages > 1"
@@ -454,6 +461,14 @@ const currentSortLabel = computed(() => {
   return match?.label ?? sortOptions[0].label
 })
 
+const filterButtonAriaLabel = computed(() => {
+  const count = listing.activeFilterCount
+  if (count > 0) {
+    return `Filtrer (${count} filtre${count > 1 ? 's' : ''} actif${count > 1 ? 's' : ''})`
+  }
+  return 'Filtrer'
+})
+
 watch(
   () => [marqueQuerySlug.value, listing.watches.length],
   () => {
@@ -517,6 +532,13 @@ const currentPage = ref(1)
 const collectionListingReady = ref(false)
 
 const totalFiltered = computed(() => listing.filteredWatches.length)
+
+const totalCount = computed(() => listing.watches.length)
+
+/** Affiche « X sur Y » quand des filtres réduisent la liste sous le total. */
+const showFilteredTotal = computed(
+  () => listing.hasActiveFilters && totalFiltered.value < totalCount.value,
+)
 
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(totalFiltered.value / collectionPageSize)),
