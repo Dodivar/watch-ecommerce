@@ -54,20 +54,22 @@
           v-if="showFilters || showSort || !effectiveBrandHero"
           class="mb-3 lg:mb-8"
         >
-          <!-- Ligne 1 : titre à gauche, Filtrer puis Tri à droite -->
-          <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-3 lg:gap-4">
+          <!-- Ligne 1 : titre (pleine largeur sur mobile, à gauche dès sm) + Filtrer/Tri -->
+          <div
+            class="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-3 lg:gap-4"
+          >
             <h1
               v-if="!effectiveBrandHero"
-              class="min-w-0 flex-1 text-xl font-bold text-text-main sm:text-2xl"
+              class="min-w-0 text-xl font-bold text-text-main sm:flex-1 sm:text-2xl"
             >
               {{ pageHeadingTitle }}
             </h1>
 
-            <div class="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-2 sm:ml-auto sm:shrink-0 sm:gap-3">
               <button
                 v-if="showFilters"
                 type="button"
-                class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-primary bg-primary px-3 py-2 text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:px-4 sm:py-2.5"
+                class="inline-flex flex-1 shrink-0 items-center justify-center gap-2 rounded-lg border border-primary bg-primary px-3 py-2 text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:flex-none sm:px-4 sm:py-2.5"
                 @click="listing.openFilterDrawer"
               >
                 <SlidersHorizontal class="h-5 w-5 shrink-0" :stroke-width="2" />
@@ -82,12 +84,12 @@
 
               <div
                 v-if="showSort"
-                class="relative shrink-0"
+                class="relative flex-1 shrink-0 sm:flex-none"
                 ref="sortDropdownRef"
               >
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary sm:gap-2 sm:px-4 sm:py-2.5"
+                  class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary sm:w-auto sm:gap-2 sm:px-4 sm:py-2.5"
                   :aria-label="`Trier les montres : ${currentSortLabel}`"
                   aria-haspopup="listbox"
                   :aria-expanded="listing.isSortMenuOpen"
