@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" font-family="Segoe UI, Tahoma, Arial, sans-serif">
+  <style>
+    .lbl { fill:#2c2412; font-size:20px; }
+    .val { fill:#2c2412; font-size:20px; font-weight:700; }
+    .axis { fill:#8a8a8a; font-size:16px; }
+  </style>
+  <!-- bars start x=250, px/% = 4.6, bar height 36 -->
+  <!-- Carte bancaire 80 -->
+  <text class="lbl" x="240" y="74" text-anchor="end">Carte bancaire</text>
+  <rect x="250" y="50" width="368" height="36" rx="4" fill="#7c6300"/>
+  <text class="val" x="628" y="75">80 %</text>
+  <!-- PayPal 38 -->
+  <text class="lbl" x="240" y="132" text-anchor="end">PayPal</text>
+  <rect x="250" y="108" width="174.8" height="36" rx="4" fill="#a8942f"/>
+  <text class="val" x="434" y="133">38 %</text>
+  <!-- Apple Pay / Google Pay 17 -->
+  <text class="lbl" x="240" y="190" text-anchor="end">Apple Pay / Google Pay</text>
+  <rect x="250" y="166" width="78.2" height="36" rx="4" fill="#b8a96a"/>
+  <text class="val" x="338" y="191">17 %</text>
+  <!-- Paiement fractionné 15 -->
+  <text class="lbl" x="240" y="248" text-anchor="end">Paiement fractionné</text>
+  <rect x="250" y="224" width="69" height="36" rx="4" fill="#c2b06a"/>
+  <text class="val" x="329" y="249">15 %</text>
+  <!-- Virement 9 -->
+  <text class="lbl" x="240" y="306" text-anchor="end">Virement</text>
+  <rect x="250" y="282" width="41.4" height="36" rx="4" fill="#cdbf86"/>
+  <text class="val" x="301" y="307">9 %</text>
+
+  <text class="axis" x="20" y="350">Moyens de paiement utilisés en ligne — acheteurs FR (plusieurs réponses possibles)</text>
+</svg>

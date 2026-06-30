@@ -10,13 +10,15 @@ Parcours recommandé pour un rendez-vous client de **45 minutes**. Ouvrir par la
 | Recette plateforme | https://recette.placedesmontres.fr | ⚠️ 503 — réactiver le déploiement Vercel avant le RDV |
 | Démo locale | `SITE_ID=place-des-montres npm run dev` → http://localhost:5173 | ✅ Fonctionnel |
 
-**Plan B si recette indisponible :** lancer la démo locale sur laptop branché en partage d'écran, ou montrer [sauvage-watches.fr](https://sauvage-watches.fr) pour la preuve production puis basculer sur localhost pour la personnalisation Place des Montres.
+**Plan B si recette indisponible :** lancer la démo locale sur laptop branché en partage d'écran (`SITE_ID=place-des-montres npm run dev`). Rester centré à 100 % sur Place des Montres — ne pas montrer d'autre site client, l'argument est l'exclusivité du leur.
 
 **Mot de passe maintenance (recette protégée) :** voir `sites/place-des-montres/site.config.js` → `maintenance.password`.
 
 ---
 
 ## Déroulé (45 min)
+
+> **Astuce mobile (fil rouge) :** ouvrez la démo **sur un vrai smartphone** ou en mode responsive (F12 → vue mobile) et gardez-le en main tout au long du rendez-vous. Le mobile représente +60 % du trafic : montrer le mega-menu tactile, le bouton d'achat collant et le paiement Apple Pay / Google Pay en direct vaut tous les arguments. Renvoie aux slides 5 à 8.
 
 ### 1. Accroche visuelle (5 min) — « C'est déjà votre site »
 
@@ -129,4 +131,4 @@ Capture : `assets/apres-admin-plateforme.png`
 - [ ] Stripe en mode test si démo paiement
 - [ ] Slides exportées (`presentation-slides.md` → PDF via Marp)
 - [ ] Fiche récap imprimée (`fiche-recap-one-pager.md`)
-- [ ] Devis signable avec grille tarifaire slide 11
+- [ ] Devis signable avec grille tarifaire slides 16–17
