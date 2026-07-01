@@ -12,6 +12,7 @@ const { buildOrdersRouter } = require('./routes/orders')
 const n8nRoutes = require('./routes/n8n')
 const { buildAdminRouter } = require('./admin/adminRoutes')
 const { buildNewsletterRouter } = require('./routes/newsletter')
+const { startNewsletterScheduler } = require('./newsletter/scheduler')
 
 const isProductionBoot =
   process.env.NODE_ENV === 'production' || process.env.RENDER === 'true'
@@ -121,6 +122,9 @@ async function main() {
     console.log(`Server is running on port ${PORT}`)
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`)
   })
+
+  // Envoi différé des newsletters programmées (boucle interne au process).
+  startNewsletterScheduler(registry)
 }
 
 main().catch((err) => {

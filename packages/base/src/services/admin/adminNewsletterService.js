@@ -3,7 +3,7 @@ import { getBackendApiUrl, readApiResponseBody } from '../backendApiUrl.js'
 import { getSiteConfig } from '../../site/getSiteConfig.js'
 import { getAdminSiteId } from './adminSiteContext.js'
 
-export const CAMPAIGN_STATUSES = ['draft', 'sending', 'sent', 'failed']
+export const CAMPAIGN_STATUSES = ['draft', 'scheduled', 'sending', 'sent', 'failed', 'cancelled']
 
 /**
  * Appel authentifié vers le backend (envoi / import — service role + Mailjet).
@@ -133,19 +133,25 @@ function mapCampaign(row) {
     recipientCount: row.recipient_count,
     sentCount: row.sent_count,
     createdBy: row.created_by,
+    scheduledAt: row.scheduled_at,
     sentAt: row.sent_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
 }
 
-export async function getCampaigns() {
+/**
+ * @param {{ status?: string }} [filters]
+ */
+export async function getCampaigns(filters = {}) {
   const siteId = getAdminSiteId()
-  const { data, error } = await supabase
+  let query = supabase
     .from('newsletter_campaigns')
     .select('*')
     .eq('site_id', siteId)
     .order('created_at', { ascending: false })
+  if (filters.status) query = query.eq('status', filters.status)
+  const { data, error } = await query
   if (error) throw new Error(error.message)
   return (data || []).map(mapCampaign)
 }
@@ -230,6 +236,56 @@ export async function sendCampaign(id) {
  */
 export async function sendTestCampaign(id, testEmail) {
   return callBackend(`/campaigns/${id}/send`, { testEmail })
+}
+
+/**
+ * Programme l'envoi d'une campagne à une date/heure donnée. L'envoi effectif est
+ * déclenché par la boucle de planification du backend une fois l'échéance atteinte.
+ * @param {string} id
+ * @param {string} scheduledAtIso  Date ISO (UTC)
+ */
+export async function scheduleCampaign(id, scheduledAtIso) {
+  const siteId = getAdminSiteId()
+  const when = new Date(scheduledAtIso)
+  if (Number.isNaN(when.getTime())) throw new Error("Date d'envoi invalide")
+  if (when.getTime() <= Date.now()) throw new Error("La date d'envoi doit être dans le futur")
+
+  const { data, error } = await supabase
+    .from('newsletter_campaigns')
+    .update({
+      status: 'scheduled',
+      scheduled_at: when.toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('site_id', siteId)
+    .in('status', ['draft', 'cancelled'])
+    .select('*')
+    .single()
+  if (error) throw new Error(error.message)
+  return mapCampaign(data)
+}
+
+/**
+ * Annule la programmation d'une campagne (statut « annulée »).
+ * @param {string} id
+ */
+export async function cancelScheduledCampaign(id) {
+  const siteId = getAdminSiteId()
+  const { data, error } = await supabase
+    .from('newsletter_campaigns')
+    .update({
+      status: 'cancelled',
+      scheduled_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('site_id', siteId)
+    .eq('status', 'scheduled')
+    .select('*')
+    .single()
+  if (error) throw new Error(error.message)
+  return mapCampaign(data)
 }
 
 // ---------------------------------------------------------------------------

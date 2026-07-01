@@ -1,27 +1,45 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus, Eye, Trash2, Users, Settings } from '@lucide/vue'
-import { getCampaigns, deleteCampaign, createCampaign } from '@/services/admin/adminNewsletterService'
+import { Plus, Eye, Trash2, Users, Settings, Ban } from '@lucide/vue'
+import {
+  getCampaigns,
+  deleteCampaign,
+  createCampaign,
+  cancelScheduledCampaign,
+} from '@/services/admin/adminNewsletterService'
 import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
 const campaigns = ref([])
 const isLoading = ref(true)
 const error = ref(null)
+const statusFilter = ref('')
 
 const STATUS_LABELS = {
   draft: 'Brouillon',
+  scheduled: 'Programmée',
   sending: 'En cours',
   sent: 'Envoyée',
   failed: 'Échec',
+  cancelled: 'Annulée',
 }
 const STATUS_CLASSES = {
   draft: 'bg-gray-100 text-gray-700',
+  scheduled: 'bg-blue-100 text-blue-800',
   sending: 'bg-amber-100 text-amber-800',
   sent: 'bg-green-100 text-green-800',
   failed: 'bg-red-100 text-red-800',
+  cancelled: 'bg-gray-100 text-gray-500',
 }
+const FILTER_OPTIONS = [
+  { value: '', label: 'Toutes' },
+  { value: 'draft', label: 'Brouillons' },
+  { value: 'scheduled', label: 'Programmées' },
+  { value: 'sent', label: 'Envoyées' },
+  { value: 'cancelled', label: 'Annulées' },
+  { value: 'failed', label: 'Échecs' },
+]
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -32,11 +50,21 @@ async function load() {
   try {
     isLoading.value = true
     error.value = null
-    campaigns.value = await getCampaigns()
+    campaigns.value = await getCampaigns(statusFilter.value ? { status: statusFilter.value } : {})
   } catch (err) {
     error.value = err.message
   } finally {
     isLoading.value = false
+  }
+}
+
+async function cancelSchedule(campaign) {
+  if (!window.confirm(`Annuler la programmation de « ${campaign.subject} » ?`)) return
+  try {
+    await cancelScheduledCampaign(campaign.id)
+    await load()
+  } catch (err) {
+    error.value = err.message
   }
 }
 
@@ -69,7 +97,16 @@ onMounted(load)
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <div class="flex flex-wrap gap-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <select
+          v-model="statusFilter"
+          class="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+          @change="load"
+        >
+          <option v-for="opt in FILTER_OPTIONS" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </option>
+        </select>
         <RouterLink
           to="/admin/newsletter/subscribers"
           class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm hover:bg-cream transition-colors"
@@ -106,6 +143,7 @@ onMounted(load)
               <th class="px-4 py-3 text-left text-xs uppercase">Objet</th>
               <th class="px-4 py-3 text-left text-xs uppercase">Statut</th>
               <th class="px-4 py-3 text-right text-xs uppercase">Destinataires</th>
+              <th class="px-4 py-3 text-left text-xs uppercase">Envoi prévu</th>
               <th class="px-4 py-3 text-left text-xs uppercase">Envoyée le</th>
               <th class="px-4 py-3 text-right text-xs uppercase">Actions</th>
             </tr>
@@ -121,6 +159,9 @@ onMounted(load)
               <td class="px-4 py-3 text-sm text-right">
                 {{ c.status === 'sent' ? `${c.sentCount}/${c.recipientCount}` : (c.recipientCount || '—') }}
               </td>
+              <td class="px-4 py-3 text-sm text-gray-600">
+                {{ c.status === 'scheduled' ? formatDate(c.scheduledAt) : '—' }}
+              </td>
               <td class="px-4 py-3 text-sm text-gray-600">{{ formatDate(c.sentAt) }}</td>
               <td class="px-4 py-3 text-sm">
                 <div class="flex justify-end gap-1">
@@ -131,6 +172,15 @@ onMounted(load)
                     @click="router.push(`/admin/newsletter/${c.id}/edit`)"
                   >
                     <Eye class="w-5 h-5" :stroke-width="2" />
+                  </button>
+                  <button
+                    v-if="c.status === 'scheduled'"
+                    type="button"
+                    class="p-1.5 rounded-lg text-amber-600 hover:text-amber-900 hover:bg-cream transition-colors"
+                    title="Annuler la programmation"
+                    @click="cancelSchedule(c)"
+                  >
+                    <Ban class="w-5 h-5" :stroke-width="2" />
                   </button>
                   <button
                     v-if="c.status !== 'sending'"

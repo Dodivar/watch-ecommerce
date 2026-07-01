@@ -51,6 +51,120 @@ async function sendMailjetBatch(mailjet, messages) {
 }
 
 /**
+ * Envoie une campagne à l'ensemble des abonnés opt-in.
+ *
+ * Cœur d'envoi partagé entre la route HTTP admin (`POST /campaigns/:id/send`) et
+ * la boucle de planification (`backend/newsletter/scheduler.js`). Résout le public,
+ * passe la campagne en « sending », envoie par lots de 50, journalise chaque
+ * destinataire, puis fixe le statut final (`sent`/`failed`).
+ *
+ * @param {object} params
+ * @param {object} params.site
+ * @param {import('@supabase/supabase-js').SupabaseClient} params.supabase  Client service role
+ * @param {*} params.mailjet
+ * @param {object} params.campaign   Ligne `newsletter_campaigns`
+ * @param {object} params.settings   Réglages de marque (`loadSettings`)
+ * @param {string} params.apiBase    Base publique du backend (liens de désinscription)
+ * @param {string|null} [params.createdBy]  Email admin déclencheur (null pour un envoi planifié)
+ * @returns {Promise<{ sent: number, total: number, status: string }>}
+ */
+async function runCampaignSend({ site, supabase, mailjet, campaign, settings, apiBase, createdBy = null }) {
+  const emailCfg = site.config.backend.email
+  const fromAddress = site.secrets.emailFrom || emailCfg.fromAddress
+  const fromName = settings.sender_name || emailCfg.fromName
+  const campaignId = campaign.id
+
+  // ---- Résolution du public : les abonnés opt-in, source unique de vérité ----
+  const { data: subs, error: subErr } = await supabase
+    .from('newsletter_subscribers')
+    .select('email, unsubscribe_token')
+    .eq('site_id', site.id)
+    .eq('status', 'subscribed')
+
+  if (subErr) throw subErr
+
+  const recipients = subs || []
+  if (recipients.length === 0) {
+    // Pas d'abonné : on marque la campagne en échec pour éviter un « sending » bloqué.
+    await supabase
+      .from('newsletter_campaigns')
+      .update({ status: 'failed', updated_at: new Date().toISOString() })
+      .eq('id', campaignId)
+    return { sent: 0, total: 0, status: 'failed' }
+  }
+
+  // Marque la campagne « en cours » + journalise les destinataires.
+  await supabase
+    .from('newsletter_campaigns')
+    .update({
+      status: 'sending',
+      recipient_count: recipients.length,
+      created_by: createdBy || campaign.created_by || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', campaignId)
+
+  await supabase.from('newsletter_campaign_recipients').upsert(
+    recipients.map((r) => ({
+      campaign_id: campaignId,
+      site_id: site.id,
+      email: r.email,
+      status: 'pending',
+    })),
+    { onConflict: 'campaign_id,email', ignoreDuplicates: true },
+  )
+
+  // ---- Envoi par lots de 50 ----
+  let sentCount = 0
+  const nowIso = new Date().toISOString()
+  for (let i = 0; i < recipients.length; i += MAILJET_BATCH_SIZE) {
+    const batch = recipients.slice(i, i + MAILJET_BATCH_SIZE)
+    const messages = batch.map((r) => ({
+      From: { Email: fromAddress, Name: fromName },
+      To: [{ Email: r.email, Name: r.email }],
+      Subject: campaign.subject,
+      HTMLPart: createNewsletterEmail(site, {
+        subject: campaign.subject,
+        bodyHtml: campaign.body_html,
+        settings,
+        unsubscribeUrl: buildUnsubscribeUrl(apiBase, r.unsubscribe_token),
+      }),
+      ...(settings.reply_to ? { ReplyTo: { Email: settings.reply_to } } : {}),
+    }))
+
+    try {
+      await sendMailjetBatch(mailjet, messages)
+      sentCount += batch.length
+      await supabase
+        .from('newsletter_campaign_recipients')
+        .update({ status: 'sent', sent_at: nowIso })
+        .eq('campaign_id', campaignId)
+        .in('email', batch.map((r) => r.email))
+    } catch (batchErr) {
+      console.error(`[${site.id}] newsletter batch:`, batchErr.message)
+      await supabase
+        .from('newsletter_campaign_recipients')
+        .update({ status: 'failed', error: String(batchErr.message).slice(0, 500) })
+        .eq('campaign_id', campaignId)
+        .in('email', batch.map((r) => r.email))
+    }
+  }
+
+  const finalStatus = sentCount === 0 ? 'failed' : 'sent'
+  await supabase
+    .from('newsletter_campaigns')
+    .update({
+      status: finalStatus,
+      sent_count: sentCount,
+      sent_at: sentCount > 0 ? nowIso : null,
+      updated_at: nowIso,
+    })
+    .eq('id', campaignId)
+
+  return { sent: sentCount, total: recipients.length, status: finalStatus }
+}
+
+/**
  * @param {*} registry
  */
 function buildNewsletterRouter(registry) {
@@ -201,94 +315,28 @@ function buildNewsletterRouter(registry) {
         return res.status(409).json({ success: false, error: 'Campagne déjà envoyée ou en cours' })
       }
 
-      // ---- Résolution du public : les abonnés opt-in, source unique de vérité ----
-      const { data: subs, error: subErr } = await supabase
+      // Vérifie qu'il existe au moins un abonné avant de basculer la campagne.
+      const { count: audienceCount, error: countErr } = await supabase
         .from('newsletter_subscribers')
-        .select('email, unsubscribe_token')
+        .select('*', { count: 'exact', head: true })
         .eq('site_id', site.id)
         .eq('status', 'subscribed')
-
-      if (subErr) throw subErr
-
-      const recipients = subs || []
-      if (recipients.length === 0) {
+      if (countErr) throw countErr
+      if (!audienceCount) {
         return res.status(400).json({ success: false, error: 'Aucun abonné éligible' })
       }
 
-      // Marque la campagne « en cours » + journalise les destinataires.
-      await supabase
-        .from('newsletter_campaigns')
-        .update({
-          status: 'sending',
-          recipient_count: recipients.length,
-          created_by: req.adminUser?.email || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', campaignId)
-
-      await supabase.from('newsletter_campaign_recipients').upsert(
-        recipients.map((r) => ({
-          campaign_id: campaignId,
-          site_id: site.id,
-          email: r.email,
-          status: 'pending',
-        })),
-        { onConflict: 'campaign_id,email', ignoreDuplicates: true },
-      )
-
-      // ---- Envoi par lots de 50 ----
-      let sentCount = 0
-      const nowIso = new Date().toISOString()
-      for (let i = 0; i < recipients.length; i += MAILJET_BATCH_SIZE) {
-        const batch = recipients.slice(i, i + MAILJET_BATCH_SIZE)
-        const messages = batch.map((r) => ({
-          From: { Email: fromAddress, Name: fromName },
-          To: [{ Email: r.email, Name: r.email }],
-          Subject: campaign.subject,
-          HTMLPart: createNewsletterEmail(site, {
-            subject: campaign.subject,
-            bodyHtml: campaign.body_html,
-            settings,
-            unsubscribeUrl: buildUnsubscribeUrl(apiBase, r.unsubscribe_token),
-          }),
-          ...(settings.reply_to ? { ReplyTo: { Email: settings.reply_to } } : {}),
-        }))
-
-        try {
-          await sendMailjetBatch(mailjet, messages)
-          sentCount += batch.length
-          await supabase
-            .from('newsletter_campaign_recipients')
-            .update({ status: 'sent', sent_at: nowIso })
-            .eq('campaign_id', campaignId)
-            .in('email', batch.map((r) => r.email))
-        } catch (batchErr) {
-          console.error(`[${site.id}] newsletter batch:`, batchErr.message)
-          await supabase
-            .from('newsletter_campaign_recipients')
-            .update({ status: 'failed', error: String(batchErr.message).slice(0, 500) })
-            .eq('campaign_id', campaignId)
-            .in('email', batch.map((r) => r.email))
-        }
-      }
-
-      const finalStatus = sentCount === 0 ? 'failed' : 'sent'
-      await supabase
-        .from('newsletter_campaigns')
-        .update({
-          status: finalStatus,
-          sent_count: sentCount,
-          sent_at: sentCount > 0 ? nowIso : null,
-          updated_at: nowIso,
-        })
-        .eq('id', campaignId)
-
-      return res.json({
-        success: sentCount > 0,
-        sent: sentCount,
-        total: recipients.length,
-        status: finalStatus,
+      const result = await runCampaignSend({
+        site,
+        supabase,
+        mailjet,
+        campaign,
+        settings,
+        apiBase,
+        createdBy: req.adminUser?.email || null,
       })
+
+      return res.json({ success: result.sent > 0, ...result })
     } catch (e) {
       console.error(`[${site.id}] newsletter send:`, e.message)
       // Best-effort : repasse la campagne en échec pour éviter un état « sending » bloqué.
@@ -308,4 +356,4 @@ function buildNewsletterRouter(registry) {
   return router
 }
 
-module.exports = { buildNewsletterRouter }
+module.exports = { buildNewsletterRouter, runCampaignSend, loadSettings }
