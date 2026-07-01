@@ -44,6 +44,12 @@ export const DEFAULT_SITE_FEATURES = {
   watchReference: false,
   /** Campagnes promotionnelles groupées dans l'admin (événements soldes, etc.). */
   adminWatchPromotions: false,
+  /**
+   * Newsletter : gestion des abonnés, composition et envoi de campagnes email
+   * depuis l'admin (+ formulaire d'inscription vitrine). Nécessite la migration
+   * `20260701120000_newsletter.sql` et Mailjet configuré.
+   */
+  newsletter: false,
 }
 
 export function mergeSiteFeatures(partial = {}) {

@@ -6,6 +6,7 @@ import { handleFormSubmit, prepareSearchFormData } from '@/services/emailService
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import BudgetSlider from './BudgetSlider.vue'
 import ContactCTA from './ContactCTA.vue'
+import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
 
 defineOptions({ name: 'RechercheMontre' })
 
@@ -246,6 +247,8 @@ onMounted(() => {
           <p class="text-sm text-gray-600 mb-4 italic">
             * Les champs marqués d'un astérisque sont obligatoires
           </p>
+
+          <NewsletterOptInField class="mb-4" />
 
           <div v-if="errorMessage" class="text-red-500 text-sm mb-4">
             {{ errorMessage }}

@@ -16,6 +16,7 @@ import {
   Globe,
   X,
   Percent,
+  Send,
 } from '@lucide/vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { logoutAdmin, getCurrentAdmin } from '@/services/admin/adminAuthService'
@@ -80,6 +81,15 @@ const navItems = computed(() => {
       label: 'Promotions montres',
       icon: Percent,
       match: (p) => p.startsWith('/admin/watch-promotions'),
+    })
+  }
+  if (features.newsletter) {
+    items.push({
+      type: 'link',
+      to: '/admin/newsletter',
+      label: 'Newsletter',
+      icon: Send,
+      match: (p) => p.startsWith('/admin/newsletter'),
     })
   }
   if (features.blog) {

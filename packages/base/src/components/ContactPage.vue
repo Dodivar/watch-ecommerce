@@ -187,6 +187,8 @@
                 * Les champs marqués d'un astérisque sont obligatoires
               </p>
 
+              <NewsletterOptInField />
+
               <div v-if="errorMessage" class="text-red-500 text-sm">
                 {{ errorMessage }}
               </div>
@@ -214,6 +216,7 @@ import { useHead } from '@vueuse/head'
 import { BASE_URL, EMAIL_CONTACT, WHATSAPP_NUMBER } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import StoreLocationMap from '@/components/StoreLocationMap.vue'
+import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
 import { handleFormSubmit, prepareContactFormData } from '@/services/emailService'
 
 const router = useRouter()

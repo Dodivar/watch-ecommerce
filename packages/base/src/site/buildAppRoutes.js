@@ -28,6 +28,10 @@ import AdminHomeFeatured from '@/components/admin/AdminHomeFeatured.vue'
 import AdminHomeCollection from '@/components/admin/AdminHomeCollection.vue'
 import AdminHomeCarousel from '@/components/admin/AdminHomeCarousel.vue'
 import AdminUsersList from '@/components/admin/AdminUsersList.vue'
+import AdminNewsletterCampaigns from '@/components/admin/AdminNewsletterCampaigns.vue'
+import AdminNewsletterComposer from '@/components/admin/AdminNewsletterComposer.vue'
+import AdminNewsletterSubscribers from '@/components/admin/AdminNewsletterSubscribers.vue'
+import AdminNewsletterSettings from '@/components/admin/AdminNewsletterSettings.vue'
 import BlogList from '@/components/BlogList.vue'
 import BlogDetail from '@/components/BlogDetail.vue'
 import EstimationProcess from '@/components/EstimationProcess.vue'
@@ -101,6 +105,11 @@ const COMPONENTS_BY_PATH = {
   '/admin/home-collection': AdminHomeCollection,
   '/admin/home-carousel': AdminHomeCarousel,
   '/admin/users': AdminUsersList,
+  '/admin/newsletter': AdminNewsletterCampaigns,
+  '/admin/newsletter/compose': AdminNewsletterComposer,
+  '/admin/newsletter/subscribers': AdminNewsletterSubscribers,
+  '/admin/newsletter/settings': AdminNewsletterSettings,
+  '/admin/newsletter/:id/edit': AdminNewsletterComposer,
   '/:pathMatch(.*)*': NotFound,
 }
 
