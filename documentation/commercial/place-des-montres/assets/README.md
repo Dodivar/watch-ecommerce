@@ -10,6 +10,7 @@ Captures pour les slides avant/après.
 | `apres-accueil-plateforme.png` | Accueil plateforme (démo locale) | 25/06/2026 |
 | `apres-collection-plateforme.png` | Page collection avec filtres et promos | 25/06/2026 |
 | `apres-admin-plateforme.png` | Écran connexion admin | 25/06/2026 |
+| `cover-watch.png` | Montre Tudor Black Bay (fond transparent) — visuel de la page de garde (slide 1) | 30/06/2026 |
 
 ## Rafraîchir les captures « après »
 

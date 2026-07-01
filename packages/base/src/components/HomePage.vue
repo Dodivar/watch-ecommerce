@@ -16,6 +16,7 @@ import HomeHeroSection from './home/HomeHeroSection.vue'
 import HomeTrustSection from './home/HomeTrustSection.vue'
 import HomeServicesSection from './home/HomeServicesSection.vue'
 import HomeSelectionsSection from './home/HomeSelectionsSection.vue'
+import HomeCollectionHighlightSection from './home/HomeCollectionHighlightSection.vue'
 import HomeStatsSection from './home/HomeStatsSection.vue'
 import HomeAboutPreviewSection from './home/HomeAboutPreviewSection.vue'
 
@@ -24,6 +25,7 @@ const SECTION_COMPONENTS = {
   hero: HomeHeroSection,
   nouvelles: CarouselNouvelles,
   selections: HomeSelectionsSection,
+  collectionHighlight: HomeCollectionHighlightSection,
   stats: HomeStatsSection,
   aboutPreview: HomeAboutPreviewSection,
   trust: HomeTrustSection,

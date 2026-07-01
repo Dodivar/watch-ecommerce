@@ -155,3 +155,20 @@ where bracelet_material is not null and bracelet_material not in ('steel','gold'
 ```
 
 Les valeurs non reconnues restent en texte libre : elles n'apparaissent pas dans le filtre collection tant qu'elles ne sont pas corrigées via l'admin ou un import.
+
+## Aperçu collection (bloc éditorial accueil)
+
+`20260630120000_home_featured_collection_context.sql` — requis pour l'admin « Aperçu collection » et la section `collectionHighlight` de l'accueil :
+
+- Étend la contrainte CHECK de `home_featured_watches.context` pour autoriser la valeur `collection` (en plus de `nouvelles` et `selection`)
+- Corrige l'erreur `new row for relation "home_featured_watches" violates check constraint "home_featured_watches_context_check"` lors de l'ajout d'une montre depuis l'admin « Aperçu collection »
+- Prérequis : `20260525120000_admin_phase1.sql`
+
+```sql
+alter table public.home_featured_watches
+  drop constraint if exists home_featured_watches_context_check;
+
+alter table public.home_featured_watches
+  add constraint home_featured_watches_context_check
+  check (context in ('nouvelles', 'selection', 'collection'));
+```

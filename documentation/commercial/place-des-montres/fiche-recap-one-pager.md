@@ -16,9 +16,9 @@
 
 ## Notre proposition
 
-Une **plateforme e-commerce dédiée à l'horlogerie**, avec **hébergement et maintenance managés**. Votre futur site est **déjà personnalisé** : identité visuelle, textes, FAQ, services, règles Colissimo (gratuit dès 80 €) et retrait magasin.
+Une **solution e-commerce sur-mesure, dédiée à votre maison**, avec **hébergement et maintenance managés**. Votre futur site est **déjà dessiné pour vous** : identité visuelle, textes, FAQ, services, règles Colissimo (gratuit dès 80 €) et retrait magasin.
 
-**Référence en production :** [sauvage-watches.fr](https://sauvage-watches.fr)
+**Fiabilité :** socle technique déjà éprouvé en conditions réelles de production e-commerce — commandes, paiements et administration opérationnels.
 
 ---
 
@@ -29,13 +29,14 @@ Une **plateforme e-commerce dédiée à l'horlogerie**, avec **hébergement et m
 | Maintenance technique lourde | Hébergement cloud managé (Vercel, Render, Supabase) |
 | Back-office générique | Admin horloger : montres, commandes, promos, carrousel |
 | UX mobile datée | Parcours moderne, mega-menu marques, checkout Stripe |
-| Évolutions coûteuses | Mises à jour plateforme partagées |
+| Évolutions coûteuses | Évolutions continues incluses |
 | Risque SEO à la migration | Import catalogue + redirections 301 automatisées |
 
 ---
 
-## Fonctionnalités clés (déjà configurées pour vous)
+## Fonctionnalités clés (déjà en place pour vous)
 
+- **Expérience mobile-first** : navigation tactile, pages rapides, paiement Apple Pay / Google Pay en un toucher — là où se fait +60 % de votre trafic
 - Catalogue retail 3 000+ références, filtres marque / genre / promo
 - Checkout : Colissimo + retrait Place des Halles, codes promo, réservation stock 30 min
 - Pages : À propos, Services, Guide de l'horloger, FAQ (15 questions), Contact + carte
@@ -60,7 +61,7 @@ Une **plateforme e-commerce dédiée à l'horlogerie**, avec **hébergement et m
 
 ## Prochaines étapes
 
-1. **Démo guidée** — 45 min sur votre site personnalisé
+1. **Démo guidée** — 45 min sur votre site, déjà à vos couleurs
 2. **Audit express** — export catalogue PrestaShop
 3. **Devis sous 48 h**
 4. **Bascule production** — fenêtre à définir ensemble

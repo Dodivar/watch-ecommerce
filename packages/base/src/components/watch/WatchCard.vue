@@ -66,7 +66,7 @@
         v-model="currentImageIndex"
         :images="navigableImages"
         :show-navigation="effectiveShowImageNavigation && hasMultipleNavigableImages"
-        navigation-button-class="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 md:p-2"
+        navigation-button-class="hidden md:block md:opacity-0 md:group-hover:opacity-100 p-1 md:p-2"
         prev-navigation-class="left-1 md:left-2"
         next-navigation-class="right-1 md:right-2"
         :slide-key-fn="(image, index) => `${watchItem.id}-${index}`"

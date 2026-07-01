@@ -659,7 +659,8 @@ export default {
       'homeCarousel',
       'nouvelles',
       'selections',
-      'stats',
+      'collectionHighlight',
+      // 'stats', // Désactivé côté client (bloc chiffres-clés) — conservé pour réactivation éventuelle.
       'aboutPreview',
       // 'hero',
       // 'trust',
@@ -672,6 +673,17 @@ export default {
       title: 'Notre sélection du moment',
       /** Visuels : voir `public/home-selections/README.md` et `homeSelections.config.js`. */
       cards: homeSelectionCards,
+    },
+    /**
+     * Bloc éditorial « aperçu collection » : 1 montre vedette + sélection, puis CTA.
+     * Montres pilotées depuis l'admin (contexte `collection`) avec repli automatique
+     * sur les dernières montres disponibles. Voir `HomeCollectionHighlightSection.vue`.
+     */
+    collectionHighlight: {
+      title: 'Un aperçu de notre collection',
+      subtitle:
+        'Quelques pièces choisies parmi nos 3 000 montres en stock — découvrez l’ensemble en boutique ou en ligne.',
+      cta: { label: 'Voir toute la collection', to: '/collection' },
     },
   },
 

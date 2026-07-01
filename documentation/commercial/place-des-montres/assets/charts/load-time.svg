@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" font-family="Segoe UI, Tahoma, Arial, sans-serif">
+  <style>
+    .val { fill:#2c2412; font-size:24px; font-weight:700; }
+    .cat { fill:#2c2412; font-size:21px; }
+    .axis { fill:#8a8a8a; font-size:16px; }
+    .ref { fill:#7a7363; font-size:18px; }
+  </style>
+  <line x1="70" y1="300" x2="720" y2="300" stroke="#d8d2c2" stroke-width="2"/>
+  <!-- px/unit = 2.083, baseline y=300 ; increase in bounce probability vs 1s -->
+  <rect x="100" y="294" width="100" height="6" rx="3" fill="#c7c0ad"/>
+  <text class="ref" x="150" y="282" text-anchor="middle">réf.</text>
+  <text class="cat" x="150" y="328" text-anchor="middle">1 s</text>
+
+  <rect x="260" y="233" width="100" height="67" rx="4" fill="#d2a24a"/>
+  <text class="val" x="310" y="221" text-anchor="middle">+32 %</text>
+  <text class="cat" x="310" y="328" text-anchor="middle">3 s</text>
+
+  <rect x="420" y="112" width="100" height="188" rx="4" fill="#bf7330"/>
+  <text class="val" x="470" y="100" text-anchor="middle">+90 %</text>
+  <text class="cat" x="470" y="328" text-anchor="middle">5 s</text>
+
+  <rect x="580" y="79" width="100" height="221" rx="4" fill="#a8432a"/>
+  <text class="val" x="630" y="67" text-anchor="middle">+106 %</text>
+  <text class="cat" x="630" y="328" text-anchor="middle">6 s</text>
+
+  <text class="axis" x="70" y="352">Hausse de la probabilité de rebond mobile selon le temps de chargement (vs 1 s)</text>
+</svg>
