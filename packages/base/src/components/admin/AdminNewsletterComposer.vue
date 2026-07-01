@@ -1,13 +1,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Save, Send, Mail, ArrowLeft } from '@lucide/vue'
+import { Save, Send, Mail, ArrowLeft, CalendarClock, Ban } from '@lucide/vue'
 import {
   getCampaign,
   createCampaign,
   updateCampaign,
   sendCampaign,
   sendTestCampaign,
+  scheduleCampaign,
+  cancelScheduledCampaign,
   getSettings,
   getSubscribedCount,
 } from '@/services/admin/adminNewsletterService'
@@ -22,6 +24,8 @@ const campaignId = ref(route.params.id || null)
 const subject = ref('')
 const bodyHtml = ref('')
 const status = ref('draft')
+const scheduledAt = ref(null)
+const scheduleInput = ref('')
 const settings = ref({})
 const subscribedCount = ref(0)
 
@@ -31,9 +35,31 @@ const isSending = ref(false)
 const error = ref(null)
 const notice = ref(null)
 
-const isReadOnly = computed(() => status.value === 'sent' || status.value === 'sending')
+const isScheduled = computed(() => status.value === 'scheduled')
+const isReadOnly = computed(
+  () => status.value === 'sent' || status.value === 'sending' || isScheduled.value,
+)
 const previewHtml = computed(() => buildNewsletterPreview(settings.value, bodyHtml.value))
 const hasAudience = computed(() => subscribedCount.value > 0)
+
+/** Formate une date ISO en valeur `datetime-local` (heure locale). */
+function toDatetimeLocal(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+/** Valeur `datetime-local` par défaut : dans 1 heure. */
+function defaultScheduleInput() {
+  return toDatetimeLocal(new Date(Date.now() + 60 * 60 * 1000).toISOString())
+}
+
+function formatScheduled(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
+}
 
 async function load() {
   try {
@@ -52,7 +78,11 @@ async function load() {
       subject.value = campaign.subject
       bodyHtml.value = campaign.bodyHtml
       status.value = campaign.status
+      scheduledAt.value = campaign.scheduledAt || null
     }
+    scheduleInput.value = scheduledAt.value
+      ? toDatetimeLocal(scheduledAt.value)
+      : defaultScheduleInput()
   } catch (err) {
     error.value = err.message
   } finally {
@@ -132,6 +162,58 @@ async function send() {
   }
 }
 
+async function schedule() {
+  if (!hasAudience.value) {
+    error.value = 'Aucun abonné à qui envoyer pour le moment.'
+    return
+  }
+  if (!subject.value.trim()) {
+    error.value = "L'objet est obligatoire."
+    return
+  }
+  if (!scheduleInput.value) {
+    error.value = "Choisissez une date et une heure d'envoi."
+    return
+  }
+  const when = new Date(scheduleInput.value)
+  if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) {
+    error.value = "La date d'envoi doit être dans le futur."
+    return
+  }
+  const id = await save()
+  if (!id) return
+  try {
+    isSending.value = true
+    error.value = null
+    const updated = await scheduleCampaign(id, when.toISOString())
+    status.value = updated.status
+    scheduledAt.value = updated.scheduledAt
+    notice.value = `Envoi programmé pour le ${formatScheduled(updated.scheduledAt)}.`
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    isSending.value = false
+  }
+}
+
+async function cancelSchedule() {
+  if (!campaignId.value) return
+  if (!window.confirm('Annuler la programmation de cette newsletter ?')) return
+  try {
+    isSending.value = true
+    error.value = null
+    const updated = await cancelScheduledCampaign(campaignId.value)
+    status.value = updated.status
+    scheduledAt.value = null
+    scheduleInput.value = defaultScheduleInput()
+    notice.value = 'Programmation annulée.'
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    isSending.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -152,7 +234,14 @@ onMounted(load)
       {{ notice }}
     </div>
     <div
-      v-if="isReadOnly"
+      v-if="isScheduled"
+      class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-4 text-sm"
+    >
+      Envoi programmé pour le <strong>{{ formatScheduled(scheduledAt) }}</strong>. La campagne est
+      en lecture seule ; annulez la programmation pour la modifier.
+    </div>
+    <div
+      v-else-if="isReadOnly"
       class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg mb-4 text-sm"
     >
       Cette campagne a déjà été envoyée : elle est en lecture seule.
@@ -197,6 +286,45 @@ onMounted(load)
           </p>
         </div>
 
+        <!-- Programmation de l'envoi -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+          <p class="text-sm font-medium text-gray-700">Programmer l'envoi</p>
+          <template v-if="isScheduled">
+            <p class="text-sm text-gray-600">
+              Envoi prévu le
+              <strong class="text-text-main">{{ formatScheduled(scheduledAt) }}</strong>.
+            </p>
+            <button
+              type="button"
+              :disabled="isSending"
+              class="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-red-700 rounded-lg text-sm hover:bg-red-50 transition-colors disabled:opacity-50"
+              @click="cancelSchedule"
+            >
+              <Ban class="w-4 h-4" :stroke-width="2" /> Annuler la programmation
+            </button>
+          </template>
+          <template v-else-if="!isReadOnly">
+            <div class="flex flex-wrap items-end gap-2">
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Date et heure d'envoi</label>
+                <input
+                  v-model="scheduleInput"
+                  type="datetime-local"
+                  class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                :disabled="isSending || !hasAudience"
+                class="inline-flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded-lg text-sm font-medium hover:bg-cream transition-colors disabled:opacity-50"
+                @click="schedule"
+              >
+                <CalendarClock class="w-4 h-4" :stroke-width="2" /> Programmer l'envoi
+              </button>
+            </div>
+          </template>
+        </div>
+
         <div class="flex flex-wrap gap-2">
           <button
             type="button"
@@ -220,7 +348,7 @@ onMounted(load)
             class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             @click="send"
           >
-            <Send class="w-4 h-4" :stroke-width="2" /> {{ isSending ? 'Envoi…' : 'Envoyer la newsletter' }}
+            <Send class="w-4 h-4" :stroke-width="2" /> {{ isSending ? 'Envoi…' : 'Envoyer maintenant' }}
           </button>
         </div>
       </div>

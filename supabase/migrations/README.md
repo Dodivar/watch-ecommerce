@@ -262,6 +262,41 @@ create policy newsletter_settings_admin on public.newsletter_settings
   for all using (public.is_admin_user()) with check (public.is_admin_user());
 ```
 
+## Newsletter — programmation des envois (planification)
+
+`20260701130000_newsletter_scheduling.sql` — requis pour l'envoi différé des
+campagnes newsletter (planification à une date/heure) et le suivi des campagnes
+programmées / envoyées / annulées :
+
+- Colonne `newsletter_campaigns.scheduled_at` (date/heure d'envoi planifiée)
+- Étend la contrainte CHECK de `newsletter_campaigns.status` pour autoriser les
+  valeurs `scheduled` (programmée) et `cancelled` (annulée), en plus de
+  `draft`, `sending`, `sent`, `failed`
+- Index `newsletter_campaigns_due_idx` (site_id, status, scheduled_at) pour la
+  boucle de planification du backend qui déclenche les envois arrivés à échéance
+- Prérequis : `20260701120000_newsletter.sql`
+
+Les fichiers `*.sql` étant ignorés par git, le contenu complet est reproduit
+ci-dessous pour application via le SQL Editor.
+
+```sql
+-- Envoi différé : date/heure de programmation
+alter table public.newsletter_campaigns
+  add column if not exists scheduled_at timestamptz;
+
+-- Statuts « programmée » et « annulée » en plus des statuts existants
+alter table public.newsletter_campaigns
+  drop constraint if exists newsletter_campaigns_status_check;
+
+alter table public.newsletter_campaigns
+  add constraint newsletter_campaigns_status_check
+  check (status in ('draft', 'scheduled', 'sending', 'sent', 'failed', 'cancelled'));
+
+-- Index pour la boucle de planification (campagnes arrivées à échéance)
+create index if not exists newsletter_campaigns_due_idx
+  on public.newsletter_campaigns (site_id, status, scheduled_at);
+```
+
 ## Aperçu collection (bloc éditorial accueil)
 
 `20260630120000_home_featured_collection_context.sql` — requis pour l'admin « Aperçu collection » et la section `collectionHighlight` de l'accueil :
