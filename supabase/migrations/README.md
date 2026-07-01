@@ -156,6 +156,112 @@ where bracelet_material is not null and bracelet_material not in ('steel','gold'
 
 Les valeurs non reconnues restent en texte libre : elles n'apparaissent pas dans le filtre collection tant qu'elles ne sont pas corrigées via l'admin ou un import.
 
+## Newsletter (admin)
+
+`20260701120000_newsletter.sql` — requis pour les clients avec `features.newsletter` :
+
+- Table `newsletter_subscribers` (liste opt-in + imports clients/leads, jeton de désinscription unique)
+- Table `newsletter_campaigns` (brouillon → envoyée, corps HTML WYSIWYG)
+- Table `newsletter_campaign_recipients` (journal d'envoi par destinataire, reprise sans doublon)
+- Table `newsletter_settings` (en-tête/pied de page et marque éditables depuis l'admin)
+- Policies RLS admin (`is_admin_user()`) ; inscription publique et envoi Mailjet via backend service role
+- Prérequis : `20260525120000_admin_phase1.sql` (`is_admin_user()`)
+
+Les fichiers `*.sql` étant ignorés par git (voir `.gitignore`), le contenu complet
+de la migration est reproduit ci-dessous pour application via le SQL Editor.
+
+```sql
+-- Abonnés newsletter (liste opt-in + imports clients/leads)
+create table if not exists public.newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  site_id text not null,
+  email text not null,
+  name text,
+  status text not null default 'subscribed'
+    check (status in ('subscribed', 'unsubscribed')),
+  source text not null default 'optin'
+    check (source in ('optin', 'import', 'manual')),
+  consent_at timestamptz,
+  unsubscribed_at timestamptz,
+  unsubscribe_token uuid not null default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (site_id, email)
+);
+create unique index if not exists newsletter_subscribers_token_idx
+  on public.newsletter_subscribers (unsubscribe_token);
+create index if not exists newsletter_subscribers_site_status_idx
+  on public.newsletter_subscribers (site_id, status);
+
+-- Campagnes (brouillon → envoyée)
+create table if not exists public.newsletter_campaigns (
+  id uuid primary key default gen_random_uuid(),
+  site_id text not null,
+  subject text not null default '',
+  body_html text not null default '',
+  status text not null default 'draft'
+    check (status in ('draft', 'sending', 'sent', 'failed')),
+  recipient_count integer not null default 0,
+  sent_count integer not null default 0,
+  created_by text,
+  sent_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists newsletter_campaigns_site_idx
+  on public.newsletter_campaigns (site_id, created_at desc);
+
+-- Journal des destinataires par campagne (audit + reprise sans doublon)
+create table if not exists public.newsletter_campaign_recipients (
+  id uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.newsletter_campaigns (id) on delete cascade,
+  site_id text not null,
+  email text not null,
+  status text not null default 'pending'
+    check (status in ('pending', 'sent', 'failed')),
+  error text,
+  sent_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique (campaign_id, email)
+);
+create index if not exists newsletter_recipients_campaign_idx
+  on public.newsletter_campaign_recipients (campaign_id);
+
+-- Réglages de marque (une ligne par site ; amorcés côté backend)
+create table if not exists public.newsletter_settings (
+  site_id text primary key,
+  logo_text text,
+  accent_color text,
+  header_html text,
+  footer_html text,
+  sender_name text,
+  reply_to text,
+  updated_at timestamptz not null default now()
+);
+
+-- RLS — accès complet réservé aux admins ; le backend (service role) contourne.
+alter table public.newsletter_subscribers enable row level security;
+alter table public.newsletter_campaigns enable row level security;
+alter table public.newsletter_campaign_recipients enable row level security;
+alter table public.newsletter_settings enable row level security;
+
+drop policy if exists newsletter_subscribers_admin on public.newsletter_subscribers;
+create policy newsletter_subscribers_admin on public.newsletter_subscribers
+  for all using (public.is_admin_user()) with check (public.is_admin_user());
+
+drop policy if exists newsletter_campaigns_admin on public.newsletter_campaigns;
+create policy newsletter_campaigns_admin on public.newsletter_campaigns
+  for all using (public.is_admin_user()) with check (public.is_admin_user());
+
+drop policy if exists newsletter_recipients_admin on public.newsletter_campaign_recipients;
+create policy newsletter_recipients_admin on public.newsletter_campaign_recipients
+  for all using (public.is_admin_user()) with check (public.is_admin_user());
+
+drop policy if exists newsletter_settings_admin on public.newsletter_settings;
+create policy newsletter_settings_admin on public.newsletter_settings
+  for all using (public.is_admin_user()) with check (public.is_admin_user());
+```
+
 ## Aperçu collection (bloc éditorial accueil)
 
 `20260630120000_home_featured_collection_context.sql` — requis pour l'admin « Aperçu collection » et la section `collectionHighlight` de l'accueil :

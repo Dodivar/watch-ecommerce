@@ -11,6 +11,7 @@ const { buildStripeRouter } = require('./routes/stripe')
 const { buildOrdersRouter } = require('./routes/orders')
 const n8nRoutes = require('./routes/n8n')
 const { buildAdminRouter } = require('./admin/adminRoutes')
+const { buildNewsletterRouter } = require('./routes/newsletter')
 
 const isProductionBoot =
   process.env.NODE_ENV === 'production' || process.env.RENDER === 'true'
@@ -99,6 +100,7 @@ async function main() {
   app.use('/api', resolveSite(registry), mailjetRoutes)
   app.use('/api/n8n', resolveSite(registry), n8nRoutes)
   app.use('/api/admin', resolveSite(registry), buildAdminRouter(registry))
+  app.use('/api/newsletter', resolveSite(registry), buildNewsletterRouter(registry))
 
   // Stripe webhooks (:siteId) — PaymentIntent
   app.use('/api/stripe', buildStripeRouter(registry))

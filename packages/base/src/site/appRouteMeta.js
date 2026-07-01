@@ -56,6 +56,11 @@ export const APP_ROUTE_META = [
   { path: '/admin/articles/new', feature: 'admin', requiresFeatures: ['blog'] },
   { path: '/admin/articles/generate', feature: 'admin', requiresFeatures: ['blog'] },
   { path: '/admin/articles/:id/edit', feature: 'admin', requiresFeatures: ['blog'] },
+  { path: '/admin/newsletter', feature: 'admin', requiresFeatures: ['newsletter'] },
+  { path: '/admin/newsletter/compose', feature: 'admin', requiresFeatures: ['newsletter'] },
+  { path: '/admin/newsletter/subscribers', feature: 'admin', requiresFeatures: ['newsletter'] },
+  { path: '/admin/newsletter/settings', feature: 'admin', requiresFeatures: ['newsletter'] },
+  { path: '/admin/newsletter/:id/edit', feature: 'admin', requiresFeatures: ['newsletter'] },
   { path: '/:pathMatch(.*)*' },
 ]
 

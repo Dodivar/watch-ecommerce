@@ -147,6 +147,7 @@ export default {
     paymentReturn: true,
     admin: true,
     adminWatchPromotions: true,
+    newsletter: true,
   },
 
   /** Profil catalogue revente (démo plateforme). */

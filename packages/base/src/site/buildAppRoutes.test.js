@@ -49,4 +49,37 @@ describe('buildAppRoutes', () => {
     const paths = getActiveRoutePaths({ ...DEFAULT_SITE_FEATURES, faq: false })
     expect(paths).not.toContain('/faq')
   })
+
+  it('newsletter est désactivée par défaut', () => {
+    expect(DEFAULT_SITE_FEATURES.newsletter).toBe(false)
+  })
+
+  it('exclut les routes newsletter quand newsletter est false', () => {
+    const paths = getActiveRoutePaths({ ...DEFAULT_SITE_FEATURES, newsletter: false })
+    expect(paths).not.toContain('/admin/newsletter')
+    expect(paths).not.toContain('/admin/newsletter/compose')
+    expect(paths).not.toContain('/admin/newsletter/:id/edit')
+  })
+
+  it('inclut toutes les routes newsletter quand admin et newsletter sont true', () => {
+    const paths = getActiveRoutePaths({
+      ...DEFAULT_SITE_FEATURES,
+      admin: true,
+      newsletter: true,
+    })
+    expect(paths).toContain('/admin/newsletter')
+    expect(paths).toContain('/admin/newsletter/compose')
+    expect(paths).toContain('/admin/newsletter/subscribers')
+    expect(paths).toContain('/admin/newsletter/settings')
+    expect(paths).toContain('/admin/newsletter/:id/edit')
+  })
+
+  it('exclut les routes newsletter quand admin est false même si newsletter est true', () => {
+    const paths = getActiveRoutePaths({
+      ...DEFAULT_SITE_FEATURES,
+      admin: false,
+      newsletter: true,
+    })
+    expect(paths).not.toContain('/admin/newsletter')
+  })
 })
