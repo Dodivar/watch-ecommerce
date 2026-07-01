@@ -472,6 +472,7 @@ export default {
     adminWatchPromotions: true,
     cartMultiQuantity: true,
     homeCarousel: true,
+    newsletter: true,
   },
 
   /** Profil catalogue boutique : cartes épurées, bloc confiance sur fiche produit. */
