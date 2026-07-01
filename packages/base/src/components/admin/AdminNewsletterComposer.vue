@@ -25,8 +25,6 @@ const status = ref('draft')
 const settings = ref({})
 const subscribedCount = ref(0)
 
-const audience = ref({ subscribers: true, customers: false, leads: false })
-
 const isLoading = ref(true)
 const isSaving = ref(false)
 const isSending = ref(false)
@@ -35,9 +33,7 @@ const notice = ref(null)
 
 const isReadOnly = computed(() => status.value === 'sent' || status.value === 'sending')
 const previewHtml = computed(() => buildNewsletterPreview(settings.value, bodyHtml.value))
-const hasAudience = computed(
-  () => audience.value.subscribers || audience.value.customers || audience.value.leads,
-)
+const hasAudience = computed(() => subscribedCount.value > 0)
 
 async function load() {
   try {
@@ -107,7 +103,7 @@ async function sendTest() {
 
 async function send() {
   if (!hasAudience.value) {
-    error.value = 'Sélectionnez au moins un public.'
+    error.value = "Aucun abonné à qui envoyer pour le moment."
     return
   }
   if (!subject.value.trim()) {
@@ -118,7 +114,7 @@ async function send() {
   if (!id) return
   if (
     !window.confirm(
-      'Envoyer cette newsletter maintenant ? Cette action est définitive et enverra l\'email aux destinataires sélectionnés.',
+      `Envoyer cette newsletter à ${subscribedCount.value} abonné(s) maintenant ? Cette action est définitive.`,
     )
   ) {
     return
@@ -126,7 +122,7 @@ async function send() {
   try {
     isSending.value = true
     error.value = null
-    const result = await sendCampaign(id, audience.value)
+    const result = await sendCampaign(id)
     status.value = result.status || 'sent'
     notice.value = `Newsletter envoyée à ${result.sent} destinataire(s).`
   } catch (err) {
@@ -189,34 +185,15 @@ onMounted(load)
         </div>
 
         <div class="bg-white border border-gray-200 rounded-lg p-4">
-          <p class="text-sm font-medium text-gray-700 mb-3">Public destinataire</p>
-          <div class="space-y-2">
-            <label class="flex items-start gap-2 text-sm">
-              <input v-model="audience.subscribers" type="checkbox" :disabled="isReadOnly" class="mt-0.5" />
-              <span>
-                Abonnés à la newsletter
-                <span class="text-gray-400">({{ subscribedCount }} inscrit·e·s)</span>
-              </span>
-            </label>
-            <label class="flex items-start gap-2 text-sm">
-              <input v-model="audience.customers" type="checkbox" :disabled="isReadOnly" class="mt-0.5" />
-              <span>
-                Clients (adresses issues des commandes)
-                <span class="text-amber-600">— opt-in implicite</span>
-              </span>
-            </label>
-            <label class="flex items-start gap-2 text-sm">
-              <input v-model="audience.leads" type="checkbox" :disabled="isReadOnly" class="mt-0.5" />
-              <span>
-                Contacts (formulaires : contact, estimation…)
-                <span class="text-amber-600">— opt-in implicite</span>
-              </span>
-            </label>
-          </div>
-          <p class="text-xs text-gray-400 mt-3">
-            Les clients et contacts n'ont pas explicitement consenti à recevoir des emails
-            marketing. Un lien de désinscription est ajouté automatiquement et toute désinscription
-            est respectée sur l'ensemble des envois.
+          <p class="text-sm font-medium text-gray-700 mb-1">Destinataires</p>
+          <p class="text-sm text-gray-600">
+            La newsletter sera envoyée à
+            <strong class="text-text-main">{{ subscribedCount }}</strong>
+            abonné(s) ayant explicitement consenti.
+          </p>
+          <p class="text-xs text-gray-400 mt-2">
+            Un lien de désinscription est ajouté automatiquement à chaque email ; toute
+            désinscription est respectée sur l'ensemble des envois.
           </p>
         </div>
 

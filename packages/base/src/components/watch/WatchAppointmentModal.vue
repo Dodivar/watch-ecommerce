@@ -7,6 +7,7 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { buildGoogleMapsDirectionsUrl } from '@/utils/googleMapsLinks.js'
 import { resolveStoreOpeningHours } from '@/utils/formatStoreOpeningHours.js'
+import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
 import {
   handleFormSubmit,
   prepareAppointmentFormData,
@@ -435,6 +436,8 @@ onUnmounted(() => {
               </p>
 
               <p class="text-xs text-gray-500 italic">* Champs obligatoires</p>
+
+              <NewsletterOptInField />
 
               <button
                 type="submit"

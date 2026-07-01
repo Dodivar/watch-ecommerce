@@ -51,6 +51,7 @@ const accessToken = ref('')
 const orderSnapshot = ref(null)
 
 const email = ref('')
+const newsletterOptIn = ref(false)
 const phone = ref('')
 const billing = ref({
   firstName: '',
@@ -474,6 +475,7 @@ async function updateOrderDetailsPartial() {
     email: email.value.trim(),
     phone: phone.value.trim() || null,
     billingAddress: buildBillingAddress(),
+    newsletterOptIn: newsletterOptIn.value,
   })
   orderSnapshot.value = await updateOrderShipping(
     orderId.value,
@@ -991,6 +993,17 @@ onUnmounted(() => {
                   :class="CHECKOUT_FIELD_CLASS"
                 />
               </div>
+
+              <label
+                v-if="site.features.newsletter"
+                class="flex items-start gap-2 text-sm text-gray-600 cursor-pointer"
+              >
+                <input v-model="newsletterOptIn" type="checkbox" class="mt-1 shrink-0" />
+                <span>
+                  Je souhaite recevoir la newsletter (nouveautés et offres par email).
+                  Désinscription possible à tout moment.
+                </span>
+              </label>
             </section>
 
             <section ref="shippingSectionRef" class="space-y-4">

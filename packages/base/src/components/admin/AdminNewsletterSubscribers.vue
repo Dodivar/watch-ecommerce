@@ -1,11 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Plus, Trash2, Download, ArrowLeft } from '@lucide/vue'
+import { Plus, Trash2, ArrowLeft } from '@lucide/vue'
 import {
   getSubscribers,
   addSubscriber,
   deleteSubscriber,
-  importSubscribers,
 } from '@/services/admin/adminNewsletterService'
 import AdminShell from './AdminShell.vue'
 
@@ -21,9 +20,6 @@ const search = ref('')
 const newEmail = ref('')
 const newName = ref('')
 const isAdding = ref(false)
-const isImporting = ref(false)
-const importCustomers = ref(true)
-const importLeads = ref(true)
 
 const STATUS_LABELS = { subscribed: 'Abonné', unsubscribed: 'Désinscrit' }
 const SOURCE_LABELS = { optin: 'Inscription', import: 'Import', manual: 'Ajout manuel' }
@@ -78,27 +74,6 @@ async function remove(sub) {
   }
 }
 
-async function runImport() {
-  if (!importCustomers.value && !importLeads.value) {
-    error.value = 'Sélectionnez au moins une source.'
-    return
-  }
-  try {
-    isImporting.value = true
-    error.value = null
-    const result = await importSubscribers({
-      customers: importCustomers.value,
-      leads: importLeads.value,
-    })
-    notice.value = `${result.imported} nouvelle(s) adresse(s) importée(s).`
-    await load()
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    isImporting.value = false
-  }
-}
-
 onMounted(load)
 </script>
 
@@ -118,54 +93,35 @@ onMounted(load)
       {{ notice }}
     </div>
 
-    <!-- Ajout + import -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <div class="bg-white border border-gray-200 rounded-lg p-4">
-        <p class="text-sm font-medium text-gray-700 mb-3">Ajouter un abonné</p>
-        <div class="flex flex-col sm:flex-row gap-2">
-          <input
-            v-model="newEmail"
-            type="email"
-            placeholder="email@exemple.fr"
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-          />
-          <input
-            v-model="newName"
-            type="text"
-            placeholder="Nom (facultatif)"
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-          />
-          <button
-            type="button"
-            :disabled="isAdding"
-            class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
-            @click="add"
-          >
-            <Plus class="w-4 h-4" :stroke-width="2" /> Ajouter
-          </button>
-        </div>
+    <!-- Ajout manuel -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+      <p class="text-sm font-medium text-gray-700 mb-3">Ajouter un abonné</p>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input
+          v-model="newEmail"
+          type="email"
+          placeholder="email@exemple.fr"
+          class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+        />
+        <input
+          v-model="newName"
+          type="text"
+          placeholder="Nom (facultatif)"
+          class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+        />
+        <button
+          type="button"
+          :disabled="isAdding"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
+          @click="add"
+        >
+          <Plus class="w-4 h-4" :stroke-width="2" /> Ajouter
+        </button>
       </div>
-
-      <div class="bg-white border border-gray-200 rounded-lg p-4">
-        <p class="text-sm font-medium text-gray-700 mb-3">Importer des adresses existantes</p>
-        <div class="flex flex-wrap items-center gap-4">
-          <label class="flex items-center gap-2 text-sm">
-            <input v-model="importCustomers" type="checkbox" /> Clients (commandes)
-          </label>
-          <label class="flex items-center gap-2 text-sm">
-            <input v-model="importLeads" type="checkbox" /> Contacts (formulaires)
-          </label>
-          <button
-            type="button"
-            :disabled="isImporting"
-            class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-cream disabled:opacity-50"
-            @click="runImport"
-          >
-            <Download class="w-4 h-4" :stroke-width="2" /> {{ isImporting ? 'Import…' : 'Importer' }}
-          </button>
-        </div>
-        <p class="text-xs text-amber-600 mt-2">Opt-in implicite — voir la note de composition.</p>
-      </div>
+      <p class="text-xs text-gray-400 mt-2">
+        Les abonnés s'inscrivent d'eux-mêmes via le formulaire du site ou en cochant la case
+        « newsletter » lors d'une prise de contact ou d'un achat.
+      </p>
     </div>
 
     <!-- Filtres -->

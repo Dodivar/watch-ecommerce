@@ -121,14 +121,6 @@ export async function deleteSubscriber(id) {
   return { success: true }
 }
 
-/**
- * Importe les emails clients (commandes) et/ou leads via le backend.
- * @param {{ customers?: boolean, leads?: boolean }} sources
- */
-export async function importSubscribers(sources) {
-  return callBackend('/subscribers/import', { sources })
-}
-
 // ---------------------------------------------------------------------------
 // Campagnes
 // ---------------------------------------------------------------------------
@@ -224,12 +216,11 @@ export async function deleteCampaign(id) {
 }
 
 /**
- * Envoie une campagne au public sélectionné (via backend).
+ * Envoie une campagne à l'ensemble des abonnés opt-in (via backend).
  * @param {string} id
- * @param {{ subscribers?: boolean, customers?: boolean, leads?: boolean }} audience
  */
-export async function sendCampaign(id, audience) {
-  return callBackend(`/campaigns/${id}/send`, { audience })
+export async function sendCampaign(id) {
+  return callBackend(`/campaigns/${id}/send`, {})
 }
 
 /**

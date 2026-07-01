@@ -93,20 +93,19 @@
         <template v-if="features.newsletter">
           <h3 class="text-lg font-semibold text-text-main mt-6 mb-2">2.5 Newsletter et communications commerciales</h3>
           <p>
-            Si vous vous inscrivez à notre newsletter, nous traitons votre adresse e-mail (et, le cas
-            échéant, votre nom) afin de vous adresser nos actualités, nouveautés et offres. L’envoi est
-            assuré par notre prestataire d’emailing <strong class="text-text-main">Mailjet (Sinch)</strong>.
-            Chaque message contient un lien de <strong class="text-text-main">désinscription</strong> vous
-            permettant de retirer votre consentement à tout moment ; la désinscription est prise en compte
-            sur l’ensemble de nos envois.
+            Vous recevez notre newsletter uniquement si vous y avez <strong class="text-text-main">explicitement
+            consenti</strong> : via le formulaire d’inscription du site, ou en cochant la case dédiée lors d’une
+            prise de contact (contact, rendez-vous, estimation, recherche) ou d’un achat. Nous traitons alors
+            votre adresse e-mail (et, le cas échéant, votre nom) pour vous adresser nos actualités, nouveautés
+            et offres. L’envoi est assuré par notre prestataire d’emailing
+            <strong class="text-text-main">Mailjet (Sinch)</strong>. Chaque message contient un lien de
+            <strong class="text-text-main">désinscription</strong> vous permettant de retirer votre consentement
+            à tout moment ; la désinscription est prise en compte sur l’ensemble de nos envois.
           </p>
           <p class="mt-2">
-            Base juridique : <strong class="text-text-main">consentement</strong> (article 6-1-a du RGPD)
-            lorsque vous vous inscrivez via le formulaire. Si vous êtes déjà client, nous pouvons vous
-            adresser des informations sur des produits ou services analogues à ceux déjà fournis, sur le
-            fondement de notre <strong class="text-text-main">intérêt légitime</strong> (article 6-1-f du
-            RGPD et article L.34-5 du Code des postes et des communications électroniques), sauf opposition
-            de votre part.
+            Base juridique : <strong class="text-text-main">consentement</strong> (article 6-1-a du RGPD). Le
+            retrait du consentement (désinscription) est possible à tout moment et sans frais, et n’affecte pas
+            la licéité des envois effectués avant ce retrait.
           </p>
         </template>
       </section>

@@ -5,6 +5,7 @@ const fs = require('fs')
 
 const { getMailjetClient, getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
 const { persistLeadSubmission } = require('../admin/adminRoutes')
+const { recordNewsletterOptIn, isOptInTruthy } = require('../newsletter/optIn')
 const { createEmailTemplate, formatEmailContent } = require('../templates/estimationEmail')
 const {
   createAppointmentVendorEmail,
@@ -177,6 +178,12 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
       try {
         const supabase = getSupabaseClient(site)
         await persistLeadSubmission(supabase, site.id, type, formData, files)
+        if (isOptInTruthy(formData.newsletter_opt_in)) {
+          await recordNewsletterOptIn(supabase, site.id, {
+            email: formData.email,
+            name: formData.name,
+          })
+        }
       } catch (persistErr) {
         console.error(`[${site.id}] persistLeadSubmission (appointment):`, persistErr.message)
       }
@@ -231,6 +238,12 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
     try {
       const supabase = getSupabaseClient(site)
       await persistLeadSubmission(supabase, site.id, type, formData, files)
+      if (isOptInTruthy(formData.newsletter_opt_in)) {
+        await recordNewsletterOptIn(supabase, site.id, {
+          email: formData.email,
+          name: formData.name,
+        })
+      }
     } catch (persistErr) {
       console.error(`[${site.id}] persistLeadSubmission:`, persistErr.message)
     }

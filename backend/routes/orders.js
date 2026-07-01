@@ -18,6 +18,7 @@ const { loadPromoCode, computeDiscountCents, validatePromoEligibility } = requir
 const { fulfillOrderPayment, releaseOrderReservation, applyRetailStockDecrement } = require('../orders/fulfillment')
 const { createDraftOrderViaRpc } = require('../orders/createDraftOrder')
 const { sendOrderConfirmationEmails } = require('../orders/email')
+const { recordNewsletterOptIn, isOptInTruthy } = require('../newsletter/optIn')
 const { generateOrderReceiptPdf, receiptPdfFilename } = require('../orders/receiptPdf')
 const { resolveReceiptConfig } = require('../orders/receiptBranding')
 const { persistOrderReceiptPdf, resolveOrderReceiptPdfBuffer } = require('../orders/receiptStorage')
@@ -367,7 +368,7 @@ function buildOrdersRouter(registry) {
     const site = req.site
     const orderId = req.params.orderId
     const token = extractAccessToken(req)
-    const { email, phone, billingAddress } = req.body || {}
+    const { email, phone, billingAddress, newsletterOptIn } = req.body || {}
     try {
       const supabase = getSupabaseClient(site)
       const order = await loadOrderForSite(supabase, site.id, orderId)
@@ -396,6 +397,10 @@ function buildOrdersRouter(registry) {
           updated_at: new Date().toISOString(),
         })
         .eq('id', orderId)
+
+      if (isOptInTruthy(newsletterOptIn)) {
+        await recordNewsletterOptIn(supabase, site.id, { email: customerEmail })
+      }
 
       const updated = await loadOrderForSite(supabase, site.id, orderId)
       const { quote, lines } = await recalculateAndPersist(supabase, site, updated, {

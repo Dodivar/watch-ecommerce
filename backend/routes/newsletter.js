@@ -3,6 +3,7 @@ const express = require('express')
 const { getMailjetClient, getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
 const { requireAdminAuth } = require('../admin/adminRoutes')
 const { createNewsletterEmail } = require('../templates/newsletterEmail')
+const { recordNewsletterOptIn } = require('../newsletter/optIn')
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MAILJET_BATCH_SIZE = 50
@@ -77,43 +78,11 @@ function buildNewsletterRouter(registry) {
       throw e
     }
 
-    try {
-      const nowIso = new Date().toISOString()
-      const { data: existing } = await supabase
-        .from('newsletter_subscribers')
-        .select('id, status, consent_at')
-        .eq('site_id', site.id)
-        .eq('email', email)
-        .maybeSingle()
-
-      if (existing) {
-        // Réinscription : réactive et enregistre le consentement si absent.
-        await supabase
-          .from('newsletter_subscribers')
-          .update({
-            status: 'subscribed',
-            unsubscribed_at: null,
-            consent_at: existing.consent_at || nowIso,
-            name: name || undefined,
-            updated_at: nowIso,
-          })
-          .eq('id', existing.id)
-      } else {
-        await supabase.from('newsletter_subscribers').insert({
-          site_id: site.id,
-          email,
-          name,
-          status: 'subscribed',
-          source: 'optin',
-          consent_at: nowIso,
-        })
-      }
-
-      return res.json({ success: true, message: 'Inscription confirmée' })
-    } catch (e) {
-      console.error(`[${site.id}] newsletter subscribe:`, e.message)
+    const result = await recordNewsletterOptIn(supabase, site.id, { email, name })
+    if (!result.ok) {
       return res.status(500).json({ success: false, error: 'Erreur serveur' })
     }
+    return res.json({ success: true, message: 'Inscription confirmée' })
   })
 
   // -------------------------------------------------------------------------
@@ -164,75 +133,12 @@ function buildNewsletterRouter(registry) {
   })
 
   // -------------------------------------------------------------------------
-  // Admin — import des emails clients (commandes) et leads
-  // -------------------------------------------------------------------------
-  router.post('/subscribers/import', requireAdminAuth(registry), async (req, res) => {
-    const site = req.site
-    const supabase = req.adminSupabase
-    const sources = req.body?.sources || {}
-
-    try {
-      const emails = new Map() // email -> name
-
-      if (sources.customers) {
-        const { data } = await supabase
-          .from('orders')
-          .select('customer_email')
-          .eq('site_id', site.id)
-          .not('customer_email', 'is', null)
-        for (const row of data || []) {
-          const e = String(row.customer_email || '').trim().toLowerCase()
-          if (isValidEmail(e) && !emails.has(e)) emails.set(e, null)
-        }
-      }
-
-      if (sources.leads) {
-        const { data } = await supabase
-          .from('lead_submissions')
-          .select('customer_email, customer_name')
-          .eq('site_id', site.id)
-          .not('customer_email', 'is', null)
-        for (const row of data || []) {
-          const e = String(row.customer_email || '').trim().toLowerCase()
-          if (isValidEmail(e) && !emails.has(e)) emails.set(e, row.customer_name || null)
-        }
-      }
-
-      if (emails.size === 0) {
-        return res.json({ success: true, imported: 0, message: 'Aucune adresse à importer' })
-      }
-
-      // Insère uniquement les nouvelles adresses (les existantes gardent leur statut).
-      const rows = Array.from(emails.entries()).map(([email, name]) => ({
-        site_id: site.id,
-        email,
-        name,
-        status: 'subscribed',
-        source: 'import',
-      }))
-
-      const { data: inserted, error } = await supabase
-        .from('newsletter_subscribers')
-        .upsert(rows, { onConflict: 'site_id,email', ignoreDuplicates: true })
-        .select('id')
-
-      if (error) throw error
-
-      return res.json({ success: true, imported: inserted?.length ?? 0 })
-    } catch (e) {
-      console.error(`[${site.id}] newsletter import:`, e.message)
-      return res.status(500).json({ success: false, error: 'Erreur serveur' })
-    }
-  })
-
-  // -------------------------------------------------------------------------
   // Admin — envoi d'une campagne (ou test)
   // -------------------------------------------------------------------------
   router.post('/campaigns/:id/send', requireAdminAuth(registry), async (req, res) => {
     const site = req.site
     const supabase = req.adminSupabase
     const campaignId = req.params.id
-    const audience = req.body?.audience || {}
     const testEmail = req.body?.testEmail ? String(req.body.testEmail).trim().toLowerCase() : null
 
     let mailjet
@@ -295,67 +201,18 @@ function buildNewsletterRouter(registry) {
         return res.status(409).json({ success: false, error: 'Campagne déjà envoyée ou en cours' })
       }
 
-      // ---- Résolution du public ----
-      const wantEmails = new Set()
-      if (audience.customers) {
-        const { data } = await supabase
-          .from('orders')
-          .select('customer_email')
-          .eq('site_id', site.id)
-          .not('customer_email', 'is', null)
-        for (const r of data || []) {
-          const e = String(r.customer_email || '').trim().toLowerCase()
-          if (isValidEmail(e)) wantEmails.add(e)
-        }
-      }
-      if (audience.leads) {
-        const { data } = await supabase
-          .from('lead_submissions')
-          .select('customer_email')
-          .eq('site_id', site.id)
-          .not('customer_email', 'is', null)
-        for (const r of data || []) {
-          const e = String(r.customer_email || '').trim().toLowerCase()
-          if (isValidEmail(e)) wantEmails.add(e)
-        }
-      }
-
-      // Garantit un abonné (donc un jeton de désinscription) pour chaque email des
-      // sources « réutilisées » ; les lignes existantes conservent leur statut.
-      if (wantEmails.size > 0) {
-        const importRows = Array.from(wantEmails).map((email) => ({
-          site_id: site.id,
-          email,
-          status: 'subscribed',
-          source: 'import',
-        }))
-        await supabase
-          .from('newsletter_subscribers')
-          .upsert(importRows, { onConflict: 'site_id,email', ignoreDuplicates: true })
-      }
-
-      // Charge tous les abonnés concernés (opt-in + éventuelles sources).
-      let subQuery = supabase
+      // ---- Résolution du public : les abonnés opt-in, source unique de vérité ----
+      const { data: subs, error: subErr } = await supabase
         .from('newsletter_subscribers')
-        .select('email, status, unsubscribe_token')
+        .select('email, unsubscribe_token')
         .eq('site_id', site.id)
+        .eq('status', 'subscribed')
 
-      // Si aucune source de réutilisation cochée, on ne prend que les abonnés opt-in ;
-      // sinon on prend l'union (tout ce qui existe désormais en base).
-      if (!audience.subscribers && wantEmails.size > 0) {
-        subQuery = subQuery.in('email', Array.from(wantEmails))
-      }
-
-      const { data: subs, error: subErr } = await subQuery
       if (subErr) throw subErr
 
-      // Suppression globale : on retire tout email désinscrit.
-      const recipients = (subs || [])
-        .filter((s) => s.status === 'subscribed')
-        .filter((s) => audience.subscribers || wantEmails.has(s.email))
-
+      const recipients = subs || []
       if (recipients.length === 0) {
-        return res.status(400).json({ success: false, error: 'Aucun destinataire éligible' })
+        return res.status(400).json({ success: false, error: 'Aucun abonné éligible' })
       }
 
       // Marque la campagne « en cours » + journalise les destinataires.
