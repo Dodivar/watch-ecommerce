@@ -19,6 +19,7 @@ import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import CookieBanner from '@/components/CookieBanner.vue'
 import LegalPageLinks from '@/components/legal/LegalPageLinks.vue'
 import CartDrawer from '@/components/cart/CartDrawer.vue'
+import NewsletterSignup from '@/components/NewsletterSignup.vue'
 import { openCookiePreferences } from '@/services/cookiePreferencesUi'
 import { useCart } from '@/composables/useCart.js'
 
@@ -397,6 +398,9 @@ function displayMobileMenu() {
             </li>
           </ul>
         </div>
+      </div>
+      <div v-if="features.newsletter" class="border-t border-white/20 mt-12 pt-8">
+        <NewsletterSignup class="newsletter-footer text-white" />
       </div>
       <div class="border-t border-white/20 mt-12 pt-8">
         <div class="flex flex-col md:flex-row justify-between items-center">
