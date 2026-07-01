@@ -6,7 +6,7 @@
           Politique de confidentialité
         </h1>
         <p class="text-gray-600 text-sm">
-          Dernière mise à jour : 30 mars 2026
+          Dernière mise à jour : 1 juillet 2026
         </p>
         <p class="mt-6 text-gray-700 leading-relaxed">
           La présente politique explique comment {{ LEGAL_COMPANY_NAME }} traite les données personnelles
@@ -89,6 +89,26 @@
           Base juridique : <strong class="text-text-main">intérêt légitime</strong> (informer sur notre
           localisation, article 6-1-f du RGPD).
         </p>
+
+        <template v-if="features.newsletter">
+          <h3 class="text-lg font-semibold text-text-main mt-6 mb-2">2.5 Newsletter et communications commerciales</h3>
+          <p>
+            Si vous vous inscrivez à notre newsletter, nous traitons votre adresse e-mail (et, le cas
+            échéant, votre nom) afin de vous adresser nos actualités, nouveautés et offres. L’envoi est
+            assuré par notre prestataire d’emailing <strong class="text-text-main">Mailjet (Sinch)</strong>.
+            Chaque message contient un lien de <strong class="text-text-main">désinscription</strong> vous
+            permettant de retirer votre consentement à tout moment ; la désinscription est prise en compte
+            sur l’ensemble de nos envois.
+          </p>
+          <p class="mt-2">
+            Base juridique : <strong class="text-text-main">consentement</strong> (article 6-1-a du RGPD)
+            lorsque vous vous inscrivez via le formulaire. Si vous êtes déjà client, nous pouvons vous
+            adresser des informations sur des produits ou services analogues à ceux déjà fournis, sur le
+            fondement de notre <strong class="text-text-main">intérêt légitime</strong> (article 6-1-f du
+            RGPD et article L.34-5 du Code des postes et des communications électroniques), sauf opposition
+            de votre part.
+          </p>
+        </template>
       </section>
 
       <section>
@@ -114,6 +134,17 @@
               rel="noopener noreferrer"
               target="_blank"
             >Politique de confidentialité Stripe</a
+            > ;
+          </li>
+          <li v-if="features.newsletter">
+            <strong class="text-text-main">Mailjet (Sinch)</strong>, pour l’envoi de nos emails
+            (newsletter et messages transactionnels) —
+            <a
+              href="https://www.mailjet.com/legal/privacy-policy/"
+              class="font-medium text-primary underline decoration-primary/40 hover:text-primary-hover"
+              rel="noopener noreferrer"
+              target="_blank"
+            >Politique de confidentialité Mailjet</a
             > ;
           </li>
           <li>
@@ -154,6 +185,10 @@
             Données issues de <strong class="text-text-main">Google Analytics</strong> : selon la configuration du
             service et la durée de validité de votre consentement ; sans consentement renouvelé, les traceurs
             concernés ne sont pas utilisés.
+          </li>
+          <li v-if="features.newsletter">
+            Données d’<strong class="text-text-main">abonnement à la newsletter</strong> : conservées jusqu’à
+            votre désinscription, puis supprimées ou anonymisées.
           </li>
         </ul>
       </section>
@@ -221,6 +256,8 @@ import {
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 
 const hasLegalDetails = computed(() => Boolean(LEGAL_ADDRESS || LEGAL_SIRET))
+
+const features = getSiteConfig().features
 
 const seo = getSiteConfig().seo.politique
 

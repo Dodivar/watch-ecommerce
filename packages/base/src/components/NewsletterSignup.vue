@@ -56,6 +56,14 @@ async function submit() {
     >
       {{ message }}
     </p>
+    <p class="newsletter-signup__consent">
+      En vous inscrivant, vous acceptez de recevoir nos communications par email. Désinscription
+      possible à tout moment via le lien présent dans chaque message. Pour en savoir plus, consultez
+      notre
+      <RouterLink to="/politique-confidentialite" class="newsletter-signup__consent-link">
+        politique de confidentialité</RouterLink
+      >.
+    </p>
   </section>
 </template>
 
@@ -109,5 +117,15 @@ async function submit() {
 }
 .newsletter-signup__message.is-error {
   color: #b91c1c;
+}
+.newsletter-signup__consent {
+  margin: 0.6rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  opacity: 0.75;
+}
+.newsletter-signup__consent-link {
+  color: inherit;
+  text-decoration: underline;
 }
 </style>
