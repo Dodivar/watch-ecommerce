@@ -260,6 +260,7 @@
             <p class="text-sm text-gray-600 mb-3 italic">
               * Les champs marqués d'un astérisque sont obligatoires
             </p>
+            <NewsletterOptInField class="mb-3" />
             <div v-if="errorMessage" class="text-red-500 text-sm mb-3">
               {{ errorMessage }}
             </div>
@@ -357,6 +358,7 @@
 import { useRouter } from 'vue-router'
 import { ref, onMounted, watch } from 'vue'
 import { handleFormSubmit, prepareEstimationFormData } from '@/services/emailService'
+import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
 import { createPreviewElement } from '@/services/imagePreviewService'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import TooltipInfo from './TooltipInfo.vue'

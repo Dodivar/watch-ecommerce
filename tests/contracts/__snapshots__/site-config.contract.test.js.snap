@@ -207,7 +207,7 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
     "homeNouvelles": true,
     "legal": true,
     "merci": true,
-    "newsletter": false,
+    "newsletter": true,
     "paymentReturn": true,
     "purchase": true,
     "recherche": false,
