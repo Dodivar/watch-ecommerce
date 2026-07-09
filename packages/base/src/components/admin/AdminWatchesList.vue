@@ -41,9 +41,11 @@ const filteredWatches = computed(() => {
 
   // Filter by tab selection
   if (activeTab.value === 'available') {
+    // Une montre vendue ne doit pas apparaître "en stock", même si is_available
+    // n'a pas été remis à false (anciennes données).
     filtered = filtered.filter((watch) => {
       const isAvailable = watch.is_available !== undefined ? watch.is_available : true
-      return isAvailable
+      return isAvailable && watch.is_sold !== true
     })
   } else if (activeTab.value === 'unavailable') {
     filtered = filtered.filter((watch) => watch.is_available === false)
@@ -516,7 +518,7 @@ onMounted(async () => {
             >
               Montres en stock
               <span class="ml-2 text-xs bg-primary text-white px-2 py-1 rounded-full">
-                {{ watches.filter((w) => w.is_available !== false).length }}
+                {{ watches.filter((w) => w.is_available !== false && w.is_sold !== true).length }}
               </span>
             </button>
             <button

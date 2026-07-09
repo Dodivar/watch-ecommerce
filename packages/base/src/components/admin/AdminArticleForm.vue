@@ -31,7 +31,7 @@ const htmlPreview = computed(() => {
   if (!formData.value.text) return ''
   try {
     return marked.parse(formData.value.text)
-  } catch (err) {
+  } catch {
     return '<p class="text-red-500">Erreur lors du rendu du Markdown</p>'
   }
 })

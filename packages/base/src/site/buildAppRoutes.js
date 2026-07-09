@@ -48,7 +48,7 @@ import CheckoutPage from '@/components/checkout/CheckoutPage.vue'
 import OrderSuccess from '@/components/checkout/OrderSuccess.vue'
 import OrderCancel from '@/components/checkout/OrderCancel.vue'
 
-import { APP_ROUTE_META, getActiveRoutePaths } from './appRouteMeta.js'
+import { APP_ROUTE_META } from './appRouteMeta.js'
 import { isRouteActiveForFeatures } from './routeFeatures.js'
 
 export { APP_ROUTE_META as ROUTE_DEFINITIONS, getActiveRoutePaths } from './appRouteMeta.js'
@@ -85,7 +85,6 @@ const COMPONENTS_BY_PATH = {
   '/admin/watches/new': AdminWatchForm,
   '/admin/watches/:id/edit': AdminWatchForm,
   '/admin/stats': AdminWatchStats,
-  '/admin/watches/stats': AdminWatchStats,
   '/admin/articles': AdminArticleList,
   '/admin/articles/new': AdminArticleForm,
   '/admin/articles/generate': AdminArticleGenerator,

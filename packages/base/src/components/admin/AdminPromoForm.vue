@@ -28,7 +28,13 @@ const error = ref(null)
 
 async function load() {
   if (!isEdit.value) return
-  const promo = await getPromoCodeByIdForAdmin(route.params.id)
+  let promo
+  try {
+    promo = await getPromoCodeByIdForAdmin(route.params.id)
+  } catch (err) {
+    error.value = err.message || 'Erreur lors du chargement du code promo'
+    return
+  }
   if (!promo) {
     error.value = 'Code introuvable'
     return
