@@ -313,3 +313,21 @@ alter table public.home_featured_watches
   add constraint home_featured_watches_context_check
   check (context in ('nouvelles', 'selection', 'collection'));
 ```
+
+## Relance panier abandonné (checkout)
+
+`20260710120000_abandoned_checkout_recovery.sql` — requis pour les clients avec `checkout.abandonedCart.enabled` (relance email des commandes draft non finalisées, voir `backend/orders/recovery.js`) :
+
+- Colonne `orders.recovery_email_sent_at` — horodatage de la relance (une seule relance par commande, réclamation atomique)
+- Colonne `orders.recovery_token_hash` — hash du token signé du lien de reprise `/checkout?order=…&token=…` (accepté en plus du token d'origine)
+- Index partiel pour la requête du planificateur
+
+```sql
+alter table public.orders
+  add column if not exists recovery_email_sent_at timestamptz,
+  add column if not exists recovery_token_hash text;
+
+create index if not exists orders_abandoned_recovery_idx
+  on public.orders (site_id, status, updated_at)
+  where recovery_email_sent_at is null and customer_email is not null;
+```

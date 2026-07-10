@@ -145,7 +145,10 @@ function buildOrdersRouter(registry) {
     if (!token || !verifyOrderAccessToken(site.secrets.paymentCancelSecret, token, order.id)) {
       return { ok: false, status: 403, error: 'Accès refusé' }
     }
-    if (order.access_token_hash && hashOrderAccessToken(token) !== order.access_token_hash) {
+    // Le token d'origine et le token de relance panier abandonné (voir
+    // orders/recovery.js) sont tous deux acceptés, sans s'invalider mutuellement.
+    const knownHashes = [order.access_token_hash, order.recovery_token_hash].filter(Boolean)
+    if (knownHashes.length > 0 && !knownHashes.includes(hashOrderAccessToken(token))) {
       return { ok: false, status: 403, error: 'Accès refusé' }
     }
     return { ok: true }

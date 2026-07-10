@@ -13,6 +13,7 @@ const n8nRoutes = require('./routes/n8n')
 const { buildAdminRouter } = require('./admin/adminRoutes')
 const { buildNewsletterRouter } = require('./routes/newsletter')
 const { startNewsletterScheduler } = require('./newsletter/scheduler')
+const { startAbandonedCheckoutScheduler } = require('./orders/recovery')
 
 const isProductionBoot =
   process.env.NODE_ENV === 'production' || process.env.RENDER === 'true'
@@ -125,6 +126,9 @@ async function main() {
 
   // Envoi différé des newsletters programmées (boucle interne au process).
   startNewsletterScheduler(registry)
+
+  // Relance email des paniers abandonnés (sites avec checkout.abandonedCart.enabled).
+  startAbandonedCheckoutScheduler(registry)
 }
 
 main().catch((err) => {

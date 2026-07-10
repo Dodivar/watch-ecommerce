@@ -8,6 +8,7 @@ export const SITEMAP_STATIC_ROUTE_DEFS = [
   { path: '', priority: '1.0', changefreq: 'daily' },
   { path: '/collection', feature: 'collection', priority: '0.9', changefreq: 'weekly' },
   { path: '/collection/marques', feature: 'collection', priority: '0.85', changefreq: 'weekly' },
+  { path: '/ventes', feature: 'soldArchive', priority: '0.6', changefreq: 'weekly' },
   { path: '/blog', feature: 'blog', priority: '0.8', changefreq: 'weekly' },
   { path: '/recherche', feature: 'recherche', priority: '0.7', changefreq: 'monthly' },
   { path: '/estimation', feature: 'estimation', priority: '0.7', changefreq: 'monthly' },
