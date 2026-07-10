@@ -36,7 +36,9 @@ export async function getLeadsForAdmin(filters = {}) {
   if (filters.type) query = query.eq('type', filters.type)
   if (filters.status) query = query.eq('status', filters.status)
   if (filters.search?.trim()) {
-    const term = `%${filters.search.trim()}%`
+    // Retirer les caractères réservés de la grammaire or() PostgREST (',', '(', ')')
+    // qui feraient échouer la requête entière.
+    const term = `%${filters.search.trim().replace(/[,()]/g, ' ')}%`
     query = query.or(
       `customer_email.ilike.${term},customer_name.ilike.${term}`,
     )

@@ -102,7 +102,17 @@ async function remove(id) {
 
   if (!confirm('Supprimer ce code promo ?')) return
 
-  await deletePromoCode(id)
+  try {
+
+    error.value = null
+
+    await deletePromoCode(id)
+
+  } catch (err) {
+
+    error.value = err.message || 'Erreur lors de la suppression'
+
+  }
 
   await load()
 

@@ -84,7 +84,9 @@ export async function createPromoCode(promo) {
  */
 export async function updatePromoCode(promoId, promo) {
   const siteId = getAdminSiteId()
-  const { error } = await supabase
+  // Même périmètre que la lecture : codes du site + codes globaux (site_id null),
+  // sinon la mise à jour d'un code global ne touche aucune ligne sans signaler d'erreur.
+  const { data, error } = await supabase
     .from('promo_codes')
     .update({
       code: String(promo.code || '')
@@ -98,9 +100,11 @@ export async function updatePromoCode(promoId, promo) {
       max_uses: promo.maxUses ?? null,
     })
     .eq('id', promoId)
-    .eq('site_id', siteId)
+    .or(`site_id.is.null,site_id.eq.${siteId}`)
+    .select('id')
 
   if (error) throw new Error(error.message)
+  if (!data || data.length === 0) throw new Error('Code promo introuvable')
   return { success: true }
 }
 
@@ -109,7 +113,13 @@ export async function updatePromoCode(promoId, promo) {
  */
 export async function deletePromoCode(promoId) {
   const siteId = getAdminSiteId()
-  const { error } = await supabase.from('promo_codes').delete().eq('id', promoId).eq('site_id', siteId)
+  const { data, error } = await supabase
+    .from('promo_codes')
+    .delete()
+    .eq('id', promoId)
+    .or(`site_id.is.null,site_id.eq.${siteId}`)
+    .select('id')
   if (error) throw new Error(error.message)
+  if (!data || data.length === 0) throw new Error('Code promo introuvable')
   return { success: true }
 }

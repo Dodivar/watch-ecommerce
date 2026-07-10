@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { Clock } from '@lucide/vue'
 import {
   getOrderByIdForAdmin,
@@ -12,7 +12,6 @@ import { watchCardImageUrl } from '@/utils/watchImageUrl.js'
 import AdminShell from './AdminShell.vue'
 
 const route = useRoute()
-const router = useRouter()
 const orderId = computed(() => route.params.id)
 
 const detail = ref(null)
