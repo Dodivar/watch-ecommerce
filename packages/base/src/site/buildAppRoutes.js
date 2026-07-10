@@ -6,6 +6,7 @@ import WatchesCollection from '@/components/watch/WatchesCollection.vue'
 import WatchSearchResultsPage from '@/components/watch/WatchSearchResultsPage.vue'
 import BrandsIndexPage from '@/components/watch/BrandsIndexPage.vue'
 import WatchDetail from '@/components/watch/WatchDetail.vue'
+import SoldWatchesArchivePage from '@/components/watch/SoldWatchesArchivePage.vue'
 import EstimationPage from '@/components/EstimationPage.vue'
 import AdminLogin from '@/components/admin/AdminLogin.vue'
 import AdminDashboard from '@/components/admin/AdminDashboard.vue'
@@ -66,6 +67,7 @@ const COMPONENTS_BY_PATH = {
   '/collection': WatchesCollection,
   '/montre/:slug': WatchDetail,
   '/watch/:id': WatchDetail,
+  '/ventes': SoldWatchesArchivePage,
   '/blog': BlogList,
   '/blog/:id': BlogDetail,
   '/a-propos': APropos,

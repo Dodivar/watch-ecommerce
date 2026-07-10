@@ -45,6 +45,12 @@ export const DEFAULT_SITE_FEATURES = {
   /** Campagnes promotionnelles groupées dans l'admin (événements soldes, etc.). */
   adminWatchPromotions: false,
   /**
+   * Archive publique des montres vendues : page `/ventes`, fiches montre
+   * consultables après la vente (badge « Vendue », CTA recherche personnalisée).
+   * Preuve sociale + SEO. Nécessite `collection` (désactivé sinon).
+   */
+  soldArchive: false,
+  /**
    * Newsletter : gestion des abonnés, composition et envoi de campagnes email
    * depuis l'admin (+ formulaire d'inscription vitrine). Nécessite la migration
    * `20260701120000_newsletter.sql` et Mailjet configuré.
@@ -56,6 +62,9 @@ export function mergeSiteFeatures(partial = {}) {
   const merged = { ...DEFAULT_SITE_FEATURES, ...partial }
   if (!merged.estimation) {
     merged.estimationProcess = false
+  }
+  if (!merged.collection) {
+    merged.soldArchive = false
   }
   return merged
 }

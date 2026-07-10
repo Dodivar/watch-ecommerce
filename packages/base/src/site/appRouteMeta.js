@@ -15,6 +15,7 @@ export const APP_ROUTE_META = [
   { path: '/collection', feature: 'collection' },
   { path: '/montre/:slug', feature: 'collection' },
   { path: '/watch/:id', feature: 'collection' },
+  { path: '/ventes', feature: 'soldArchive' },
   { path: '/blog', feature: 'blog' },
   { path: '/blog/:id', feature: 'blog' },
   { path: '/a-propos', feature: 'about' },

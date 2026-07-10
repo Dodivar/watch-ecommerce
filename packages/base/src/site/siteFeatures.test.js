@@ -23,6 +23,17 @@ describe('mergeSiteFeatures', () => {
     expect(merged.estimation).toBe(false)
     expect(merged.estimationProcess).toBe(false)
   })
+
+  it('désactive soldArchive quand collection est false', () => {
+    const merged = mergeSiteFeatures({ collection: false, soldArchive: true })
+    expect(merged.soldArchive).toBe(false)
+  })
+
+  it('active soldArchive sur opt-in explicite avec collection', () => {
+    expect(DEFAULT_SITE_FEATURES.soldArchive).toBe(false)
+    const merged = mergeSiteFeatures({ soldArchive: true })
+    expect(merged.soldArchive).toBe(true)
+  })
 })
 
 describe('getBrowsePath', () => {
