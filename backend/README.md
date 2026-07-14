@@ -147,9 +147,9 @@ Les variables historiques (`STRIPE_SECRET_KEY`, `MAILJET_API_KEY`, `BASE_URL`, e
 | Méthode | URL                            | Site résolu via         |
 | ------- | ------------------------------ | ----------------------- |
 | GET     | `/api/health`                  | (aucun)                 |
-| POST    | `/api/send-email`              | Origin                  |
-| GET     | `/api/config-check`            | Origin                  |
-| GET     | `/api/test-mailjet`            | Origin                  |
+| POST    | `/api/send-email`              | Origin (rate-limité)    |
+| GET     | `/api/config-check`            | Origin + Bearer admin   |
+| GET     | `/api/test-mailjet`            | Origin + Bearer admin   |
 | POST    | `/api/n8n/generate-article`    | Origin                  |
 | POST    | `/api/orders`                  | Origin                  |
 | PATCH   | `/api/orders/:id/customer`     | Origin + Bearer token   |
