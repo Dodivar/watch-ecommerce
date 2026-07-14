@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Place des Montres — Proposition commerciale</title>
+<style>
+  /* ============ Base ============ */
+  :root {
+    --ink: #2c2412;
+    --ink-soft: #5a5240;
+    --muted: #8c8260;
+    --gold: #7c6300;
+    --gold-bright: #d8b54a;
+    --gold-soft: #cdbf86;
+    --paper: #fcfbf7;
+    --cream: #f6f1e4;
+    --panel: #f7f2e6;
+    --line: #e9e2cf;
+    --dark: #1d1810;
+    --dark-2: #2c2412;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #ffffff; }
+  body {
+    font-family: 'Liberation Sans', 'DejaVu Sans', Arial, sans-serif;
+    color: var(--ink);
+    font-size: 10pt;
+    line-height: 1.5;
+  }
+  @page { size: A4; margin: 0; }
+
+  .page {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    page-break-after: always;
+    background:
+      radial-gradient(120% 70% at 100% 0%, #f6f1e4 0%, rgba(246,241,228,0) 40%),
+      linear-gradient(180deg, #fcfbf7 0%, #f7f3ea 100%);
+    padding: 20mm 18mm 24mm;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* Gold top rule on content pages */
+  .page:not(.cover)::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1.6mm;
+    background: linear-gradient(90deg, #7c6300 0%, #d8b54a 50%, #7c6300 100%);
+  }
+
+  /* Running header */
+  .runhead {
+    position: absolute;
+    top: 9mm; left: 18mm; right: 18mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #a8975c;
+    border-bottom: 0.3mm solid var(--line);
+    padding-bottom: 2.2mm;
+  }
+  .runhead .right { font-weight: 400; letter-spacing: 0.12em; color: #b3a988; }
+
+  /* Running footer */
+  .runfoot {
+    position: absolute;
+    bottom: 8mm; left: 18mm; right: 18mm;
+    display: flex;
+    justify-content: space-between;
+    font-size: 6.8pt;
+    letter-spacing: 0.08em;
+    color: #b3a988;
+    border-top: 0.3mm solid var(--line);
+    padding-top: 2mm;
+  }
+  .runfoot .pageno { font-weight: 700; color: #a8975c; }
+
+  /* ============ Typography ============ */
+  h1, h2, h3 { font-family: 'Liberation Serif', Georgia, 'DejaVu Serif', serif; }
+  .kicker {
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.30em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+    margin-bottom: 3mm;
+    display: flex;
+    align-items: center;
+    gap: 4mm;
+  }
+  .kicker::before { content: ""; width: 10mm; height: 0.6mm; background: var(--gold-bright); }
+  .page:not(.cover) .kicker { color: #a8975c; }
+  .page:not(.cover) .kicker::before { background: #c9a93c; }
+
+  h2.title {
+    font-size: 20pt;
+    color: var(--gold);
+    line-height: 1.15;
+    margin-bottom: 2.5mm;
+  }
+  .lede {
+    font-size: 10.5pt;
+    color: var(--ink-soft);
+    max-width: 160mm;
+    margin-bottom: 7mm;
+  }
+  .lede strong, p strong, li strong { color: var(--gold); }
+
+  h3.sub {
+    font-size: 12.5pt;
+    color: var(--ink);
+    margin: 6mm 0 3mm;
+  }
+
+  /* ============ Components ============ */
+  .tiles { display: flex; gap: 4mm; margin-bottom: 7mm; }
+  .tile {
+    flex: 1;
+    background: #ffffff;
+    border: 0.3mm solid var(--line);
+    border-top: 1mm solid var(--gold-bright);
+    border-radius: 2.5mm;
+    padding: 4mm 4mm 3.5mm;
+    box-shadow: 0 2mm 5mm rgba(44,36,18,0.06);
+  }
+  .tile .big {
+    font-family: 'Liberation Serif', Georgia, serif;
+    font-size: 17pt;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1.1;
+  }
+  .tile .lbl { font-size: 8pt; color: var(--muted); margin-top: 1mm; line-height: 1.35; }
+
+  table.data {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 9pt;
+    border: 0.3mm solid var(--line);
+    border-radius: 2.5mm;
+    overflow: hidden;
+    box-shadow: 0 2mm 6mm rgba(44,36,18,0.07);
+  }
+  table.data th {
+    background: linear-gradient(90deg, #6f5900 0%, #8a6f08 100%);
+    color: #ffffff;
+    text-align: left;
+    font-weight: 600;
+    padding: 2.6mm 4mm;
+    letter-spacing: 0.02em;
+  }
+  table.data td {
+    padding: 2.6mm 4mm;
+    border-bottom: 0.3mm solid #efe9d8;
+    background: #ffffff;
+    vertical-align: top;
+  }
+  table.data tbody tr:nth-child(even) td { background: var(--panel); }
+  table.data tbody tr:last-child td { border-bottom: none; }
+
+  .callout {
+    background: #f5f0e2;
+    border-left: 1.2mm solid #c9a93c;
+    border-radius: 0 2.5mm 2.5mm 0;
+    color: var(--ink-soft);
+    padding: 3.5mm 5mm;
+    font-size: 9.5pt;
+    box-shadow: 0 1.5mm 4mm rgba(44,36,18,0.05);
+  }
+  .callout strong { color: var(--gold); }
+
+  .quote {
+    font-family: 'Liberation Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 12pt;
+    color: var(--ink);
+    text-align: center;
+    padding: 4mm 12mm;
+  }
+  .quote::before, .quote::after { color: var(--gold-bright); }
+
+  .cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+  .card {
+    background: #ffffff;
+    border: 0.3mm solid var(--line);
+    border-radius: 2.5mm;
+    padding: 4mm;
+    box-shadow: 0 1.5mm 4mm rgba(44,36,18,0.05);
+  }
+  .card .ic { margin-bottom: 2mm; }
+  .card h4 { font-size: 9.5pt; color: var(--ink); margin-bottom: 1.2mm; }
+  .card p { font-size: 8.2pt; color: var(--ink-soft); line-height: 1.45; }
+
+  ul.check { list-style: none; }
+  ul.check li {
+    position: relative;
+    padding-left: 7mm;
+    margin-bottom: 2.4mm;
+    font-size: 9.5pt;
+  }
+  ul.check li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 1mm;
+    width: 3.6mm; height: 3.6mm;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+  ul.check li::after {
+    content: "";
+    position: absolute;
+    left: 1.05mm; top: 2.1mm;
+    width: 1.7mm; height: 0.9mm;
+    border-left: 0.5mm solid #fff;
+    border-bottom: 0.5mm solid #fff;
+    transform: rotate(-45deg);
+  }
+
+  ol.steps { list-style: none; counter-reset: step; }
+  ol.steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 12mm;
+    margin-bottom: 4.5mm;
+    font-size: 10pt;
+  }
+  ol.steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0;
+    width: 8mm; height: 8mm;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c6300, #a8942f);
+    color: #fff;
+    font-family: 'Liberation Serif', Georgia, serif;
+    font-weight: 700;
+    font-size: 11pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  ol.steps li b { display: block; font-size: 10.5pt; color: var(--ink); }
+  ol.steps li span { color: var(--ink-soft); font-size: 9pt; }
+
+  .shot {
+    border-radius: 2.5mm;
+    border: 0.3mm solid #ddd6c2;
+    box-shadow: 0 3mm 8mm rgba(0,0,0,0.14);
+    display: block;
+  }
+  .shotlabel {
+    display: inline-block;
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 1.2mm 3.5mm;
+    border-radius: 5mm;
+    margin-bottom: 2.5mm;
+  }
+  .shotlabel.avant { background: #eee9db; color: #8c8260; }
+  .shotlabel.apres { background: var(--gold); color: #ffffff; }
+
+  .src { font-size: 7pt; color: #9a916f; margin-top: 1.5mm; }
+
+  .figure-title { font-size: 8.5pt; font-weight: 700; color: var(--ink); margin-bottom: 1mm; }
+  .figure-sub { font-size: 7.5pt; color: var(--muted); margin-bottom: 2mm; }
+
+  .cols { display: flex; gap: 7mm; }
+  .cols > div { flex: 1; min-width: 0; }
+
+  /* ============ Cover ============ */
+  .cover {
+    padding: 0;
+    color: #f9f7f1;
+    background:
+      radial-gradient(115% 95% at 88% 46%, rgba(216,181,74,0.38) 0%, rgba(124,99,0,0.13) 32%, rgba(20,17,10,0) 60%),
+      linear-gradient(118deg, #100d07 0%, #1d1810 45%, #2c2412 100%);
+  }
+  .cover::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 2.2mm;
+    background: linear-gradient(90deg, #7c6300 0%, #d8b54a 50%, #7c6300 100%);
+  }
+  .cover .visual {
+    position: absolute;
+    right: -24mm; top: 12mm;
+    width: 130mm;
+    opacity: 0.94;
+  }
+  .cover .visual img { width: 100%; filter: drop-shadow(0 12mm 18mm rgba(0,0,0,0.6)); }
+  .cover .text {
+    position: absolute;
+    left: 18mm; right: 20mm; bottom: 30mm;
+    z-index: 2;
+    text-shadow: 0 1px 8px rgba(16,13,7,0.65);
+  }
+  .cover h1 {
+    font-size: 40pt;
+    line-height: 1.02;
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: -0.2mm;
+    margin-bottom: 7mm;
+  }
+  .cover .tagline {
+    font-family: 'Liberation Serif', Georgia, serif;
+    font-size: 15pt;
+    color: #efe9d8;
+    max-width: 118mm;
+    line-height: 1.35;
+    margin-bottom: 4mm;
+  }
+  .cover .tagline strong { color: var(--gold-bright); }
+  .cover .sub {
+    font-size: 10pt;
+    color: #b6ad96;
+    max-width: 105mm;
+    margin-bottom: 12mm;
+  }
+  .cover .sub strong { color: var(--gold-bright); }
+  .cover .by { font-size: 9.5pt; color: #e2dac4; }
+  .cover .by .label {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 7pt;
+    color: #8c8260;
+    margin-bottom: 1.2mm;
+  }
+  .cover .by a { color: var(--gold-bright); text-decoration: none; }
+  .cover .confid {
+    position: absolute;
+    left: 18mm; bottom: 12mm;
+    font-size: 7pt;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #8c8260;
+  }
+
+  /* ============ Offer / pricing ============ */
+  .offer { display: flex; gap: 5mm; margin-bottom: 6mm; }
+  .offerbox {
+    flex: 1;
+    background: #ffffff;
+    border: 0.3mm solid var(--line);
+    border-radius: 3mm;
+    padding: 5mm;
+    box-shadow: 0 2.5mm 7mm rgba(44,36,18,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .offerbox::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1.4mm;
+    background: linear-gradient(90deg, #7c6300, #d8b54a);
+  }
+  .offerbox .otitle {
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2mm;
+  }
+  .offerbox .price {
+    font-family: 'Liberation Serif', Georgia, serif;
+    font-size: 23pt;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1.05;
+  }
+  .offerbox .price small { font-size: 10pt; font-weight: 400; color: var(--muted); }
+  .offerbox p { font-size: 8.6pt; color: var(--ink-soft); margin-top: 2.5mm; }
+
+  .darkband {
+    background: linear-gradient(118deg, #1d1810 0%, #2c2412 100%);
+    color: #efe9d8;
+    border-radius: 3mm;
+    padding: 5mm 7mm;
+    font-family: 'Liberation Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 11.5pt;
+    text-align: center;
+  }
+  .darkband strong { color: var(--gold-bright); font-style: normal; }
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1 — COVER ================= -->
+<section class="page cover">
+  <div class="visual"><img src="assets/cover-watch.png" alt=""></div>
+  <div class="text">
+    <div class="kicker">Proposition commerciale · Juillet 2026</div>
+    <h1>Place des<br>Montres</h1>
+    <p class="tagline">Une boutique en ligne à la hauteur de votre expertise <strong>depuis&nbsp;1995</strong>.</p>
+    <p class="sub">Votre nouveau site e-commerce, <strong>dédié à votre maison</strong> — conception sur-mesure, hébergement, maintenance et évolutions inclus.</p>
+    <p class="by"><span class="label">Présenté par</span> Doryan Dillen · <a href="mailto:doryandillen@gmail.com">doryandillen@gmail.com</a></p>
+  </div>
+  <p class="confid">Document confidentiel · placedesmontres.fr</p>
+</section>
+
+<!-- ================= PAGE 2 — VOTRE MAISON ================= -->
+<section class="page">
+  <div class="runhead"><span>Place des Montres</span><span class="right">Proposition commerciale</span></div>
+
+  <div class="kicker">Votre maison</div>
+  <h2 class="title">Nous comprenons votre métier</h2>
+  <p class="lede">Trente ans d'horlogerie place des Halles à Strasbourg : un stock vivant, des marques exigeantes, un atelier, et des clients qui comparent en ligne avant de pousser votre porte. Votre site doit refléter ce niveau d'exigence.</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="big">1995</div><div class="lbl">Maison fondée à Strasbourg, boutique place des Halles</div></div>
+    <div class="tile"><div class="big">~3 000</div><div class="lbl">montres en stock, du quotidien à la pièce d'exception</div></div>
+    <div class="tile"><div class="big">~30</div><div class="lbl">marques distribuées, du Swiss Made aux icônes sportives</div></div>
+    <div class="tile"><div class="big">2-en-1</div><div class="lbl">vente conseil + atelier réparation, pile et étanchéité</div></div>
+  </div>
+
+  <h3 class="sub">Chaque facette de votre activité a sa place sur le site</h3>
+  <table class="data">
+    <thead><tr><th style="width:44%">Ce que vous faites</th><th>Ce que votre site couvre</th></tr></thead>
+    <tbody>
+      <tr><td>~3 000 références, ~30 marques</td><td>Catalogue complet, filtres marque / genre / promotions</td></tr>
+      <tr><td>Conseil en magasin + vente en ligne</td><td>Pages À propos, Nos services, Guide de l'horloger</td></tr>
+      <tr><td>Atelier réparation aux Halles</td><td>Mise en avant pile, étanchéité, réparation</td></tr>
+      <tr><td>Colissimo + retrait magasin</td><td>Checkout : domicile (gratuit dès 80 €) + retrait boutique</td></tr>
+      <tr><td>Garantie 2 ans, retour 30 jours</td><td>Blocs confiance fiche produit + FAQ (15 questions)</td></tr>
+    </tbody>
+  </table>
+
+  <div style="height:7mm"></div>
+  <div class="callout"><strong>Notre atout :</strong> votre futur site est <strong>déjà dessiné pour vous</strong> — identité visuelle, textes et règles métier repris fidèlement de placedesmontres.fr. Vous ne partez pas d'une page blanche : vous validez un site qui vous ressemble déjà.</div>
+
+  <div class="runfoot"><span>Place des Montres · Proposition commerciale — confidentiel</span><span class="pageno">2</span></div>
+</section>
+
+<!-- ================= PAGE 3 — LE CONSTAT ================= -->
+<section class="page">
+  <div class="runhead"><span>Place des Montres</span><span class="right">Proposition commerciale</span></div>
+
+  <div class="kicker">Le constat</div>
+  <h2 class="title">PrestaShop en 2026 : ce qui freine votre boutique</h2>
+  <p class="lede">Ce qui fonctionnait hier pèse aujourd'hui sur votre temps et sur votre image.</p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c6300" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a5 5 0 0 0-6.6 6.6L3 18v3h3l5.1-5.1a5 5 0 0 0 6.6-6.6L14 13l-3-3z"/></svg></div>
+      <h4>Maintenance technique</h4><p>Mises à jour cœur, modules, thème custom, correctifs sécurité : à votre charge, en continu.</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c6300" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 4v5"/></svg></div>
+      <h4>Back-office générique</h4><p>Pas pensé pour piloter 3 000 montres, des promotions par marque ou un carrousel d'accueil.</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c6300" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
+      <h4>Expérience mobile datée</h4><p>Navigation marques peu fluide, parcours d'achat lent — là où arrive la majorité du trafic.</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c6300" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+      <h4>Performance catalogue</h4><p>Lenteur perçue sur 3 000 références : impact direct sur le référencement et la conversion.</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c6300" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20h14M5 20V9l7-5 7 5v11M9 20v-6h6v6"/></svg></div>
+      <h4>Hébergement à votre charge</h4><p>Serveur, sauvegardes, certificats SSL, incidents : autant de sujets qui ne sont pas votre métier.</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c6300" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M7 21h10"/></svg></div>
+      <h4>Évolutions coûteuses</h4><p>Chaque nouveauté devient un développement sur mesure, facturé et long à livrer.</p>
+    </div>
+  </div>
+
+  <div style="height:6mm"></div>
+  <p class="quote">« Votre cœur de métier, c'est la montre — pas les mises à jour PHP. »</p>
+  <div style="height:4mm"></div>
+
+  <h3 class="sub">Ce que vos clients attendent en 2026</h3>
+  <div class="cols">
+    <div>
+      <ul class="check">
+        <li><strong>Rapidité</strong> — catalogue fluide sur mobile, recherche instantanée, paiement en 2 minutes</li>
+        <li><strong>Confiance</strong> — garanties visibles, paiement Stripe, politique de retour claire</li>
+      </ul>
+    </div>
+    <div>
+      <ul class="check">
+        <li><strong>Continuité boutique / web</strong> — ajustement bracelet, retrait magasin, guide d'entretien</li>
+        <li><strong>Plus de 60 % du trafic</strong> mode &amp; accessoires se fait sur mobile : un site lent, ce sont des ventes perdues en ligne <em>et</em> en boutique</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="runfoot"><span>Place des Montres · Proposition commerciale — confidentiel</span><span class="pageno">3</span></div>
+</section>
+
+<!-- ================= PAGE 4 — MOBILE ================= -->
+<section class="page">
+  <div class="runhead"><span>Place des Montres</span><span class="right">Proposition commerciale</span></div>
+
+  <div class="kicker">Mobile d'abord</div>
+  <h2 class="title">Le smartphone est le premier écran de vos clients</h2>
+  <p class="lede">La part des achats finalisés sur mobile progresse chaque année. Sur PrestaShop, ce trafic arrive sur un parcours pensé pour l'ordinateur — c'est exactement là que se perdent les ventes.</p>
+
+  <div class="cols" style="align-items:flex-start">
+    <div style="flex:1.25">
+      <p class="figure-title">Part des ventes e-commerce réalisées sur smartphone</p>
+      <p class="figure-sub">France / Europe, 2020 → 2026</p>
+      <svg viewBox="0 0 460 250" width="100%" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif">
+        <line x1="30" y1="210" x2="450" y2="210" stroke="#d8d2c2" stroke-width="1.6"/>
+        <line x1="30" y1="110" x2="428" y2="110" stroke="#b0a98f" stroke-width="1" stroke-dasharray="5 5"/>
+        <text x="432" y="114" fill="#9a916f" font-size="11">50 %</text>
+        <rect x="58" y="120" width="78" height="90" rx="3" fill="#cdbf86"/>
+        <text x="97" y="110" text-anchor="middle" fill="#2c2412" font-size="17" font-weight="700">45 %</text>
+        <text x="97" y="232" text-anchor="middle" fill="#5a5240" font-size="13">2020</text>
+        <rect x="192" y="94" width="78" height="116" rx="3" fill="#a8942f"/>
+        <text x="231" y="84" text-anchor="middle" fill="#2c2412" font-size="17" font-weight="700">58 %</text>
+        <text x="231" y="232" text-anchor="middle" fill="#5a5240" font-size="13">2023</text>
+        <rect x="326" y="78" width="78" height="132" rx="3" fill="#7c6300"/>
+        <text x="365" y="68" text-anchor="middle" fill="#2c2412" font-size="17" font-weight="700">66 %</text>
+        <text x="365" y="232" text-anchor="middle" fill="#5a5240" font-size="13">2026</text>
+      </svg>
+      <p class="src">Sources : observatoires e-commerce FR/EU 2020–2025 — ordres de grandeur.</p>
+
+      <div style="height:5mm"></div>
+      <h3 class="sub" style="margin-top:0">Votre site, conçu pour le pouce</h3>
+      <ul class="check">
+        <li><strong>Mega-menu tactile</strong> — marques, genre, promotions en un geste</li>
+        <li><strong>Recherche instantanée</strong> — la bonne montre en quelques lettres</li>
+        <li><strong>Achat toujours à portée</strong> — bouton panier fixé en bas d'écran</li>
+        <li><strong>Checkout en 2 minutes</strong> — Apple Pay / Google Pay en un toucher</li>
+        <li><strong>Pages ultra-rapides</strong> — images optimisées, rendu instantané</li>
+      </ul>
+    </div>
+    <div style="flex:1; display:flex; gap:4mm; justify-content:center">
+      <div style="text-align:center">
+        <img class="shot" src="assets/mobile/apres-accueil-mobile.png" alt="" style="width:38mm">
+        <p class="src" style="text-align:center">Accueil — capture réelle</p>
+      </div>
+      <div style="text-align:center">
+        <img class="shot" src="assets/mobile/apres-menu-mobile.png" alt="" style="width:38mm">
+        <p class="src" style="text-align:center">Menu « Nos montres »</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:4mm"></div>
+  <div class="callout">Ces écrans ne sont pas des maquettes : ce sont des <strong>captures réelles de votre futur site</strong>, déjà à vos couleurs.</div>
+
+  <div class="runfoot"><span>Place des Montres · Proposition commerciale — confidentiel</span><span class="pageno">4</span></div>
+</section>
+
+<!-- ================= PAGE 5 — IMPACT VENTES + PAIEMENT ================= -->
+<section class="page">
+  <div class="runhead"><span>Place des Montres</span><span class="right">Proposition commerciale</span></div>
+
+  <div class="kicker">L'enjeu commercial</div>
+  <h2 class="title">Là où les paniers se perdent — et comment les retenir</h2>
+  <p class="lede">Le mobile concentre le trafic… mais c'est aussi là que l'abandon est le plus élevé. Deux leviers décisifs : <strong>réduire l'abandon de panier</strong> et <strong>accélérer le chargement</strong>.</p>
+
+  <div class="cols">
+    <div>
+      <p class="figure-title">Taux d'abandon de panier par appareil</p>
+      <p class="figure-sub">Moyenne e-commerce</p>
+      <svg viewBox="0 0 340 215" width="100%" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif">
+        <line x1="20" y1="180" x2="330" y2="180" stroke="#d8d2c2" stroke-width="1.6"/>
+        <rect x="45" y="70.4" width="62" height="109.6" rx="3" fill="#c7c0ad"/>
+        <text x="76" y="60" text-anchor="middle" fill="#2c2412" font-size="15" font-weight="700">73 %</text>
+        <text x="76" y="200" text-anchor="middle" fill="#5a5240" font-size="12">Ordinateur</text>
+        <rect x="145" y="60" width="62" height="120" rx="3" fill="#c7c0ad"/>
+        <text x="176" y="49.6" text-anchor="middle" fill="#2c2412" font-size="15" font-weight="700">80 %</text>
+        <text x="176" y="200" text-anchor="middle" fill="#5a5240" font-size="12">Tablette</text>
+        <rect x="245" y="52.4" width="62" height="127.6" rx="3" fill="#7c6300"/>
+        <text x="276" y="42" text-anchor="middle" fill="#2c2412" font-size="15" font-weight="700">85 %</text>
+        <text x="276" y="200" text-anchor="middle" fill="#5a5240" font-size="12" font-weight="700">Mobile</text>
+      </svg>
+    </div>
+    <div>
+      <p class="figure-title">Probabilité de rebond mobile selon le chargement</p>
+      <p class="figure-sub">Hausse vs page chargée en 1 s</p>
+      <svg viewBox="0 0 340 215" width="100%" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif">
+        <line x1="20" y1="180" x2="330" y2="180" stroke="#d8d2c2" stroke-width="1.6"/>
+        <rect x="38" y="176" width="56" height="4" rx="2" fill="#c7c0ad"/>
+        <text x="66" y="168" text-anchor="middle" fill="#7a7363" font-size="11">réf.</text>
+        <text x="66" y="200" text-anchor="middle" fill="#5a5240" font-size="12">1 s</text>
+        <rect x="114" y="139" width="56" height="41" rx="3" fill="#cdbf86"/>
+        <text x="142" y="129" text-anchor="middle" fill="#2c2412" font-size="14" font-weight="700">+32 %</text>
+        <text x="142" y="200" text-anchor="middle" fill="#5a5240" font-size="12">3 s</text>
+        <rect x="190" y="65" width="56" height="115" rx="3" fill="#a8942f"/>
+        <text x="218" y="55" text-anchor="middle" fill="#2c2412" font-size="14" font-weight="700">+90 %</text>
+        <text x="218" y="200" text-anchor="middle" fill="#5a5240" font-size="12">5 s</text>
+        <rect x="266" y="45" width="56" height="135" rx="3" fill="#7c6300"/>
+        <text x="294" y="35" text-anchor="middle" fill="#2c2412" font-size="14" font-weight="700">+106 %</text>
+        <text x="294" y="200" text-anchor="middle" fill="#5a5240" font-size="12">6 s</text>
+      </svg>
+    </div>
+  </div>
+  <p class="src">Sources : Google / benchmarks e-commerce FR-EU — ordres de grandeur.</p>
+
+  <div style="height:3mm"></div>
+  <div class="callout"><strong>53 %</strong> des visites mobiles sont abandonnées si la page met plus de <strong>3 secondes</strong> à charger. Un parcours fluide et rapide récupère ces ventes.</div>
+
+  <h3 class="sub">Paiement : tous les moyens attendus, dès le lancement</h3>
+  <div class="cols" style="align-items:center">
+    <div style="flex:1.35">
+      <p class="figure-title">Moyens de paiement utilisés en ligne — acheteurs FR</p>
+      <p class="figure-sub">Plusieurs réponses possibles</p>
+      <svg viewBox="0 0 460 190" width="100%" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif">
+        <text x="148" y="26" text-anchor="end" fill="#2c2412" font-size="12">Carte bancaire</text>
+        <rect x="156" y="12" width="240" height="20" rx="3" fill="#7c6300"/>
+        <text x="402" y="27" fill="#2c2412" font-size="12" font-weight="700">80 %</text>
+        <text x="148" y="62" text-anchor="end" fill="#2c2412" font-size="12">PayPal</text>
+        <rect x="156" y="48" width="114" height="20" rx="3" fill="#7c6300"/>
+        <text x="276" y="63" fill="#2c2412" font-size="12" font-weight="700">38 %</text>
+        <text x="148" y="98" text-anchor="end" fill="#2c2412" font-size="12">Apple Pay / Google Pay</text>
+        <rect x="156" y="84" width="51" height="20" rx="3" fill="#7c6300"/>
+        <text x="213" y="99" fill="#2c2412" font-size="12" font-weight="700">17 %</text>
+        <text x="148" y="134" text-anchor="end" fill="#2c2412" font-size="12">Paiement fractionné</text>
+        <rect x="156" y="120" width="45" height="20" rx="3" fill="#7c6300"/>
+        <text x="207" y="135" fill="#2c2412" font-size="12" font-weight="700">15 %</text>
+        <text x="148" y="170" text-anchor="end" fill="#2c2412" font-size="12">Virement</text>
+        <rect x="156" y="156" width="27" height="20" rx="3" fill="#7c6300"/>
+        <text x="189" y="171" fill="#2c2412" font-size="12" font-weight="700">9 %</text>
+      </svg>
+      <p class="src">Sources : baromètres paiement e-commerce FR.</p>
+    </div>
+    <div>
+      <ul class="check">
+        <li><strong>CB 3D Secure, Apple Pay &amp; Google Pay</strong> dès le lancement, via Stripe — sans module tiers à acheter ni à maintenir</li>
+        <li><strong>PayPal</strong> et <strong>paiement fractionné</strong> (3x / 4x) activables en option</li>
+        <li>Moins de friction au paiement = <strong>moins d'abandons</strong>, surtout sur smartphone</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="runfoot"><span>Place des Montres · Proposition commerciale — confidentiel</span><span class="pageno">5</span></div>
+</section>
+
+<!-- ================= PAGE 6 — AVANT / APRÈS ================= -->
+<section class="page">
+  <div class="runhead"><span>Place des Montres</span><span class="right">Proposition commerciale</span></div>
+
+  <div class="kicker">L'expérience client</div>
+  <h2 class="title">Avant / après : le même magasin, une autre allure</h2>
+
+  <div style="display:flex; justify-content:center">
+    <div style="width:108mm">
+      <span class="shotlabel avant">Aujourd'hui — PrestaShop</span>
+      <img class="shot" src="assets/avant-accueil-prestashop.png" alt="" style="width:100%">
+      <p class="src" style="margin-bottom:4mm">placedesmontres.fr — page d'accueil actuelle</p>
+      <span class="shotlabel apres">Demain — votre nouveau site</span>
+      <img class="shot" src="assets/apres-accueil-plateforme.png" alt="" style="width:100%">
+      <p class="src">Votre futur site — accueil, capture réelle</p>
+    </div>
+  </div>
+
+  <div style="height:4mm"></div>
+  <h3 class="sub" style="margin-top:0">Ce qui change pour vos clients</h3>
+  <div class="cols">
+    <div>
+      <ul class="check">
+        <li><strong>Mega-menu marques</strong> — Tissot, G-Shock, homme / femme / enfant, promotions</li>
+        <li><strong>Carrousel d'accueil</strong> — nouveautés gérées depuis l'administration</li>
+        <li><strong>Fiches produit soignées</strong> — stock temps réel, badges promo, garanties, livraison, retrait</li>
+      </ul>
+    </div>
+    <div>
+      <ul class="check">
+        <li><strong>Checkout moderne</strong> — Stripe, codes promo, réservation du stock 30 minutes</li>
+        <li><strong>Pages de confiance</strong> — FAQ, Guide de l'horloger, Nos services, carte Google Maps</li>
+        <li><strong>Image premium</strong> — un écrin numérique à la hauteur de vos vitrines</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="height:3mm"></div>
+  <p class="quote">« Vous ne découvrez pas un produit : vous découvrez votre site — vos couleurs, vos textes, vos règles. »</p>
+
+  <div class="runfoot"><span>Place des Montres · Proposition commerciale — confidentiel</span><span class="pageno">6</span></div>
+</section>
+
+<!-- ================= PAGE 7 — CATALOGUE & BACK-OFFICE ================= -->
+<section class="page">
+  <div class="runhead"><span>Place des Montres</span><span class="right">Proposition commerciale</span></div>
+
+  <div class="kicker">Au quotidien</div>
+  <h2 class="title">Un catalogue élégant, un back-office fait pour un horloger</h2>
+
+  <img class="shot" src="assets/apres-collection-plateforme.png" alt="" style="width:100%">
+  <p class="src">Votre futur catalogue « Toutes nos montres » — capture réelle : badges Nouveau / -10 %, prix barrés, filtres et tri</p>
+
+  <div style="height:4mm"></div>
+  <h3 class="sub" style="margin-top:0">Pilotez sans être informaticien</h3>
+  <div class="cols">
+    <div>
+      <ul class="check">
+        <li><strong>Tableau de bord</strong> — chiffre d'affaires jour / semaine, commandes en attente, alertes stock</li>
+        <li><strong>Gestion des montres</strong> — création, images, disponibilité, import catalogue</li>
+        <li><strong>Commandes</strong> — suivi, traitement, reçus PDF automatiques</li>
+        <li><strong>Promotions</strong> — campagnes par montre, badges automatiques</li>
+      </ul>
+    </div>
+    <div>
+      <ul class="check">
+        <li><strong>Codes promo</strong> — appliqués directement au checkout</li>
+        <li><strong>Carrousel &amp; sélections d'accueil</strong> — sans toucher au code</li>
+        <li><strong>Statistiques</strong> — valeur du stock, taux d'écoulement, graphiques de ventes</li>
+        <li><strong>Formation incluse</strong> — 2 h de prise en main avec vous, en boutique ou à distance</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="height:3mm"></div>
+  <div class="darkband">« Mettez en avant une collection Tissot en <strong>5 minutes</strong>, pas en 5 jours de développement. »</div>
+
+  <div class="runfoot"><span>Place des Montres · Proposition commerciale — confidentiel</span><span class="pageno">7</span></div>
+</section>
+
+<!-- ================= PAGE 8 — FIABILITÉ + MIGRATION ================= -->
+<section class="page">
+  <div class="runhead"><span>Place des Montres</span><span class="right">Proposition commerciale</span></div>
+
+  <div class="kicker">Sérénité</div>
+  <h2 class="title">Fiable, sécurisé, conforme — et sans perdre votre référencement</h2>
+
+  <div class="cols">
+    <div>
+      <h3 class="sub" style="margin-top:0">Fiabilité &amp; conformité</h3>
+      <ul class="check">
+        <li><strong>Hébergement cloud managé</strong> — Vercel (site), Render (API), Supabase (vos données, isolées et sauvegardées)</li>
+        <li><strong>Paiement Stripe</strong> — conforme PCI, aucune donnée bancaire stockée chez vous</li>
+        <li><strong>RGPD</strong> — bandeau cookies, consentement Google Analytics</li>
+        <li><strong>Pages légales</strong> — CGU, mentions légales, politique de confidentialité</li>
+        <li><strong>Mises à jour sécurité</strong> — incluses dans la maintenance, sans action de votre part</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="sub" style="margin-top:0">Migration SEO maîtrisée</h3>
+      <ul class="check">
+        <li><strong>Import catalogue PrestaShop</strong> — outil d'import dédié, ~3 000 références</li>
+        <li><strong>Redirections 301</strong> — chaque ancienne URL renvoie vers la nouvelle</li>
+        <li><strong>Sitemap dynamique</strong> — généré depuis votre base produits</li>
+        <li><strong>Données structurées</strong> — JSON-LD Organization, LocalBusiness, Product</li>
+        <li><strong>Pré-rendu SEO</strong> — pages parfaitement lisibles par Google</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="height:2mm"></div>
+  <div class="callout"><strong>Peur n°1 des commerçants :</strong> perdre le référencement Google accumulé depuis des années. Notre réponse : on ne repart pas de zéro — <strong>on conserve ce que Google connaît déjà de vous.</strong></div>
+
+  <h3 class="sub">Le planning de bascule</h3>
+  <table class="data">
+    <thead><tr><th style="width:30%">Phase</th><th style="width:22%">Durée</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>Recette</td><td>Avancée</td><td>Validation sur environnement de démonstration</td></tr>
+      <tr><td>Import catalogue</td><td>1–2 jours</td><td>Synchronisation des références et des images</td></tr>
+      <tr><td>Tests commandes</td><td>2–3 jours</td><td>Paiement, livraison, retrait magasin</td></tr>
+      <tr><td>Bascule DNS</td><td>Quelques heures</td><td>Mise en ligne + redirections actives</td></tr>
+      <tr><td>Suivi post-lancement</td><td>30 jours</td><td>Surveillance SEO + corrections</td></tr>
+    </tbody>
+  </table>
+
+  <div style="height:4mm"></div>
+  <p style="font-size:9.5pt; color:var(--ink-soft)"><strong>Bascule en douceur :</strong> votre magasin physique n'est jamais interrompu, et la fenêtre de mise en ligne est choisie avec vous — hors pic de Noël et de soldes.</p>
+
+  <div class="runfoot"><span>Place des Montres · Proposition commerciale — confidentiel</span><span class="pageno">8</span></div>
+</section>
+
+<!-- ================= PAGE 9 — OFFRE ================= -->
+<section class="page">
+  <div class="runhead"><span>Place des Montres</span><span class="right">Proposition commerciale</span></div>
+
+  <div class="kicker">Notre offre</div>
+  <h2 class="title">Un interlocuteur, un abonnement, zéro surprise technique</h2>
+
+  <div class="offer">
+    <div class="offerbox">
+      <div class="otitle">Migration — une fois</div>
+      <div class="price">4 900 € <small>HT</small></div>
+      <p>Import de ~3 000 références · configuration sur-mesure (déjà réalisée pour vous) · tests &amp; recette · bascule DNS + redirections SEO · <strong>formation admin 2&nbsp;h</strong></p>
+    </div>
+    <div class="offerbox">
+      <div class="otitle">Hébergement + maintenance</div>
+      <div class="price">249 € <small>HT / mois — à partir de</small></div>
+      <p>Tout est inclus : plus aucun serveur à gérer, aucune mise à jour à déclencher, aucun module à acheter. Engagement recommandé : 12 mois.</p>
+    </div>
+  </div>
+
+  <h3 class="sub" style="margin-top:0">Ce que couvre l'abonnement</h3>
+  <table class="data">
+    <thead><tr><th style="width:30%">Inclus</th><th>Détail</th></tr></thead>
+    <tbody>
+      <tr><td>Hébergement</td><td>Vercel + Render + Supabase — infrastructure managée</td></tr>
+      <tr><td>Maintenance</td><td>Corrective + évolutions continues incluses</td></tr>
+      <tr><td>Monitoring</td><td>Disponibilité, alertes en cas d'incident</td></tr>
+      <tr><td>Support</td><td><strong>2 h / mois</strong> — réponse sous <strong>4 h ouvrées</strong></td></tr>
+      <tr><td>Sauvegardes</td><td>Politique de backup automatique de vos données</td></tr>
+    </tbody>
+  </table>
+
+  <div style="height:5mm"></div>
+  <div class="cols">
+    <div class="callout" style="flex:1"><strong>Votre indépendance est garantie :</strong> le nom de domaine et les données restent votre propriété — export complet possible à tout moment.</div>
+    <div class="callout" style="flex:1">À titre de comparaison : hébergement PrestaShop + maintenance agence + modules représentent souvent un budget <strong>équivalent ou supérieur</strong> — sans la modernité ni le back-office horloger.</div>
+  </div>
+
+  <div style="height:5mm"></div>
+  <p style="font-size:8.5pt;color:var(--muted)">Tarifs indicatifs — devis définitif après audit de l'export PrestaShop.</p>
+
+  <div class="runfoot"><span>Place des Montres · Proposition commerciale — confidentiel</span><span class="pageno">9</span></div>
+</section>
+
+<!-- ================= PAGE 10 — PROCHAINES ÉTAPES ================= -->
+<section class="page">
+  <div class="runhead"><span>Place des Montres</span><span class="right">Proposition commerciale</span></div>
+
+  <div class="kicker">Et maintenant ?</div>
+  <h2 class="title">Quatre étapes jusqu'à la mise en ligne</h2>
+  <div style="height:10mm"></div>
+
+  <ol class="steps">
+    <li><b>Démonstration guidée — 45 minutes</b><span>Accueil, fiche produit, checkout et administration, sur votre site déjà à vos couleurs.</span></li>
+    <li><b>Audit express</b><span>Export de votre catalogue PrestaShop → estimation ferme du périmètre d'import.</span></li>
+    <li><b>Devis personnalisé sous 48 h</b><span>Périmètre, planning et tarif définitifs, noir sur blanc.</span></li>
+    <li><b>Date de bascule choisie ensemble</b><span>Fenêtre hors pic d'activité (Noël, soldes) — votre boutique ne s'arrête jamais.</span></li>
+  </ol>
+
+  <div style="height:18mm"></div>
+  <div class="darkband" style="padding:8mm 10mm">
+    « Vous avez passé 30 ans à construire la confiance de vos clients à Strasbourg.<br>
+    Nous portons cette même exigence en ligne — <strong>sans que la technique ne vous en distraie un jour de plus.</strong> »
+  </div>
+
+  <div style="height:22mm"></div>
+  <div style="text-align:center">
+    <p class="kicker" style="justify-content:center">Contact</p>
+    <p style="font-family:'Liberation Serif', Georgia, serif; font-size:16pt; font-weight:700; color:var(--ink)">Doryan Dillen</p>
+    <p style="font-size:11pt; color:var(--gold); margin-top:1mm">doryandillen@gmail.com</p>
+  </div>
+
+  <div class="runfoot"><span>Place des Montres · Proposition commerciale — confidentiel</span><span class="pageno">10</span></div>
+</section>
+
+</body>
+</html>
