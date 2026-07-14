@@ -2,9 +2,10 @@ const express = require('express')
 const router = express.Router()
 const multer = require('multer')
 const fs = require('fs')
+const rateLimit = require('express-rate-limit')
 
 const { getMailjetClient, getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
-const { persistLeadSubmission } = require('../admin/adminRoutes')
+const { persistLeadSubmission, requireAdminAuth } = require('../admin/adminRoutes')
 const { recordNewsletterOptIn, isOptInTruthy } = require('../newsletter/optIn')
 const { createEmailTemplate, formatEmailContent } = require('../templates/estimationEmail')
 const {
@@ -16,7 +17,55 @@ const {
 const { validateAppointmentSubmission } = require('../utils/appointmentSlots')
 const { buildGoogleMapsDirectionsUrl } = require('../utils/googleMapsLinks')
 
-const upload = multer({ dest: 'uploads/' })
+// Limites d'upload : le formulaire d'estimation accepte images + PDF uniquement
+// (accept="image/*,application/pdf" côté front). Sans `limits`, multer accepte
+// des fichiers de taille illimitée → risque de saturation disque/mémoire.
+const MAX_ATTACHMENT_FILES = 10
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024 // 10 Mo par fichier
+
+const attachmentUpload = multer({
+  dest: 'uploads/',
+  limits: { fileSize: MAX_ATTACHMENT_BYTES, files: MAX_ATTACHMENT_FILES },
+  fileFilter: (req, file, cb) => {
+    const type = String(file.mimetype || '')
+    if (type.startsWith('image/') || type === 'application/pdf') {
+      return cb(null, true)
+    }
+    const err = new multer.MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname)
+    err.message = 'Type de pièce jointe non autorisé (images et PDF uniquement)'
+    cb(err)
+  },
+}).array('attachments', MAX_ATTACHMENT_FILES)
+
+/** Wrapper multer : convertit les erreurs d'upload en 400 JSON + nettoie les fichiers déjà écrits. */
+function uploadAttachments(req, res, next) {
+  attachmentUpload(req, res, (err) => {
+    if (!err) return next()
+    cleanupFiles(req.files)
+    const message =
+      err.code === 'LIMIT_FILE_SIZE'
+        ? `Pièce jointe trop volumineuse (${MAX_ATTACHMENT_BYTES / (1024 * 1024)} Mo max par fichier)`
+        : err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE'
+          ? err.message || 'Pièces jointes invalides'
+          : 'Pièces jointes invalides'
+    return res.status(400).json({ success: false, message })
+  })
+}
+
+// Anti-abus : sans limite, ce endpoint permet d'épuiser le quota Mailjet et
+// d'envoyer des confirmations à des adresses arbitraires (flux rendez-vous).
+const sendEmailRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: (req) => Number(req.site?.config?.backend?.email?.rateLimitMax) || 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res, _next, options) => {
+    res.status(options.statusCode).json({
+      success: false,
+      message: 'Trop de requêtes. Réessayez dans quelques instants.',
+    })
+  },
+})
 
 function cleanupFiles(files) {
   if (!files) return
@@ -27,7 +76,7 @@ function cleanupFiles(files) {
   }
 }
 
-router.post('/send-email', upload.array('attachments', 10), async (req, res) => {
+router.post('/send-email', sendEmailRateLimiter, uploadAttachments, async (req, res) => {
   const site = req.site
   const files = req.files || []
 
@@ -168,9 +217,7 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
       }
 
       console.log(`[${site.id}] Préparation de l'envoi des emails rendez-vous via Mailjet...`)
-      const appointmentResult = await mailjet
-        .post('send', { version: 'v3.1' })
-        .request(appointmentEmailData)
+      await mailjet.post('send', { version: 'v3.1' }).request(appointmentEmailData)
 
       console.log(`[${site.id}] ✅ Emails rendez-vous envoyés avec succès via Mailjet`)
       cleanupFiles(files)
@@ -191,7 +238,6 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
       return res.json({
         success: true,
         message: 'Demande de rendez-vous envoyée avec succès',
-        mailjetResponse: appointmentResult.body,
       })
     }
 
@@ -229,7 +275,7 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
 
     console.log(`[${site.id}] Préparation de l'envoi du mail avec Mailjet...`)
 
-    const result = await mailjet.post('send', { version: 'v3.1' }).request(emailData)
+    await mailjet.post('send', { version: 'v3.1' }).request(emailData)
 
     console.log(`[${site.id}] ✅ Email envoyé avec succès via Mailjet`)
 
@@ -251,21 +297,25 @@ router.post('/send-email', upload.array('attachments', 10), async (req, res) => 
     res.json({
       success: true,
       message: 'Email envoyé avec succès',
-      mailjetResponse: result.body,
     })
   } catch (error) {
-    console.error(`[${site.id}] ❌ Erreur lors de l'envoi de l'email:`, error)
+    // Détail (stack, réponse Mailjet) uniquement côté serveur : ne pas l'exposer au client.
+    console.error(
+      `[${site.id}] ❌ Erreur lors de l'envoi de l'email:`,
+      error,
+      error.response?.body || '',
+    )
     cleanupFiles(files)
     res.status(500).json({
       success: false,
       message: "Erreur lors de l'envoi de l'email",
-      error: error.message,
-      details: error.response?.body || error.stack,
     })
   }
 })
 
-router.get('/config-check', (req, res) => {
+// Diagnostics de configuration : réservés aux admins (exposent des aperçus de
+// clés et l'état du compte Mailjet — jamais accessibles publiquement).
+router.get('/config-check', requireAdminAuth(), (req, res) => {
   const site = req.site
   const apiKey = site.secrets?.mailjet?.apiKey
   const secretKey = site.secrets?.mailjet?.secretKey
@@ -281,7 +331,7 @@ router.get('/config-check', (req, res) => {
   })
 })
 
-router.get('/test-mailjet', async (req, res) => {
+router.get('/test-mailjet', requireAdminAuth(), async (req, res) => {
   const site = req.site
   try {
     let mailjet
@@ -304,12 +354,12 @@ router.get('/test-mailjet', async (req, res) => {
       user: result.body,
     })
   } catch (error) {
+    console.error(`[${site.id}] test-mailjet:`, error)
     res.status(500).json({
       success: false,
       siteId: site.id,
       message: 'Mailjet configuration error',
       error: error.message,
-      details: error.response?.data || error.stack,
     })
   }
 })
