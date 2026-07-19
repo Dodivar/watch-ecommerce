@@ -47,6 +47,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.1",
     "heic2any": "^0.0.4",
     "leaflet": "^1.9.4",
     "marked": "^17.0.1",
