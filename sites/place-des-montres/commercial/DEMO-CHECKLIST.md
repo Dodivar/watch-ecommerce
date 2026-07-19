@@ -4,14 +4,16 @@ Guide pour présenter la plateforme au client avant ou pendant un rendez-vous co
 
 ## Prérequis techniques
 
-| Élément | Commande / valeur |
-|---------|-------------------|
-| Lancer le site local | `npm run dev:place` → http://localhost:5173 |
-| Build production | `npm run build:place` (validé — build OK) |
-| Staging client | https://recette.placedesmontres.fr |
-| Production cible | https://www.placedesmontres.fr |
-| Mot de passe maintenance (pré-prod) | Voir `maintenance.password` dans `site.config.js` |
-| Paiement test Stripe | Carte `4242 4242 4242 4242`, date future, CVC quelconque |
+
+| Élément                             | Commande / valeur                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------ |
+| Lancer le site local                | `npm run dev:place` → [http://localhost:5173](http://localhost:5173)     |
+| Build production                    | `npm run build:place` (validé — build OK)                                |
+| Staging client                      | [https://recette.placedesmontres.fr](https://recette.placedesmontres.fr) |
+| Production cible                    | [https://www.placedesmontres.fr](https://www.placedesmontres.fr)         |
+| Mot de passe maintenance (pré-prod) | Voir `maintenance.password` dans `site.config.js`                        |
+| Paiement test Stripe                | Carte `4242 4242 4242 4242`, date future, CVC quelconque                 |
+
 
 Variables d'environnement requises pour une démo complète (fichier `.env` à la racine du monorepo) :
 
