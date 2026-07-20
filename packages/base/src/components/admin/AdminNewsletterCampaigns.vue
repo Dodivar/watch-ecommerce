@@ -8,9 +8,11 @@ import {
   createCampaign,
   cancelScheduledCampaign,
 } from '@/services/admin/adminNewsletterService'
+import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
+const { canWrite } = useAdminPermissions()
 const campaigns = ref([])
 const isLoading = ref(true)
 const error = ref(null)
@@ -121,6 +123,7 @@ onMounted(load)
         </RouterLink>
       </div>
       <button
+        v-if="canWrite"
         type="button"
         class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
         @click="createNew"
@@ -166,6 +169,7 @@ onMounted(load)
               <td class="px-4 py-3 text-sm">
                 <div class="flex justify-end gap-1">
                   <button
+                    v-if="canWrite"
                     type="button"
                     class="p-1.5 rounded-lg text-blue-600 hover:text-blue-900 hover:bg-cream transition-colors"
                     :title="c.status === 'draft' ? 'Modifier' : 'Voir'"
@@ -174,7 +178,7 @@ onMounted(load)
                     <Eye class="w-5 h-5" :stroke-width="2" />
                   </button>
                   <button
-                    v-if="c.status === 'scheduled'"
+                    v-if="canWrite && c.status === 'scheduled'"
                     type="button"
                     class="p-1.5 rounded-lg text-amber-600 hover:text-amber-900 hover:bg-cream transition-colors"
                     title="Annuler la programmation"
@@ -183,7 +187,7 @@ onMounted(load)
                     <Ban class="w-5 h-5" :stroke-width="2" />
                   </button>
                   <button
-                    v-if="c.status !== 'sending'"
+                    v-if="canWrite && c.status !== 'sending'"
                     type="button"
                     class="p-1.5 rounded-lg text-red-600 hover:text-red-900 hover:bg-cream transition-colors"
                     title="Supprimer"

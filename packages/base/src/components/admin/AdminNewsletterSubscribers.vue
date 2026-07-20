@@ -6,8 +6,10 @@ import {
   addSubscriber,
   deleteSubscriber,
 } from '@/services/admin/adminNewsletterService'
+import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import AdminShell from './AdminShell.vue'
 
+const { canWrite } = useAdminPermissions()
 const subscribers = ref([])
 const total = ref(0)
 const isLoading = ref(true)
@@ -94,7 +96,7 @@ onMounted(load)
     </div>
 
     <!-- Ajout manuel -->
-    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+    <div v-if="canWrite" class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
       <p class="text-sm font-medium text-gray-700 mb-3">Ajouter un abonné</p>
       <div class="flex flex-col sm:flex-row gap-2">
         <input
@@ -179,6 +181,7 @@ onMounted(load)
               <td class="px-4 py-3 text-sm">
                 <div class="flex justify-end">
                   <button
+                    v-if="canWrite"
                     type="button"
                     class="p-1.5 rounded-lg text-red-600 hover:text-red-900 hover:bg-cream transition-colors"
                     title="Supprimer"

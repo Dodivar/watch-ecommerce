@@ -3,7 +3,10 @@ import { ref, computed, onMounted } from 'vue'
 import { Save, ArrowLeft } from '@lucide/vue'
 import { getSettings, saveSettings } from '@/services/admin/adminNewsletterService'
 import { buildNewsletterPreview } from '@/utils/newsletterPreview.js'
+import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import AdminShell from './AdminShell.vue'
+
+const { canWrite } = useAdminPermissions()
 
 const form = ref({
   logoText: '',
@@ -151,6 +154,7 @@ onMounted(load)
         </div>
 
         <button
+          v-if="canWrite"
           type="button"
           :disabled="isSaving"
           class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"
