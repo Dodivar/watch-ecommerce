@@ -14,7 +14,7 @@ const {
 } = require('../orders/tokens')
 const { buildOrderQuote } = require('../orders/pricing')
 const { findShippingMethod, validateHomeAddress } = require('../orders/shipping')
-const { loadPromoCode, computeDiscountCents, validatePromoEligibility } = require('../orders/promo')
+const { loadPromoCode, validatePromoEligibility, redeemPromoCode } = require('../orders/promo')
 const {
   paymentMatchesOrder,
   gateOrderEditOnPaymentIntent,
@@ -617,7 +617,7 @@ function buildOrdersRouter(registry) {
         return res.status(400).json({ success: false, error: 'Commande non payable' })
       }
 
-      const { quote, lines } = await recalculateAndPersist(supabase, site, order)
+      const { quote } = await recalculateAndPersist(supabase, site, order)
       if (quote.totalCents < 50) {
         return res.status(400).json({ success: false, error: 'Montant invalide' })
       }
@@ -838,21 +838,17 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
     .maybeSingle()
 
   if (discountRow?.metadata?.promo_code_id) {
-    const { data: promo } = await supabase
-      .from('promo_codes')
-      .select('id, used_count')
-      .eq('id', discountRow.metadata.promo_code_id)
-      .maybeSingle()
-    if (promo) {
-      await supabase
-        .from('promo_codes')
-        .update({ used_count: (promo.used_count || 0) + 1 })
-        .eq('id', promo.id)
-      await supabase.from('promo_redemptions').insert({
-        promo_code_id: promo.id,
-        order_id: orderId,
-        customer_email: order.data.customer_email,
+    // Comptabilisation atomique et idempotente (RPC). Ne doit jamais bloquer le
+    // fulfillment : la commande est déjà payée, une erreur ici est logguée puis
+    // le traitement (stock, reçu, emails) continue.
+    try {
+      await redeemPromoCode(supabase, {
+        promoCodeId: discountRow.metadata.promo_code_id,
+        orderId,
+        customerEmail: order.data.customer_email,
       })
+    } catch (promoErr) {
+      console.error(`[${site.id}] redeemPromoCode commande ${orderId}:`, promoErr)
     }
   }
 
