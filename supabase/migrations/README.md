@@ -331,3 +331,47 @@ create index if not exists orders_abandoned_recovery_idx
   on public.orders (site_id, status, updated_at)
   where recovery_email_sent_at is null and customer_email is not null;
 ```
+
+## Codes promo — rédemption atomique
+
+`20260720120000_redeem_promo_code_rpc.sql` — corrige la course sur `promo_codes.used_count` (lecture puis écriture côté backend : deux paiements simultanés pouvaient perdre un incrément et dépasser `max_uses`) et rend la comptabilisation idempotente (un webhook Stripe rejoué ne compte plus deux fois la même commande) :
+
+- Index unique `promo_redemptions_order_id_key` — une seule rédemption par commande
+- RPC `redeem_promo_code(p_promo_code_id, p_order_id, p_customer_email)` — insertion de la rédemption + incrément `used_count` en une transaction ; renvoie `false` si la commande est déjà comptabilisée
+- Utilisée par `backend/routes/orders.js` (`handlePaymentIntentSucceeded`) ; tant que la migration n'est pas appliquée, le backend retombe sur l'ancien chemin non atomique avec un warning
+- Prérequis : tables checkout existantes (`promo_codes`, `promo_redemptions`)
+
+```sql
+-- Une seule rédemption par commande (idempotence webhook / réconciliation).
+create unique index if not exists promo_redemptions_order_id_key
+  on public.promo_redemptions (order_id);
+
+-- Rédemption atomique : insertion + incrément en une transaction. L'incrément
+-- n'a lieu que si l'insertion a réellement créé la ligne (pas de double
+-- comptage en cas de rejeu).
+create or replace function public.redeem_promo_code(
+  p_promo_code_id uuid,
+  p_order_id uuid,
+  p_customer_email text default null
+) returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.promo_redemptions (promo_code_id, order_id, customer_email)
+  values (p_promo_code_id, p_order_id, p_customer_email)
+  on conflict (order_id) do nothing;
+
+  if not found then
+    return false; -- commande déjà comptabilisée
+  end if;
+
+  update public.promo_codes
+  set used_count = coalesce(used_count, 0) + 1
+  where id = p_promo_code_id;
+
+  return true;
+end;
+$$;
+```

@@ -98,8 +98,67 @@ async function validatePromoEligibility(supabase, promo, subtotalCents, customer
   return { ok: true }
 }
 
+/**
+ * Comptabilise la rédemption d'un code promo pour une commande payée.
+ *
+ * Chemin nominal : RPC `redeem_promo_code` (migration
+ * `20260720120000_redeem_promo_code_rpc.sql`) — insertion de la rédemption et
+ * incrément de `used_count` en une transaction atomique, idempotente par
+ * commande (index unique sur `promo_redemptions.order_id`). Deux paiements
+ * concurrents ou un webhook rejoué ne peuvent donc ni perdre un incrément ni
+ * compter deux fois la même commande.
+ *
+ * Repli : si la fonction n'existe pas encore sur le projet Supabase du site
+ * (migration non appliquée), on retombe sur l'ancien chemin non atomique pour
+ * ne pas casser le site, avec un warning invitant à appliquer la migration.
+ *
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {{ promoCodeId: string, orderId: string, customerEmail?: string|null }} params
+ * @returns {Promise<boolean>} true si la rédemption a été comptabilisée par cet appel
+ */
+async function redeemPromoCode(supabase, { promoCodeId, orderId, customerEmail = null }) {
+  const { data, error } = await supabase.rpc('redeem_promo_code', {
+    p_promo_code_id: promoCodeId,
+    p_order_id: orderId,
+    p_customer_email: customerEmail || null,
+  })
+  if (!error) {
+    return data === true
+  }
+  // PGRST202 : fonction introuvable dans le schéma (migration non appliquée).
+  if (error.code !== 'PGRST202') {
+    throw error
+  }
+  console.warn(
+    'redeem_promo_code RPC absente — appliquer supabase/migrations/20260720120000_redeem_promo_code_rpc.sql (repli non atomique utilisé).',
+  )
+
+  const { data: promo, error: promoError } = await supabase
+    .from('promo_codes')
+    .select('id, used_count')
+    .eq('id', promoCodeId)
+    .maybeSingle()
+  if (promoError) throw promoError
+  if (!promo) return false
+
+  const { error: updateError } = await supabase
+    .from('promo_codes')
+    .update({ used_count: (promo.used_count || 0) + 1 })
+    .eq('id', promo.id)
+  if (updateError) throw updateError
+
+  const { error: insertError } = await supabase.from('promo_redemptions').insert({
+    promo_code_id: promo.id,
+    order_id: orderId,
+    customer_email: customerEmail || null,
+  })
+  if (insertError) throw insertError
+  return true
+}
+
 module.exports = {
   loadPromoCode,
   computeDiscountCents,
   validatePromoEligibility,
+  redeemPromoCode,
 }
