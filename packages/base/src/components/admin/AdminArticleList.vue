@@ -2,9 +2,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAllArticlesForAdmin, deleteArticle, toggleArticleVisibility } from '@/services/admin/adminArticleService'
+import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
+const { canWrite } = useAdminPermissions()
 
 // State
 const articles = ref([])
@@ -257,6 +259,7 @@ onMounted(async () => {
               </button>
             </div>
             <button
+              v-if="canWrite"
               @click="router.push('/admin/articles/generate')"
               class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap flex items-center gap-2"
             >
@@ -271,6 +274,7 @@ onMounted(async () => {
               Générer un article
             </button>
             <button
+              v-if="canWrite"
               @click="router.push('/admin/articles/new')"
               class="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors whitespace-nowrap"
             >
@@ -445,6 +449,7 @@ onMounted(async () => {
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div class="flex justify-end space-x-2">
                     <button
+                      v-if="canWrite"
                       @click="handleToggleVisibility(article)"
                       :disabled="togglingVisibility === article.id"
                       :class="[
@@ -501,6 +506,7 @@ onMounted(async () => {
                       </svg>
                     </button>
                     <button
+                      v-if="canWrite"
                       @click="handleEdit(article.id)"
                       class="text-green-600 hover:text-green-900"
                       title="Modifier"
@@ -515,6 +521,7 @@ onMounted(async () => {
                       </svg>
                     </button>
                     <button
+                      v-if="canWrite"
                       @click="handleDelete(article)"
                       class="text-red-600 hover:text-red-900"
                       title="Supprimer"
@@ -558,7 +565,7 @@ onMounted(async () => {
           {{ searchQuery ? 'Essayez de modifier vos critères de recherche' : 'Commencez par ajouter un article' }}
         </p>
         <button
-          v-if="!searchQuery"
+          v-if="canWrite && !searchQuery"
           @click="router.push('/admin/articles/new')"
           class="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors"
         >

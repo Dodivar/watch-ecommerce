@@ -9,6 +9,7 @@ import WatchDetail from '@/components/watch/WatchDetail.vue'
 import SoldWatchesArchivePage from '@/components/watch/SoldWatchesArchivePage.vue'
 import EstimationPage from '@/components/EstimationPage.vue'
 import AdminLogin from '@/components/admin/AdminLogin.vue'
+import AdminSetPassword from '@/components/admin/AdminSetPassword.vue'
 import AdminDashboard from '@/components/admin/AdminDashboard.vue'
 import AdminWatchesList from '@/components/admin/AdminWatchesList.vue'
 import AdminWatchForm from '@/components/admin/AdminWatchForm.vue'
@@ -82,6 +83,7 @@ const COMPONENTS_BY_PATH = {
   '/commande/succes': OrderSuccess,
   '/commande/annulee': OrderCancel,
   '/admin/login': AdminLogin,
+  '/admin/set-password': AdminSetPassword,
   '/admin': AdminDashboard,
   '/admin/watches': AdminWatchesList,
   '/admin/watches/new': AdminWatchForm,

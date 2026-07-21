@@ -76,17 +76,38 @@ async function verifyAdminBearerToken(site, bearerToken) {
   }
 
   const email = userData.user.email
-  const { data: adminRow, error: adminError } = await supabase
+  let { data: adminRow, error: adminError } = await supabase
     .from('admin_users')
-    .select('email')
+    .select('email, role')
     .eq('email', email)
     .maybeSingle()
+
+  // Tenant pré-migration rôles : la colonne role n'existe pas encore.
+  if (adminError && /role/.test(adminError.message || '')) {
+    ;({ data: adminRow, error: adminError } = await supabase
+      .from('admin_users')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle())
+  }
 
   if (adminError || !adminRow) {
     return { ok: false, status: 403, error: 'Accès admin refusé' }
   }
 
-  return { ok: true, email, supabase }
+  return { ok: true, email, role: adminRow.role || 'admin', supabase }
+}
+
+/**
+ * Middleware Express — restreint une route aux rôles admin donnés.
+ * À utiliser après requireAdminAuth.
+ * @param {...string} roles
+ */
+function requireAdminRole(...roles) {
+  return (req, res, next) => {
+    if (roles.includes(req.adminUser?.role)) return next()
+    return res.status(403).json({ success: false, error: 'Accès réservé à l’administrateur' })
+  }
 }
 
 /**
@@ -107,7 +128,7 @@ function requireAdminAuth(registry) {
       return res.status(result.status).json({ success: false, error: result.error })
     }
 
-    req.adminUser = { email: result.email }
+    req.adminUser = { email: result.email, role: result.role }
     req.adminSupabase = result.supabase
     return next()
   }
@@ -118,7 +139,14 @@ function requireAdminAuth(registry) {
  */
 function buildAdminRouter(registry) {
   const express = require('express')
+  const { registerAdminUsersRoutes } = require('./adminUsersRoutes')
   const router = express.Router()
+
+  // Gestion des utilisateurs du panel — réservée au rôle admin.
+  const usersRouter = express.Router()
+  usersRouter.use(requireAdminAuth(registry), requireAdminRole('admin'))
+  registerAdminUsersRoutes(usersRouter)
+  router.use('/users', usersRouter)
 
   router.get('/orders/:orderId/receipt', requireAdminAuth(registry), async (req, res) => {
     const site = req.site
@@ -196,5 +224,6 @@ module.exports = {
   persistLeadSubmission,
   verifyAdminBearerToken,
   requireAdminAuth,
+  requireAdminRole,
   buildAdminRouter,
 }

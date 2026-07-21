@@ -20,6 +20,8 @@ import {
 } from '@lucide/vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { logoutAdmin, getCurrentAdmin } from '@/services/admin/adminAuthService'
+import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
+import { ROLE_LABELS } from '@/services/admin/adminPermissions'
 import logoSidebar from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW vert horizontal RVB.png'
 
 const site = getSiteConfig()
@@ -36,6 +38,20 @@ const emit = defineEmits(['close'])
 const route = useRoute()
 const router = useRouter()
 const features = site.features
+const { role, ready, canAccessPath, deniedTooltip } = useAdminPermissions()
+
+/**
+ * Annote une entrée de menu : grisée (avec message au survol) si le rôle
+ * courant n'y a pas accès. Tant que le rôle n'est pas résolu, rien n'est grisé
+ * (le guard routeur bloque de toute façon la navigation).
+ */
+const withAccess = (item) => ({
+  ...item,
+  disabled: ready.value && !canAccessPath(item.to),
+  tooltip: ready.value && !canAccessPath(item.to) ? deniedTooltip(item.to) : undefined,
+})
+
+const roleLabel = computed(() => (role.value ? ROLE_LABELS[role.value] : ''))
 
 const carouselLinks = computed(() => {
   const items = []
@@ -109,10 +125,10 @@ const navItems = computed(() => {
     items.push({
       type: 'group',
       label: 'Carrousels',
-      items: carouselLinks.value,
+      items: carouselLinks.value.map(withAccess),
     })
   }
-  return items
+  return items.map((item) => (item.type === 'link' ? withAccess(item) : item))
 })
 
 const currentAdmin = ref(null)
@@ -170,8 +186,18 @@ onMounted(async () => {
 
     <nav aria-label="Administration" class="flex-1 min-h-0 px-3 py-4 space-y-1">
       <template v-for="(item, index) in navItems" :key="item.type === 'link' ? item.to : `group-${index}`">
+        <span
+          v-if="item.type === 'link' && item.disabled"
+          :title="item.tooltip"
+          aria-disabled="true"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 cursor-not-allowed select-none"
+        >
+          <component :is="item.icon" class="w-5 h-5 shrink-0" :stroke-width="1.75" />
+          <span class="truncate">{{ item.label }}</span>
+        </span>
+
         <RouterLink
-          v-if="item.type === 'link'"
+          v-else-if="item.type === 'link'"
           :to="item.to"
           :aria-current="item.match(route.path) ? 'page' : undefined"
           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -190,22 +216,32 @@ onMounted(async () => {
           <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
             {{ item.label }}
           </p>
-          <RouterLink
-            v-for="child in item.items"
-            :key="child.to"
-            :to="child.to"
-            :aria-current="child.match(route.path) ? 'page' : undefined"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            :class="
-              child.match(route.path)
-                ? 'bg-primary text-white'
-                : 'text-gray-600 hover:bg-cream hover:text-text-main'
-            "
-            @click="emit('close')"
-          >
-            <component :is="child.icon" class="w-5 h-5 shrink-0" :stroke-width="1.75" />
-            <span class="truncate">{{ child.label }}</span>
-          </RouterLink>
+          <template v-for="child in item.items" :key="child.to">
+            <span
+              v-if="child.disabled"
+              :title="child.tooltip"
+              aria-disabled="true"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 cursor-not-allowed select-none"
+            >
+              <component :is="child.icon" class="w-5 h-5 shrink-0" :stroke-width="1.75" />
+              <span class="truncate">{{ child.label }}</span>
+            </span>
+            <RouterLink
+              v-else
+              :to="child.to"
+              :aria-current="child.match(route.path) ? 'page' : undefined"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              :class="
+                child.match(route.path)
+                  ? 'bg-primary text-white'
+                  : 'text-gray-600 hover:bg-cream hover:text-text-main'
+              "
+              @click="emit('close')"
+            >
+              <component :is="child.icon" class="w-5 h-5 shrink-0" :stroke-width="1.75" />
+              <span class="truncate">{{ child.label }}</span>
+            </RouterLink>
+          </template>
         </div>
       </template>
     </nav>
@@ -222,13 +258,12 @@ onMounted(async () => {
     </div>
 
     <div class="border-t border-gray-200 px-3 py-4 shrink-0">
-      <p
-        v-if="currentAdmin"
-        class="px-3 pb-2 text-xs text-gray-500 truncate"
-        :title="currentAdmin.email"
-      >
-        {{ currentAdmin.email }}
-      </p>
+      <div v-if="currentAdmin" class="px-3 pb-2">
+        <p class="text-xs text-gray-500 truncate" :title="currentAdmin.email">
+          {{ currentAdmin.email }}
+        </p>
+        <p v-if="roleLabel" class="text-[11px] text-gray-400 truncate">{{ roleLabel }}</p>
+      </div>
       <button
         type="button"
         class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-cream hover:text-text-main transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
