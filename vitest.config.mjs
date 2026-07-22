@@ -21,10 +21,10 @@ export default defineConfig({
       VITE_SUPABASE_ANON_KEY: 'test-anon-key',
     },
     environment: 'node',
-    environmentMatchGlobs: [
-      ['packages/base/**/*.component.test.js', 'happy-dom'],
-      ['**/*.component.test.js', 'happy-dom'],
-    ],
+    // Node ≥ 22.4 expose un `localStorage` natif (undefined sans --localstorage-file)
+    // qui masque celui de happy-dom : Vitest ne remplace pas les globaux déjà présents.
+    // On désactive le webstorage natif pour que happy-dom fournisse le sien.
+    execArgv: ['--no-experimental-webstorage'],
   },
   resolve: {
     alias: {
