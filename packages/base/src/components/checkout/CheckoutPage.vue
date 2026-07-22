@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { Info, MapPin, Package } from '@lucide/vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { loadStripe } from '@stripe/stripe-js'
 import { useCart } from '@/composables/useCart.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -30,6 +30,7 @@ const COUNTRY_LABELS = {
   LU: 'Luxembourg',
 }
 
+const route = useRoute()
 const router = useRouter()
 const site = getSiteConfig()
 const checkoutConfig = site.checkout || {}
@@ -38,7 +39,7 @@ const pickupEnabled = checkoutConfig.shipping?.pickupEnabled === true
 const promoEnabled = checkoutConfig.promo?.enabled !== false
 const vatRate = Number(checkoutConfig.vatRate) > 0 ? Number(checkoutConfig.vatRate) : 20
 
-const { items, getCheckoutLines, cartMultiQuantity } = useCart()
+const { items, getCheckoutLines, cartMultiQuantity, replaceItems } = useCart()
 
 const loading = ref(true)
 const syncLoading = ref(false)
@@ -435,7 +436,60 @@ async function refreshOrder() {
   orderSnapshot.value = await fetchOrder(orderId.value, accessToken.value)
 }
 
+/**
+ * Reprise d'une commande depuis un lien de relance panier abandonné
+ * (`/checkout?order=…&token=…`, voir backend/orders/recovery.js). Le panier
+ * local est remplacé par les lignes de la commande pour rester cohérent.
+ * @returns {Promise<boolean>} true si la reprise a abouti (ou redirigé)
+ */
+async function resumeFromRecoveryLink() {
+  const qOrder = typeof route.query.order === 'string' ? route.query.order : ''
+  const qToken = typeof route.query.token === 'string' ? route.query.token : ''
+  if (!qOrder || !qToken) return false
+
+  orderId.value = qOrder
+  accessToken.value = qToken
+  try {
+    await refreshOrder()
+  } catch {
+    orderId.value = ''
+    accessToken.value = ''
+    return false
+  }
+
+  const order = orderSnapshot.value?.order
+  if (order?.status === 'paid') {
+    router.replace({
+      path: '/commande/succes',
+      query: { order: qOrder, token: qToken },
+    })
+    return true
+  }
+  if (order?.status !== 'draft' && order?.status !== 'pending_payment') {
+    orderId.value = ''
+    accessToken.value = ''
+    return false
+  }
+
+  replaceItems(
+    (order.lines || []).map((line) => ({
+      watchId: line.watchId,
+      name: line.name,
+      reference: line.reference ?? null,
+      price: (Number(line.unitPriceCents) || 0) / 100,
+      imageUrl: line.imageUrl ?? null,
+      quantity: line.quantity,
+    })),
+  )
+  saveSession()
+  // Retire order/token de l'URL (le token ne doit pas traîner dans l'historique).
+  router.replace({ path: '/checkout' })
+  return true
+}
+
 async function ensureOrder() {
+  if (await resumeFromRecoveryLink()) return
+
   const saved = loadSession()
   if (saved?.orderId && saved?.accessToken) {
     orderId.value = saved.orderId

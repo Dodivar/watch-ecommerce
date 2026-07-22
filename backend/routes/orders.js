@@ -14,7 +14,12 @@ const {
 } = require('../orders/tokens')
 const { buildOrderQuote } = require('../orders/pricing')
 const { findShippingMethod, validateHomeAddress } = require('../orders/shipping')
-const { loadPromoCode, computeDiscountCents, validatePromoEligibility } = require('../orders/promo')
+const { loadPromoCode, validatePromoEligibility, redeemPromoCode } = require('../orders/promo')
+const {
+  paymentMatchesOrder,
+  gateOrderEditOnPaymentIntent,
+  syncPaymentIntentAmount,
+} = require('../orders/paymentIntentSync')
 const { fulfillOrderPayment, releaseOrderReservation, applyRetailStockDecrement } = require('../orders/fulfillment')
 const { createDraftOrderViaRpc } = require('../orders/createDraftOrder')
 const { sendOrderConfirmationEmails } = require('../orders/email')
@@ -145,7 +150,10 @@ function buildOrdersRouter(registry) {
     if (!token || !verifyOrderAccessToken(site.secrets.paymentCancelSecret, token, order.id)) {
       return { ok: false, status: 403, error: 'Accès refusé' }
     }
-    if (order.access_token_hash && hashOrderAccessToken(token) !== order.access_token_hash) {
+    // Le token d'origine et le token de relance panier abandonné (voir
+    // orders/recovery.js) sont tous deux acceptés, sans s'invalider mutuellement.
+    const knownHashes = [order.access_token_hash, order.recovery_token_hash].filter(Boolean)
+    if (knownHashes.length > 0 && !knownHashes.includes(hashOrderAccessToken(token))) {
       return { ok: false, status: 403, error: 'Accès refusé' }
     }
     return { ok: true }
@@ -388,6 +396,18 @@ function buildOrdersRouter(registry) {
         return res.status(400).json({ success: false, error: 'Email requis' })
       }
 
+      // Un PaymentIntent existant doit suivre toute modification qui peut changer
+      // le total (l'éligibilité promo dépend de l'email) — sinon refus.
+      let editGate = { ok: true, paymentIntent: null }
+      let stripe = null
+      if (order.stripe_payment_intent_id) {
+        stripe = getStripeClient(site)
+        editGate = await gateOrderEditOnPaymentIntent(stripe, supabase, order)
+        if (!editGate.ok) {
+          return res.status(editGate.status).json({ success: false, error: editGate.error })
+        }
+      }
+
       await supabase
         .from('orders')
         .update({
@@ -406,8 +426,14 @@ function buildOrdersRouter(registry) {
       const { quote, lines } = await recalculateAndPersist(supabase, site, updated, {
         customerEmail,
       })
+      if (editGate.paymentIntent) {
+        await syncPaymentIntentAmount(stripe, editGate.paymentIntent, quote.totalCents, customerEmail)
+      }
       res.json(orderToResponse(updated, lines, quote))
     } catch (e) {
+      if (e instanceof MissingSecretsError) {
+        return res.status(503).json({ success: false, error: e.message })
+      }
       console.error(`[${site.id}] PATCH customer:`, e)
       res.status(500).json({ success: false, error: 'Erreur serveur' })
     }
@@ -449,6 +475,18 @@ function buildOrdersRouter(registry) {
         addressUpdate = { shipping_address: null }
       }
 
+      // Le mode de livraison change le total : un PaymentIntent existant doit
+      // être resynchronisé (ou la modification refusée s'il est verrouillé).
+      let editGate = { ok: true, paymentIntent: null }
+      let stripe = null
+      if (order.stripe_payment_intent_id) {
+        stripe = getStripeClient(site)
+        editGate = await gateOrderEditOnPaymentIntent(stripe, supabase, order)
+        if (!editGate.ok) {
+          return res.status(editGate.status).json({ success: false, error: editGate.error })
+        }
+      }
+
       await supabase
         .from('orders')
         .update({ ...addressUpdate, updated_at: new Date().toISOString() })
@@ -464,8 +502,19 @@ function buildOrdersRouter(registry) {
         shippingMethodId: methodId,
         country,
       })
+      if (editGate.paymentIntent) {
+        await syncPaymentIntentAmount(
+          stripe,
+          editGate.paymentIntent,
+          quote.totalCents,
+          updated.customer_email || null,
+        )
+      }
       res.json(orderToResponse(updated, lines, quote))
     } catch (e) {
+      if (e instanceof MissingSecretsError) {
+        return res.status(503).json({ success: false, error: e.message })
+      }
       console.error(`[${site.id}] PATCH shipping:`, e)
       res.status(500).json({ success: false, error: 'Erreur serveur' })
     }
@@ -490,6 +539,21 @@ function buildOrdersRouter(registry) {
       const access = requireOrderAccess(site, order, token)
       if (!access.ok) {
         return res.status(access.status).json({ success: false, error: access.error })
+      }
+      if (!['draft', 'pending_payment'].includes(order.status)) {
+        return res.status(400).json({ success: false, error: 'Commande non modifiable' })
+      }
+
+      // Le code promo change le total : un PaymentIntent existant doit être
+      // resynchronisé (ou la modification refusée s'il est verrouillé).
+      let editGate = { ok: true, paymentIntent: null }
+      let stripe = null
+      if (order.stripe_payment_intent_id) {
+        stripe = getStripeClient(site)
+        editGate = await gateOrderEditOnPaymentIntent(stripe, supabase, order)
+        if (!editGate.ok) {
+          return res.status(editGate.status).json({ success: false, error: editGate.error })
+        }
       }
 
       if (remove) {
@@ -516,8 +580,19 @@ function buildOrdersRouter(registry) {
       const { quote, lines } = await recalculateAndPersist(supabase, site, updated, {
         promoCode: remove ? null : code,
       })
+      if (editGate.paymentIntent) {
+        await syncPaymentIntentAmount(
+          stripe,
+          editGate.paymentIntent,
+          quote.totalCents,
+          updated.customer_email || null,
+        )
+      }
       res.json(orderToResponse(updated, lines, quote))
     } catch (e) {
+      if (e instanceof MissingSecretsError) {
+        return res.status(503).json({ success: false, error: e.message })
+      }
       console.error(`[${site.id}] POST promo:`, e)
       res.status(500).json({ success: false, error: 'Erreur serveur' })
     }
@@ -542,7 +617,7 @@ function buildOrdersRouter(registry) {
         return res.status(400).json({ success: false, error: 'Commande non payable' })
       }
 
-      const { quote, lines } = await recalculateAndPersist(supabase, site, order)
+      const { quote } = await recalculateAndPersist(supabase, site, order)
       if (quote.totalCents < 50) {
         return res.status(400).json({ success: false, error: 'Montant invalide' })
       }
@@ -550,10 +625,14 @@ function buildOrdersRouter(registry) {
       const currency = (order.currency || 'eur').toLowerCase()
       const receiptEmail = order.customer_email ? String(order.customer_email).trim() : null
 
-      let paymentIntent
+      let paymentIntent = null
       if (order.stripe_payment_intent_id) {
         paymentIntent = await stripe.paymentIntents.retrieve(order.stripe_payment_intent_id)
-        if (
+        if (paymentIntent.status === 'canceled') {
+          // PI annulé (webhook canceled, ou 3DS abandonnée puis commande modifiée) :
+          // inutilisable, on en recrée un neuf ci-dessous.
+          paymentIntent = null
+        } else if (
           paymentIntent.status === 'requires_payment_method' ||
           paymentIntent.status === 'requires_confirmation'
         ) {
@@ -566,7 +645,8 @@ function buildOrdersRouter(registry) {
             updatePayload,
           )
         }
-      } else {
+      }
+      if (!paymentIntent) {
         const createPayload = {
           amount: quote.totalCents,
           currency,
@@ -728,10 +808,15 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
     return
   }
 
-  const expected = order.data.total_cents
-  if (paymentIntent.amount_received && paymentIntent.amount_received !== expected) {
-    console.warn(
-      `[${site.id}] Montant PI (${paymentIntent.amount_received}) != commande (${expected})`,
+  // Garde-fou anti sous-paiement : le montant encaissé doit correspondre
+  // exactement au total en base (fail closed). En cas d'écart, on refuse le
+  // fulfillment — l'erreur fait échouer le webhook (500), Stripe le rejouera
+  // et l'échec reste visible dans le dashboard Stripe pour investigation.
+  const match = paymentMatchesOrder(order.data, paymentIntent)
+  if (!match.ok) {
+    throw new Error(
+      `Fulfillment refusé pour la commande ${orderId} (${match.reason}) : ` +
+        `montant encaissé ${match.receivedCents} ≠ total commande ${match.expectedCents} (PI ${paymentIntent.id})`,
     )
   }
 
@@ -753,21 +838,17 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
     .maybeSingle()
 
   if (discountRow?.metadata?.promo_code_id) {
-    const { data: promo } = await supabase
-      .from('promo_codes')
-      .select('id, used_count')
-      .eq('id', discountRow.metadata.promo_code_id)
-      .maybeSingle()
-    if (promo) {
-      await supabase
-        .from('promo_codes')
-        .update({ used_count: (promo.used_count || 0) + 1 })
-        .eq('id', promo.id)
-      await supabase.from('promo_redemptions').insert({
-        promo_code_id: promo.id,
-        order_id: orderId,
-        customer_email: order.data.customer_email,
+    // Comptabilisation atomique et idempotente (RPC). Ne doit jamais bloquer le
+    // fulfillment : la commande est déjà payée, une erreur ici est logguée puis
+    // le traitement (stock, reçu, emails) continue.
+    try {
+      await redeemPromoCode(supabase, {
+        promoCodeId: discountRow.metadata.promo_code_id,
+        orderId,
+        customerEmail: order.data.customer_email,
       })
+    } catch (promoErr) {
+      console.error(`[${site.id}] redeemPromoCode commande ${orderId}:`, promoErr)
     }
   }
 

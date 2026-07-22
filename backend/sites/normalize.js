@@ -107,6 +107,22 @@ const DEFAULT_CHECKOUT = {
     cgvUrl: '/conditions-generales-utilisation',
     requireAcceptance: true,
   },
+  /** Relance email des paniers abandonnés — nécessite la migration `orders.recovery_email_sent_at`. */
+  abandonedCart: {
+    enabled: false,
+    delayMinutes: 60,
+    maxAgeHours: 48,
+  },
+}
+
+/**
+ * @param {unknown} value
+ * @param {number} fallback
+ * @returns {number}
+ */
+function positiveNumberOr(value, fallback) {
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? n : fallback
 }
 
 /**
@@ -138,6 +154,17 @@ function normalizeCheckout(raw) {
     legal: {
       cgvUrl: c.legal?.cgvUrl || DEFAULT_CHECKOUT.legal.cgvUrl,
       requireAcceptance: c.legal?.requireAcceptance !== false,
+    },
+    abandonedCart: {
+      enabled: c.abandonedCart?.enabled === true,
+      delayMinutes: positiveNumberOr(
+        c.abandonedCart?.delayMinutes,
+        DEFAULT_CHECKOUT.abandonedCart.delayMinutes,
+      ),
+      maxAgeHours: positiveNumberOr(
+        c.abandonedCart?.maxAgeHours,
+        DEFAULT_CHECKOUT.abandonedCart.maxAgeHours,
+      ),
     },
   }
 }

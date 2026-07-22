@@ -2,32 +2,86 @@ import { supabase } from '../supabase'
 
 const STORAGE_KEY = 'admin_authenticated'
 
+// Cache module du rôle de l'utilisateur connecté (évite une requête par navigation).
+let roleCache = { email: null, role: null }
+
+function clearRoleCache() {
+  roleCache = { email: null, role: null }
+}
+
+/**
+ * Récupère la ligne admin_users (email + rôle) d'un email autorisé.
+ * @param {string} email
+ * @returns {Promise<{email: string, role: string}|null>} null si non autorisé
+ */
+async function fetchAdminRow(email) {
+  try {
+    let { data, error } = await supabase
+      .from('admin_users')
+      .select('email, role')
+      .eq('email', email)
+      .single()
+
+    // Tenant pré-migration rôles : colonne absente, retomber sur email seul.
+    if (error && error.code !== 'PGRST116' && /role/.test(error.message || '')) {
+      ;({ data, error } = await supabase
+        .from('admin_users')
+        .select('email')
+        .eq('email', email)
+        .single())
+    }
+
+    if (error) {
+      if (error.code !== 'PGRST116') {
+        console.error('Erreur lors de la vérification admin:', error)
+      }
+      return null
+    }
+
+    if (!data) return null
+    return { email: data.email, role: data.role || 'admin' }
+  } catch (error) {
+    console.error('Erreur dans fetchAdminRow:', error)
+    return null
+  }
+}
+
 /**
  * Vérifie si un email est dans la liste des admins autorisés
  * @param {string} email - L'email à vérifier
  * @returns {Promise<boolean>} - True si l'email est autorisé
  */
 async function isAuthorizedAdmin(email) {
-  try {
-    const { data, error } = await supabase
-      .from('admin_users')
-      .select('email')
-      .eq('email', email)
-      .single()
+  const row = await fetchAdminRow(email)
+  if (row) {
+    roleCache = { email, role: row.role }
+  }
+  return !!row
+}
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // Aucun résultat trouvé
-        return false
-      }
-      console.error('Erreur lors de la vérification admin:', error)
-      return false
+/**
+ * Rôle de l'utilisateur admin connecté (`admin`, `moderator` ou `visitor`).
+ * @returns {Promise<string|null>} null si non connecté ou non autorisé
+ */
+export async function getCurrentAdminRole() {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const email = session?.user?.email
+    if (!email) return null
+
+    if (roleCache.email === email && roleCache.role) {
+      return roleCache.role
     }
 
-    return !!data
+    const row = await fetchAdminRow(email)
+    if (!row) return null
+    roleCache = { email, role: row.role }
+    return row.role
   } catch (error) {
-    console.error('Erreur dans isAuthorizedAdmin:', error)
-    return false
+    console.error('Erreur dans getCurrentAdminRole:', error)
+    return null
   }
 }
 
@@ -40,6 +94,7 @@ async function isAuthorizedAdmin(email) {
  */
 export async function loginAdmin(email, password, remember = false) {
   try {
+    clearRoleCache()
     // Authentifier avec Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -160,10 +215,28 @@ export async function getCurrentAdmin() {
 }
 
 /**
+ * Marque la session admin comme active (après login ou définition du mot de
+ * passe via un lien d'invitation).
+ * @param {string} email
+ * @param {boolean} remember - true : localStorage (persistant), false : sessionStorage
+ */
+export function markAdminAuthenticated(email, remember = true) {
+  if (remember) {
+    localStorage.setItem(STORAGE_KEY, 'true')
+    sessionStorage.removeItem(STORAGE_KEY)
+  } else {
+    sessionStorage.setItem(STORAGE_KEY, 'true')
+    localStorage.removeItem(STORAGE_KEY)
+  }
+  localStorage.setItem('admin_email', email)
+}
+
+/**
  * Déconnecte l'utilisateur admin
  */
 export async function logoutAdmin() {
   try {
+    clearRoleCache()
     await supabase.auth.signOut()
     sessionStorage.removeItem(STORAGE_KEY)
     localStorage.removeItem(STORAGE_KEY)

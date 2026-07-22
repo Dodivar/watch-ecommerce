@@ -134,6 +134,8 @@ export default {
     purchase: true,
     paymentReturn: true,
     adminWatchPromotions: true,
+    /** Archive publique des montres vendues (`/ventes`) — preuve sociale + SEO. */
+    soldArchive: true,
   },
 
   /** Profil catalogue revente : année, état, contenu et référence visibles sur cartes et fiches. */
@@ -181,6 +183,15 @@ export default {
       cgvUrl: '/conditions-generales-utilisation',
       requireAcceptance: true,
     },
+    /**
+     * Relance email des paniers abandonnés (une seule relance par commande,
+     * `delayMinutes` sans activité). Nécessite la migration
+     * « Relance panier abandonné » — voir supabase/migrations/README.md.
+     */
+    abandonedCart: {
+      enabled: true,
+      delayMinutes: 60,
+    },
   },
 
   /**
@@ -223,6 +234,7 @@ export default {
   navigation: {
     main: [
       { type: 'link', label: 'Nos montres', to: '/collection', feature: 'collection' },
+      { type: 'link', label: 'Nos ventes', to: '/ventes', feature: 'soldArchive' },
       {
         type: 'group',
         label: 'Nos services',
@@ -239,6 +251,7 @@ export default {
     footer: [
       { label: 'Accueil', to: '/#accueil' },
       { label: 'Nos montres', to: '/collection', feature: 'collection' },
+      { label: 'Nos ventes', to: '/ventes', feature: 'soldArchive' },
       { label: 'Recherche personnalisée', to: '/recherche', feature: 'recherche' },
       { label: 'Estimation', to: '/estimation', feature: 'estimation' },
       { label: 'Blog', to: '/blog', feature: 'blog' },

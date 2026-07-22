@@ -6,12 +6,34 @@ Livrables pour le rendez-vous client [placedesmontres.fr](https://www.placedesmo
 
 | Fichier | Usage |
 |---|---|
+| [brochure-commerciale.pdf](brochure-commerciale.pdf) | **Brochure commerciale A4 (10 pages)** — à envoyer ou remettre au client |
+| [brochure-commerciale.html](brochure-commerciale.html) | Source de la brochure (HTML print A4, images dans `assets/`) |
 | [presentation-slides.md](presentation-slides.md) | Source du deck 18 slides (Marp) |
 | [presentation-slides.pdf](presentation-slides.pdf) | Export PDF prêt à présenter |
 | [presentation-slides.pptx](presentation-slides.pptx) | Export PowerPoint |
 | [guide-demo.md](guide-demo.md) | Parcours démo 45 min + checklist + objections |
 | [fiche-recap-one-pager.md](fiche-recap-one-pager.md) | Fiche 1 page à imprimer et remettre au client |
 | [assets/](assets/) | Captures avant/après + graphiques (`assets/charts/`) pour les slides |
+
+## Regénérer la brochure PDF
+
+La brochure est une page HTML calibrée A4 (`brochure-commerciale.html`), rendue avec Chromium :
+
+```bash
+# via Playwright (page.pdf, format A4, printBackground, preferCSSPageSize)
+node -e "
+const { chromium } = require('playwright-core');
+(async () => {
+  const b = await chromium.launch();
+  const p = await b.newPage();
+  await p.goto('file://' + process.cwd() + '/documentation/commercial/place-des-montres/brochure-commerciale.html', { waitUntil: 'networkidle' });
+  await p.pdf({ path: 'documentation/commercial/place-des-montres/brochure-commerciale.pdf', format: 'A4', printBackground: true, preferCSSPageSize: true });
+  await b.close();
+})();
+"
+```
+
+> **Discrétion :** la brochure ne mentionne ni d'autres clients ni le caractère mutualisé du socle technique — le site y est présenté uniquement comme « votre site dédié ». Conserver cette règle lors des modifications.
 
 ## Exporter les slides
 

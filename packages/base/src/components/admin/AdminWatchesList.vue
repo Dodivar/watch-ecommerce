@@ -3,9 +3,11 @@ import { ref, computed, onMounted, watch as vueWatch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAllWatchesForAdmin, deleteWatch, toggleWatchAvailability, markWatchAsSold, reorderWatches } from '@/services/admin/adminWatchService'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
+const { canWrite } = useAdminPermissions()
 
 // Catalogue retail (gestion de stock) : statut base sur le stock ("Hors stock"),
 // pas sur "Vendue" (reserve au mode resale / pieces uniques).
@@ -41,9 +43,11 @@ const filteredWatches = computed(() => {
 
   // Filter by tab selection
   if (activeTab.value === 'available') {
+    // Une montre vendue ne doit pas apparaître "en stock", même si is_available
+    // n'a pas été remis à false (anciennes données).
     filtered = filtered.filter((watch) => {
       const isAvailable = watch.is_available !== undefined ? watch.is_available : true
-      return isAvailable
+      return isAvailable && watch.is_sold !== true
     })
   } else if (activeTab.value === 'unavailable') {
     filtered = filtered.filter((watch) => watch.is_available === false)
@@ -516,7 +520,7 @@ onMounted(async () => {
             >
               Montres en stock
               <span class="ml-2 text-xs bg-primary text-white px-2 py-1 rounded-full">
-                {{ watches.filter((w) => w.is_available !== false).length }}
+                {{ watches.filter((w) => w.is_available !== false && w.is_sold !== true).length }}
               </span>
             </button>
             <button
@@ -585,7 +589,7 @@ onMounted(async () => {
               </option>
             </select>
           </div>
-          <div class="flex flex-col w-full gap-3 sm:w-auto sm:flex-row">
+          <div v-if="canWrite" class="flex flex-col w-full gap-3 sm:w-auto sm:flex-row">
             <button
               @click="router.push('/admin/watches/new')"
               class="w-full px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors whitespace-nowrap sm:w-auto"
@@ -787,10 +791,10 @@ onMounted(async () => {
                 :key="watch.id"
                 :class="[
                   'hover:bg-cream transition-colors',
-                  activeTab !== 'sold' ? 'cursor-move' : 'cursor-default',
+                  canWrite && activeTab !== 'sold' ? 'cursor-move' : 'cursor-default',
                   draggedOverIndex === pageOffset + index ? 'bg-blue-50 border-2 border-blue-300' : '',
                 ]"
-                :draggable="activeTab !== 'sold'"
+                :draggable="canWrite && activeTab !== 'sold'"
                 @dragstart="handleDragStart($event, watch)"
                 @dragover.prevent="handleDragOver($event, pageOffset + index)"
                 @dragleave="handleDragLeave"
@@ -927,6 +931,7 @@ onMounted(async () => {
                       </svg>
                     </button>
                     <button
+                      v-if="canWrite"
                       @click="handleEdit(watch.id)"
                       class="text-green-600 hover:text-green-900"
                       title="Modifier"
@@ -941,7 +946,7 @@ onMounted(async () => {
                       </svg>
                     </button>
                     <button
-                      v-if="watch.is_sold !== true"
+                      v-if="canWrite && watch.is_sold !== true"
                       @click="handleToggleAvailability(watch)"
                       :class="[
                         watch.is_available !== false
@@ -980,7 +985,7 @@ onMounted(async () => {
                       </svg>
                     </button>
                     <button
-                      v-if="watch.is_sold !== true"
+                      v-if="canWrite && watch.is_sold !== true"
                       @click="handleMarkAsSold(watch)"
                       class="text-purple-600 hover:text-purple-900"
                       title="Marquer comme vendue"
@@ -995,7 +1000,7 @@ onMounted(async () => {
                       </svg>
                     </button>
                     <button
-                      v-if="watch.is_available === false"
+                      v-if="canWrite && watch.is_available === false"
                       @click="handleDelete(watch)"
                       class="text-red-600 hover:text-red-900"
                       title="Supprimer"
@@ -1084,7 +1089,7 @@ onMounted(async () => {
           {{ searchQuery || selectedBrand ? 'Essayez de modifier vos critères de recherche' : 'Commencez par ajouter une montre' }}
         </p>
         <button
-          v-if="!searchQuery && !selectedBrand"
+          v-if="canWrite && !searchQuery && !selectedBrand"
           @click="router.push('/admin/watches/new')"
           class="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors"
         >

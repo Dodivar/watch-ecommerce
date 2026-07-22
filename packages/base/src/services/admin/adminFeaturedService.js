@@ -114,9 +114,8 @@ export async function removeFeaturedWatch(featuredId) {
 /**
  * Montres mises en avant pour le front (nouveautés).
  * @param {'nouvelles' | 'selection'} context
- * @param {number} [fallbackLimit]
  */
-export async function getFeaturedWatchesPublic(context, fallbackLimit = 7) {
+export async function getFeaturedWatchesPublic(context) {
   const siteId = getAdminSiteId()
   const { data, error } = await supabase
     .from('home_featured_watches')

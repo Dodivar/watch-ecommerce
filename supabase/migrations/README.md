@@ -313,3 +313,209 @@ alter table public.home_featured_watches
   add constraint home_featured_watches_context_check
   check (context in ('nouvelles', 'selection', 'collection'));
 ```
+
+## Relance panier abandonné (checkout)
+
+`20260710120000_abandoned_checkout_recovery.sql` — requis pour les clients avec `checkout.abandonedCart.enabled` (relance email des commandes draft non finalisées, voir `backend/orders/recovery.js`) :
+
+- Colonne `orders.recovery_email_sent_at` — horodatage de la relance (une seule relance par commande, réclamation atomique)
+- Colonne `orders.recovery_token_hash` — hash du token signé du lien de reprise `/checkout?order=…&token=…` (accepté en plus du token d'origine)
+- Index partiel pour la requête du planificateur
+
+```sql
+alter table public.orders
+  add column if not exists recovery_email_sent_at timestamptz,
+  add column if not exists recovery_token_hash text;
+
+create index if not exists orders_abandoned_recovery_idx
+  on public.orders (site_id, status, updated_at)
+  where recovery_email_sent_at is null and customer_email is not null;
+```
+
+## Rôles admin (admin / moderator / visitor)
+
+`20260720130000_admin_user_roles.sql` — requis pour la gestion des utilisateurs du panel d'administration (invitation par email, rôles) :
+
+- Colonne `admin_users.role` (`admin`, `moderator`, `visitor` — défaut `admin`, les comptes existants restent administrateurs)
+- Fonctions `current_admin_role()` et `admin_has_role(...)` ; `is_admin_user()` reste **inchangée** (toujours utilisée pour la lecture)
+- Policies RLS scindées lecture/écriture par table :
+  - **Écriture admin + moderator** (contenu métier) : `watches`, `watch_details`, `articles`, `lead_submissions`, `orders`, `order_lines`, `order_shipping`, `order_discounts`, `newsletter_subscribers`, `newsletter_campaigns`, `newsletter_campaign_recipients`, `newsletter_settings`
+  - **Écriture admin uniquement** (contenu site / promotions) : `promo_codes`, `promo_redemptions`, `watch_promotion_campaigns`, `watch_promotion_campaign_items`, `home_carousel_slides`, `home_featured_watches`
+  - `admin_users` : lecture seule côté client (tous rôles) ; **aucune écriture client** — invitations, changements de rôle et suppressions passent par le backend (service role) via `/api/admin/users/*`
+  - Le rôle `visitor` garde la lecture partout (`is_admin_user()`) mais aucune écriture
+- Prérequis : `20260525120000_admin_phase1.sql` (`admin_users`, `is_admin_user()`)
+
+Configuration Supabase Auth par tenant (Dashboard → Authentication → URL Configuration → Redirect URLs) — requis pour le lien d'invitation :
+
+- `https://<domaine-du-site>/admin/set-password`
+- `http://localhost:5173/admin/set-password` (dev)
+
+Le modèle d'email « Invite user » peut être personnalisé dans Authentication → Email Templates.
+
+Les fichiers `*.sql` étant ignorés par git, le contenu complet est reproduit ci-dessous pour application via le SQL Editor.
+
+```sql
+-- 1) Colonne role (les admins existants restent 'admin' via le défaut)
+alter table public.admin_users
+  add column if not exists role text not null default 'admin'
+  check (role in ('admin', 'moderator', 'visitor'));
+
+-- 2) Helpers rôle. is_admin_user() reste inchangée (lecture, tous rôles).
+create or replace function public.current_admin_role()
+returns text
+language sql stable security definer
+set search_path = public
+as $$
+  select role from public.admin_users
+  where lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  limit 1
+$$;
+
+create or replace function public.admin_has_role(variadic roles text[])
+returns boolean
+language sql stable security definer
+set search_path = public
+as $$
+  select coalesce(public.current_admin_role() = any (roles), false)
+$$;
+
+-- 3) Supprimer les anciennes policies admin « for all » (noms variables selon les
+-- tenants) : on retire toute policy référençant is_admin_user() sur les tables
+-- concernées, puis on recrée des policies lecture/écriture nommées explicitement.
+-- Les policies de lecture publique (montres, carrousel…) ne référencent pas
+-- is_admin_user() et sont donc préservées.
+do $$
+declare p record;
+begin
+  for p in
+    select policyname, tablename
+    from pg_policies
+    where schemaname = 'public'
+      and tablename in (
+        'admin_users',
+        'watches', 'watch_details', 'articles', 'lead_submissions',
+        'orders', 'order_lines', 'order_shipping', 'order_discounts',
+        'newsletter_subscribers', 'newsletter_campaigns',
+        'newsletter_campaign_recipients', 'newsletter_settings',
+        'promo_codes', 'promo_redemptions',
+        'watch_promotion_campaigns', 'watch_promotion_campaign_items',
+        'home_carousel_slides', 'home_featured_watches'
+      )
+      and (coalesce(qual, '') ilike '%is_admin_user%'
+        or coalesce(with_check, '') ilike '%is_admin_user%')
+  loop
+    execute format('drop policy %I on public.%I', p.policyname, p.tablename);
+  end loop;
+end $$;
+
+-- 4) admin_users : lecture pour tout membre (login + liste), écritures backend
+-- uniquement (service role, contourne la RLS — aucune policy d'écriture client).
+create policy admin_users_member_read on public.admin_users
+  for select using (public.is_admin_user());
+
+-- 5) Contenu métier : lecture tous rôles, écriture admin + moderator.
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'watches', 'watch_details', 'articles', 'lead_submissions',
+    'orders', 'order_lines', 'order_shipping', 'order_discounts',
+    'newsletter_subscribers', 'newsletter_campaigns',
+    'newsletter_campaign_recipients', 'newsletter_settings'
+  ] loop
+    if to_regclass('public.' || t) is null then continue; end if;
+    execute format(
+      'create policy %I on public.%I for select using (public.is_admin_user())',
+      t || '_admin_read', t);
+    execute format(
+      'create policy %I on public.%I for insert with check (public.admin_has_role(''admin'', ''moderator''))',
+      t || '_admin_insert', t);
+    execute format(
+      'create policy %I on public.%I for update using (public.admin_has_role(''admin'', ''moderator'')) with check (public.admin_has_role(''admin'', ''moderator''))',
+      t || '_admin_update', t);
+    execute format(
+      'create policy %I on public.%I for delete using (public.admin_has_role(''admin'', ''moderator''))',
+      t || '_admin_delete', t);
+  end loop;
+end $$;
+
+-- 6) Contenu site / promotions : lecture tous rôles, écriture admin uniquement.
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'promo_codes', 'promo_redemptions',
+    'watch_promotion_campaigns', 'watch_promotion_campaign_items',
+    'home_carousel_slides', 'home_featured_watches'
+  ] loop
+    if to_regclass('public.' || t) is null then continue; end if;
+    execute format(
+      'create policy %I on public.%I for select using (public.is_admin_user())',
+      t || '_admin_read', t);
+    execute format(
+      'create policy %I on public.%I for insert with check (public.admin_has_role(''admin''))',
+      t || '_admin_insert', t);
+    execute format(
+      'create policy %I on public.%I for update using (public.admin_has_role(''admin'')) with check (public.admin_has_role(''admin''))',
+      t || '_admin_update', t);
+    execute format(
+      'create policy %I on public.%I for delete using (public.admin_has_role(''admin''))',
+      t || '_admin_delete', t);
+  end loop;
+end $$;
+```
+
+Vérification post-migration (les policies `*_admin_read` / `*_admin_insert` / `*_admin_update` / `*_admin_delete` doivent apparaître) :
+
+```sql
+select tablename, policyname, cmd
+from pg_policies
+where schemaname = 'public' and policyname like '%_admin_%'
+order by tablename, policyname;
+```
+
+Note : les policies des buckets Storage (`home-carousel`, images montres) restent basées sur `is_admin_user()` ; les uploads y sont donc encore possibles pour tout membre authentifié du panel. Les resserrer sur `admin_has_role(...)` peut se faire dans une migration ultérieure si nécessaire.
+
+## Codes promo — rédemption atomique
+
+`20260720120000_redeem_promo_code_rpc.sql` — corrige la course sur `promo_codes.used_count` (lecture puis écriture côté backend : deux paiements simultanés pouvaient perdre un incrément et dépasser `max_uses`) et rend la comptabilisation idempotente (un webhook Stripe rejoué ne compte plus deux fois la même commande) :
+
+- Index unique `promo_redemptions_order_id_key` — une seule rédemption par commande
+- RPC `redeem_promo_code(p_promo_code_id, p_order_id, p_customer_email)` — insertion de la rédemption + incrément `used_count` en une transaction ; renvoie `false` si la commande est déjà comptabilisée
+- Utilisée par `backend/routes/orders.js` (`handlePaymentIntentSucceeded`) ; tant que la migration n'est pas appliquée, le backend retombe sur l'ancien chemin non atomique avec un warning
+- Prérequis : tables checkout existantes (`promo_codes`, `promo_redemptions`)
+
+```sql
+-- Une seule rédemption par commande (idempotence webhook / réconciliation).
+create unique index if not exists promo_redemptions_order_id_key
+  on public.promo_redemptions (order_id);
+
+-- Rédemption atomique : insertion + incrément en une transaction. L'incrément
+-- n'a lieu que si l'insertion a réellement créé la ligne (pas de double
+-- comptage en cas de rejeu).
+create or replace function public.redeem_promo_code(
+  p_promo_code_id uuid,
+  p_order_id uuid,
+  p_customer_email text default null
+) returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.promo_redemptions (promo_code_id, order_id, customer_email)
+  values (p_promo_code_id, p_order_id, p_customer_email)
+  on conflict (order_id) do nothing;
+
+  if not found then
+    return false; -- commande déjà comptabilisée
+  end if;
+
+  update public.promo_codes
+  set used_count = coalesce(used_count, 0) + 1
+  where id = p_promo_code_id;
+
+  return true;
+end;
+$$;
+```

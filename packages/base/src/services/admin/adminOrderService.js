@@ -46,7 +46,9 @@ export async function getOrdersForAdmin(filters = {}) {
     query = query.eq('fulfillment_status', filters.fulfillmentStatus)
   }
   if (filters.search?.trim()) {
-    const term = `%${filters.search.trim()}%`
+    // Retirer les caractères réservés de la grammaire or() PostgREST (',', '(', ')')
+    // qui feraient échouer la requête entière.
+    const term = `%${filters.search.trim().replace(/[,()]/g, ' ')}%`
     query = query.or(`customer_email.ilike.${term},customer_phone.ilike.${term}`)
   }
 

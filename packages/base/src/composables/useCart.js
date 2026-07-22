@@ -228,6 +228,26 @@ export function useCart() {
     items.value = []
   }
 
+  /**
+   * Remplace tout le panier (reprise d'une commande via lien de relance).
+   * @param {CartLine[]} lines
+   */
+  function replaceItems(lines) {
+    ensureSite()
+    const rows = (Array.isArray(lines) ? lines : [])
+      .filter((row) => row && typeof row.watchId === 'string' && typeof row.name === 'string')
+      .slice(0, MAX_CART_LINES)
+      .map((row) => ({
+        watchId: row.watchId,
+        name: row.name,
+        reference: row.reference ?? null,
+        price: Number(row.price) || 0,
+        imageUrl: row.imageUrl ?? null,
+        quantity: cartMultiQuantity.value ? lineQuantity(row) : 1,
+      }))
+    items.value = rows
+  }
+
   /** @returns {string[]} ids répétés selon la quantité (legacy / usages internes) */
   function getWatchIds() {
     const out = []
@@ -270,6 +290,7 @@ export function useCart() {
     incrementQuantity,
     decrementQuantity,
     clear,
+    replaceItems,
     getWatchIds,
     getCheckoutLines,
     cartMultiQuantity,

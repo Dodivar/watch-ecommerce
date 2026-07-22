@@ -1,6 +1,7 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { isAuthenticated } from './services/maintenanceService'
-import { isAdminAuthenticated } from './services/admin/adminAuthService'
+import { isAdminAuthenticated, getCurrentAdminRole } from './services/admin/adminAuthService'
+import { canAccessPath } from './services/admin/adminPermissions'
 import { verifyOrder } from './services/orderService'
 import { getBrowsePath } from './site/siteFeatures.js'
 import { getSiteConfig } from './site/getSiteConfig.js'
@@ -68,10 +69,25 @@ router.beforeEach(async (to, from, next) => {
       return
     }
 
+    // Page de définition du mot de passe (lien d'invitation) : la session
+    // Supabase du lien existe mais pas le flag admin_authenticated.
+    if (to.path === '/admin/set-password') {
+      next()
+      return
+    }
+
     // Pour toutes les autres routes admin, vérifier l'authentification
     const authenticated = await isAdminAuthenticated()
     if (!authenticated) {
       next('/admin/login')
+      return
+    }
+
+    // Vérifier le rôle (accès URL directe compris) ; repli sur le tableau
+    // de bord, accessible à tous les rôles.
+    const role = await getCurrentAdminRole()
+    if (to.path !== '/admin' && !canAccessPath(role, to.path)) {
+      next('/admin')
       return
     }
 

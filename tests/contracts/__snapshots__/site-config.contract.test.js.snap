@@ -23,6 +23,7 @@ exports[`site contract: demo-store > charge et résout le manifest sans erreur 1
     "purchase": true,
     "recherche": true,
     "servicesPage": false,
+    "soldArchive": false,
     "watchReference": true,
   },
   "footerNav": [
@@ -120,6 +121,7 @@ exports[`site contract: jackned > charge et résout le manifest sans erreur 1`] 
     "purchase": true,
     "recherche": true,
     "servicesPage": false,
+    "soldArchive": false,
     "watchReference": false,
   },
   "footerNav": [
@@ -212,6 +214,7 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
     "purchase": true,
     "recherche": false,
     "servicesPage": true,
+    "soldArchive": false,
     "watchReference": false,
   },
   "footerNav": [
@@ -305,6 +308,7 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     "purchase": true,
     "recherche": true,
     "servicesPage": false,
+    "soldArchive": true,
     "watchReference": true,
   },
   "footerNav": [
@@ -315,6 +319,10 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     {
       "label": "Nos montres",
       "to": "/collection",
+    },
+    {
+      "label": "Nos ventes",
+      "to": "/ventes",
     },
     {
       "label": "Recherche personnalisée",
@@ -350,6 +358,11 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     {
       "label": "Nos montres",
       "to": "/collection",
+      "type": "link",
+    },
+    {
+      "label": "Nos ventes",
+      "to": "/ventes",
       "type": "link",
     },
     {

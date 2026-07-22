@@ -282,6 +282,35 @@
               </button>
             </div>
 
+          <!-- Montre vendue — fiche conservée en archive (features.soldArchive) -->
+            <div
+              v-else-if="watchItem.isSold"
+              class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+            >
+              <p class="text-base font-semibold text-gray-900 mb-1">
+                Cette montre a trouvé preneur
+              </p>
+              <p class="text-sm text-gray-600 mb-4">
+                Sa fiche reste consultable à titre d'archive. Vous cherchez un modèle
+                identique ou similaire ? Nous pouvons le trouver pour vous.
+              </p>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <router-link
+                  v-if="rechercheEnabled"
+                  to="/recherche"
+                  class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
+                >
+                  Lancer une recherche personnalisée
+                </router-link>
+                <router-link
+                  :to="browsePath"
+                  class="inline-flex items-center justify-center px-6 py-3 border border-primary/30 text-base font-medium rounded-lg text-primary bg-white hover:bg-primary/5 transition-colors duration-200"
+                >
+                  Voir la collection
+                </router-link>
+              </div>
+            </div>
+
           <!-- Out of stock (retail) — achat indisponible -->
             <div v-else-if="isOutOfStock">
               <button
@@ -294,7 +323,7 @@
             </div>
 
           <!-- Prise de rendez-vous boutique (retail ou `watchCatalog.appointment`) -->
-          <div v-if="appointmentEnabled && watchItem" class="mt-3">
+          <div v-if="appointmentEnabled && watchItem && !watchItem.isSold" class="mt-3">
             <button
               type="button"
               @click="openAppointmentModal"
@@ -860,6 +889,9 @@ const browsePath = getBrowsePath(site.features)
 const catalogDisplay = site.watchCatalog.display
 const isResaleCatalog = site.watchCatalog.isResale
 const appointmentEnabled = site.watchCatalog.appointmentEnabled
+/** Fiches des montres vendues consultables par le public (archive des ventes). */
+const soldArchiveEnabled = site.features.soldArchive === true
+const rechercheEnabled = site.features.recherche === true
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { getEffectiveWatchPrice } from '@/utils/watchPricing.js'
 import { useCart } from '@/composables/useCart.js'
@@ -1011,10 +1043,11 @@ const loadWatch = async () => {
       throw new Error('Identifiant de montre manquant')
     }
     
-    // Si l'utilisateur est admin, permettre de voir les montres hors-stock
+    // Si l'utilisateur est admin, permettre de voir les montres hors-stock ;
+    // si l'archive des ventes est active, les montres vendues restent consultables.
     const data = isSlugRoute.value
-      ? await getWatchBySlug(String(routeKey), isAdmin.value)
-      : await getWatchById(String(routeKey), isAdmin.value)
+      ? await getWatchBySlug(String(routeKey), isAdmin.value, soldArchiveEnabled)
+      : await getWatchById(String(routeKey), isAdmin.value, soldArchiveEnabled)
     watchItem.value = data
 
     const canonicalPath = buildWatchPath(data)

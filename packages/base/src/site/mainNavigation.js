@@ -254,6 +254,10 @@ function getDefaultMainNavigation(features, site) {
     items.push({ type: 'link', label: 'Nos montres', to: '/collection' })
   }
 
+  if (features.soldArchive) {
+    items.push({ type: 'link', label: 'Nos ventes', to: '/ventes' })
+  }
+
   if (features.recherche || features.estimation) {
     /** @type {NavSubLinkResolved[]} */
     const sub = []
@@ -328,6 +332,9 @@ function getDefaultFooterNavigation(features) {
 
   if (features.collection) {
     items.push({ label: 'Nos montres', to: '/collection' })
+  }
+  if (features.soldArchive) {
+    items.push({ label: 'Nos ventes', to: '/ventes' })
   }
   if (features.recherche) {
     items.push({ label: 'Recherche personnalisée', to: '/recherche' })

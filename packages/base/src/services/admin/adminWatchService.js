@@ -92,7 +92,7 @@ function transformDetailsToDB(watchId, details) {
 export async function createWatch(watchData) {
   try {
     // 1. Récupérer le display_order maximum et ajouter 1 pour positionner la nouvelle montre en dernière
-    const { data: maxOrderData, error: maxOrderError } = await supabase
+    const { data: maxOrderData } = await supabase
       .from('watches')
       .select('display_order')
       .order('display_order', { ascending: false })
@@ -361,7 +361,7 @@ export async function uploadWatchImage(watchId, imageFile, order = null) {
     const filePath = `watches/${watchId}/${fileName}`
 
     // Upload vers Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('watch-images')
       .upload(filePath, imageFile, {
         cacheControl: '3600',
@@ -624,8 +624,11 @@ export async function markWatchAsSold(watchId) {
     }
 
     // Préparer les données à mettre à jour
-    const updateData = { 
+    // Une montre vendue ne peut pas rester disponible (même règle que updateWatch),
+    // sinon elle reste visible dans le catalogue public filtré sur is_available.
+    const updateData = {
       is_sold: true,
+      is_available: false,
       display_order: null // Réinitialiser l'ordre d'affichage pour les montres vendues
     }
     
@@ -816,6 +819,7 @@ export async function duplicateWatch(watchId) {
       adCode: newAdCode,
       isAvailable: false, // La montre dupliquée est toujours hors stock par défaut
       isSold: false, // La montre dupliquée n'est jamais vendue
+      saleDate: null, // Ne pas hériter de la date de vente de l'originale
     }
 
     const createResult = await createWatch(newWatchData)
@@ -1363,124 +1367,6 @@ export async function getStorageStats() {
     }
   } catch (error) {
     console.error('Erreur dans getStorageStats:', error)
-    throw error
-  }
-}
-
-/**
- * Récupère l'évolution de l'utilisation du stockage par jour
- * @returns {Promise<Array<{date: string, sizeMB: number, cumulativeSizeMB: number, fileCount: number}>>}
- */
-export async function getStorageStatsByDay() {
-  try {
-    // Récupérer toutes les images depuis la table watch_images avec leurs dates
-    const { data: images, error } = await supabase
-      .from('watch_images')
-      .select('created_at, image_path')
-      .order('created_at', { ascending: true })
-    
-    if (error) {
-      throw new Error(`Erreur lors de la récupération des images: ${error.message}`)
-    }
-    
-    if (!images || images.length === 0) {
-      return []
-    }
-    
-    // Récupérer tous les fichiers du storage pour avoir leurs tailles
-    // On va créer un map pour accéder rapidement aux tailles
-    const fileSizeMap = new Map()
-    
-    // Lister tous les fichiers du bucket
-    let allFiles = []
-    let hasMore = true
-    let path = ''
-    const limit = 1000
-    
-    while (hasMore) {
-      const { data: files, error: listError } = await supabase.storage
-        .from('watch-images')
-        .list(path, {
-          limit: limit,
-        })
-      
-      if (listError) {
-        console.warn('Erreur lors de la récupération des fichiers pour les stats:', listError)
-        break
-      }
-      
-      if (files && files.length > 0) {
-        allFiles = allFiles.concat(files)
-        hasMore = files.length === limit
-      } else {
-        hasMore = false
-      }
-    }
-    
-    // Créer un map des tailles de fichiers (chemin complet -> taille)
-    allFiles.forEach(file => {
-      if (file.metadata?.size) {
-        // Le chemin peut être relatif ou absolu, on normalise
-        const filePath = file.name
-        fileSizeMap.set(filePath, file.metadata.size)
-      }
-    })
-    
-    // Grouper par jour et calculer la taille cumulée
-    const statsMap = new Map()
-    
-    for (const image of images) {
-      if (!image.image_path) continue
-      
-      const date = new Date(image.created_at)
-      const dateKey = date.toISOString().split('T')[0] // Format YYYY-MM-DD
-      
-      // Extraire le nom du fichier du chemin
-      const pathParts = image.image_path.split('/')
-      const fileName = pathParts[pathParts.length - 1]
-      
-      // Chercher la taille dans le map
-      // Essayer avec le chemin complet d'abord
-      let fileSize = fileSizeMap.get(image.image_path)
-      
-      // Si pas trouvé, essayer avec juste le nom du fichier
-      if (!fileSize) {
-        for (const [path, size] of fileSizeMap.entries()) {
-          if (path.endsWith(fileName)) {
-            fileSize = size
-            break
-          }
-        }
-      }
-      
-      const fileSizeMB = (fileSize || 0) / (1024 * 1024)
-      
-      if (!statsMap.has(dateKey)) {
-        statsMap.set(dateKey, { date: dateKey, sizeMB: 0, fileCount: 0 })
-      }
-      
-      const dayStats = statsMap.get(dateKey)
-      dayStats.sizeMB += fileSizeMB
-      dayStats.fileCount += 1
-    }
-    
-    // Convertir en tableau et calculer les valeurs cumulées
-    const statsArray = Array.from(statsMap.values())
-      .sort((a, b) => a.date.localeCompare(b.date))
-    
-    // Calculer les valeurs cumulées
-    let cumulativeSize = 0
-    return statsArray.map(stat => {
-      cumulativeSize += stat.sizeMB
-      return {
-        date: stat.date,
-        sizeMB: stat.sizeMB,
-        cumulativeSizeMB: cumulativeSize,
-        fileCount: stat.fileCount
-      }
-    })
-  } catch (error) {
-    console.error('Erreur dans getStorageStatsByDay:', error)
     throw error
   }
 }

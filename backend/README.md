@@ -147,9 +147,9 @@ Les variables historiques (`STRIPE_SECRET_KEY`, `MAILJET_API_KEY`, `BASE_URL`, e
 | Méthode | URL                            | Site résolu via         |
 | ------- | ------------------------------ | ----------------------- |
 | GET     | `/api/health`                  | (aucun)                 |
-| POST    | `/api/send-email`              | Origin                  |
-| GET     | `/api/config-check`            | Origin                  |
-| GET     | `/api/test-mailjet`            | Origin                  |
+| POST    | `/api/send-email`              | Origin (rate-limité)    |
+| GET     | `/api/config-check`            | Origin + Bearer admin   |
+| GET     | `/api/test-mailjet`            | Origin + Bearer admin   |
 | POST    | `/api/n8n/generate-article`    | Origin                  |
 | POST    | `/api/orders`                  | Origin                  |
 | PATCH   | `/api/orders/:id/customer`     | Origin + Bearer token   |
@@ -223,6 +223,7 @@ Avant de déployer, appliquer côté Supabase de chaque client :
 8. `supabase/migrations/20260618120000_create_draft_order_rpc.sql` — RPC `create_draft_order` (création commande draft atomique : order + réservation + lignes + quote)
 9. `supabase/migrations/20260621120000_order_receipts_storage.sql` — reçus PDF commandes (Storage privé)
 10. `supabase/migrations/20260622120000_watch_promotions.sql` — promotions par montre (`promotion_price`, `discount_percent`, prix effectif au checkout)
+11. « Relance panier abandonné » (`supabase/migrations/README.md`) — colonnes `orders.recovery_email_sent_at` / `orders.recovery_token_hash`, requis pour les sites avec `checkout.abandonedCart.enabled`
 
 ### Checkout personnalisé (Payment Element)
 
@@ -232,6 +233,15 @@ Avant de déployer, appliquer côté Supabase de chaque client :
 - Dev local : pour recevoir le webhook, lancer `stripe listen --forward-to http://localhost:3000/api/stripe/webhook/<site-id>` et reporter le `whsec_…` dans `SITE_<ID>__STRIPE_WEBHOOK_SECRET`. La réconciliation `/verify` permet néanmoins de finaliser sans webhook.
 - Front : `VITE_STRIPE_PUBLISHABLE_KEY` + parcours `/checkout` → `/commande/succes`
 - Configuration livraison / promo : bloc `checkout` dans `sites/<id>/site.config.js`
+
+### Relance des paniers abandonnés
+
+Boucle interne au process (`backend/orders/recovery.js`, tick 5 min) pour les sites avec `checkout.abandonedCart.enabled: true` :
+
+- Cible les commandes `draft` / `pending_payment` avec email client, sans activité depuis `delayMinutes` (défaut 60) et créées il y a moins de `maxAgeHours` (défaut 48).
+- Une seule relance par commande (réclamation atomique via `orders.recovery_email_sent_at`), jamais de relance si une montre de la commande a été vendue entre-temps.
+- L'email contient un lien de reprise `/checkout?order=…&token=…` (token HMAC signé 48 h, hash stocké dans `orders.recovery_token_hash`, accepté en plus du token d'origine). Le front recharge la commande et reconstruit le panier local.
+- Prérequis : migration « Relance panier abandonné » (voir `supabase/migrations/README.md`) + Mailjet configuré.
 
 ## Dépendances principales
 

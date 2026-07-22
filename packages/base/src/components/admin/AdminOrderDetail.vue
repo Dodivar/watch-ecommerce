@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { Clock } from '@lucide/vue'
 import {
   getOrderByIdForAdmin,
@@ -9,10 +9,11 @@ import {
   FULFILLMENT_STATUSES,
 } from '@/services/admin/adminOrderService'
 import { watchCardImageUrl } from '@/utils/watchImageUrl.js'
+import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import AdminShell from './AdminShell.vue'
 
+const { canWrite } = useAdminPermissions()
 const route = useRoute()
-const router = useRouter()
 const orderId = computed(() => route.params.id)
 
 const detail = ref(null)
@@ -261,12 +262,21 @@ onMounted(load)
         <div v-if="detail.order.status === 'paid'" class="bg-white rounded-lg shadow p-6">
           <h2 class="text-lg font-semibold mb-4">Suivi préparation</h2>
           <div class="flex flex-col sm:flex-row gap-3">
-            <select v-model="selectedFulfillment" class="flex-1 px-4 py-2 border rounded-lg">
+            <select
+              v-model="selectedFulfillment"
+              :disabled="!canWrite"
+              class="flex-1 px-4 py-2 border rounded-lg disabled:opacity-60 disabled:cursor-not-allowed"
+            >
               <option v-for="s in FULFILLMENT_STATUSES" :key="s" :value="s">
                 {{ fulfillmentLabels[s] }}
               </option>
             </select>
-            <button type="button" class="px-4 py-2 bg-primary text-white rounded-lg" @click="saveFulfillment">
+            <button
+              v-if="canWrite"
+              type="button"
+              class="px-4 py-2 bg-primary text-white rounded-lg"
+              @click="saveFulfillment"
+            >
               Enregistrer
             </button>
           </div>

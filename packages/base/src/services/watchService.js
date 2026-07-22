@@ -429,15 +429,23 @@ export async function getAllWatches() {
  * Résout l’ID interne d’une montre à partir de son slug URL canonique.
  * @param {string} slug
  * @param {boolean} allowUnavailable
+ * @param {boolean} allowSold Inclure les montres vendues (archive des ventes, `features.soldArchive`)
  * @returns {Promise<string|null>}
  */
-export async function resolveWatchIdBySlug(slug, allowUnavailable = false) {
+export async function resolveWatchIdBySlug(slug, allowUnavailable = false, allowSold = false) {
   if (!slug) return null
 
-  let query = supabase.from('watches').select('id, slug, brand, name, reference, is_available')
+  let query = supabase
+    .from('watches')
+    .select('id, slug, brand, name, reference, is_available, is_sold')
 
   if (!allowUnavailable) {
-    query = query.eq('is_available', true).eq('is_sold', false)
+    if (allowSold) {
+      // Catalogue disponible + montres vendues (fiches conservées en archive).
+      query = query.or('and(is_available.eq.true,is_sold.eq.false),is_sold.eq.true')
+    } else {
+      query = query.eq('is_available', true).eq('is_sold', false)
+    }
   }
 
   const { data, error } = await query
@@ -460,16 +468,17 @@ export async function resolveWatchIdBySlug(slug, allowUnavailable = false) {
  * Récupère une montre par son slug URL canonique (/montre/:slug).
  * @param {string} slug
  * @param {boolean} allowUnavailable
+ * @param {boolean} allowSold Inclure les montres vendues (archive des ventes)
  */
-export async function getWatchBySlug(slug, allowUnavailable = false) {
-  const id = await resolveWatchIdBySlug(slug, allowUnavailable)
+export async function getWatchBySlug(slug, allowUnavailable = false, allowSold = false) {
+  const id = await resolveWatchIdBySlug(slug, allowUnavailable, allowSold)
   if (!id) {
     throw new Error('Montre non trouvée')
   }
-  return getWatchById(id, allowUnavailable)
+  return getWatchById(id, allowUnavailable, allowSold)
 }
 
-export async function getWatchById(id, allowUnavailable = false) {
+export async function getWatchById(id, allowUnavailable = false, allowSold = false) {
   try {
     // Récupérer la montre
     const { data: watch, error: watchError } = await supabase
@@ -489,8 +498,10 @@ export async function getWatchById(id, allowUnavailable = false) {
       throw new Error('Montre non trouvée')
     }
 
-    // Vérifier si la montre est disponible (sauf si allowUnavailable est true)
-    if (!allowUnavailable && watch.is_available === false) {
+    // Vérifier si la montre est disponible (sauf si allowUnavailable est true,
+    // ou si la montre est vendue et que l'archive des ventes est consultable)
+    const soldButArchived = allowSold && watch.is_sold === true
+    if (!allowUnavailable && watch.is_available === false && !soldButArchived) {
       throw new Error('UNAVAILABLE')
     }
 
@@ -586,6 +597,35 @@ export async function getSoldWatches(limit = 7) {
   } catch (error) {
     console.error('Erreur dans getSoldWatches:', error)
     return []
+  }
+}
+
+/**
+ * Récupère les montres vendues pour l'archive publique des ventes (`/ventes`,
+ * `features.soldArchive`) avec le même assemblage que le listing collection.
+ * Triées par date de mise à jour (proxy de la date de vente), plus récentes en premier.
+ * @param {number} limit - Nombre maximum de montres à récupérer (défaut: 60)
+ * @returns {Promise<Array>}
+ */
+export async function getSoldWatchesForListing(limit = 60) {
+  try {
+    const { data: watches, error: watchesError } = await supabase
+      .from('watches')
+      .select('*')
+      .eq('is_sold', true)
+      .order('updated_at', { ascending: false })
+      .limit(limit)
+
+    if (watchesError) {
+      throw new Error(`Erreur lors de la récupération des montres vendues: ${watchesError.message}`)
+    }
+
+    if (!watches?.length) return []
+
+    return assembleWatchesWithRelations(watches, LISTING_IMAGES_PER_WATCH)
+  } catch (error) {
+    console.error('Erreur dans getSoldWatchesForListing:', error)
+    throw error
   }
 }
 

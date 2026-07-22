@@ -27,6 +27,17 @@ describe('buildSitemapStaticRoutes', () => {
     expect(paths).toContain('')
   })
 
+  it('inclut /ventes uniquement quand soldArchive est activé', () => {
+    const withoutArchive = buildSitemapStaticRoutes(DEFAULT_SITE_FEATURES)
+    expect(withoutArchive.map((route) => route.path)).not.toContain('/ventes')
+
+    const withArchive = buildSitemapStaticRoutes({
+      ...DEFAULT_SITE_FEATURES,
+      soldArchive: true,
+    })
+    expect(withArchive.map((route) => route.path)).toContain('/ventes')
+  })
+
   it('exclut /services sans contenu servicesPage dans le manifest', () => {
     const routes = buildSitemapStaticRoutes(
       { ...DEFAULT_SITE_FEATURES, servicesPage: true },

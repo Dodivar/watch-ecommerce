@@ -13,8 +13,12 @@ import {
   getLeadWatchLink,
   getUnmappedPayloadKeys,
 } from '@/utils/leadDisplay'
+import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
+import { getCurrentAdminRole } from '@/services/admin/adminAuthService'
+import { canWrite as roleCanWrite } from '@/services/admin/adminPermissions'
 import AdminShell from './AdminShell.vue'
 
+const { canWrite } = useAdminPermissions()
 const route = useRoute()
 const leadId = computed(() => route.params.id)
 const lead = ref(null)
@@ -32,7 +36,8 @@ async function load() {
     isLoading.value = true
     lead.value = await getLeadByIdForAdmin(leadId.value)
     if (!lead.value) error.value = 'Message introuvable'
-    else if (lead.value.status === 'new') {
+    else if (lead.value.status === 'new' && roleCanWrite(await getCurrentAdminRole())) {
+      // Marquage « lu » automatique — pas pour un compte lecture seule (RLS).
       await updateLeadStatus(leadId.value, 'read')
       lead.value = { ...lead.value, status: 'read' }
     }
@@ -252,7 +257,7 @@ onMounted(load)
 
       <div class="flex flex-wrap gap-2">
         <button
-          v-if="lead.status !== 'read'"
+          v-if="canWrite && lead.status !== 'read'"
           type="button"
           class="px-4 py-2 border rounded-lg"
           @click="setStatus('read')"
@@ -260,7 +265,7 @@ onMounted(load)
           Marquer lu
         </button>
         <button
-          v-if="lead.status !== 'archived'"
+          v-if="canWrite && lead.status !== 'archived'"
           type="button"
           class="px-4 py-2 border rounded-lg"
           @click="setStatus('archived')"
