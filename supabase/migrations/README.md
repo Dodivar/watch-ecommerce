@@ -275,6 +275,9 @@ programmées / envoyées / annulées :
 - Index `newsletter_campaigns_due_idx` (site_id, status, scheduled_at) pour la
   boucle de planification du backend qui déclenche les envois arrivés à échéance
 - Prérequis : `20260701120000_newsletter.sql`
+- Prérequis config : `backend.publicApiUrl` renseigné dans le manifest du site —
+  sans lui, les liens de désinscription seraient morts et la boucle de
+  planification **suspend l'envoi** (warning dans les logs du backend)
 
 Les fichiers `*.sql` étant ignorés par git, le contenu complet est reproduit
 ci-dessous pour application via le SQL Editor.

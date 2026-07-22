@@ -55,6 +55,14 @@ async function processSite(site) {
   if (!due || due.length === 0) return
 
   const apiBase = resolveApiBaseForSite(site)
+  if (!apiBase) {
+    // Sans base publique, les liens de désinscription seraient relatifs donc
+    // morts dans l'email (non-conformité RGPD) : on suspend l'envoi planifié.
+    console.warn(
+      `[${site.id}] newsletter scheduler : ${due.length} campagne(s) due(s) mais backend.publicApiUrl absent du manifest — envoi suspendu (liens de désinscription impossibles).`,
+    )
+    return
+  }
   const settings = await loadSettings(supabase, site.id)
 
   await runDueCampaigns({ site, supabase, mailjet, settings, apiBase, campaigns: due })
