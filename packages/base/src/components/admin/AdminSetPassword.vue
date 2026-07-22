@@ -16,14 +16,21 @@ const linkError = ref('')
 const isLoading = ref(false)
 const sessionReady = ref(false)
 const checkingSession = ref(true)
+// Lien de réinitialisation (mot de passe oublié) plutôt que d'invitation.
+const isRecovery = ref(false)
 
 let authSubscription = null
 
-// Le lien d'invitation Supabase arrive avec des jetons dans le hash ; le client
-// (detectSessionInUrl) les transforme en session. Un lien expiré arrive avec
-// #error=...&error_description=...
+// Le lien d'invitation ou de réinitialisation Supabase arrive avec des jetons
+// dans le hash ; le client (detectSessionInUrl) les transforme en session. Un
+// lien expiré arrive avec #error=...&error_description=...
 onMounted(async () => {
   const hash = window.location.hash || ''
+  // Le hash peut déjà avoir été consommé par detectSessionInUrl : l'événement
+  // PASSWORD_RECOVERY ci-dessous sert de second signal.
+  if (hash.includes('type=recovery')) {
+    isRecovery.value = true
+  }
   if (hash.includes('error=')) {
     const params = new URLSearchParams(hash.replace(/^#/, ''))
     linkError.value = params.get('error_description') || 'Lien invalide ou expiré'
@@ -41,7 +48,10 @@ onMounted(async () => {
   }
 
   // La session du lien peut se créer juste après le mount : attendre l'événement.
-  const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+  const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      isRecovery.value = true
+    }
     if (newSession?.user) {
       sessionReady.value = true
       checkingSession.value = false
@@ -104,14 +114,18 @@ const handleSubmit = async () => {
         </div>
 
         <h1 class="text-3xl md:text-4xl font-bold text-text-main mb-2 text-center">
-          Bienvenue
+          {{ isRecovery ? 'Réinitialisation du mot de passe' : 'Bienvenue' }}
         </h1>
         <p class="text-lg text-gray-600 mb-8 text-center">
-          Choisissez votre mot de passe pour accéder à l’administration
+          {{
+            isRecovery
+              ? 'Choisissez un nouveau mot de passe'
+              : 'Choisissez votre mot de passe pour accéder à l’administration'
+          }}
         </p>
 
         <div v-if="checkingSession" class="text-center text-gray-500 py-6">
-          Vérification du lien d’invitation…
+          Vérification du lien…
         </div>
 
         <div v-else-if="linkError">
@@ -119,7 +133,9 @@ const handleSubmit = async () => {
             {{ linkError }}
           </div>
           <p class="text-sm text-gray-600 text-center">
-            Demandez à un administrateur de renvoyer une invitation, ou
+            <RouterLink to="/admin/forgot-password" class="font-medium text-primary hover:underline">
+              Demandez un nouveau lien de réinitialisation
+            </RouterLink>, ou
             <RouterLink to="/admin/login" class="font-medium text-primary hover:underline">
               connectez-vous
             </RouterLink>
@@ -172,7 +188,9 @@ const handleSubmit = async () => {
             :disabled="isLoading"
             class="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="!isLoading">Définir le mot de passe</span>
+            <span v-if="!isLoading">
+              {{ isRecovery ? 'Réinitialiser le mot de passe' : 'Définir le mot de passe' }}
+            </span>
             <span v-else>Enregistrement…</span>
           </button>
         </form>
