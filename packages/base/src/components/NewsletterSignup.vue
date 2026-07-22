@@ -11,6 +11,8 @@ defineProps({
 })
 
 const email = ref('')
+// Pot de miel anti-bot : champ masqué que seul un robot remplit.
+const website = ref('')
 const status = ref('idle') // idle | loading | success | error
 const message = ref('')
 
@@ -19,7 +21,7 @@ async function submit() {
   status.value = 'loading'
   message.value = ''
   try {
-    await subscribeToNewsletter({ email: email.value.trim() })
+    await subscribeToNewsletter({ email: email.value.trim(), website: website.value })
     status.value = 'success'
     message.value = 'Merci ! Votre inscription est confirmée.'
     email.value = ''
@@ -35,6 +37,15 @@ async function submit() {
     <h3 class="newsletter-signup__title">{{ title }}</h3>
     <p class="newsletter-signup__desc">{{ description }}</p>
     <form class="newsletter-signup__form" @submit.prevent="submit">
+      <input
+        v-model="website"
+        type="text"
+        name="website"
+        tabindex="-1"
+        autocomplete="off"
+        aria-hidden="true"
+        class="newsletter-signup__hp"
+      />
       <input
         v-model="email"
         type="email"
@@ -85,6 +96,15 @@ async function submit() {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+/* Pot de miel : hors écran (un display:none serait ignoré par certains bots). */
+.newsletter-signup__hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 .newsletter-signup__input {
   flex: 1 1 12rem;

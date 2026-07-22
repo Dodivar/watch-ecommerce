@@ -7,7 +7,8 @@ import { getBackendApiUrl, readApiResponseBody } from './backendApiUrl.js'
 const SITE_ID = import.meta.env.VITE_SITE_ID || 'sauvage-watches'
 
 /**
- * @param {{ email: string, name?: string }} input
+ * @param {{ email: string, name?: string, website?: string }} input
+ *   `website` est le pot de miel anti-bot du formulaire : vide pour un humain.
  * @returns {Promise<object>}
  */
 export async function subscribeToNewsletter(input) {
@@ -19,7 +20,11 @@ export async function subscribeToNewsletter(input) {
       Accept: 'application/json',
       'X-Site-Id': SITE_ID,
     },
-    body: JSON.stringify({ email: input.email, name: input.name || undefined }),
+    body: JSON.stringify({
+      email: input.email,
+      name: input.name || undefined,
+      website: input.website || undefined,
+    }),
   })
 
   const data = await readApiResponseBody(response)

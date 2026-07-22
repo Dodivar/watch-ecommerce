@@ -12,6 +12,7 @@ import {
   cancelScheduledCampaign,
   getSettings,
   getSubscribedCount,
+  getCampaignRecipients,
 } from '@/services/admin/adminNewsletterService'
 import { buildNewsletterPreview } from '@/utils/newsletterPreview.js'
 import AdminShell from './AdminShell.vue'
@@ -35,12 +36,41 @@ const isSending = ref(false)
 const error = ref(null)
 const notice = ref(null)
 
+const recipients = ref([])
+
 const isScheduled = computed(() => status.value === 'scheduled')
 const isReadOnly = computed(
   () => status.value === 'sent' || status.value === 'sending' || isScheduled.value,
 )
 const previewHtml = computed(() => buildNewsletterPreview(settings.value, bodyHtml.value))
 const hasAudience = computed(() => subscribedCount.value > 0)
+
+// Lecture seule : le corps est rendu dans une iframe sandbox (jamais en v-html
+// direct — le HTML stocké n'est assaini que côté serveur à l'envoi).
+const readOnlyBodyDoc = computed(
+  () => `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"></head>
+<body style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;color:#333;margin:0;padding:16px;">
+${bodyHtml.value || '<p style="color:#999;">(Aucun contenu)</p>'}</body></html>`,
+)
+
+const deliverySummary = computed(() => {
+  const sent = recipients.value.filter((r) => r.status === 'sent').length
+  const failed = recipients.value.filter((r) => r.status === 'failed')
+  const pending = recipients.value.length - sent - failed.length
+  return { sent, failed, pending }
+})
+
+async function loadDeliveryReport() {
+  if (!campaignId.value || !['sent', 'failed', 'sending'].includes(status.value)) {
+    recipients.value = []
+    return
+  }
+  try {
+    recipients.value = await getCampaignRecipients(campaignId.value)
+  } catch {
+    recipients.value = [] // Rapport indisponible : non bloquant.
+  }
+}
 
 /** Formate une date ISO en valeur `datetime-local` (heure locale). */
 function toDatetimeLocal(iso) {
@@ -79,6 +109,7 @@ async function load() {
       bodyHtml.value = campaign.bodyHtml
       status.value = campaign.status
       scheduledAt.value = campaign.scheduledAt || null
+      await loadDeliveryReport()
     }
     scheduleInput.value = scheduledAt.value
       ? toDatetimeLocal(scheduledAt.value)
@@ -155,6 +186,7 @@ async function send() {
     const result = await sendCampaign(id)
     status.value = result.status || 'sent'
     notice.value = `Newsletter envoyée à ${result.sent} destinataire(s).`
+    await loadDeliveryReport()
   } catch (err) {
     error.value = err.message
   } finally {
@@ -266,11 +298,34 @@ onMounted(load)
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
           <NewsletterRichEditor v-if="!isReadOnly" v-model="bodyHtml" />
-          <div
+          <iframe
             v-else
-            class="border border-gray-200 rounded-lg p-4 bg-gray-50 prose max-w-none"
-            v-html="bodyHtml"
+            :srcdoc="readOnlyBodyDoc"
+            sandbox=""
+            title="Contenu de la campagne"
+            class="w-full h-72 border border-gray-200 rounded-lg bg-gray-50"
           />
+        </div>
+
+        <!-- Rapport d'envoi (campagnes envoyées / en échec) -->
+        <div v-if="recipients.length" class="bg-white border border-gray-200 rounded-lg p-4">
+          <p class="text-sm font-medium text-gray-700 mb-1">Rapport d'envoi</p>
+          <p class="text-sm text-gray-600">
+            <strong class="text-green-700">{{ deliverySummary.sent }}</strong> envoyé(s),
+            <strong :class="deliverySummary.failed.length ? 'text-red-700' : 'text-gray-600'">
+              {{ deliverySummary.failed.length }}
+            </strong>
+            en échec<template v-if="deliverySummary.pending">,
+              {{ deliverySummary.pending }} en attente</template>.
+          </p>
+          <ul
+            v-if="deliverySummary.failed.length"
+            class="mt-2 max-h-40 overflow-y-auto text-xs text-red-700 space-y-1"
+          >
+            <li v-for="r in deliverySummary.failed" :key="r.email">
+              {{ r.email }}<span v-if="r.error" class="text-gray-500"> — {{ r.error }}</span>
+            </li>
+          </ul>
         </div>
 
         <div class="bg-white border border-gray-200 rounded-lg p-4">

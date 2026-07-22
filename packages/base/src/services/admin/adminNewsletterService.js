@@ -224,6 +224,28 @@ export async function deleteCampaign(id) {
 }
 
 /**
+ * Journal des destinataires d'une campagne (rapport d'envoi).
+ * @param {string} campaignId
+ * @returns {Promise<{ email: string, status: string, error: string|null, sentAt: string|null }[]>}
+ */
+export async function getCampaignRecipients(campaignId) {
+  const siteId = getAdminSiteId()
+  const { data, error } = await supabase
+    .from('newsletter_campaign_recipients')
+    .select('email, status, error, sent_at')
+    .eq('campaign_id', campaignId)
+    .eq('site_id', siteId)
+    .order('email')
+  if (error) throw new Error(error.message)
+  return (data || []).map((r) => ({
+    email: r.email,
+    status: r.status,
+    error: r.error,
+    sentAt: r.sent_at,
+  }))
+}
+
+/**
  * Envoie une campagne à l'ensemble des abonnés opt-in (via backend).
  * @param {string} id
  */

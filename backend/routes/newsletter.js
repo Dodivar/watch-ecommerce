@@ -1,12 +1,16 @@
 const express = require('express')
 
 const { getMailjetClient, getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
-const { requireAdminAuth } = require('../admin/adminRoutes')
+const { requireAdminAuth, requireAdminRole } = require('../admin/adminRoutes')
 const { createNewsletterEmail } = require('../templates/newsletterEmail')
 const { recordNewsletterOptIn } = require('../newsletter/optIn')
+const { createRateLimiter } = require('../utils/simpleRateLimit')
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MAILJET_BATCH_SIZE = 50
+
+/** Jeton factice utilisé dans les emails de test (le lien affiche une page d'aperçu). */
+const TEST_UNSUBSCRIBE_TOKEN = 'apercu'
 
 function isValidEmail(value) {
   return typeof value === 'string' && EMAIL_RE.test(value.trim())
@@ -51,6 +55,54 @@ async function sendMailjetBatch(mailjet, messages) {
 }
 
 /**
+ * Résume les erreurs par message d'une réponse Mailjet v3.1.
+ * @param {object} messageResult Élément de `response.body.Messages`
+ * @returns {string}
+ */
+function summarizeMailjetErrors(messageResult) {
+  const errors = messageResult?.Errors
+  if (Array.isArray(errors) && errors.length > 0) {
+    return errors.map((e) => e.ErrorMessage || e.ErrorCode || 'erreur').join(' ; ')
+  }
+  return 'Refusé par Mailjet'
+}
+
+/**
+ * Ventile un lot envoyé selon les statuts par message renvoyés par Mailjet v3.1
+ * (un lot accepté peut contenir des messages individuellement rejetés).
+ *
+ * @param {{ email: string }[]} batch Destinataires du lot, dans l'ordre d'envoi
+ * @param {*} response Réponse brute de `sendMailjetBatch`
+ * @returns {{ sent: string[], failed: { email: string, error: string }[] }}
+ */
+function splitMailjetResults(batch, response) {
+  const results = response?.body?.Messages
+  if (!Array.isArray(results) || results.length !== batch.length) {
+    // Réponse inattendue : le lot a été accepté, on le considère envoyé.
+    return { sent: batch.map((r) => r.email), failed: [] }
+  }
+  const sent = []
+  const failed = []
+  results.forEach((msg, i) => {
+    if (msg && msg.Status === 'success') sent.push(batch[i].email)
+    else failed.push({ email: batch[i].email, error: summarizeMailjetErrors(msg) })
+  })
+  return { sent, failed }
+}
+
+/**
+ * En-têtes de désinscription un clic (RFC 8058) exigés par Gmail/Yahoo pour les
+ * envois en masse. Le POST « one-click » est servi par `POST /unsubscribe`.
+ * @param {string} unsubscribeUrl
+ */
+function unsubscribeHeaders(unsubscribeUrl) {
+  return {
+    'List-Unsubscribe': `<${unsubscribeUrl}>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  }
+}
+
+/**
  * Envoie une campagne à l'ensemble des abonnés opt-in.
  *
  * Cœur d'envoi partagé entre la route HTTP admin (`POST /campaigns/:id/send`) et
@@ -83,8 +135,20 @@ async function runCampaignSend({ site, supabase, mailjet, campaign, settings, ap
 
   if (subErr) throw subErr
 
-  const recipients = subs || []
-  if (recipients.length === 0) {
+  // Reprise sans doublon : une campagne retentée après un échec partiel ne
+  // recontacte pas les destinataires déjà servis (journal des destinataires).
+  const { data: alreadySentRows, error: sentLogErr } = await supabase
+    .from('newsletter_campaign_recipients')
+    .select('email')
+    .eq('campaign_id', campaignId)
+    .eq('status', 'sent')
+  if (sentLogErr) throw sentLogErr
+  const alreadySent = new Set((alreadySentRows || []).map((r) => r.email))
+
+  const recipients = (subs || []).filter((r) => !alreadySent.has(r.email))
+  const totalAudience = recipients.length + alreadySent.size
+
+  if (totalAudience === 0) {
     // Pas d'abonné : on marque la campagne en échec pour éviter un « sending » bloqué.
     await supabase
       .from('newsletter_campaigns')
@@ -93,12 +157,25 @@ async function runCampaignSend({ site, supabase, mailjet, campaign, settings, ap
     return { sent: 0, total: 0, status: 'failed' }
   }
 
+  if (recipients.length === 0) {
+    // Tous les abonnés ont déjà été servis lors d'une tentative précédente.
+    await supabase
+      .from('newsletter_campaigns')
+      .update({
+        status: 'sent',
+        sent_count: alreadySent.size,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', campaignId)
+    return { sent: 0, total: totalAudience, status: 'sent' }
+  }
+
   // Marque la campagne « en cours » + journalise les destinataires.
   await supabase
     .from('newsletter_campaigns')
     .update({
       status: 'sending',
-      recipient_count: recipients.length,
+      recipient_count: totalAudience,
       created_by: createdBy || campaign.created_by || null,
       updated_at: new Date().toISOString(),
     })
@@ -116,30 +193,47 @@ async function runCampaignSend({ site, supabase, mailjet, campaign, settings, ap
 
   // ---- Envoi par lots de 50 ----
   let sentCount = 0
-  const nowIso = new Date().toISOString()
   for (let i = 0; i < recipients.length; i += MAILJET_BATCH_SIZE) {
     const batch = recipients.slice(i, i + MAILJET_BATCH_SIZE)
-    const messages = batch.map((r) => ({
-      From: { Email: fromAddress, Name: fromName },
-      To: [{ Email: r.email, Name: r.email }],
-      Subject: campaign.subject,
-      HTMLPart: createNewsletterEmail(site, {
-        subject: campaign.subject,
-        bodyHtml: campaign.body_html,
-        settings,
-        unsubscribeUrl: buildUnsubscribeUrl(apiBase, r.unsubscribe_token),
-      }),
-      ...(settings.reply_to ? { ReplyTo: { Email: settings.reply_to } } : {}),
-    }))
+    const messages = batch.map((r) => {
+      const unsubscribeUrl = buildUnsubscribeUrl(apiBase, r.unsubscribe_token)
+      return {
+        From: { Email: fromAddress, Name: fromName },
+        To: [{ Email: r.email, Name: r.email }],
+        Subject: campaign.subject,
+        HTMLPart: createNewsletterEmail(site, {
+          subject: campaign.subject,
+          bodyHtml: campaign.body_html,
+          settings,
+          unsubscribeUrl,
+        }),
+        Headers: unsubscribeHeaders(unsubscribeUrl),
+        ...(settings.reply_to ? { ReplyTo: { Email: settings.reply_to } } : {}),
+      }
+    })
 
+    const batchIso = new Date().toISOString()
     try {
-      await sendMailjetBatch(mailjet, messages)
-      sentCount += batch.length
-      await supabase
-        .from('newsletter_campaign_recipients')
-        .update({ status: 'sent', sent_at: nowIso })
-        .eq('campaign_id', campaignId)
-        .in('email', batch.map((r) => r.email))
+      const response = await sendMailjetBatch(mailjet, messages)
+      // Un lot accepté peut contenir des messages individuellement rejetés :
+      // on ventile selon les statuts par message de la réponse v3.1.
+      const { sent, failed } = splitMailjetResults(batch, response)
+      sentCount += sent.length
+      if (sent.length > 0) {
+        await supabase
+          .from('newsletter_campaign_recipients')
+          .update({ status: 'sent', sent_at: batchIso })
+          .eq('campaign_id', campaignId)
+          .in('email', sent)
+      }
+      for (const f of failed) {
+        console.error(`[${site.id}] newsletter destinataire refusé ${f.email}:`, f.error)
+        await supabase
+          .from('newsletter_campaign_recipients')
+          .update({ status: 'failed', error: String(f.error).slice(0, 500) })
+          .eq('campaign_id', campaignId)
+          .eq('email', f.email)
+      }
     } catch (batchErr) {
       console.error(`[${site.id}] newsletter batch:`, batchErr.message)
       await supabase
@@ -150,18 +244,20 @@ async function runCampaignSend({ site, supabase, mailjet, campaign, settings, ap
     }
   }
 
-  const finalStatus = sentCount === 0 ? 'failed' : 'sent'
+  const totalSent = alreadySent.size + sentCount
+  const finalStatus = totalSent === 0 ? 'failed' : 'sent'
+  const nowIso = new Date().toISOString()
   await supabase
     .from('newsletter_campaigns')
     .update({
       status: finalStatus,
-      sent_count: sentCount,
-      sent_at: sentCount > 0 ? nowIso : null,
+      sent_count: totalSent,
       updated_at: nowIso,
+      ...(sentCount > 0 ? { sent_at: nowIso } : {}),
     })
     .eq('id', campaignId)
 
-  return { sent: sentCount, total: recipients.length, status: finalStatus }
+  return { sent: sentCount, total: totalAudience, status: finalStatus }
 }
 
 /**
@@ -170,6 +266,9 @@ async function runCampaignSend({ site, supabase, mailjet, campaign, settings, ap
 function buildNewsletterRouter(registry) {
   const router = express.Router()
 
+  // Anti-abus inscription publique : 5 tentatives / 10 min par IP et par site.
+  const subscribeLimiter = createRateLimiter({ windowMs: 10 * 60 * 1000, max: 5 })
+
   // -------------------------------------------------------------------------
   // Public — inscription depuis la vitrine
   // -------------------------------------------------------------------------
@@ -177,6 +276,19 @@ function buildNewsletterRouter(registry) {
     const site = req.site
     const email = String(req.body?.email || '').trim().toLowerCase()
     const name = req.body?.name ? String(req.body.name).trim() : null
+
+    // Pot de miel : champ invisible pour un humain. Rempli = bot ; on répond
+    // comme un succès sans rien enregistrer.
+    if (typeof req.body?.website === 'string' && req.body.website.trim() !== '') {
+      return res.json({ success: true, message: 'Inscription confirmée' })
+    }
+
+    const clientIp = req.ip || req.socket?.remoteAddress || 'inconnue'
+    if (!subscribeLimiter.check(`${site.id}:${clientIp}`)) {
+      return res
+        .status(429)
+        .json({ success: false, error: 'Trop de tentatives, veuillez réessayer plus tard' })
+    }
 
     if (!isValidEmail(email)) {
       return res.status(400).json({ success: false, error: 'Adresse email invalide' })
@@ -200,27 +312,104 @@ function buildNewsletterRouter(registry) {
   })
 
   // -------------------------------------------------------------------------
-  // Public — désinscription via jeton (RGPD, lien un clic)
+  // Public — désinscription via jeton (RGPD)
+  //
+  // GET : page de confirmation SANS effet de bord (les scanners de liens des
+  // messageries suivent les GET et désinscriraient silencieusement). POST :
+  // désinscription effective — sert à la fois le bouton de la page de
+  // confirmation et le « one-click » RFC 8058 (en-tête List-Unsubscribe-Post).
   // -------------------------------------------------------------------------
+  const unsubscribePage = (title, message, extraHtml = '') =>
+    `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${title}</title></head>
+      <body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:48px 16px;text-align:center;color:#333;">
+      <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:8px;padding:32px;">
+      <h1 style="font-size:20px;">${title}</h1><p style="color:#555;">${message}</p>${extraHtml}</div></body></html>`
+
   router.get('/unsubscribe', async (req, res) => {
     const site = req.site
     const token = String(req.query?.token || '').trim()
 
-    const page = (title, message) => `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${title}</title></head>
-      <body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:48px 16px;text-align:center;color:#333;">
-      <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:8px;padding:32px;">
-      <h1 style="font-size:20px;">${title}</h1><p style="color:#555;">${message}</p></div></body></html>`
-
     if (!token) {
-      return res.status(400).send(page('Lien invalide', 'Ce lien de désinscription est incomplet.'))
+      return res
+        .status(400)
+        .send(unsubscribePage('Lien invalide', 'Ce lien de désinscription est incomplet.'))
+    }
+
+    if (token === TEST_UNSUBSCRIBE_TOKEN) {
+      return res.send(
+        unsubscribePage(
+          'Aperçu du lien de désinscription',
+          "Ceci est un email de test : le lien de désinscription est factice. Dans un envoi réel, chaque abonné reçoit son propre lien.",
+        ),
+      )
     }
 
     let supabase
     try {
       supabase = getSupabaseClient(site)
     } catch {
-      return res.status(503).send(page('Service indisponible', "La désinscription est momentanément indisponible."))
+      return res
+        .status(503)
+        .send(unsubscribePage('Service indisponible', 'La désinscription est momentanément indisponible.'))
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('newsletter_subscribers')
+        .select('email, status')
+        .eq('site_id', site.id)
+        .eq('unsubscribe_token', token)
+        .maybeSingle()
+
+      if (error) throw error
+      if (!data) {
+        return res
+          .status(404)
+          .send(unsubscribePage('Lien inconnu', "Ce lien de désinscription n'est pas reconnu."))
+      }
+      if (data.status === 'unsubscribed') {
+        return res.send(
+          unsubscribePage('Déjà désinscrit(e)', 'Vous ne recevez plus notre newsletter.'),
+        )
+      }
+
+      const confirmForm = `<form method="post" action="?token=${encodeURIComponent(token)}" style="margin-top:16px;">
+        <button type="submit" style="background:#333;color:#fff;border:none;border-radius:6px;padding:12px 24px;font-size:15px;cursor:pointer;">
+          Confirmer la désinscription
+        </button></form>`
+      return res.send(
+        unsubscribePage(
+          'Se désinscrire de la newsletter',
+          'Confirmez pour ne plus recevoir nos emails.',
+          confirmForm,
+        ),
+      )
+    } catch (e) {
+      console.error(`[${site.id}] newsletter unsubscribe (page):`, e.message)
+      return res
+        .status(500)
+        .send(unsubscribePage('Erreur', 'Une erreur est survenue lors de la désinscription.'))
+    }
+  })
+
+  router.post('/unsubscribe', async (req, res) => {
+    const site = req.site
+    const token = String(req.query?.token || '').trim()
+
+    if (!token || token === TEST_UNSUBSCRIBE_TOKEN) {
+      return res
+        .status(400)
+        .send(unsubscribePage('Lien invalide', 'Ce lien de désinscription est incomplet.'))
+    }
+
+    let supabase
+    try {
+      supabase = getSupabaseClient(site)
+    } catch {
+      return res
+        .status(503)
+        .send(unsubscribePage('Service indisponible', 'La désinscription est momentanément indisponible.'))
     }
 
     try {
@@ -234,22 +423,32 @@ function buildNewsletterRouter(registry) {
 
       if (error) throw error
       if (!data) {
-        return res.status(404).send(page('Lien inconnu', "Ce lien de désinscription n'est pas reconnu."))
+        return res
+          .status(404)
+          .send(unsubscribePage('Lien inconnu', "Ce lien de désinscription n'est pas reconnu."))
       }
 
       return res.send(
-        page('Désinscription confirmée', 'Vous ne recevrez plus notre newsletter. À bientôt !'),
+        unsubscribePage('Désinscription confirmée', 'Vous ne recevrez plus notre newsletter. À bientôt !'),
       )
     } catch (e) {
       console.error(`[${site.id}] newsletter unsubscribe:`, e.message)
-      return res.status(500).send(page('Erreur', "Une erreur est survenue lors de la désinscription."))
+      return res
+        .status(500)
+        .send(unsubscribePage('Erreur', 'Une erreur est survenue lors de la désinscription.'))
     }
   })
 
   // -------------------------------------------------------------------------
-  // Admin — envoi d'une campagne (ou test)
+  // Admin — envoi d'une campagne (ou test). Rôle visiteur exclu : la route
+  // s'exécute avec le client service role (contourne la RLS), elle doit donc
+  // porter elle-même la restriction d'écriture.
   // -------------------------------------------------------------------------
-  router.post('/campaigns/:id/send', requireAdminAuth(registry), async (req, res) => {
+  router.post(
+    '/campaigns/:id/send',
+    requireAdminAuth(registry),
+    requireAdminRole('admin', 'moderator'),
+    async (req, res) => {
     const site = req.site
     const supabase = req.adminSupabase
     const campaignId = req.params.id
@@ -293,11 +492,12 @@ function buildNewsletterRouter(registry) {
         if (!isValidEmail(testEmail)) {
           return res.status(400).json({ success: false, error: 'Adresse de test invalide' })
         }
+        const testUnsubscribeUrl = buildUnsubscribeUrl(apiBase, TEST_UNSUBSCRIBE_TOKEN)
         const html = createNewsletterEmail(site, {
           subject: campaign.subject,
           bodyHtml: campaign.body_html,
           settings,
-          unsubscribeUrl: buildUnsubscribeUrl(apiBase, 'apercu'),
+          unsubscribeUrl: testUnsubscribeUrl,
         })
         await sendMailjetBatch(mailjet, [
           {
@@ -305,14 +505,11 @@ function buildNewsletterRouter(registry) {
             To: [{ Email: testEmail, Name: testEmail }],
             Subject: `[Test] ${campaign.subject}`,
             HTMLPart: html,
+            Headers: unsubscribeHeaders(testUnsubscribeUrl),
             ...(settings.reply_to ? { ReplyTo: { Email: settings.reply_to } } : {}),
           },
         ])
         return res.json({ success: true, test: true })
-      }
-
-      if (campaign.status === 'sending' || campaign.status === 'sent') {
-        return res.status(409).json({ success: false, error: 'Campagne déjà envoyée ou en cours' })
       }
 
       // Vérifie qu'il existe au moins un abonné avant de basculer la campagne.
@@ -326,6 +523,22 @@ function buildNewsletterRouter(registry) {
         return res.status(400).json({ success: false, error: 'Aucun abonné éligible' })
       }
 
+      // Réclamation atomique (même mécanisme que le planificateur) : deux
+      // sessions qui déclenchent l'envoi en même temps ne peuvent pas envoyer
+      // deux fois — seule celle qui obtient la ligne procède.
+      const { data: claimed, error: claimErr } = await supabase
+        .from('newsletter_campaigns')
+        .update({ status: 'sending', updated_at: new Date().toISOString() })
+        .eq('id', campaignId)
+        .eq('site_id', site.id)
+        .in('status', ['draft', 'scheduled', 'failed', 'cancelled'])
+        .select('id')
+        .maybeSingle()
+      if (claimErr) throw claimErr
+      if (!claimed) {
+        return res.status(409).json({ success: false, error: 'Campagne déjà envoyée ou en cours' })
+      }
+
       const result = await runCampaignSend({
         site,
         supabase,
@@ -336,7 +549,7 @@ function buildNewsletterRouter(registry) {
         createdBy: req.adminUser?.email || null,
       })
 
-      return res.json({ success: result.sent > 0, ...result })
+      return res.json({ success: result.status === 'sent', ...result })
     } catch (e) {
       console.error(`[${site.id}] newsletter send:`, e.message)
       // Best-effort : repasse la campagne en échec pour éviter un état « sending » bloqué.
@@ -351,9 +564,16 @@ function buildNewsletterRouter(registry) {
       }
       return res.status(500).json({ success: false, error: 'Erreur serveur' })
     }
-  })
+    },
+  )
 
   return router
 }
 
-module.exports = { buildNewsletterRouter, runCampaignSend, loadSettings }
+module.exports = {
+  buildNewsletterRouter,
+  runCampaignSend,
+  loadSettings,
+  splitMailjetResults,
+  unsubscribeHeaders,
+}
