@@ -32,6 +32,7 @@ export const APP_ROUTE_META = [
   { path: '/paiement-succes' },
   { path: '/paiement-annule' },
   { path: '/admin/login', feature: 'admin' },
+  { path: '/admin/forgot-password', feature: 'admin' },
   { path: '/admin/set-password', feature: 'admin' },
   { path: '/admin', feature: 'admin' },
   { path: '/admin/watches', feature: 'admin' },

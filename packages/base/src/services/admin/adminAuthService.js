@@ -151,6 +151,46 @@ export async function loginAdmin(email, password, remember = false) {
   }
 }
 
+// Réponse volontairement identique quel que soit le résultat réel de l'envoi
+// (anti-énumération d'emails).
+const GENERIC_RESET_MESSAGE =
+  'Si un compte existe pour cette adresse, un email de réinitialisation a été envoyé.'
+
+/**
+ * Demande un email de réinitialisation de mot de passe admin. Le lien reçu
+ * atterrit sur /admin/set-password (même mécanique que le lien d'invitation).
+ * @param {string} email
+ * @returns {Promise<{success: boolean, message?: string, error?: string}>}
+ */
+export async function requestAdminPasswordReset(email) {
+  const trimmed = (email || '').trim()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+    return { success: false, error: 'Veuillez saisir une adresse email valide' }
+  }
+
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+      redirectTo: `${window.location.origin}/admin/set-password`,
+    })
+
+    if (error) {
+      // Le rate-limit est signalé : le taire ferait croire à un envoi réussi.
+      if (error.status === 429 || /security purposes|rate limit/i.test(error.message || '')) {
+        return {
+          success: false,
+          error: 'Trop de demandes. Veuillez patienter une minute avant de réessayer.',
+        }
+      }
+      console.error('Erreur resetPasswordForEmail:', error)
+    }
+
+    return { success: true, message: GENERIC_RESET_MESSAGE }
+  } catch (error) {
+    console.error('Erreur dans requestAdminPasswordReset:', error)
+    return { success: true, message: GENERIC_RESET_MESSAGE }
+  }
+}
+
 /**
  * Vérifie si l'utilisateur admin est actuellement authentifié
  * @returns {Promise<boolean>} - True si l'utilisateur est authentifié et autorisé

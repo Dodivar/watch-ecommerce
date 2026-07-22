@@ -69,8 +69,15 @@ router.beforeEach(async (to, from, next) => {
       return
     }
 
-    // Page de définition du mot de passe (lien d'invitation) : la session
-    // Supabase du lien existe mais pas le flag admin_authenticated.
+    // Demande de réinitialisation de mot de passe : accessible sans authentification.
+    if (to.path === '/admin/forgot-password') {
+      next()
+      return
+    }
+
+    // Page de définition du mot de passe (lien d'invitation ou de
+    // réinitialisation) : la session Supabase du lien existe mais pas le flag
+    // admin_authenticated.
     if (to.path === '/admin/set-password') {
       next()
       return
