@@ -9,8 +9,8 @@
  */
 
 import {
-  CART_STORAGE_KEY,
-  MAINTENANCE_KEY,
+  cartStorageKey,
+  maintenanceKey,
   cartLineFromWatch,
   catalogFromWatches,
   SAMPLE_WATCH,
@@ -35,18 +35,18 @@ function json(body, status = 200) {
 }
 
 /** Amorce l'état navigateur (maintenance + panier) avant tout chargement de page. */
-export async function seedBrowser(page, { cartLines } = {}) {
+export async function seedBrowser(page, { cartLines, siteId } = {}) {
   const lines = cartLines || [cartLineFromWatch(SAMPLE_WATCH)]
   await page.addInitScript(
-    ({ maintenanceKey, cartKey, cart }) => {
+    ({ maintKey, cartKey, cart }) => {
       try {
-        localStorage.setItem(maintenanceKey, 'true')
+        localStorage.setItem(maintKey, 'true')
         localStorage.setItem(cartKey, JSON.stringify(cart))
       } catch {
         /* localStorage indisponible : ignoré */
       }
     },
-    { maintenanceKey: MAINTENANCE_KEY, cartKey: CART_STORAGE_KEY, cart: lines },
+    { maintKey: maintenanceKey(siteId), cartKey: cartStorageKey(siteId), cart: lines },
   )
 }
 

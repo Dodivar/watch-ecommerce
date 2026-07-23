@@ -6,14 +6,24 @@
  * cohérents de bout en bout.
  */
 
-/** Site ciblé par les tests e2e (SITE_ID par défaut du dev Vite). */
+/** Site ciblé par défaut (SITE_ID par défaut du dev Vite). */
 export const SITE_ID = 'sauvage-watches'
 
-/** Clé localStorage du panier (voir composables/useCart.js). */
-export const CART_STORAGE_KEY = `watch_cart:${SITE_ID}`
+/** Clé localStorage du panier pour un site (voir composables/useCart.js). */
+export function cartStorageKey(siteId = SITE_ID) {
+  return `watch_cart:${siteId}`
+}
 
 /** Clé localStorage du contournement de la page de maintenance. */
-export const MAINTENANCE_KEY = `maintenance_authenticated_${SITE_ID}`
+export function maintenanceKey(siteId = SITE_ID) {
+  return `maintenance_authenticated_${siteId}`
+}
+
+/** Clé localStorage du panier (site par défaut). */
+export const CART_STORAGE_KEY = cartStorageKey()
+
+/** Clé localStorage du contournement de la page de maintenance (site par défaut). */
+export const MAINTENANCE_KEY = maintenanceKey()
 
 /** Un produit de démonstration : 3 490,00 €. */
 export const SAMPLE_WATCH = {

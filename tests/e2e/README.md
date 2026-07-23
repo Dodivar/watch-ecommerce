@@ -13,11 +13,21 @@ servi en dev Vite. Complémentaires de la suite Vitest (unitaires / contrats).
 4. Retrait en boutique (mode *pickup*) au lieu de la livraison à domicile.
 5. Panier vide → redirection vers la collection.
 
+**Collection → fiche produit** (`collection.spec.js`) :
+
+1. Grille de la page `/collection` depuis le catalogue simulé.
+2. Clic sur une carte → fiche produit canonique.
+
 **Fiche produit → panier** (`browse-to-cart.spec.js`) :
 
 1. Chargement de la fiche produit (`/montre/:slug`) depuis le catalogue simulé.
 2. Ajout au panier → ouverture du tiroir avec l’article.
 3. « Commander » → checkout reprenant la montre ajoutée.
+
+**Panier multi-quantité** (`place-des-montres/multi-quantity.spec.js`) :
+
+1. Vitrine `place-des-montres` (feature `cartMultiQuantity`, config distincte).
+2. Ajout au panier puis incrément de la quantité dans le tiroir.
 
 **Retour de paiement** (`payment-return.spec.js`) :
 
@@ -42,9 +52,16 @@ Aucun service externe n’est requis. Tout le réseau est simulé côté navigat
   reproduisant le cycle de vie d’une commande draft, y compris promo, retrait,
   vérification et annulation (`mockOrderBackend`).
 
-Le site testé est `sauvage-watches` (SITE_ID par défaut du dev Vite), avec des
-variables `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` factices injectées par
-le `webServer` de Playwright.
+Deux vitrines sont couvertes, chacune avec son propre serveur de dev démarré
+par Playwright (voir `playwright.config.js`) :
+
+- `sauvage-watches` (défaut) — projet `sauvage-watches`, port 5173.
+- `place-des-montres` (panier multi-quantité) — projet `place-des-montres`,
+  port 5174. Les specs de ce site vivent sous `tests/e2e/place-des-montres/`.
+
+Les variables `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` factices sont
+injectées par le `webServer` de Playwright. Les helpers de `support/` sont
+paramétrables par `siteId` (clés `localStorage` du panier et de la maintenance).
 
 ## Lancer
 
@@ -59,8 +76,8 @@ Le navigateur Chromium est déjà présent dans l’environnement CI web
 
 ## Pistes d’extension
 
-- Page collection (grille + filtres) → clic sur une carte → fiche produit.
+- Filtres de la page collection (marque, public, taille) et pagination.
 - Paiement Stripe : monter le Payment Element avec une clé de test et un
-  `clientSecret` simulé (nécessite d’autoriser `js.stripe.com`).
-- Multi-articles / quantités (sites avec `cartMultiQuantity`).
-- Autres vitrines (`SITE_ID` différent) pour couvrir les variations de config.
+  `clientSecret` simulé (nécessite d’autoriser `js.stripe.com` — non hermétique).
+- Recherche (`/collection/recherche`) et archive des ventes (`/ventes`).
+- Parcours admin (connexion, gestion catalogue) sur un projet dédié.
