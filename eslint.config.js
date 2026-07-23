@@ -40,6 +40,16 @@ export default defineConfig([
     },
   },
 
+  // Tests e2e Playwright (config + specs) : contexte Node.
+  {
+    files: ['playwright.config.js', 'tests/e2e/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
   // Configuration par défaut pour le reste du projet
   {
     files: ['**/*.{js,mjs,jsx,vue}'],
