@@ -37,6 +37,69 @@ export function cartLineFromWatch(watch = SAMPLE_WATCH) {
   }
 }
 
+/** Slug canonique de la fiche produit de démonstration (/montre/:slug). */
+export const SAMPLE_WATCH_SLUG = 'sauvage-heritage-automatique'
+
+/** Image inline (data URI 1x1) — évite tout appel réseau pour les visuels. */
+const INLINE_IMAGE =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+
+/** Ligne table `watches` telle que renvoyée par PostgREST. */
+export function watchDbRow(watch = SAMPLE_WATCH) {
+  return {
+    id: watch.watchId,
+    slug: SAMPLE_WATCH_SLUG,
+    ad_code: null,
+    name: watch.name,
+    brand: 'Sauvage',
+    model: 'Héritage',
+    reference: watch.reference,
+    price: watch.price,
+    promotion_price: null,
+    discount_percent: null,
+    year: 2024,
+    condition: 'Excellent état',
+    description: 'Montre automatique de démonstration pour les tests e2e.',
+    is_available: true,
+    is_sold: false,
+    stock_quantity: null,
+    sale_date: null,
+    display_order: 10,
+    audience: 'unisexe',
+    created_at: '2026-01-01T00:00:00.000Z',
+  }
+}
+
+/** Ligne table `watch_details`. */
+export function watchDetailsDbRow(watch = SAMPLE_WATCH) {
+  return {
+    watch_id: watch.watchId,
+    content: 'Pièce d’exception révisée par nos horlogers.',
+    movement: 'Automatique',
+    case_material: 'Acier 316L',
+    bracelet_materials: ['Cuir'],
+    bracelet_material: 'Cuir',
+    bracelet_colors: ['Marron'],
+    case_size: '40',
+    thickness: '11 mm',
+    dial_color: 'Noir',
+    crystal: 'Saphir',
+    water_resistance: '50 m',
+    functions: 'Heures, minutes, secondes',
+    power_reserve: '42 h',
+    frequency: '28 800 A/h',
+    case_condition: 'Très bon',
+    dial_condition: 'Impeccable',
+  }
+}
+
+/** Lignes table `watch_images`. */
+export function watchImagesDbRows(watch = SAMPLE_WATCH) {
+  return [
+    { watch_id: watch.watchId, image_url: INLINE_IMAGE, image_path: null, image_order: 0 },
+  ]
+}
+
 /** Catalogue indexé par watchId pour le backend simulé (prix en centimes). */
 export function catalogFromWatches(watches = [SAMPLE_WATCH]) {
   const catalog = {}

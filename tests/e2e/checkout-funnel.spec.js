@@ -73,6 +73,47 @@ test.describe('Tunnel d’achat — checkout', () => {
     expect(backend.state.order?.customerEmail).toBe('acheteur@example.com')
   })
 
+  test('applique un code promo et met à jour le total', async ({ page }) => {
+    await installCheckoutMocks(page)
+    await page.goto('/checkout')
+    await expect(page.getByText(SAMPLE_WATCH.name)).toBeVisible()
+
+    const summary = page.locator('aside').filter({ hasText: 'Sous-total' })
+    await summary.getByPlaceholder('Code promo').fill('E2E10')
+    await summary.getByRole('button', { name: 'Valider' }).click()
+
+    // Remise de 10 % appliquée : le bouton « Retirer le code » apparaît.
+    await expect(summary.getByRole('button', { name: 'Retirer le code' })).toBeVisible()
+    // 10 % de 3 490,00 € = 349,00 € de remise.
+    await expect(summary).toContainText('349,00')
+  })
+
+  test('permet le retrait en boutique plutôt que la livraison', async ({ page }) => {
+    await installCheckoutMocks(page)
+    await page.goto('/checkout')
+    await expect(page.getByText(SAMPLE_WATCH.name)).toBeVisible()
+
+    // Bascule vers le mode retrait.
+    await page.getByRole('button', { name: 'Retrait' }).click()
+
+    // La carte du point de retrait s'affiche (config Sauvage — Robertsau).
+    await expect(page.getByText('32 Allée de la Robertsau, 67000 Strasbourg')).toBeVisible()
+
+    // Contact + adresse de facturation requise pour le retrait.
+    await page.getByPlaceholder('Adresse e-mail').fill('acheteur@example.com')
+    await page.getByPlaceholder('Jean').fill('Camille')
+    await page.getByPlaceholder('Dupont').fill('Martin')
+    await page.getByPlaceholder('12 rue de la Paix').fill('32 Allée de la Robertsau')
+    await page.getByPlaceholder('75001').fill('67000')
+    await page.getByPlaceholder('Paris').fill('Strasbourg')
+
+    // Le montant final se débloque.
+    await expect(
+      page.getByText('Complétez vos informations de livraison pour afficher le montant final.'),
+    ).toBeHidden()
+    await expect(page.getByRole('button', { name: /Payer/ })).toContainText('490,00')
+  })
+
   test('un panier vide renvoie vers la collection', async ({ page }) => {
     // Pas de backend commandes : createOrderFromCart doit court-circuiter avant.
     await seedBrowser(page, { cartLines: [] })

@@ -14,6 +14,9 @@ import {
   cartLineFromWatch,
   catalogFromWatches,
   SAMPLE_WATCH,
+  watchDbRow,
+  watchDetailsDbRow,
+  watchImagesDbRows,
 } from './fixtures.js'
 
 const CORS_HEADERS = {
@@ -60,16 +63,91 @@ export async function stubSupabase(page) {
   })
 }
 
+/** Erreur PostgREST « 0 ligne » pour un `.single()` sans résultat. */
+const PGRST_NO_ROWS = {
+  code: 'PGRST116',
+  message: 'JSON object requested, multiple (or no) rows returned',
+  details: 'Results contain 0 rows',
+}
+
+/**
+ * Stub Supabase « catalogue » : sert des montres factices sur les tables
+ * `watches` / `watch_details` / `watch_images`, pour rendre les pages
+ * collection et fiche produit sans base réelle.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {{ watches?: Array }} [opts]
+ */
+export async function stubSupabaseCatalog(page, { watches = [SAMPLE_WATCH] } = {}) {
+  const rows = {
+    watches: watches.map((w) => watchDbRow(w)),
+    watch_details: watches.map((w) => watchDetailsDbRow(w)),
+    watch_images: watches.flatMap((w) => watchImagesDbRows(w)),
+  }
+
+  await page.route('**/stub.supabase.test/**', (route) => {
+    const request = route.request()
+    const url = new URL(request.url())
+    const isSingle = (request.headers()['accept'] || '').includes('vnd.pgrst.object')
+
+    // Auth : pas de session.
+    if (url.pathname.includes('/auth/v1/')) {
+      return route.fulfill(json({}, 200))
+    }
+
+    // REST : /rest/v1/<table>
+    const match = url.pathname.match(/\/rest\/v1\/([^/?]+)/)
+    const table = match ? match[1] : null
+    const data = table && rows[table] ? rows[table] : []
+
+    if (isSingle) {
+      if (!data.length) {
+        return route.fulfill(json(PGRST_NO_ROWS, 406))
+      }
+      return route.fulfill(json(data[0]))
+    }
+    return route.fulfill(json(data))
+  })
+}
+
 /**
  * Backend commandes simulé, avec état.
  * @param {import('@playwright/test').Page} page
  * @param {{ watches?: Array }} [opts]
  * @returns {{ calls: string[], state: object }}
  */
-export async function mockOrderBackend(page, { watches = [SAMPLE_WATCH] } = {}) {
+export async function mockOrderBackend(page, { watches = [SAMPLE_WATCH], verify } = {}) {
   const catalog = catalogFromWatches(watches)
   const calls = []
   const state = { order: null, accessToken: 'e2e-access-token' }
+
+  /** Réponse de GET /verify (lien de retour paiement) — indépendante de l'état. */
+  function buildVerifyPayload() {
+    if (verify) return verify
+    const linesArr = Object.values(catalog).map((c) => ({
+      id: `line-${c.watchId}`,
+      watch_id: c.watchId,
+      name: c.name,
+      reference: c.reference,
+      quantity: 1,
+      unit_price_cents: c.unitPriceCents,
+      image_url: c.imageUrl,
+    }))
+    const subtotalCents = linesArr.reduce((s, l) => s + l.unit_price_cents * l.quantity, 0)
+    return {
+      valid: true,
+      order: {
+        totalCents: subtotalCents,
+        subtotalCents,
+        shippingCents: 0,
+        discountCents: 0,
+        customerEmail: 'acheteur@example.com',
+        shippingMethodType: 'shipping',
+        shippingMethodLabel: 'Livraison à domicile',
+      },
+      lines: linesArr,
+    }
+  }
 
   function computeQuote(order) {
     const subtotalCents = order.lines.reduce(
@@ -149,6 +227,18 @@ export async function mockOrderBackend(page, { watches = [SAMPLE_WATCH] } = {}) 
       return route.fulfill(json(snapshot(true)))
     }
 
+    // GET /api/orders/:id/verify — retour paiement (accès direct par lien).
+    if (method === 'GET' && /\/verify$/.test(path)) {
+      return route.fulfill(json(buildVerifyPayload()))
+    }
+
+    // POST /api/orders/:id/cancel — accessible même sans commande en mémoire
+    // (le lien d'annulation porte order + token).
+    if (method === 'POST' && /\/cancel$/.test(path)) {
+      if (state.order) state.order.status = 'cancelled'
+      return route.fulfill(json({ success: true }))
+    }
+
     if (!state.order) {
       return route.fulfill(json({ success: false, error: 'Commande introuvable' }, 404))
     }
@@ -156,12 +246,6 @@ export async function mockOrderBackend(page, { watches = [SAMPLE_WATCH] } = {}) 
     // POST /api/orders/:id/pay — secret client Stripe factice.
     if (method === 'POST' && /\/pay$/.test(path)) {
       return route.fulfill(json({ success: true, clientSecret: 'pi_e2e_secret_123' }))
-    }
-
-    // POST /api/orders/:id/cancel
-    if (method === 'POST' && /\/cancel$/.test(path)) {
-      state.order.status = 'cancelled'
-      return route.fulfill(json({ success: true }))
     }
 
     // POST /api/orders/:id/promo — applique / retire un code.
