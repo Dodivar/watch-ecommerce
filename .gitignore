@@ -20,6 +20,12 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
+# Playwright (tests e2e)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -41,6 +47,7 @@ render.yaml
 # Documentation et scripts de setup (garder localement, ne pas commiter)
 *.md
 !README.md
+!tests/e2e/README.md
 *.pdf
 !sites/**/public/**/*.pdf
 !documentation/commercial/**/*.pdf

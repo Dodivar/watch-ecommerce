@@ -29,7 +29,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run packages/base/src/site",
-    "test:contracts": "vitest run tests/contracts"
+    "test:contracts": "vitest run tests/contracts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
@@ -62,6 +65,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/vite": "^4.1.8",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vitest/coverage-v8": "^4.1.7",
