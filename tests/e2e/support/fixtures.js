@@ -35,6 +35,39 @@ export const SAMPLE_WATCH = {
   quantity: 1,
 }
 
+/**
+ * Deuxième produit : 5 200,00 €. Slug distinct pour cohabiter avec
+ * `SAMPLE_WATCH` dans un même catalogue (résolution de slug par le service).
+ */
+export const SECOND_WATCH = {
+  watchId: 'e2e-watch-002',
+  name: 'Sauvage Explorateur Chronographe',
+  reference: 'SVG-EXP-002',
+  price: 5200,
+  slug: 'sauvage-explorateur-chronographe',
+  brand: 'Sauvage',
+  model: 'Explorateur',
+  imageUrl: null,
+  quantity: 1,
+}
+
+/**
+ * Montre déjà vendue (`is_sold`) : sa fiche reste consultable en archive
+ * (`features.soldArchive`) mais l'achat est impossible — garde anti-survente.
+ */
+export const SOLD_WATCH = {
+  watchId: 'e2e-watch-sold',
+  name: 'Sauvage Vintage Or 1968',
+  reference: 'SVG-VNT-1968',
+  price: 8900,
+  slug: 'sauvage-vintage-or-1968',
+  brand: 'Sauvage',
+  model: 'Vintage',
+  isSold: true,
+  imageUrl: null,
+  quantity: 1,
+}
+
 /** Ligne panier telle que persistée par useCart. */
 export function cartLineFromWatch(watch = SAMPLE_WATCH) {
   return {
@@ -58,11 +91,11 @@ const INLINE_IMAGE =
 export function watchDbRow(watch = SAMPLE_WATCH) {
   return {
     id: watch.watchId,
-    slug: SAMPLE_WATCH_SLUG,
-    ad_code: null,
+    slug: watch.slug || SAMPLE_WATCH_SLUG,
+    ad_code: watch.adCode ?? null,
     name: watch.name,
-    brand: 'Sauvage',
-    model: 'Héritage',
+    brand: watch.brand || 'Sauvage',
+    model: watch.model || 'Héritage',
     reference: watch.reference,
     price: watch.price,
     promotion_price: null,
@@ -70,8 +103,8 @@ export function watchDbRow(watch = SAMPLE_WATCH) {
     year: 2024,
     condition: 'Excellent état',
     description: 'Montre automatique de démonstration pour les tests e2e.',
-    is_available: true,
-    is_sold: false,
+    is_available: watch.isAvailable ?? true,
+    is_sold: watch.isSold ?? false,
     stock_quantity: null,
     sale_date: null,
     display_order: 10,

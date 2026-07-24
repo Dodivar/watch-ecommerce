@@ -24,6 +24,23 @@ servi en dev Vite. Complémentaires de la suite Vitest (unitaires / contrats).
 2. Ajout au panier → ouverture du tiroir avec l’article.
 3. « Commander » → checkout reprenant la montre ajoutée.
 
+**Gestion du panier — intégrité** (`cart-management.spec.js`) :
+
+1. Retrait d’articles depuis le tiroir → compteur, ligne et total suivent ;
+   panier vidé → bouton « Commander » désactivé.
+2. Persistance du panier après un rechargement de page (`localStorage`).
+
+**Disponibilité produit — garde anti-survente** (`product-availability.spec.js`) :
+
+1. Montre vendue (`is_sold`) : fiche consultable en archive, message dédié,
+   mais **aucun** bouton « Ajouter au panier » (impossible d’acheter).
+
+**Recherche catalogue** (`search.spec.js`) :
+
+1. `/collection/recherche?q=…` → grille filtrée sur le terme (nom / marque /
+   modèle / référence, casse et accents ignorés).
+2. Terme sans correspondance → état vide « Aucune montre trouvée ».
+
 **Panier multi-quantité** (`place-des-montres/multi-quantity.spec.js`) :
 
 1. Vitrine `place-des-montres` (feature `cartMultiQuantity`, config distincte).
@@ -79,5 +96,6 @@ Le navigateur Chromium est déjà présent dans l’environnement CI web
 - Filtres de la page collection (marque, public, taille) et pagination.
 - Paiement Stripe : monter le Payment Element avec une clé de test et un
   `clientSecret` simulé (nécessite d’autoriser `js.stripe.com` — non hermétique).
-- Recherche (`/collection/recherche`) et archive des ventes (`/ventes`).
+- Code promo invalide → message d’erreur (le backend simulé renvoie déjà 400).
+- Archive des ventes (`/ventes`) : liste des montres vendues.
 - Parcours admin (connexion, gestion catalogue) sur un projet dédié.
