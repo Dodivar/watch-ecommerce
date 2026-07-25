@@ -149,6 +149,50 @@ export async function mockOrderBackend(page, { watches = [SAMPLE_WATCH], verify 
     }
   }
 
+  /**
+   * Table de codes promo factices — reflète les règles réelles du backend
+   * (`backend/orders/promo.js`) : types `percent` / `fixed`, plafond de remise,
+   * sous-total minimum et code désactivé.
+   */
+  const PROMO_CODES = {
+    E2E10: { type: 'percent', value: 10 }, // 10 %
+    E2E50: { type: 'fixed', value: 50 }, // 50 € fixe
+    E2ECAP: { type: 'percent', value: 20, maxDiscountCents: 20_000 }, // 20 % plafonné à 200 €
+    E2EVIP: { type: 'percent', value: 15, minSubtotalCents: 500_000 }, // requiert 5 000 € HT
+    E2EOFF: { type: 'percent', value: 10, active: false }, // code désactivé
+  }
+
+  /** Résout un code saisi vers une remise ou une erreur (cf. loadPromoCode). */
+  function resolvePromo(codeRaw, subtotalCents) {
+    const code = String(codeRaw || '')
+      .trim()
+      .toUpperCase()
+    if (!code) {
+      return { ok: false, error: 'Code promo invalide' }
+    }
+    const promo = PROMO_CODES[code]
+    if (!promo) {
+      return { ok: false, error: "Ce code promo n'existe pas" }
+    }
+    if (promo.active === false) {
+      return { ok: false, error: 'Code promo invalide' }
+    }
+    if (promo.minSubtotalCents && subtotalCents < promo.minSubtotalCents) {
+      return { ok: false, error: 'Code promo invalide' }
+    }
+    let discount = 0
+    if (promo.type === 'fixed') {
+      discount = Math.min(subtotalCents, Math.round(promo.value * 100))
+    } else if (promo.type === 'percent') {
+      discount = Math.round((subtotalCents * promo.value) / 100)
+      if (promo.maxDiscountCents != null) {
+        discount = Math.min(discount, promo.maxDiscountCents)
+      }
+      discount = Math.min(subtotalCents, discount)
+    }
+    return { ok: true, code, discountCents: discount }
+  }
+
   function computeQuote(order) {
     const subtotalCents = order.lines.reduce(
       (sum, l) => sum + l.unitPriceCents * l.quantity,
@@ -205,6 +249,7 @@ export async function mockOrderBackend(page, { watches = [SAMPLE_WATCH], verify 
       lines,
       expiresAt: new Date(Date.now() + 30 * 60_000).toISOString(),
       discountCents: 0,
+      promoCode: null,
       shippingMethodId: null,
     }
   }
@@ -253,15 +298,19 @@ export async function mockOrderBackend(page, { watches = [SAMPLE_WATCH], verify 
       const body = request.postDataJSON?.() || {}
       if (body.remove) {
         state.order.discountCents = 0
-      } else if (String(body.code || '').toUpperCase() === 'E2E10') {
-        const subtotal = state.order.lines.reduce(
-          (s, l) => s + l.unitPriceCents * l.quantity,
-          0,
-        )
-        state.order.discountCents = Math.round(subtotal * 0.1)
-      } else {
-        return route.fulfill(json({ success: false, error: 'Code promo invalide' }, 400))
+        state.order.promoCode = null
+        return route.fulfill(json(snapshot()))
       }
+      const subtotal = state.order.lines.reduce(
+        (s, l) => s + l.unitPriceCents * l.quantity,
+        0,
+      )
+      const result = resolvePromo(body.code, subtotal)
+      if (!result.ok) {
+        return route.fulfill(json({ success: false, error: result.error }, 400))
+      }
+      state.order.discountCents = result.discountCents
+      state.order.promoCode = result.code
       return route.fulfill(json(snapshot()))
     }
 
