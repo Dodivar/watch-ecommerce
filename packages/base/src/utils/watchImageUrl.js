@@ -82,6 +82,45 @@ export function watchCardImageUrl(url, options = {}) {
  * @param {string | null | undefined} url
  * @returns {string | undefined}
  */
+/** Largeur cible dans la visionneuse plein écran : assez large pour le zoom pincement. */
+export const WATCH_LIGHTBOX_IMAGE_WIDTH = 1600
+
+/**
+ * URL affichée dans la visionneuse plein écran.
+ *
+ * @param {string | null | undefined} url
+ * @param {{ width?: number, quality?: number }} [options]
+ */
+export function watchLightboxImageUrl(url, options = {}) {
+  if (!url) return undefined
+  if (!SUPABASE_IMAGE_TRANSFORMS_ENABLED) return url
+
+  return toSupabaseRenderUrl(url, {
+    width: options.width ?? WATCH_LIGHTBOX_IMAGE_WIDTH,
+    quality: options.quality ?? 82,
+    resize: 'contain',
+  })
+}
+
+/**
+ * Le préchargement des images voisines n'a de sens que si une variante allégée
+ * existe : sans transformations Storage, les originaux pèsent plusieurs Mo pièce
+ * et précharger dégraderait la navigation mobile au lieu de l'améliorer.
+ *
+ * @returns {boolean}
+ */
+export function canPreloadWatchImages() {
+  if (!SUPABASE_IMAGE_TRANSFORMS_ENABLED) return false
+  if (typeof navigator === 'undefined') return false
+
+  const connection =
+    navigator.connection || navigator.mozConnection || navigator.webkitConnection
+  if (!connection) return true
+  if (connection.saveData) return false
+
+  return !['slow-2g', '2g', '3g'].includes(connection.effectiveType)
+}
+
 export function buildWatchCardSrcSet(url) {
   if (!SUPABASE_IMAGE_TRANSFORMS_ENABLED || !url || !isSupabaseStoragePublicUrl(url)) {
     return undefined

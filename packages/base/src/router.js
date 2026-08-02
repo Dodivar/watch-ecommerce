@@ -34,6 +34,12 @@ const router = createRouter({
         }
       }
     }
+    // Navigation qui ne change pas de page (entrée d'historique d'une visionneuse,
+    // paramètres de requête) : conserver la position de lecture.
+    if (to.path === from.path) {
+      return false
+    }
+
     // always scroll to top
     return {
       top: 0,

@@ -36,7 +36,13 @@ describe('transformations désactivées (défaut)', () => {
     expect(mod.SUPABASE_IMAGE_TRANSFORMS_ENABLED).toBe(false)
     expect(mod.toSupabaseRenderUrl(OBJECT_URL, { width: 100 })).toBe(OBJECT_URL)
     expect(mod.watchCardImageUrl(OBJECT_URL)).toBe(OBJECT_URL)
+    expect(mod.watchLightboxImageUrl(OBJECT_URL)).toBe(OBJECT_URL)
     expect(mod.buildWatchCardSrcSet(OBJECT_URL)).toBeUndefined()
+  })
+
+  it('interdit le préchargement : les originaux pèsent plusieurs Mo', async () => {
+    const mod = await loadModule()
+    expect(mod.canPreloadWatchImages()).toBe(false)
   })
 
   it('retourne undefined pour une URL absente', async () => {
@@ -77,6 +83,29 @@ describe('transformations activées (plan Pro+)', () => {
 
     expect(result.searchParams.get('width')).toBe('480')
     expect(result.searchParams.get('quality')).toBe('80')
+  })
+
+  it('watchLightboxImageUrl vise une largeur adaptée au zoom, en resize contain', async () => {
+    const mod = await loadModule({ transforms: true })
+    const result = new URL(mod.watchLightboxImageUrl(OBJECT_URL))
+
+    expect(result.searchParams.get('width')).toBe(String(mod.WATCH_LIGHTBOX_IMAGE_WIDTH))
+    expect(result.searchParams.get('resize')).toBe('contain')
+  })
+
+  it('autorise le préchargement hors connexion lente ou mode économie', async () => {
+    const mod = await loadModule({ transforms: true })
+
+    vi.stubGlobal('navigator', { connection: { effectiveType: '4g', saveData: false } })
+    expect(mod.canPreloadWatchImages()).toBe(true)
+
+    vi.stubGlobal('navigator', { connection: { effectiveType: '4g', saveData: true } })
+    expect(mod.canPreloadWatchImages()).toBe(false)
+
+    vi.stubGlobal('navigator', { connection: { effectiveType: '2g', saveData: false } })
+    expect(mod.canPreloadWatchImages()).toBe(false)
+
+    vi.unstubAllGlobals()
   })
 
   it('buildWatchCardSrcSet expose une entrée par largeur', async () => {
