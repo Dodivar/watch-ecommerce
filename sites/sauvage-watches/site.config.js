@@ -13,14 +13,18 @@ export default {
 
   /** Design tokens → CSS variables via vite/site-from-config.mjs + Tailwind theme.extend */
   theme: {
+    colorScheme: 'dark',
     colors: {
       primary: '#0f2a1d',
       primaryHover: '#163d2a',
-      cream: '#f7ede0',
-      cream100: '#ede4d8',
-      cream200: '#e3d9cc',
-      cream300: '#d9cec0',
+      /** Variante de démonstration : surfaces vert Sauvage, sans fond beige. */
+      cream: '#0f2a1d',
+      cream100: '#163d2a',
+      cream200: '#234c38',
+      cream300: '#315d47',
       textMain: '#000000',
+      textOnDark: '#ffffff',
+      browserChrome: '#0f2a1d',
     },
     /** Typographie de référence du socle — fichiers dans `public/fonts/`. */
     typography: {

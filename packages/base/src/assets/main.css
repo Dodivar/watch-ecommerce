@@ -16,6 +16,10 @@ html {
   background-color: #ffffff;
 }
 
+html[data-ui-color-scheme='dark'] {
+  background-color: var(--color-cream);
+}
+
 /* Formulaires : fond clair conservé en mode sombre (évite le style sombre natif du navigateur) */
 input,
 textarea,
@@ -81,6 +85,46 @@ h4 {
 #header {
   background-color: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
+}
+
+html[data-ui-color-scheme='dark'] #header {
+  background-color: rgba(15, 42, 29, 0.92);
+  color: var(--color-text-on-dark);
+}
+
+html[data-ui-color-scheme='dark'] #header
+  :is(.text-text-main, .text-black, .text-gray-500, .text-gray-600, .text-primary) {
+  color: var(--color-text-on-dark);
+}
+
+html[data-ui-color-scheme='dark'] .public-dark-theme {
+  color: var(--color-text-on-dark);
+}
+
+html[data-ui-color-scheme='dark'] .public-dark-theme
+  :is(.text-text-main, .text-black, .text-primary) {
+  color: var(--color-text-on-dark);
+}
+
+html[data-ui-color-scheme='dark'] .public-dark-theme
+  :is(.text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700) {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+html[data-ui-color-scheme='dark'] .public-dark-theme .bg-white {
+  background-color: var(--color-cream-100);
+}
+
+html[data-ui-color-scheme='dark'] .public-dark-theme .bg-white.shadow-lg {
+  background-color: var(--color-cream-200);
+}
+
+html[data-ui-color-scheme='dark'] .public-dark-theme .bg-primary {
+  background-color: var(--color-cream-200);
+}
+
+html[data-ui-color-scheme='dark'] .public-dark-theme .border-primary {
+  border-color: var(--color-text-on-dark);
 }
 
 .hide-scrollbar::-webkit-scrollbar {
