@@ -23,6 +23,9 @@ const STUB_ENV = {
   // mais tout le trafic réseau est intercepté dans les tests.
   VITE_SUPABASE_URL: 'https://stub.supabase.test',
   VITE_SUPABASE_ANON_KEY: 'e2e-anon-key',
+  // Neutralise une éventuelle clé héritée du shell afin de conserver le champ
+  // adresse natif attendu par les tests hermétiques.
+  VITE_GOOGLE_PLACES_API_KEY: '',
   // Clé Stripe laissée vide : le tunnel est vérifié jusqu'au montant final,
   // sans monter le Payment Element (qui nécessiterait js.stripe.com).
   VITE_STRIPE_PUBLISHABLE_KEY: '',
