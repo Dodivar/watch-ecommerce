@@ -38,7 +38,7 @@
           <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
           <p class="text-gray-600 mb-3">{{ error }}</p>
           <button
-            @click="loadWatch"
+            @click="loadWatch({ force: true })"
             class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
           >
             Réessayer
@@ -982,8 +982,30 @@ const displayedDescription = computed(() => {
 
 const isSlugRoute = computed(() => route.path.startsWith('/montre/'))
 
+function currentWatchRouteKey() {
+  const routeKey = isSlugRoute.value ? route.params.slug : route.params.id
+  return routeKey ? String(routeKey) : null
+}
+
 // Load watch from Supabase
-const loadWatch = async () => {
+const loadWatch = async ({ force = false } = {}) => {
+  const routeKey = currentWatchRouteKey()
+  if (!routeKey) {
+    error.value = 'Identifiant de montre manquant'
+    isLoading.value = false
+    return
+  }
+
+  const alreadyLoaded =
+    !force &&
+    watchItem.value &&
+    (String(watchItem.value.id) === routeKey ||
+      (isSlugRoute.value && watchItem.value.slug === routeKey))
+
+  if (alreadyLoaded) {
+    return
+  }
+
   try {
     isLoading.value = true
     error.value = null
@@ -992,16 +1014,11 @@ const loadWatch = async () => {
     // Vérifier si l'utilisateur est admin
     isAdmin.value = await isAdminAuthenticated()
     
-    const routeKey = isSlugRoute.value ? route.params.slug : route.params.id
-    if (!routeKey) {
-      throw new Error('Identifiant de montre manquant')
-    }
-    
     // Si l'utilisateur est admin, permettre de voir les montres hors-stock ;
     // si l'archive des ventes est active, les montres vendues restent consultables.
     const data = isSlugRoute.value
-      ? await getWatchBySlug(String(routeKey), isAdmin.value, soldArchiveEnabled)
-      : await getWatchById(String(routeKey), isAdmin.value, soldArchiveEnabled)
+      ? await getWatchBySlug(routeKey, isAdmin.value, soldArchiveEnabled)
+      : await getWatchById(routeKey, isAdmin.value, soldArchiveEnabled)
     watchItem.value = data
 
     const canonicalPath = buildWatchPath(data)

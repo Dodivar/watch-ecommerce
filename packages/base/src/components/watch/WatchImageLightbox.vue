@@ -91,6 +91,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ChevronLeft, ChevronRight, X } from '@lucide/vue'
 import WatchImageSwipeCarousel from '@/components/watch/WatchImageSwipeCarousel.vue'
 import WatchImageZoomable from '@/components/watch/WatchImageZoomable.vue'
@@ -127,6 +128,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'close'])
 
+const router = useRouter()
 const overlayRef = ref(null)
 const isZoomed = ref(false)
 const dismissOffset = ref(0)
@@ -263,11 +265,15 @@ function onPopState() {
   requestClose()
 }
 
-function pushHistoryEntry() {
+async function pushHistoryEntry() {
   if (typeof window === 'undefined' || hasHistoryEntry) return
-  // Même URL : seule une entrée d'historique est ajoutée, pour que le bouton
-  // retour referme la visionneuse au lieu de quitter la fiche produit.
-  window.history.pushState({ ...window.history.state, watchLightbox: true }, '')
+  // Même URL via vue-router : le bouton retour referme la visionneuse sans
+  // désynchroniser l'historique SPA (contrairement à pushState brut).
+  try {
+    await router.push(router.currentRoute.value.fullPath)
+  } catch {
+    return
+  }
   hasHistoryEntry = true
   window.addEventListener('popstate', onPopState)
 }
@@ -275,10 +281,9 @@ function pushHistoryEntry() {
 function releaseHistoryEntry() {
   if (typeof window === 'undefined') return
   window.removeEventListener('popstate', onPopState)
-  if (hasHistoryEntry) {
-    hasHistoryEntry = false
-    window.history.back()
-  }
+  if (!hasHistoryEntry) return
+  hasHistoryEntry = false
+  router.back()
 }
 
 /* ------------------------------------------------------------- Préchargement */
@@ -325,7 +330,7 @@ watch(
     if (isOpen) {
       isZoomed.value = false
       resetDismiss({ animate: false })
-      pushHistoryEntry()
+      await pushHistoryEntry()
       document.addEventListener('keydown', onKeyDown)
       preloadNeighbours(props.modelValue)
       await Promise.resolve()
