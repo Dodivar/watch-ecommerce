@@ -112,7 +112,7 @@
           v-if="listingReady && totalPages > 1"
           class="mb-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center sm:gap-8"
         >
-          <p class="order-2 text-center text-sm text-gray-500 sm:order-1 sm:text-center">
+          <p class="order-2 text-center text-sm text-gray-600 sm:order-1 sm:text-center">
             {{ totalFiltered }} montre{{ totalFiltered > 1 ? 's' : '' }}
           </p>
           <nav

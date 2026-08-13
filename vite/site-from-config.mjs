@@ -46,7 +46,6 @@ function buildThemeCss(siteConfig) {
   --color-cream-200: ${t.cream200};
   --color-cream-300: ${t.cream300};
   --color-text-main: ${t.textMain};
-  --color-text-on-dark: ${t.textOnDark ?? '#ffffff'};
   --font-sans: ${typography.sans.stack};
   --font-heading: ${typography.heading.stack};
   --font-subheading: ${typography.subheading.stack};
@@ -122,9 +121,6 @@ export function siteFromConfigPlugin(siteConfig) {
       const radiusPreset = getRadiusPreset(siteConfig)
       if (radiusPreset !== 'rounded') {
         out = out.replace('<html', `<html data-ui-radius="${escapeHtmlAttr(radiusPreset)}"`)
-      }
-      if (siteConfig.theme?.colorScheme === 'dark') {
-        out = out.replace('<html', '<html data-ui-color-scheme="dark"')
       }
 
       return out

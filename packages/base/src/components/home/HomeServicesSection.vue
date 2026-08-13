@@ -23,7 +23,7 @@ const features = getSiteConfig().features
       <div class="grid md:grid-cols-3 gap-6">
         <div
           v-if="features.recherche"
-          class="bg-white rounded-md p-6 text-center hover:shadow-lg transition-all shadow-lg"
+          class="bg-cream rounded-md p-6 text-center border border-cream-200 hover:shadow-lg transition-all"
         >
           <div class="text-primary text-4xl mb-3 flex justify-center">
             <Search class="h-10 w-10 text-primary mx-auto" :stroke-width="2" />
@@ -41,7 +41,7 @@ const features = getSiteConfig().features
 
         <div
           v-if="features.collection"
-          class="bg-white rounded-md p-6 text-center hover:shadow-lg transition-all shadow-lg"
+          class="bg-cream rounded-md p-6 text-center border border-cream-200 hover:shadow-lg transition-all"
         >
           <div class="text-primary text-4xl mb-3 flex justify-center">
             <Watch class="h-10 w-10 text-primary mx-auto" :stroke-width="2" />
@@ -57,7 +57,7 @@ const features = getSiteConfig().features
 
         <div
           v-if="features.estimation"
-          class="bg-white rounded-md p-6 text-center hover:shadow-lg transition-all shadow-lg"
+          class="bg-cream rounded-md p-6 text-center border border-cream-200 hover:shadow-lg transition-all"
         >
           <div class="text-primary text-4xl mb-3 flex justify-center">
             <Calculator class="h-10 w-10 text-primary mx-auto" :stroke-width="2" />

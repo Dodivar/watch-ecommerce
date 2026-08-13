@@ -217,7 +217,7 @@
           class="mb-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center sm:gap-8"
         >
           <p
-            class="order-2 text-center text-sm text-gray-500 sm:order-1 sm:text-center"
+            class="order-2 text-center text-sm text-gray-600 sm:order-1 sm:text-center"
           >
             <template v-if="showFilteredTotal">
               {{ totalFiltered }} montre{{ totalFiltered > 1 ? 's' : '' }} sur {{ totalCount }}
@@ -328,10 +328,10 @@
         <!-- Contact -->
         <div
           v-if="showContactSection"
-          class="bg-white rounded-md shadow-lg p-8 text-center"
+          class="bg-primary rounded-md shadow-lg p-8 text-center"
         >
-          <h2 class="text-2xl font-semibold text-text-main mb-4">Une pièce vous intéresse ?</h2>
-          <p class="text-lg text-gray-600 mb-6 font-light">
+          <h2 class="text-2xl font-semibold text-white mb-4">Une pièce vous intéresse ?</h2>
+          <p class="text-lg text-white/75 mb-6 font-light">
             Contactez-nous pour plus d'informations ou pour organiser une visite en main propre
           </p>
 
@@ -339,7 +339,7 @@
             <a
               :href="'https://wa.me/' + WHATSAPP_NUMBER"
               target="_blank"
-              class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
+              class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-lg text-primary bg-white hover:bg-cream-100 transition-colors duration-200"
             >
               <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                 <path
@@ -350,7 +350,7 @@
             </a>
             <a
               :href="'mailto:' + EMAIL_CONTACT"
-              class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
+              class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-lg text-primary bg-white hover:bg-cream-100 transition-colors duration-200"
             >
               <Mail class="w-5 h-5 mr-2" :stroke-width="2" />
               Contact Email

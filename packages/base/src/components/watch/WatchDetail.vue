@@ -237,7 +237,7 @@
               <div class="flex flex-wrap items-baseline gap-3">
                 <span
                   v-if="watchItem.isOnPromotion"
-                  class="text-lg lg:text-xl font-normal text-gray-400 line-through"
+                  class="text-lg lg:text-xl font-normal text-gray-600 line-through"
                 >
                   {{ formatPrice(watchItem.price) }}
                 </span>
@@ -275,7 +275,7 @@
             <div v-if="showAddToCartButton">
               <button
                 @click="handleAddToCart"
-                class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
+                class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
               >
                 <ShoppingBag class="w-5 h-5 mr-2" :stroke-width="2" />
                 Ajouter au panier
@@ -626,10 +626,10 @@
       </div>
 
       <!-- Contact Reminder Section -->
-      <div class="bg-white rounded-md shadow-lg p-8">
+      <div class="bg-primary rounded-md shadow-lg p-8">
         <div class="text-center mb-6">
-          <h2 class="text-xl lg:text-3xl font-bold mb-3 text-gray-900">Une question sur cette montre ?</h2>
-          <p class="text-base lg:text-lg text-gray-600">
+          <h2 class="text-xl lg:text-3xl font-bold mb-3 text-white">Une question sur cette montre ?</h2>
+          <p class="text-base lg:text-lg text-white/75">
             Contactez-nous par WhatsApp ou email pour plus d'informations
           </p>
         </div>
@@ -646,7 +646,7 @@
                 : '#'
             "
             target="_blank"
-            class="flex-1 inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
+            class="flex-1 inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-semibold rounded-lg text-primary bg-white hover:bg-cream-100 transition-colors duration-200"
           >
             <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -668,7 +668,7 @@
                   )
                 : '#'
             "
-            class="flex-1 inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
+            class="flex-1 inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-semibold rounded-lg text-primary bg-white hover:bg-cream-100 transition-colors duration-200"
           >
             <Mail class="w-6 h-6 mr-3" :stroke-width="2" />
             Email

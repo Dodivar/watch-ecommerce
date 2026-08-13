@@ -13,18 +13,23 @@ export default {
 
   /** Design tokens → CSS variables via vite/site-from-config.mjs + Tailwind theme.extend */
   theme: {
-    colorScheme: 'dark',
+    /**
+     * Palette de marque : vert #0f2a1d (logo), beige, blanc, noir.
+     * Chaque couleur porte un rôle distinct — le vert reste un accent fort
+     * (CTA, bandeaux d'ancrage, pied de page) et n'est jamais le fond de page,
+     * sinon il ne contraste plus avec rien.
+     */
     colors: {
+      /** Vert de marque, identique aux logos `Logos RVB (web)`. */
       primary: '#0f2a1d',
-      primaryHover: '#163d2a',
-      /** Variante de démonstration : surfaces vert Sauvage, sans fond beige. */
-      cream: '#0f2a1d',
-      cream100: '#163d2a',
-      cream200: '#234c38',
-      cream300: '#315d47',
+      primaryHover: '#1a4832',
+      /** Beige de fond, calé sur une teinte sable (~41°) qui s'accorde au vert. */
+      cream: '#f6f1e6',
+      cream100: '#efe9db',
+      cream200: '#e3dbc9',
+      cream300: '#d2c8b1',
       textMain: '#000000',
-      textOnDark: '#ffffff',
-      browserChrome: '#0f2a1d',
+      browserChrome: '#f6f1e6',
     },
     /** Typographie de référence du socle — fichiers dans `public/fonts/`. */
     typography: {

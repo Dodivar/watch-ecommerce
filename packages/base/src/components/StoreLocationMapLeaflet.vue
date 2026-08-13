@@ -79,7 +79,7 @@ const resolvedAttribution = computed(
         </l-marker>
       </l-map>
     </div>
-    <p class="mt-2 text-xs text-gray-500">
+    <p class="mt-2 text-xs text-gray-600">
       Carte
       <a
         href="https://www.openstreetmap.org/copyright"

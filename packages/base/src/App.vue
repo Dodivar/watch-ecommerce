@@ -14,7 +14,6 @@ import AdminPublicModeBar from '@/components/layout/AdminPublicModeBar.vue'
 import HeaderQuickSearch from '@/components/layout/HeaderQuickSearch.vue'
 import logoMobileMenuVerticalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB vertical/Logo SW blanc vertical RVB.png'
 import logoHeaderIconGreen from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW verte RVB.png'
-import logoHeaderIconWhite from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW blanche RVB.png'
 import logoFooterHorizontalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW blanc horizontal RVB.png'
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import CookieBanner from '@/components/CookieBanner.vue'
@@ -26,8 +25,6 @@ import { useCart } from '@/composables/useCart.js'
 
 const site = getSiteConfig()
 const features = site.features
-const usesDarkTheme = site.theme?.colorScheme === 'dark'
-const headerLogoSrc = usesDarkTheme ? logoHeaderIconWhite : logoHeaderIconGreen
 
 const globalStructuredData = buildGlobalStructuredData(site, BASE_URL)
 const mainNavItems = resolveMainNavigation(site)
@@ -134,7 +131,7 @@ function displayMobileMenu() {
       <div class="flex justify-between items-center h-16 gap-2">
         <div class="flex items-center shrink-0">
           <RouterLink to="/">
-            <img width="50px" height="50px" :src="headerLogoSrc" alt="" />
+            <img width="50px" height="50px" :src="logoHeaderIconGreen" alt="" />
           </RouterLink>
         </div>
         <MainNavDesktop :nav-items="mainNavItems" />
@@ -173,7 +170,7 @@ function displayMobileMenu() {
     />
   </header>
 
-  <main :class="{ 'public-dark-theme': usesDarkTheme && !isAdminPage }">
+  <main>
     <RouterView />
   </main>
 

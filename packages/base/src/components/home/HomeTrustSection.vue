@@ -3,13 +3,14 @@ import { BadgeCheck, Globe, ShieldCheck, UserRound } from '@lucide/vue'
 </script>
 
 <template>
-  <section class="py-12 bg-cream">
+  <!-- Bandeau d'ancrage vert : rupture au milieu du rythme beige/blanc. -->
+  <section class="py-16 bg-primary">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
+        <h2 class="text-3xl lg:text-4xl font-bold text-white mb-3">
           Achetez ou recherchez votre montre en toute confiance
         </h2>
-        <p class="text-xl text-gray-600">
+        <p class="text-xl text-white/75 max-w-4xl mx-auto">
           Profitez d'un accompagnement personnalisé, d'une sécurité totale et de tous les avantages de notre réseau d'experts pour un achat serein ou la quête du modèle qui vous fait rêver.
         </p>
       </div>

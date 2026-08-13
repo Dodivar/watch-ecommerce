@@ -127,7 +127,7 @@
           </svg>
         </div>
         <h3 class="text-xl text-gray-600 mb-2">Aucun article trouvé</h3>
-        <p class="text-gray-500">Essayez de modifier vos critères de recherche</p>
+        <p class="text-gray-600">Essayez de modifier vos critères de recherche</p>
       </div>
 
       <!-- Pagination -->
@@ -138,7 +138,7 @@
           :class="[
             'px-4 py-2 rounded-lg font-medium transition-colors',
             currentPage === 1
-              ? 'bg-cream-200 text-gray-400 cursor-not-allowed'
+              ? 'bg-cream-200 text-gray-600 cursor-not-allowed'
               : 'bg-white text-gray-700 hover:bg-cream-100 border border-gray-300',
           ]"
         >
@@ -167,7 +167,7 @@
           :class="[
             'px-4 py-2 rounded-lg font-medium transition-colors',
             currentPage === totalPages
-              ? 'bg-cream-200 text-gray-400 cursor-not-allowed'
+              ? 'bg-cream-200 text-gray-600 cursor-not-allowed'
               : 'bg-white text-gray-700 hover:bg-cream-100 border border-gray-300',
           ]"
         >
