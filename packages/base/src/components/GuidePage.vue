@@ -19,11 +19,7 @@
     </nav>
 
     <!-- Hero -->
-    <section class="relative overflow-hidden bg-gradient-to-br from-cream via-cream-100 to-cream-200 py-12 lg:py-16">
-      <div
-        class="pointer-events-none absolute -right-20 top-0 hidden h-80 w-80 rounded-full bg-primary/10 blur-3xl lg:block"
-        aria-hidden="true"
-      />
+    <section class="relative overflow-hidden bg-cream border-b border-cream-300 py-12 lg:py-16">
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
           <div>
@@ -245,7 +241,7 @@
     <!-- CTA -->
     <section
       v-if="content.cta"
-      class="py-14 lg:py-16 bg-gradient-to-br from-cream-100 to-cream-200 border-t border-cream-300"
+      class="py-14 lg:py-16 bg-cream-100 border-t border-cream-300"
     >
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">{{ content.cta.title }}</h2>

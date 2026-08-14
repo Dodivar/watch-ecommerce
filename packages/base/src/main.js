@@ -1,5 +1,7 @@
 import 'virtual:site-theme.css'
 import './assets/main.css'
+/* Doit rester après main.css : réécrit les utilitaires neutres pour le thème vert. */
+import './assets/theme-dark.css'
 
 import { createApp } from 'vue'
 import { createHead } from '@vueuse/head'
