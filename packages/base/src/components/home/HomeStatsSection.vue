@@ -60,7 +60,7 @@ const cards = computed(() => {
             {{ card.label }}
           </h3>
 
-          <p v-if="card.detail" class="text-xs text-gray-600 mt-1 leading-relaxed">
+          <p v-if="card.detail" class="text-xs text-muted mt-1 leading-relaxed">
             {{ card.detail }}
           </p>
         </article>

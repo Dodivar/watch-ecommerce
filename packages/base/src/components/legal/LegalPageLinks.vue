@@ -20,13 +20,13 @@ const isCheckout = computed(() => props.variant === 'checkout')
 <template>
   <nav
     v-if="show"
-    :class="isCheckout ? 'pt-3 mt-1 border-t border-gray-100' : 'contents'"
+    :class="isCheckout ? 'pt-3 mt-1 border-t border-border-subtle' : 'contents'"
     aria-label="Pages légales"
   >
     <ul
       :class="
         isCheckout
-          ? 'flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-gray-400'
+          ? 'flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-subtle'
           : 'contents list-none'
       "
     >
@@ -35,7 +35,7 @@ const isCheckout = computed(() => props.variant === 'checkout')
           :to="link.path"
           :class="
             isCheckout
-              ? 'hover:text-gray-600 transition-colors'
+              ? 'hover:text-muted transition-colors'
               : 'text-white/90 hover:text-white text-sm transition-colors'
           "
           :target="isCheckout ? '_blank' : undefined"

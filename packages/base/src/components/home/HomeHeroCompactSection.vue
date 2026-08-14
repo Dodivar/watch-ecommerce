@@ -40,7 +40,7 @@ const showSecondaryCta = computed(() =>
         </h1>
         <p
           v-if="hero.subtitle"
-          class="text-base sm:text-lg text-gray-600 leading-relaxed mb-6"
+          class="text-base sm:text-lg text-muted leading-relaxed mb-6"
         >
           {{ hero.subtitle }}
         </p>

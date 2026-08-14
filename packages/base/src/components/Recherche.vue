@@ -67,7 +67,7 @@ onMounted(() => {
       <div class="mb-8 text-center">
         <h1 class="text-3xl font-bold text-text-main">Recherche personnalisée de montre</h1>
         <h2 class="text-2xl font-bold text-text-main mb-4">Trouvez la montre de vos rêves</h2>
-        <p class="text-lg text-gray-600">
+        <p class="text-lg text-muted">
           Notre équipe spécialisée vous aide à trouver des montres rares, discontinuées ou très
           demandées. Grâce à notre réseau de confiance, nous sécurisons pour vous l'achat d'une
           pièce d'exception, au prix du marché et en toute sérénité.
@@ -85,7 +85,7 @@ onMounted(() => {
                 type="text"
                 name="nickname"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
             <div>
@@ -94,7 +94,7 @@ onMounted(() => {
                 type="text"
                 name="name"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
           </div>
@@ -107,7 +107,7 @@ onMounted(() => {
               <input
                 name="email"
                 type="email"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 required
               />
             </div>
@@ -118,7 +118,7 @@ onMounted(() => {
               <input
                 name="tel"
                 type="tel"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
             </div>
           </div>
@@ -177,7 +177,7 @@ onMounted(() => {
                 name="brand"
                 required
                 placeholder="Ex : Rolex, Patek Philippe..."
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
             <div>
@@ -188,7 +188,7 @@ onMounted(() => {
                 type="text"
                 name="model"
                 placeholder="Ex : Daytona, Nautilus..."
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
           </div>
@@ -211,7 +211,7 @@ onMounted(() => {
               <select
                 name="condition"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary"
               >
                 <option value="Neuf">Neuf</option>
                 <option value="Très bon état">Très bon état</option>
@@ -227,7 +227,7 @@ onMounted(() => {
                 type="text"
                 name="delai"
                 placeholder="Ex : 1 mois, dès que possible..."
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
@@ -240,11 +240,11 @@ onMounted(() => {
               name="message"
               rows="4"
               placeholder="Boîte et papiers souhaités ? Préférence pour un vendeur local ?..."
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+              class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary"
             ></textarea>
           </div>
 
-          <p class="text-sm text-gray-600 mb-4 italic">
+          <p class="text-sm text-muted mb-4 italic">
             * Les champs marqués d'un astérisque sont obligatoires
           </p>
 
@@ -271,7 +271,7 @@ onMounted(() => {
     <div class="max-w-6xl mx-auto px-4">
       <div class="text-center mb-8">
         <h2 class="text-3xl font-bold text-text-main mb-3">Nos autres services</h2>
-        <p class="text-lg text-gray-600">
+        <p class="text-lg text-muted">
           Découvrez nos autres services spécialisés dans l'univers des montres
         </p>
       </div>
@@ -293,7 +293,7 @@ onMounted(() => {
             </svg>
             </div>
             <h3 class="text-2xl font-bold text-text-main mb-3">Notre collection de montres</h3>
-            <p class="text-gray-600 mb-4">
+            <p class="text-muted mb-4">
               Parcourez notre sélection de montres de prestige actuellement disponibles.
             </p>
             <RouterLink
@@ -320,7 +320,7 @@ onMounted(() => {
               </svg>
             </div>
             <h3 class="text-2xl font-bold text-text-main mb-3">Estimation de montre</h3>
-            <p class="text-gray-600 mb-4">
+            <p class="text-muted mb-4">
               Obtenez une estimation précise et gratuite de votre montre. Notre expertise vous garantit une évaluation juste de la valeur de votre pièce.
             </p>
             <RouterLink

@@ -55,7 +55,7 @@ function onImageError(index) {
             />
             <div
               v-if="!showCardImage(card, index)"
-              class="absolute inset-0 flex items-center justify-center text-gray-400 text-lg font-medium tracking-wide"
+              class="absolute inset-0 flex items-center justify-center text-subtle text-lg font-medium tracking-wide"
               aria-hidden="true"
             >
               TODO

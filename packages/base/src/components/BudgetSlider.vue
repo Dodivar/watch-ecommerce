@@ -74,7 +74,7 @@ const updateRangeFromInput = () => {
           class="w-full"
         />
       </div>
-      <div class="flex justify-between text-xs text-gray-500">
+      <div class="flex justify-between text-xs text-subtle">
         <span>{{ min.toLocaleString() }} €</span>
         <span>{{ max.toLocaleString() }} €</span>
       </div>
@@ -90,10 +90,10 @@ const updateRangeFromInput = () => {
             type="number"
             :min="min"
             :max="max"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            class="w-full px-4 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             @blur="updateRangeFromInput"
           />
-          <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+          <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-subtle">€</span>
         </div>
       </div>
       <div>
@@ -104,10 +104,10 @@ const updateRangeFromInput = () => {
             type="number"
             :min="min"
             :max="max"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            class="w-full px-4 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             @blur="updateRangeFromInput"
           />
-          <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+          <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-subtle">€</span>
         </div>
       </div>
     </div>

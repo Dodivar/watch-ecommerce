@@ -6,7 +6,7 @@
           <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
             Estimation gratuite de votre montre
           </h1>
-          <p class="text-xl text-gray-600 mb-3">
+          <p class="text-xl text-muted mb-3">
             Remplissez ce formulaire pour recevoir une estimation personnalisée
           </p>
           <RouterLink
@@ -35,7 +35,7 @@
                 <input
                   name="nickname"
                   type="text"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   required
                 />
               </div>
@@ -44,7 +44,7 @@
                 <input
                   name="name"
                   type="text"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   required
                 />
               </div>
@@ -57,7 +57,7 @@
                 <input
                   name="email"
                   type="email"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   required
                 />
               </div>
@@ -68,7 +68,7 @@
                 <input
                   name="tel"
                   type="tel"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -124,7 +124,7 @@
                   name="brand"
                   type="text"
                   placeholder="Ex: Rolex, Patek Philippe..."
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   required
                 />
               </div>
@@ -136,7 +136,7 @@
                   name="model"
                   type="text"
                   placeholder="Ex: Submariner, Nautilus..."
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 />
               </div>
               <div>
@@ -148,7 +148,7 @@
                   max="2099"
                   step="1"
                   placeholder="2020"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -167,7 +167,7 @@
               <input
                 name="serienumber"
                 type="text"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
             </div>
             <div>
@@ -177,7 +177,7 @@
               <select
                 name="possession"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary"
               >
                 <option value="Full set (boîte + papiers)">Full set (boîte + papiers)</option>
                 <option value="Papiers d'origine">Papiers d'origine</option>
@@ -192,7 +192,7 @@
               <select
                 name="etat"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary"
               >
                 <option value="Neuf/jamais portée">Neuf/jamais portée</option>
                 <option value="Très bon état">Très bon état</option>
@@ -210,7 +210,7 @@
                 />
               </div>
               <div
-                class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors"
+                class="border-2 border-dashed border-border-strong rounded-lg p-6 text-center hover:border-primary transition-colors"
               >
                 <input
                   name="attachments"
@@ -222,7 +222,7 @@
                 />
                 <label for="attachments" class="cursor-pointer">
                   <svg
-                    class="mx-auto h-12 w-12 text-gray-400 mb-3"
+                    class="mx-auto h-12 w-12 text-subtle mb-3"
                     stroke="currentColor"
                     fill="none"
                     viewBox="0 0 48 48"
@@ -235,7 +235,7 @@
                     />
                   </svg>
                   <span class="text-primary font-medium">Cliquez pour ajouter des photos</span>
-                  <p class="text-gray-500 text-sm mt-1">PNG, JPG, PDF jusqu'à 10MB</p>
+                  <p class="text-subtle text-sm mt-1">PNG, JPG, PDF jusqu'à 10MB</p>
                 </label>
               </div>
               <div
@@ -254,10 +254,10 @@
                 name="message"
                 rows="4"
                 placeholder="Précisez si vous êtes le premier propriétaire de la montre, son histoire..."
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                class="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               ></textarea>
             </div>
-            <p class="text-sm text-gray-600 mb-3 italic">
+            <p class="text-sm text-muted mb-3 italic">
               * Les champs marqués d'un astérisque sont obligatoires
             </p>
             <NewsletterOptInField class="mb-3" />
@@ -282,7 +282,7 @@
     <div class="max-w-6xl mx-auto px-4">
       <div class="text-center mb-8">
         <h2 class="text-3xl font-bold text-text-main mb-3">Nos autres services</h2>
-        <p class="text-lg text-gray-600">
+        <p class="text-lg text-muted">
           Découvrez nos autres services spécialisés dans l'univers des montres
         </p>
       </div>
@@ -304,7 +304,7 @@
             </svg>
             </div>
             <h3 class="text-2xl font-bold text-text-main mb-3">Notre collection de montres</h3>
-            <p class="text-gray-600 mb-4">
+            <p class="text-muted mb-4">
               Parcourez notre sélection de montres de prestige actuellement disponibles.
             </p>
             <RouterLink
@@ -331,7 +331,7 @@
               </svg>
             </div>
             <h3 class="text-2xl font-bold text-text-main mb-3">Recherche personnalisée de montre</h3>
-            <p class="text-gray-600 mb-4">
+            <p class="text-muted mb-4">
               Trouvez la montre de vos rêves grâce à notre service de recherche personnalisée. Notre équipe spécialisée vous aidera à trouver votre montre de rêve.
             </p>
             <RouterLink

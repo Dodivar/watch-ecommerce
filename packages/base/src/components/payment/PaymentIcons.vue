@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center justify-center gap-2 mt-2">
     <!-- Visa Logo -->
-    <div class="flex items-center justify-center w-14 h-9 bg-white rounded border border-gray-300 shadow-sm p-1">
+    <div class="flex items-center justify-center w-14 h-9 bg-white rounded border border-border-strong shadow-sm p-1">
       <svg viewBox="0 0 24 16" version="1.1" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
         <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
           <g fill-rule="nonzero">
@@ -13,7 +13,7 @@
     </div>
 
     <!-- Mastercard Logo -->
-    <div class="flex items-center justify-center w-14 h-9 bg-white rounded border border-gray-300 shadow-sm p-1">
+    <div class="flex items-center justify-center w-14 h-9 bg-white rounded border border-border-strong shadow-sm p-1">
       <svg height="16" viewBox="0 0 24 16" width="24" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
         <g fill="none" fill-rule="evenodd">
           <rect fill="#252525" height="16" rx="2" width="24" />
@@ -28,7 +28,7 @@
     </div>
 
     <!-- CB Logo -->
-    <div class="flex items-center justify-center w-14 h-9 bg-white rounded border border-gray-300 shadow-sm p-1">
+    <div class="flex items-center justify-center w-14 h-9 bg-white rounded border border-border-strong shadow-sm p-1">
       <svg width="24" height="16" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
         <defs>
           <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="cartesbancaires-a" gradientUnits="userSpaceOnUse" gradientTransform="rotate(-21)">

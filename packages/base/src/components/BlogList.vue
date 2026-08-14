@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="text-center mb-8">
         <h1 class="text-4xl font-bold text-text-main mb-3">Blog</h1>
-        <p class="text-xl text-gray-600 font-light max-w-3xl mx-auto">
+        <p class="text-xl text-muted font-light max-w-3xl mx-auto">
           Découvrez nos articles sur les montres et l'horlogerie
         </p>
       </div>
@@ -19,7 +19,7 @@
                 'px-4 py-2 rounded-lg font-medium transition-colors',
                 selectedCategory === null
                   ? 'bg-primary text-white'
-                  : 'bg-cream-100 text-gray-700 hover:bg-cream-200',
+                  : 'bg-cream-100 text-text-main/85 hover:bg-cream-200',
               ]"
             >
               Toutes les catégories
@@ -32,14 +32,14 @@
                 'px-4 py-2 rounded-lg font-medium transition-colors',
                 selectedCategory === category
                   ? 'bg-primary text-white'
-                  : 'bg-cream-100 text-gray-700 hover:bg-cream-200',
+                  : 'bg-cream-100 text-text-main/85 hover:bg-cream-200',
               ]"
             >
               {{ category }}
             </button>
           </div>
 
-          <div class="text-sm text-gray-600 font-light">
+          <div class="text-sm text-muted font-light">
             {{ total }} article{{ total > 1 ? 's' : '' }}
           </div>
         </div>
@@ -48,7 +48,7 @@
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-10">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-3"></div>
-        <p class="text-gray-600">Chargement des articles...</p>
+        <p class="text-muted">Chargement des articles...</p>
       </div>
 
       <!-- Error State -->
@@ -63,8 +63,8 @@
             />
           </svg>
         </div>
-        <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
-        <p class="text-gray-600 mb-3">{{ error }}</p>
+        <h3 class="text-xl text-text-main mb-2">Erreur de chargement</h3>
+        <p class="text-muted mb-3">{{ error }}</p>
         <button
           @click="loadArticles"
           class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
@@ -83,7 +83,7 @@
         >
             <div class="p-6">
               <h2 class="text-xl font-bold text-text-main mb-2 line-clamp-2">{{ article.title }}</h2>
-              <p class="text-gray-600 text-sm mb-3 line-clamp-3">
+              <p class="text-muted text-sm mb-3 line-clamp-3">
                 {{ getExcerpt(article.text) }}
               </p>
               <div v-if="article.categories && article.categories.length > 0" class="mb-3 flex flex-wrap gap-2">
@@ -95,7 +95,7 @@
                   {{ cat }}
                 </span>
               </div>
-              <div class="flex items-center justify-between text-sm text-gray-500">
+              <div class="flex items-center justify-between text-sm text-subtle">
                 <div class="flex items-center gap-4">
                   <span v-if="article.created_at">
                     {{ formatDate(article.created_at) }}
@@ -116,7 +116,7 @@
 
       <!-- Empty State -->
       <div v-if="!isLoading && !error && articles.length === 0" class="text-center py-10">
-        <div class="text-gray-400 mb-3">
+        <div class="text-subtle mb-3">
           <svg class="w-16 h-16 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-linecap="round"
@@ -126,8 +126,8 @@
             />
           </svg>
         </div>
-        <h3 class="text-xl text-gray-600 mb-2">Aucun article trouvé</h3>
-        <p class="text-gray-500">Essayez de modifier vos critères de recherche</p>
+        <h3 class="text-xl text-muted mb-2">Aucun article trouvé</h3>
+        <p class="text-subtle">Essayez de modifier vos critères de recherche</p>
       </div>
 
       <!-- Pagination -->
@@ -139,7 +139,7 @@
             'px-4 py-2 rounded-lg font-medium transition-colors',
             currentPage === 1
               ? 'bg-cream-200 text-gray-400 cursor-not-allowed'
-              : 'bg-white text-gray-700 hover:bg-cream-100 border border-gray-300',
+              : 'bg-white text-text-main/85 hover:bg-cream-100 border border-border-strong',
           ]"
         >
           Précédent
@@ -154,7 +154,7 @@
               'px-4 py-2 rounded-lg font-medium transition-colors',
               page === currentPage
                 ? 'bg-primary text-white'
-                : 'bg-white text-gray-700 hover:bg-cream-100 border border-gray-300',
+                : 'bg-white text-text-main/85 hover:bg-cream-100 border border-border-strong',
             ]"
           >
             {{ page }}
@@ -168,7 +168,7 @@
             'px-4 py-2 rounded-lg font-medium transition-colors',
             currentPage === totalPages
               ? 'bg-cream-200 text-gray-400 cursor-not-allowed'
-              : 'bg-white text-gray-700 hover:bg-cream-100 border border-gray-300',
+              : 'bg-white text-text-main/85 hover:bg-cream-100 border border-border-strong',
           ]"
         >
           Suivant

@@ -16,10 +16,6 @@ html {
   background-color: #ffffff;
 }
 
-html[data-ui-color-scheme='dark'] {
-  background-color: var(--color-cream);
-}
-
 /* Formulaires : fond clair conservé en mode sombre (évite le style sombre natif du navigateur) */
 input,
 textarea,
@@ -80,51 +76,323 @@ h4 {
 }
 
 .watch-shadow {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lift);
 }
+
+/* ==========================================================================
+   Système de surfaces
+   --------------------------------------------------------------------------
+   Quatre rôles de fond, réutilisés tels quels dans toutes les sections :
+
+   `.surface-forest`  vert de marque en dégradé, texte clair  → héros, bandeaux
+                      d'appel à l'action, pied de page. C'est l'ancre visuelle.
+   `.surface-sand`    beige chaud                             → respiration tiède
+   `.surface-canvas`  blanc                                   → zones de contenu
+   `.surface-fade-*`  transitions douces d'un fond à l'autre  → raccords
+
+   Règle de rythme : jamais deux blocs verts consécutifs, et toujours du blanc
+   ou du beige entre deux ancres vertes.
+   ========================================================================== */
+
+.surface-canvas {
+  background-color: #ffffff;
+}
+
+.surface-sand {
+  background-image: var(--gradient-sand);
+}
+
+/* Raccords : le fond sortant se fond dans le fond entrant. */
+.surface-fade-to-sand {
+  background-image: var(--gradient-white-to-sand);
+}
+
+.surface-fade-to-white {
+  background-image: var(--gradient-sand-to-white);
+}
+
+.surface-forest {
+  background-image: var(--gradient-forest);
+  color: var(--color-text-on-dark);
+}
+
+/*
+   Échelle de texte, du plus fort au plus discret :
+   `text-text-main` (noir) → `.text-muted` → `.text-subtle`.
+   Sur fond vert, les deux niveaux discrets basculent automatiquement en blanc
+   translucide : une section peut passer de clair à vert sans réécrire ses textes.
+*/
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-subtle {
+  color: var(--color-text-subtle);
+}
+
+.surface-forest .text-muted {
+  color: var(--color-text-muted-on-dark);
+}
+
+.surface-forest .text-subtle {
+  color: var(--color-text-subtle-on-dark);
+}
+
+/* Voile de lumière : donne de la profondeur aux grands aplats verts. */
+.surface-forest-glow {
+  position: relative;
+  isolation: isolate;
+}
+
+.surface-forest-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 55% at 78% 18%, rgba(255, 255, 255, 0.1) 0%, transparent 68%),
+    radial-gradient(60% 60% at 8% 92%, rgb(var(--color-primary-rgb) / 0.55) 0%, transparent 70%);
+}
+
+/*
+   Voile des panneaux (tiroirs, fenêtres modales, mega-menu) : vert très sombre
+   plutôt que noir neutre. Le fond assombri reste dans la famille de la marque.
+   Les visionneuses de photos gardent un noir neutre : c'est l'image qui doit
+   donner la couleur, pas le voile.
+*/
+.scrim {
+  background-color: rgb(var(--color-primary-deep-rgb) / 0.55);
+}
+
+.scrim-light {
+  background-color: rgb(var(--color-primary-deep-rgb) / 0.35);
+}
+
+/* Filet décoratif : sépare deux blocs sans trait dur. */
+.hairline {
+  height: 1px;
+  border: 0;
+  background-image: var(--gradient-hairline);
+}
+
+.surface-forest .hairline {
+  background-image: var(--gradient-hairline-on-dark);
+}
+
+/* ==========================================================================
+   Cartes
+   Fond blanc dégradé vers le beige, filet discret teinté marque, ombre chaude.
+   Le survol soulève la carte et fait apparaître le vert sur la bordure.
+   ========================================================================== */
+
+.card-elevated {
+  background-image: var(--gradient-card);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-card);
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 300ms ease,
+    border-color 300ms ease;
+}
+
+.card-elevated:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-lift);
+}
+
+/* Variante « rangée » (accordéons, listes) : même matière, sans soulèvement. */
+.card-quiet {
+  background-image: var(--gradient-card);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-soft);
+  transition:
+    box-shadow 300ms ease,
+    border-color 300ms ease;
+}
+
+.card-quiet:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-card);
+}
+
+/* Variante sur fond vert : carte translucide plutôt que blanche. */
+.card-on-forest {
+  background-color: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--color-border-on-dark);
+  backdrop-filter: blur(6px);
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 300ms ease,
+    border-color 300ms ease;
+}
+
+.card-on-forest:hover {
+  transform: translateY(-3px);
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Pastille d'icône : petit disque vert dégradé, présent sur toutes les cartes. */
+.icon-badge-forest {
+  background-image: var(--gradient-cta);
+  box-shadow: var(--shadow-soft);
+  color: var(--color-text-on-dark);
+}
+
+.surface-forest .icon-badge-forest {
+  background-image: none;
+  background-color: rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border-on-dark);
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Liens et boutons
+   `.link-forest`  lien texte de marque, soulignement dégradé au survol
+   `.btn-forest`   action principale sur fond clair (vert plein dégradé)
+   `.btn-sand`     action principale sur fond vert (masse beige inversée)
+   `.btn-outline-forest` action secondaire sur fond clair
+   ========================================================================== */
+
+.link-forest {
+  color: var(--color-primary);
+  font-weight: 600;
+  background-image: var(--gradient-cta);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition:
+    background-size 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 200ms ease;
+}
+
+.link-forest:hover,
+.link-forest:focus-visible {
+  color: var(--color-primary-soft);
+  background-size: 100% 1px;
+}
+
+.surface-forest .link-forest {
+  color: #ffffff;
+  background-image: var(--gradient-hairline-on-dark);
+}
+
+.surface-forest .link-forest:hover {
+  color: #ffffff;
+}
+
+.btn-forest {
+  background-image: var(--gradient-cta);
+  color: var(--color-text-on-dark);
+  box-shadow: var(--shadow-card);
+  transition:
+    background-image 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.btn-forest:hover {
+  background-image: var(--gradient-cta-hover);
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-1px);
+}
+
+.btn-sand {
+  background-image: linear-gradient(140deg, #ffffff 0%, var(--color-cream) 100%);
+  color: var(--color-primary);
+  transition:
+    background-image 220ms ease,
+    transform 220ms ease;
+}
+
+.btn-sand:hover {
+  background-image: linear-gradient(140deg, #ffffff 0%, var(--color-cream-100) 100%);
+  transform: translateY(-1px);
+}
+
+.btn-outline-forest {
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-primary);
+  background-color: transparent;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease;
+}
+
+.btn-outline-forest:hover {
+  background-color: var(--color-primary-tint);
+  border-color: var(--color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-elevated,
+  .card-on-forest,
+  .btn-forest,
+  .btn-sand {
+    transition: box-shadow 220ms ease, border-color 220ms ease;
+  }
+
+  .card-elevated:hover,
+  .card-on-forest:hover,
+  .btn-forest:hover,
+  .btn-sand:hover {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Surfaces dégradées (`theme.surface: 'gradient'`)
+   --------------------------------------------------------------------------
+   Sur les sites qui l'activent, les boutons de marque passent de l'aplat au
+   dégradé en un seul endroit, plutôt qu'au fil de ~200 appels d'utilitaires.
+
+   Volontairement limité aux éléments interactifs (`a`, `button`) : les panneaux
+   pleine surface en `bg-primary` (menu mobile, en-têtes collants imbriqués)
+   restent en aplat, sinon un dégradé imbriqué dans un autre créerait une
+   couture visible. Les grands blocs verts passent par `.surface-forest`.
+   ========================================================================== */
+
+html[data-ui-surface='gradient'] :is(a, button).bg-primary {
+  background-image: var(--gradient-cta);
+}
+
+html[data-ui-surface='gradient'] :is(a, button).hover\:bg-primary-hover:hover,
+html[data-ui-surface='gradient'] :is(a, button).hover\:bg-primary:hover {
+  background-image: var(--gradient-cta-hover);
+}
+
+/* `.surface-forest` prime toujours sur l'aplat `bg-primary`. */
+html[data-ui-surface='gradient'] .surface-forest {
+  background-image: var(--gradient-forest);
+}
+
+/* ==========================================================================
+   En-tête
+   Verre beige clair sur les sections claires, filet vert en bas pour ancrer la
+   barre au contenu. Reste lisible au-dessus du héros vert (barre collante).
+   ========================================================================== */
+
 #header {
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.82);
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgb(var(--color-primary-rgb) / 0.04) 100%
+  );
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
 }
 
-html[data-ui-color-scheme='dark'] #header {
-  background-color: rgba(15, 42, 29, 0.92);
-  color: var(--color-text-on-dark);
-}
-
-html[data-ui-color-scheme='dark'] #header
-  :is(.text-text-main, .text-black, .text-gray-500, .text-gray-600, .text-primary) {
-  color: var(--color-text-on-dark);
-}
-
-html[data-ui-color-scheme='dark'] .public-dark-theme {
-  color: var(--color-text-on-dark);
-}
-
-html[data-ui-color-scheme='dark'] .public-dark-theme
-  :is(.text-text-main, .text-black, .text-primary) {
-  color: var(--color-text-on-dark);
-}
-
-html[data-ui-color-scheme='dark'] .public-dark-theme
-  :is(.text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700) {
-  color: rgba(255, 255, 255, 0.78);
-}
-
-html[data-ui-color-scheme='dark'] .public-dark-theme .bg-white {
-  background-color: var(--color-cream-100);
-}
-
-html[data-ui-color-scheme='dark'] .public-dark-theme .bg-white.shadow-lg {
-  background-color: var(--color-cream-200);
-}
-
-html[data-ui-color-scheme='dark'] .public-dark-theme .bg-primary {
-  background-color: var(--color-cream-200);
-}
-
-html[data-ui-color-scheme='dark'] .public-dark-theme .border-primary {
-  border-color: var(--color-text-on-dark);
+#header::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background-image: var(--gradient-hairline);
+  pointer-events: none;
 }
 
 .hide-scrollbar::-webkit-scrollbar {

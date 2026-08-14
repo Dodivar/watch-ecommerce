@@ -53,7 +53,7 @@ const handleSubmit = async () => {
         <h1 class="text-3xl md:text-4xl font-bold text-text-main mb-4">
           Site en construction
         </h1>
-        <p class="text-xl text-gray-600 mb-8">
+        <p class="text-xl text-muted mb-8">
           Nous travaillons actuellement sur notre site web.
           <br />
           Revenez bientôt pour le découvrir !
@@ -70,7 +70,7 @@ const handleSubmit = async () => {
                 v-model="password"
                 type="password"
                 placeholder="Entrez le mot de passe"
-                class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-primary focus:outline-none transition-colors text-text-main"
+                class="w-full px-4 py-3 rounded-lg border-2 border-border-strong focus:border-primary focus:outline-none transition-colors text-text-main"
                 :disabled="isLoading"
                 required
               />
@@ -80,10 +80,10 @@ const handleSubmit = async () => {
                 id="remember"
                 v-model="remember"
                 type="checkbox"
-                class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                class="h-4 w-4 text-primary focus:ring-primary border-border-strong rounded"
                 :disabled="isLoading"
               />
-              <label for="remember" class="ml-2 text-sm text-gray-600">
+              <label for="remember" class="ml-2 text-sm text-muted">
                 Se souvenir de moi (rester connecté)
               </label>
             </div>
@@ -124,7 +124,7 @@ const handleSubmit = async () => {
         </div>
 
         <!-- Informations de contact -->
-        <div class="text-gray-600 text-sm">
+        <div class="text-muted text-sm">
           <p class="mb-2">
             Pour toute question, contactez-nous :
           </p>

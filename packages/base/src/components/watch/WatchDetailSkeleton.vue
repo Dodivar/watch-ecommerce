@@ -39,11 +39,11 @@
 
       <!-- Key Features Skeleton (resale only) -->
       <div v-if="isResaleCatalog">
-        <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-3">
+        <h3 class="text-lg lg:text-xl font-semibold text-text-main mb-3">
           Caractéristiques principales
         </h3>
         <div class="space-y-3">
-          <div v-for="n in 4" :key="n" class="flex gap-4 py-2 border-b border-gray-100">
+          <div v-for="n in 4" :key="n" class="flex gap-4 py-2 border-b border-border-subtle">
             <span class="h-5 bg-cream-200 rounded w-[140px] flex-shrink-0 shimmer-bg"></span>
             <span class="h-5 bg-cream-300 rounded flex-1 shimmer-bg"></span>
           </div>
@@ -57,20 +57,20 @@
 
       <!-- Appointment Button Skeleton -->
       <div v-if="appointmentEnabled" class="mt-3">
-        <div class="w-full h-12 rounded-lg border border-gray-200 bg-cream-100 shimmer-bg"></div>
+        <div class="w-full h-12 rounded-lg border border-border-subtle bg-cream-100 shimmer-bg"></div>
       </div>
 
       <!-- Payment Icons Skeleton (resale only) -->
       <div v-if="isResaleCatalog" class="flex items-center justify-center gap-2 mt-3">
-        <div class="w-14 h-9 bg-cream-200 rounded border border-gray-300 shimmer-bg"></div>
-        <div class="w-14 h-9 bg-cream-200 rounded border border-gray-300 shimmer-bg"></div>
-        <div class="w-14 h-9 bg-cream-200 rounded border border-gray-300 shimmer-bg"></div>
+        <div class="w-14 h-9 bg-cream-200 rounded border border-border-strong shimmer-bg"></div>
+        <div class="w-14 h-9 bg-cream-200 rounded border border-border-strong shimmer-bg"></div>
+        <div class="w-14 h-9 bg-cream-200 rounded border border-border-strong shimmer-bg"></div>
       </div>
 
       <!-- Trust highlights Skeleton (retail only) -->
       <div
         v-if="showRetailTrustCard"
-        class="bg-white rounded-md shadow-lg border border-gray-100 p-3 lg:p-4 mt-3 lg:mt-4"
+        class="bg-white rounded-md shadow-lg border border-border-subtle p-3 lg:p-4 mt-3 lg:mt-4"
       >
         <ul class="flex flex-col gap-2">
           <li
@@ -91,7 +91,7 @@
     <div class="h-8 bg-cream-300 rounded mb-6 w-64 shimmer-bg"></div>
 
     <!-- Tabs Skeleton -->
-    <div class="border-b border-gray-200 mb-6">
+    <div class="border-b border-border-subtle mb-6">
       <div class="flex space-x-4 lg:space-x-8">
         <div class="h-12 w-24 bg-cream-200 rounded-t shimmer-bg"></div>
         <div
@@ -107,7 +107,7 @@
       <div>
         <div class="h-6 bg-cream-300 rounded mb-4 w-40 shimmer-bg"></div>
         <div class="space-y-0">
-          <div v-for="n in 8" :key="n" class="flex gap-4 py-3 border-b border-gray-200">
+          <div v-for="n in 8" :key="n" class="flex gap-4 py-3 border-b border-border-subtle">
             <span class="h-4 bg-cream-200 rounded min-w-[160px] flex-shrink-0 shimmer-bg"></span>
             <span class="h-4 bg-cream-300 rounded flex-1 shimmer-bg"></span>
           </div>
@@ -118,7 +118,7 @@
       <div>
         <div class="h-6 bg-cream-300 rounded mb-4 w-48 shimmer-bg"></div>
         <div class="space-y-3">
-          <div v-for="n in 8" :key="n" class="flex gap-4 py-2 border-b border-gray-200">
+          <div v-for="n in 8" :key="n" class="flex gap-4 py-2 border-b border-border-subtle">
             <span class="h-4 bg-cream-200 rounded min-w-[140px] flex-shrink-0 shimmer-bg"></span>
             <span class="h-4 bg-cream-300 rounded flex-1 shimmer-bg"></span>
           </div>

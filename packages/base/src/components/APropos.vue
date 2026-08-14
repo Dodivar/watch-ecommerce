@@ -8,7 +8,7 @@
           <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
             À propos de {{ brandDisplayName }}
           </h1>
-          <p class="text-xl text-gray-600 mb-3">
+          <p class="text-xl text-muted mb-3">
             Votre partenaire de confiance pour l'achat et la vente de montres de prestige
           </p>
         </div>
@@ -20,7 +20,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8">
           <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Qui sommes-nous ?</h2>
-          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p class="text-xl text-muted max-w-3xl mx-auto">
             {{ brandDisplayName }} est une entreprise spécialisée dans le rachat et la vente de montres de luxe. 
             Contrairement aux plateformes tierces qui mettent simplement en relation acheteurs et vendeurs, 
             nous possédons directement notre propre stock de montres authentifiées et vérifiées.
@@ -34,7 +34,7 @@
               </svg>
             </div>
             <h3 class="text-xl font-semibold mb-3">Notre mission</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Offrir aux collectionneurs une expérience d'achat et de vente de montres de prestige 
               transparente, sécurisée et personnalisée. Nous nous engageons à garantir 
               l'authenticité de chaque pièce et à proposer un service d'excellence.
@@ -47,7 +47,7 @@
               </svg>
             </div>
             <h3 class="text-xl font-semibold mb-3">Notre engagement</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Chaque montre que nous proposons est en notre possession, soigneusement sélectionnée 
               et vérifiée par nos experts. Cette approche directe nous permet de garantir 
               la qualité, l'authenticité et la disponibilité immédiate de nos pièces.
@@ -62,7 +62,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8">
           <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Notre différence</h2>
-          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p class="text-xl text-muted max-w-3xl mx-auto">
             Contrairement aux plateformes tierces qui agissent comme intermédiaires, 
             nous possédons directement notre stock. Cette différence fondamentale se traduit 
             par de nombreux avantages pour vous.
@@ -76,7 +76,7 @@
               </svg>
             </div>
             <h3 class="text-lg font-semibold mb-3">Contrôle qualité total</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Chaque montre est vérifiée par nos experts avant d'entrer dans notre stock. 
               Nous maîtrisons l'ensemble de la chaîne, de la sélection à la vente.
             </p>
@@ -88,7 +88,7 @@
               </svg>
             </div>
             <h3 class="text-lg font-semibold mb-3">Disponibilité immédiate</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Les montres que vous voyez sur notre site sont disponibles immédiatement. 
               Pas d'attente, pas de négociation avec un tiers : vous achetez directement auprès de nous.
             </p>
@@ -100,7 +100,7 @@
               </svg>
             </div>
             <h3 class="text-lg font-semibold mb-3">Communication directe</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Vous communiquez directement avec notre équipe, sans intermédiaire. 
               Réponses rapides, conseils personnalisés et suivi de votre commande en temps réel.
             </p>
@@ -123,7 +123,7 @@
               </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2">Authenticité</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Chaque montre est authentifiée et vérifiée par nos experts avant d'être proposée à la vente.
             </p>
           </div>
@@ -135,7 +135,7 @@
               </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2">Transparence</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Processus clairs, prix transparents, aucune commission cachée. Vous savez exactement ce que vous payez.
             </p>
           </div>
@@ -146,7 +146,7 @@
               </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2">Expertise</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Une équipe de spécialistes passionnés par l'horlogerie, toujours à votre écoute pour vous conseiller.
             </p>
           </div>
@@ -157,7 +157,7 @@
               </svg>
             </div>
             <h3 class="text-lg font-semibold mb-2">Satisfaction</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Votre satisfaction est notre priorité. Nous nous engageons à vous offrir une expérience de qualité.
             </p>
           </div>
@@ -170,7 +170,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8">
           <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Garanties et sécurité</h2>
-          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p class="text-xl text-muted max-w-3xl mx-auto">
             Nous mettons tout en œuvre pour garantir la sécurité de vos transactions et la qualité de nos montres.
           </p>
         </div>
@@ -182,11 +182,11 @@
               </svg>
             </div>
             <h3 class="text-xl font-semibold mb-3">Authentification garantie</h3>
-            <p class="text-gray-600 mb-3">
+            <p class="text-muted mb-3">
               Toutes nos montres sont minutieusement vérifiées par nos experts avant d'être mises en vente. 
               Nous vérifions l'authenticité, l'état, et l'historique de chaque pièce.
             </p>
-            <ul class="space-y-2 text-gray-600">
+            <ul class="space-y-2 text-muted">
               <li class="flex items-start">
                 <svg class="h-5 w-5 text-primary mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -220,11 +220,11 @@
               </svg>
             </div>
             <h3 class="text-xl font-semibold mb-3">Paiement sécurisé</h3>
-            <p class="text-gray-600 mb-3">
+            <p class="text-muted mb-3">
               Toutes nos transactions sont sécurisées. Nous utilisons des moyens de paiement 
               fiables et protégés pour garantir la sécurité de vos achats.
             </p>
-            <ul class="space-y-2 text-gray-600">
+            <ul class="space-y-2 text-muted">
               <li class="flex items-start">
                 <svg class="h-5 w-5 text-primary mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -260,7 +260,7 @@
               </svg>
             </div>
             <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">Livraison sécurisée et assurée</h2>
-            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p class="text-xl text-muted max-w-3xl mx-auto">
               Votre montre est précieuse, nous le savons. C'est pourquoi nous mettons tout en œuvre 
               pour garantir un transport sécurisé et assuré jusqu'à chez vous.
             </p>
@@ -273,7 +273,7 @@
                 </svg>
               </div>
               <h3 class="text-lg font-semibold mb-2">Colis sécurisé</h3>
-              <p class="text-gray-600 text-sm">
+              <p class="text-muted text-sm">
                 Emballage renforcé et adapté pour protéger votre montre pendant le transport.
               </p>
             </div>
@@ -284,7 +284,7 @@
                 </svg>
               </div>
               <h3 class="text-lg font-semibold mb-2">Assurance à valeur déclarée</h3>
-              <p class="text-gray-600 text-sm">
+              <p class="text-muted text-sm">
                 Chaque colis est assuré à la valeur déclarée de la montre pour votre tranquillité d'esprit.
               </p>
             </div>
@@ -295,13 +295,13 @@
                 </svg>
               </div>
               <h3 class="text-lg font-semibold mb-2">Suivi en temps réel</h3>
-              <p class="text-gray-600 text-sm">
+              <p class="text-muted text-sm">
                 Suivez votre colis à chaque étape de son parcours jusqu'à la livraison.
               </p>
             </div>
           </div>
           <div class="mt-8 text-center">
-            <p class="text-gray-700 font-medium">
+            <p class="text-text-main/85 font-medium">
               <strong>Votre montre est entre de bonnes mains.</strong> Nous utilisons des transporteurs 
               de confiance et chaque envoi est soigneusement préparé et suivi pour garantir 
               l'arrivée en parfait état de votre acquisition.
@@ -316,19 +316,19 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8">
           <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Notre expertise</h2>
-          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p class="text-xl text-muted max-w-3xl mx-auto">
             Une équipe passionnée et un réseau solide pour vous offrir un service de qualité
           </p>
         </div>
         <div class="grid md:grid-cols-2 gap-8 mt-12">
           <div class="bg-white rounded-md p-8 shadow-lg">
             <h3 class="text-xl font-semibold mb-3">Équipe spécialisée</h3>
-            <p class="text-gray-600 mb-3">
+            <p class="text-muted mb-3">
               Notre équipe est composée d'experts passionnés par l'horlogerie. 
               Chaque membre possède une connaissance approfondie des montres de prestige 
               et est formé pour vous conseiller et vous accompagner dans vos projets.
             </p>
-            <ul class="space-y-2 text-gray-600">
+            <ul class="space-y-2 text-muted">
               <li class="flex items-start">
                 <svg class="h-5 w-5 text-primary mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -351,12 +351,12 @@
           </div>
           <div class="bg-white rounded-md p-8 shadow-lg">
             <h3 class="text-xl font-semibold mb-3">Réseau et sourcing</h3>
-            <p class="text-gray-600 mb-3">
+            <p class="text-muted mb-3">
               Grâce à notre réseau français et européen, nous avons accès à des montres rares, 
               exclusives ou au meilleur rapport qualité/prix. Que ce soit pour notre stock 
               ou pour votre recherche personnalisée, nous savons où chercher.
             </p>
-            <ul class="space-y-2 text-gray-600">
+            <ul class="space-y-2 text-muted">
               <li class="flex items-start">
                 <svg class="h-5 w-5 text-primary mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -386,7 +386,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8">
           <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Pourquoi nous choisir ?</h2>
-          <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p class="text-xl text-muted max-w-3xl mx-auto">
             Les avantages de notre modèle direct pour une expérience d'achat optimale
           </p>
         </div>
@@ -394,7 +394,7 @@
           <div class="bg-white rounded-md p-6 shadow-lg">
             <div class="text-primary text-3xl mb-3">⚡</div>
             <h3 class="text-lg font-semibold mb-3">Délais réduits</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Pas d'attente liée à un intermédiaire. Les montres sont disponibles immédiatement 
               et l'envoi est rapide une fois la commande validée.
             </p>
@@ -402,7 +402,7 @@
           <div class="bg-white rounded-md p-6 shadow-lg">
             <div class="text-primary text-3xl mb-3">🎯</div>
             <h3 class="text-lg font-semibold mb-3">Prix transparents</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Pas de commission cachée, pas de frais supplémentaires. Le prix affiché est le prix final, 
               clair et transparent.
             </p>
@@ -410,7 +410,7 @@
           <div class="bg-white rounded-md p-6 shadow-lg">
             <div class="text-primary text-3xl mb-3">🤝</div>
             <h3 class="text-lg font-semibold mb-3">Relation directe</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Vous communiquez directement avec notre équipe. Réponses rapides, conseils personnalisés 
               et suivi de votre commande en temps réel.
             </p>
@@ -418,7 +418,7 @@
           <div class="bg-white rounded-md p-6 shadow-lg">
             <div class="text-primary text-3xl mb-3">✅</div>
             <h3 class="text-lg font-semibold mb-3">Qualité garantie</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Chaque montre est vérifiée par nos experts avant d'entrer dans notre stock. 
               Nous garantissons l'authenticité et la qualité de chaque pièce.
             </p>
@@ -426,7 +426,7 @@
           <div class="bg-white rounded-md p-6 shadow-lg">
             <div class="text-primary text-3xl mb-3">📦</div>
             <h3 class="text-lg font-semibold mb-3">Livraison sécurisée</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Colis sécurisé avec assurance à valeur déclarée. Votre montre est protégée 
               pendant tout le transport jusqu'à chez vous.
             </p>
@@ -434,7 +434,7 @@
           <div class="bg-white rounded-md p-6 shadow-lg">
             <div class="text-primary text-3xl mb-3">🛡️</div>
             <h3 class="text-lg font-semibold mb-3">Garantie et SAV</h3>
-            <p class="text-gray-600">
+            <p class="text-muted">
               Garantie sur nos ventes et service après-vente réactif. Nous sommes là pour vous 
               accompagner même après l'achat.
             </p>

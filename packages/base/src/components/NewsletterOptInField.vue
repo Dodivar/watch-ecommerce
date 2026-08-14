@@ -7,7 +7,7 @@ const features = getSiteConfig().features
 <template>
   <label
     v-if="features.newsletter"
-    class="flex items-start gap-2 text-sm text-gray-600 cursor-pointer"
+    class="flex items-start gap-2 text-sm text-muted cursor-pointer"
   >
     <!-- Non cochée par défaut : le consentement doit être un acte positif (RGPD/CNIL). -->
     <input

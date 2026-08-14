@@ -24,7 +24,7 @@
           sizes="100vw"
           class="absolute inset-0 w-full h-full object-cover"
         />
-        <div class="absolute inset-0 bg-black/35 flex items-center justify-center px-4">
+        <div class="brand-hero-veil absolute inset-0 flex items-center justify-center px-4">
           <h1 class="text-2xl md:text-4xl font-bold text-white text-center drop-shadow-md">
             {{ resolvedTitle }}
           </h1>
@@ -39,7 +39,7 @@
         class="text-center py-16"
       >
         <h2 class="text-xl font-semibold text-text-main mb-3">Marque introuvable</h2>
-        <p class="text-gray-600 mb-6">Cette marque ne correspond à aucune montre en stock.</p>
+        <p class="text-muted mb-6">Cette marque ne correspond à aucune montre en stock.</p>
         <RouterLink
           to="/collection"
           class="inline-flex px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
@@ -91,16 +91,16 @@
               >
                 <button
                   type="button"
-                  class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary sm:w-auto sm:gap-2 sm:px-4 sm:py-2.5"
+                  class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-border-strong bg-white px-3 py-2 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary sm:w-auto sm:gap-2 sm:px-4 sm:py-2.5"
                   :aria-label="`Trier les montres : ${currentSortLabel}`"
                   aria-haspopup="listbox"
                   :aria-expanded="listing.isSortMenuOpen"
                   @click.stop="listing.toggleSortMenu"
                 >
-                  <ArrowDownUp class="h-4 w-4 shrink-0 text-gray-600" :stroke-width="2" />
+                  <ArrowDownUp class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
                   <span class="whitespace-nowrap">{{ currentSortLabel }}</span>
                   <ChevronDown
-                    class="h-4 w-4 shrink-0 text-gray-500 transition-transform"
+                    class="h-4 w-4 shrink-0 text-subtle transition-transform"
                     :class="{ 'rotate-180': listing.isSortMenuOpen }"
                     :stroke-width="2"
                   />
@@ -109,7 +109,7 @@
                 <div
                   v-if="listing.isSortMenuOpen"
                   ref="sortMenuRef"
-                  class="absolute top-full right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 min-w-[180px]"
+                  class="absolute top-full right-0 mt-2 bg-white border border-border-strong rounded-lg shadow-lg z-50 min-w-[180px]"
                   role="listbox"
                   :aria-label="`Trier les montres : ${currentSortLabel}`"
                   @click.stop
@@ -124,7 +124,7 @@
                     :class="[
                       listing.sortOrder === option.value
                         ? 'bg-primary text-white hover:bg-primary-hover'
-                        : 'text-gray-700',
+                        : 'text-text-main/85',
                       index === sortOptions.length - 1 ? 'rounded-b-lg' : '',
                       index === 0 ? 'rounded-t-lg' : '',
                     ]"
@@ -147,12 +147,12 @@
               v-for="chip in activeFilterChips"
               :key="chip.id"
               type="button"
-              class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-text-main transition-colors hover:border-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border-strong bg-white px-3 py-1.5 text-sm font-medium text-text-main transition-colors hover:border-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
               :aria-label="`Retirer le filtre ${chip.label}`"
               @click="removeActiveFilter(chip)"
             >
               <span class="whitespace-nowrap">{{ chip.label }}</span>
-              <X class="h-3.5 w-3.5 shrink-0 text-gray-500" :stroke-width="2.5" aria-hidden="true" />
+              <X class="h-3.5 w-3.5 shrink-0 text-subtle" :stroke-width="2.5" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -176,8 +176,8 @@
           <div class="text-red-500 mb-3">
             <AlertCircle class="w-16 h-16 mx-auto mb-3" :stroke-width="2" />
           </div>
-          <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
-          <p class="text-gray-600 mb-3">{{ listing.error }}</p>
+          <h3 class="text-xl text-text-main mb-2">Erreur de chargement</h3>
+          <p class="text-muted mb-3">{{ listing.error }}</p>
           <button
             type="button"
             class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
@@ -217,7 +217,7 @@
           class="mb-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center sm:gap-8"
         >
           <p
-            class="order-2 text-center text-sm text-gray-500 sm:order-1 sm:text-center"
+            class="order-2 text-center text-sm text-subtle sm:order-1 sm:text-center"
           >
             <template v-if="showFilteredTotal">
               {{ totalFiltered }} montre{{ totalFiltered > 1 ? 's' : '' }} sur {{ totalCount }}
@@ -236,7 +236,7 @@
             >
               <button
                 type="button"
-                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
+                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-border-strong bg-white p-0 text-text-main/85 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
                 :class="
                   currentPage === 1
                     ? 'cursor-not-allowed bg-cream-200 text-gray-400'
@@ -259,7 +259,7 @@
                 >
                   <span
                     v-if="item.type === 'ellipsis'"
-                    class="box-border inline-flex h-11 w-11 shrink-0 items-center justify-center text-sm font-medium text-gray-500 sm:h-10 sm:w-10"
+                    class="box-border inline-flex h-11 w-11 shrink-0 items-center justify-center text-sm font-medium text-subtle sm:h-10 sm:w-10"
                     aria-hidden="true"
                   >
                     …
@@ -274,7 +274,7 @@
                   <button
                     v-else-if="item.type === 'page'"
                     type="button"
-                    class="box-border inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10 sm:text-sm"
+                    class="box-border inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-border-strong bg-white text-sm font-medium text-text-main/85 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10 sm:text-sm"
                     :aria-label="`Page ${item.n}`"
                     @click="goToPage(item.n)"
                   >
@@ -284,7 +284,7 @@
               </ul>
               <button
                 type="button"
-                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
+                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-border-strong bg-white p-0 text-text-main/85 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
                 :class="
                   currentPage === totalPages
                     ? 'cursor-not-allowed bg-cream-200 text-gray-400'
@@ -310,13 +310,13 @@
           "
           class="text-center py-10"
         >
-          <div class="text-gray-400 mb-3">
+          <div class="text-subtle mb-3">
             <Clock class="w-16 h-16 mx-auto mb-3" :stroke-width="1" />
           </div>
-          <h3 class="text-xl text-gray-600 mb-2">
+          <h3 class="text-xl text-muted mb-2">
             {{ campaignLoadError ? 'Événement promotionnel indisponible' : 'Aucune montre trouvée' }}
           </h3>
-          <p class="text-gray-500">
+          <p class="text-subtle">
             {{
               campaignLoadError
                 ? 'Cet événement est terminé ou n\'existe pas. Consultez nos autres promotions.'
@@ -331,7 +331,7 @@
           class="bg-white rounded-md shadow-lg p-8 text-center"
         >
           <h2 class="text-2xl font-semibold text-text-main mb-4">Une pièce vous intéresse ?</h2>
-          <p class="text-lg text-gray-600 mb-6 font-light">
+          <p class="text-lg text-muted mb-6 font-light">
             Contactez-nous pour plus d'informations ou pour organiser une visite en main propre
           </p>
 
@@ -973,5 +973,18 @@ onUnmounted(() => {
 .collection-active-filters {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
+}
+
+/*
+  Voile du bandeau marque : dégradé vert de marque plutôt qu'un noir neutre.
+  Plus dense en bas pour asseoir le titre et raccorder au fond beige de la page.
+*/
+.brand-hero-veil {
+  background-image: linear-gradient(
+    170deg,
+    rgb(var(--color-primary-rgb) / 0.3) 0%,
+    rgb(var(--color-primary-rgb) / 0.55) 55%,
+    rgb(var(--color-primary-rgb) / 0.78) 100%
+  );
 }
 </style>

@@ -1,14 +1,14 @@
 <template>
   <div class="min-h-screen bg-white">
-    <section class="py-12 border-b border-gray-100">
+    <section class="py-12 border-b border-border-subtle">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
           Politique de confidentialité
         </h1>
-        <p class="text-gray-600 text-sm">
+        <p class="text-muted text-sm">
           Dernière mise à jour : 1 juillet 2026
         </p>
-        <p class="mt-6 text-gray-700 leading-relaxed">
+        <p class="mt-6 text-text-main/85 leading-relaxed">
           La présente politique explique comment {{ LEGAL_COMPANY_NAME }} traite les données personnelles
           lorsque vous utilisez le site, dans le respect du Règlement général sur la protection des
           données (RGPD) et de la loi française « Informatique et Libertés ».
@@ -16,7 +16,7 @@
       </div>
     </section>
 
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 text-gray-700 leading-relaxed">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 text-text-main/85 leading-relaxed">
       <section>
         <h2 class="text-xl font-bold text-text-main mb-4">1. Responsable du traitement</h2>
         <p>

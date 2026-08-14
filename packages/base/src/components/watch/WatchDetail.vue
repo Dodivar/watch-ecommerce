@@ -8,11 +8,11 @@
       <!-- Error State -->
       <div v-else-if="error" class="text-center py-10">
         <div v-if="isUnavailable" class="max-w-2xl mx-auto">
-          <div class="text-gray-400 mb-3">
+          <div class="text-subtle mb-3">
             <CircleX class="w-24 h-24 mx-auto mb-3" :stroke-width="1.5" />
           </div>
-            <h3 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">Montre non disponible</h3>
-            <p class="text-base lg:text-lg text-gray-600 mb-6">
+            <h3 class="text-2xl lg:text-3xl font-bold text-text-main mb-3">Montre non disponible</h3>
+            <p class="text-base lg:text-lg text-muted mb-6">
             Cette pièce n'est plus en stock ou n'est plus disponible dans notre sélection.
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -25,7 +25,7 @@
             </router-link>
             <router-link
               to="/"
-              class="px-6 py-3 bg-cream-200 text-gray-700 rounded-lg font-semibold hover:bg-cream-200 transition-colors inline-flex items-center justify-center"
+              class="px-6 py-3 bg-cream-200 text-text-main/85 rounded-lg font-semibold hover:bg-cream-200 transition-colors inline-flex items-center justify-center"
             >
               Retour à l'accueil
             </router-link>
@@ -35,8 +35,8 @@
           <div class="text-red-500 mb-3">
             <AlertCircle class="w-16 h-16 mx-auto mb-3" :stroke-width="2" />
           </div>
-          <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
-          <p class="text-gray-600 mb-3">{{ error }}</p>
+          <h3 class="text-xl text-text-main mb-2">Erreur de chargement</h3>
+          <p class="text-muted mb-3">{{ error }}</p>
           <button
             @click="loadWatch"
             class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
@@ -63,7 +63,7 @@
             >
               <div
                 v-if="!watchItem?.images?.length"
-                class="flex h-full w-full items-center justify-center bg-white text-gray-400"
+                class="flex h-full w-full items-center justify-center bg-white text-subtle"
               >
                 Image non disponible
               </div>
@@ -180,7 +180,7 @@
                   'relative h-20 w-20 shrink-0 bg-white rounded-lg overflow-hidden border-2 transition-all duration-200',
                   currentImageIndex === index
                     ? 'border-primary'
-                    : 'border-gray-200 hover:border-gray-300',
+                    : 'border-border-subtle hover:border-border-strong',
                 ]"
               >
                 <img
@@ -208,7 +208,7 @@
           <!-- Header -->
           <div>
             <div class="flex items-start justify-between mb-2">
-              <h1 class="text-2xl lg:text-4xl font-bold text-gray-900">
+              <h1 class="text-2xl lg:text-4xl font-bold text-text-main">
                 {{ watchItem.name }}
               </h1>
               <div class="flex items-center space-x-2">
@@ -226,7 +226,7 @@
                 </span>
               </div>
             </div>
-            <p v-if="catalogDisplay.showReference && hasValue(watchItem.reference)" class="text-base lg:text-lg text-gray-600 mb-3">Réf. {{ watchItem.reference }}</p>
+            <p v-if="catalogDisplay.showReference && hasValue(watchItem.reference)" class="text-base lg:text-lg text-muted mb-3">Réf. {{ watchItem.reference }}</p>
             <div class="mb-4">
               <div
                 v-if="watchItem.isOnPromotion"
@@ -237,7 +237,7 @@
               <div class="flex flex-wrap items-baseline gap-3">
                 <span
                   v-if="watchItem.isOnPromotion"
-                  class="text-lg lg:text-xl font-normal text-gray-400 line-through"
+                  class="text-lg lg:text-xl font-normal text-subtle line-through"
                 >
                   {{ formatPrice(watchItem.price) }}
                 </span>
@@ -250,22 +250,22 @@
 
           <!-- Key Features (resale) -->
           <div v-if="isResaleCatalog">
-            <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-3">Caractéristiques principales</h3>
+            <h3 class="text-lg lg:text-xl font-semibold text-text-main mb-3">Caractéristiques principales</h3>
             <div class="space-y-3">
-              <div v-if="hasValue(watchItem.year)" class="flex gap-4 py-2 border-b border-gray-100">
-                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">Année</span>
+              <div v-if="hasValue(watchItem.year)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted w-[140px] flex-shrink-0 whitespace-normal">Année</span>
                 <span class="font-medium text-left flex-1">{{ watchItem.year }}</span>
               </div>
-              <div v-if="hasValue(watchItem.condition)" class="flex gap-4 py-2 border-b border-gray-100">
-                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">État</span>
+              <div v-if="hasValue(watchItem.condition)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted w-[140px] flex-shrink-0 whitespace-normal">État</span>
                 <span class="font-medium text-left flex-1">{{ watchItem.condition }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.content)" class="flex gap-4 py-2 border-b border-gray-100">
-                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">Contenu</span>
+              <div v-if="hasValue(watchItem.details?.content)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted w-[140px] flex-shrink-0 whitespace-normal">Contenu</span>
                 <span class="font-medium text-left flex-1">{{ watchItem.details.content }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.guarantee)" class="flex gap-4 py-2 border-b border-gray-100">
-                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">Garantie</span>
+              <div v-if="hasValue(watchItem.details?.guarantee)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted w-[140px] flex-shrink-0 whitespace-normal">Garantie</span>
                 <span class="font-medium text-left flex-1">{{ watchItem.details.guarantee }}</span>
               </div>
             </div>
@@ -285,12 +285,12 @@
           <!-- Montre vendue — fiche conservée en archive (features.soldArchive) -->
             <div
               v-else-if="watchItem.isSold"
-              class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+              class="rounded-lg border border-border-subtle bg-white p-5 shadow-sm"
             >
-              <p class="text-base font-semibold text-gray-900 mb-1">
+              <p class="text-base font-semibold text-text-main mb-1">
                 Cette montre a trouvé preneur
               </p>
-              <p class="text-sm text-gray-600 mb-4">
+              <p class="text-sm text-muted mb-4">
                 Sa fiche reste consultable à titre d'archive. Vous cherchez un modèle
                 identique ou similaire ? Nous pouvons le trouver pour vous.
               </p>
@@ -316,7 +316,7 @@
               <button
                 type="button"
                 disabled
-                class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-gray-500 bg-gray-100 cursor-not-allowed mb-3"
+                class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-subtle bg-cream-100 cursor-not-allowed mb-3"
               >
                 Hors stock
               </button>
@@ -340,7 +340,7 @@
           <!-- Trust highlights (retail) — carte compacte sous le bouton d'achat -->
           <div
             v-if="!isResaleCatalog && retailTrustHighlights.length > 0"
-            class="bg-white rounded-md shadow-lg border border-gray-100 p-3 lg:p-4"
+            class="bg-white rounded-md shadow-lg border border-border-subtle p-3 lg:p-4"
             :class="showAddToCartButton ? 'mt-3 lg:mt-4' : ''"
           >
             <ul class="flex flex-col gap-2">
@@ -355,7 +355,7 @@
                 >
                   <TrustHighlightIcon :name="highlight.icon" />
                 </div>
-                <p class="text-sm text-gray-700 leading-snug min-w-0">
+                <p class="text-sm text-text-main/85 leading-snug min-w-0">
                   {{ highlight.text }}
                 </p>
               </li>
@@ -366,10 +366,10 @@
 
       <!-- En savoir plus sur l'annonce - Tabs Section -->
       <div class="bg-white rounded-md shadow-lg p-8 mb-8">
-        <h2 class="text-xl lg:text-2xl font-semibold text-gray-900 mb-6">En savoir plus sur l'annonce</h2>
+        <h2 class="text-xl lg:text-2xl font-semibold text-text-main mb-6">En savoir plus sur l'annonce</h2>
         
         <!-- Tabs -->
-        <div class="border-b border-gray-200 mb-6">
+        <div class="border-b border-border-subtle mb-6">
           <nav class="flex space-x-4 lg:space-x-8 overflow-x-auto" aria-label="Tabs">
             <button
               @click="activeTab = 'details'"
@@ -377,7 +377,7 @@
                 'py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap',
                 activeTab === 'details'
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-subtle hover:text-text-main/85 hover:border-border-strong'
               ]"
             >
               Détails
@@ -389,7 +389,7 @@
                 'py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap',
                 activeTab === 'security'
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-subtle hover:text-text-main/85 hover:border-border-strong'
               ]"
             >
               Garanties
@@ -401,51 +401,51 @@
         <div v-if="activeTab === 'details'" class="grid lg:grid-cols-2 gap-8">
           <!-- Left Column: Données de base -->
           <div>
-            <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">Données de base</h3>
+            <h3 class="text-base lg:text-lg font-semibold text-text-main mb-4">Données de base</h3>
             <div class="space-y-0">
-              <div v-if="catalogDisplay.showAdCode && hasValue(watchItem.adCode)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Code annonce</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.adCode }}</span>
+              <div v-if="catalogDisplay.showAdCode && hasValue(watchItem.adCode)" class="flex gap-4 py-3 border-b border-border-subtle">
+                <span class="text-muted min-w-[160px] flex-shrink-0">Code annonce</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.adCode }}</span>
               </div>
-              <div v-if="hasValue(watchItem.brand)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Marque</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.brand }}</span>
+              <div v-if="hasValue(watchItem.brand)" class="flex gap-4 py-3 border-b border-border-subtle">
+                <span class="text-muted min-w-[160px] flex-shrink-0">Marque</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.brand }}</span>
               </div>
-              <div v-if="hasValue(watchItem.model)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Modèle</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.model }}</span>
+              <div v-if="hasValue(watchItem.model)" class="flex gap-4 py-3 border-b border-border-subtle">
+                <span class="text-muted min-w-[160px] flex-shrink-0">Modèle</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.model }}</span>
               </div>
-              <div v-if="catalogDisplay.showReference && hasValue(watchItem.reference)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Numéro de référence</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.reference }}</span>
+              <div v-if="catalogDisplay.showReference && hasValue(watchItem.reference)" class="flex gap-4 py-3 border-b border-border-subtle">
+                <span class="text-muted min-w-[160px] flex-shrink-0">Numéro de référence</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.reference }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.movement)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Mouvement</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.movement }}</span>
+              <div v-if="hasValue(watchItem.details?.movement)" class="flex gap-4 py-3 border-b border-border-subtle">
+                <span class="text-muted min-w-[160px] flex-shrink-0">Mouvement</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.details.movement }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.caseMaterial)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Boîtier</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.caseMaterial }}</span>
+              <div v-if="hasValue(watchItem.details?.caseMaterial)" class="flex gap-4 py-3 border-b border-border-subtle">
+                <span class="text-muted min-w-[160px] flex-shrink-0">Boîtier</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.details.caseMaterial }}</span>
               </div>
-              <div v-if="watchItem.details?.braceletMaterials?.length" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Matière du bracelet</span>
+              <div v-if="watchItem.details?.braceletMaterials?.length" class="flex gap-4 py-3 border-b border-border-subtle">
+                <span class="text-muted min-w-[160px] flex-shrink-0">Matière du bracelet</span>
                 <div class="flex flex-wrap items-center gap-3 flex-1">
                   <span
                     v-for="slug in watchItem.details.braceletMaterials"
                     :key="slug"
-                    class="font-medium text-gray-900"
+                    class="font-medium text-text-main"
                   >
                     {{ getBraceletMaterialLabel(slug) }}
                   </span>
                 </div>
               </div>
-              <div v-if="watchItem.details?.braceletColors?.length" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Couleur du bracelet</span>
+              <div v-if="watchItem.details?.braceletColors?.length" class="flex gap-4 py-3 border-b border-border-subtle">
+                <span class="text-muted min-w-[160px] flex-shrink-0">Couleur du bracelet</span>
                 <div class="flex flex-wrap items-center gap-3 flex-1">
                   <span
                     v-for="slug in watchItem.details.braceletColors"
                     :key="slug"
-                    class="inline-flex items-center gap-2 font-medium text-gray-900"
+                    class="inline-flex items-center gap-2 font-medium text-text-main"
                   >
                     <span
                       class="h-5 w-5 rounded-full shadow-inner ring-1 ring-gray-300"
@@ -455,13 +455,13 @@
                   </span>
                 </div>
               </div>
-              <div v-if="catalogDisplay.showYearInDetails && hasValue(watchItem.year)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Année de fabrication</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.year }}</span>
+              <div v-if="catalogDisplay.showYearInDetails && hasValue(watchItem.year)" class="flex gap-4 py-3 border-b border-border-subtle">
+                <span class="text-muted min-w-[160px] flex-shrink-0">Année de fabrication</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.year }}</span>
               </div>
-              <div v-if="catalogDisplay.showConditionInDetails && hasValue(watchItem.condition)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">État</span>
-                <div class="font-medium text-gray-900 flex-1">
+              <div v-if="catalogDisplay.showConditionInDetails && hasValue(watchItem.condition)" class="flex gap-4 py-3 border-b border-border-subtle">
+                <span class="text-muted min-w-[160px] flex-shrink-0">État</span>
+                <div class="font-medium text-text-main flex-1">
                   <div>{{ watchItem.condition }}</div>
                 </div>
               </div>
@@ -470,39 +470,39 @@
 
           <!-- Right Column: Spécifications techniques -->
           <div>
-            <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">Spécifications techniques</h3>
+            <h3 class="text-base lg:text-lg font-semibold text-text-main mb-4">Spécifications techniques</h3>
             <div class="space-y-3">
-              <div v-if="hasValue(watchItem.details?.caseSize)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Diamètre du boîtier</span>
-                <span class="font-medium text-gray-900 flex-1">{{ formatCaseSizeDisplay(watchItem.details.caseSize) }}</span>
+              <div v-if="hasValue(watchItem.details?.caseSize)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted min-w-[140px] flex-shrink-0">Diamètre du boîtier</span>
+                <span class="font-medium text-text-main flex-1">{{ formatCaseSizeDisplay(watchItem.details.caseSize) }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.thickness)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Épaisseur</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.thickness }}</span>
+              <div v-if="hasValue(watchItem.details?.thickness)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted min-w-[140px] flex-shrink-0">Épaisseur</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.details.thickness }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.dialColor)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Couleur du cadran</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.dialColor }}</span>
+              <div v-if="hasValue(watchItem.details?.dialColor)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted min-w-[140px] flex-shrink-0">Couleur du cadran</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.details.dialColor }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.crystal)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Matière de la glace</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.crystal }}</span>
+              <div v-if="hasValue(watchItem.details?.crystal)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted min-w-[140px] flex-shrink-0">Matière de la glace</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.details.crystal }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.waterResistance)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Étanchéité</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.waterResistance }}</span>
+              <div v-if="hasValue(watchItem.details?.waterResistance)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted min-w-[140px] flex-shrink-0">Étanchéité</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.details.waterResistance }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.functions)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Fonctions</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.functions }}</span>
+              <div v-if="hasValue(watchItem.details?.functions)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted min-w-[140px] flex-shrink-0">Fonctions</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.details.functions }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.powerReserve)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Réserve de marche</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.powerReserve }}</span>
+              <div v-if="hasValue(watchItem.details?.powerReserve)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted min-w-[140px] flex-shrink-0">Réserve de marche</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.details.powerReserve }}</span>
               </div>
-              <div v-if="hasValue(watchItem.details?.frequency)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Fréquence</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.frequency }}</span>
+              <div v-if="hasValue(watchItem.details?.frequency)" class="flex gap-4 py-2 border-b border-border-subtle">
+                <span class="text-muted min-w-[140px] flex-shrink-0">Fréquence</span>
+                <span class="font-medium text-text-main flex-1">{{ watchItem.details.frequency }}</span>
               </div>
             </div>
           </div>
@@ -510,20 +510,20 @@
 
         <!-- Tab Content: Security -->
         <div v-if="activeTab === 'security' && watchGuarantees.items.length > 0">
-          <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-6">{{ watchGuarantees.heading }}</h3>
+          <h3 class="text-lg lg:text-xl font-semibold text-text-main mb-6">{{ watchGuarantees.heading }}</h3>
           <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div
               v-for="guarantee in watchGuarantees.items"
               :key="guarantee.id"
-              class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm"
+              class="bg-white rounded-lg p-6 border border-border-subtle shadow-sm"
             >
               <div class="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
                 <div class="text-primary [&_svg]:h-8 [&_svg]:w-8">
                   <TrustHighlightIcon :name="guarantee.icon" />
                 </div>
               </div>
-              <h4 class="text-base lg:text-lg font-semibold text-gray-900 mb-2">{{ guarantee.title }}</h4>
-              <p class="text-gray-600 text-sm leading-relaxed">
+              <h4 class="text-base lg:text-lg font-semibold text-text-main mb-2">{{ guarantee.title }}</h4>
+              <p class="text-muted text-sm leading-relaxed">
                 {{ guarantee.text }}
               </p>
             </div>
@@ -534,7 +534,7 @@
       <!-- Accessories (resale only) -->
       <div v-if="catalogDisplay.showDeliveryContent" class="grid lg:grid-cols-2 gap-8 mb-12">
         <div class="bg-white rounded-md shadow-lg p-6">
-          <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-4">Contenu de la livraison</h3>
+          <h3 class="text-lg lg:text-xl font-semibold text-text-main mb-4">Contenu de la livraison</h3>
           <div class="space-y-3">
             <div
               v-for="(item, index) in watchItem.details.accessories"
@@ -548,10 +548,10 @@
               />
               <X
                 v-else
-                :class="['w-5 h-5', 'text-gray-400']"
+                :class="['w-5 h-5', 'text-subtle']"
                 :stroke-width="2"
               />
-              <span :class="item.included ? 'text-gray-900' : 'text-gray-500'">
+              <span :class="item.included ? 'text-text-main' : 'text-subtle'">
                 {{ item.name }}
               </span>
             </div>
@@ -561,7 +561,7 @@
 
       <!-- Related Articles Section -->
       <div v-if="watchItem && watchItem.articles && watchItem.articles.length > 0" class="bg-white rounded-md shadow-lg p-8 mb-12">
-        <h2 class="text-xl lg:text-2xl font-semibold text-gray-900 mb-6">Articles liés</h2>
+        <h2 class="text-xl lg:text-2xl font-semibold text-text-main mb-6">Articles liés</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <article
             v-for="article in watchItem.articles"
@@ -569,10 +569,10 @@
             class="bg-white rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer shadow-sm"
             @click="goToArticle(article.id)"
           >
-            <h3 class="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
+            <h3 class="text-lg font-semibold text-text-main mb-3 line-clamp-2">
               {{ article.title }}
             </h3>
-            <p class="text-gray-600 text-sm mb-4 line-clamp-3">
+            <p class="text-muted text-sm mb-4 line-clamp-3">
               {{ getArticleExcerpt(article.text) }}
             </p>
             <div v-if="article.categories && article.categories.length > 0" class="mb-4 flex flex-wrap gap-2">
@@ -585,7 +585,7 @@
               </span>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-sm text-gray-500">
+              <span class="text-sm text-subtle">
                 {{ formatArticleDate(article.created_at) }}
               </span>
               <span class="text-primary text-sm font-medium hover:underline">
@@ -598,8 +598,8 @@
       
       <!-- Description Section (preview + expand) -->
       <div class="bg-white rounded-md shadow-lg mb-8 overflow-hidden p-8">
-        <h2 class="text-lg lg:text-xl font-semibold text-gray-900 mb-4">Description</h2>
-        <div class="prose max-w-none text-gray-700 leading-relaxed">
+        <h2 class="text-lg lg:text-xl font-semibold text-text-main mb-4">Description</h2>
+        <div class="prose max-w-none text-text-main/85 leading-relaxed">
           <div v-if="hasValue(watchItem.description)">
             <p class="whitespace-pre-line">{{ displayedDescription }}</p>
             <button
@@ -619,7 +619,7 @@
               />
             </button>
           </div>
-          <div v-else class="text-gray-500 italic">
+          <div v-else class="text-subtle italic">
             Aucune description disponible.
           </div>
         </div>
@@ -628,8 +628,8 @@
       <!-- Contact Reminder Section -->
       <div class="bg-white rounded-md shadow-lg p-8">
         <div class="text-center mb-6">
-          <h2 class="text-xl lg:text-3xl font-bold mb-3 text-gray-900">Une question sur cette montre ?</h2>
-          <p class="text-base lg:text-lg text-gray-600">
+          <h2 class="text-xl lg:text-3xl font-bold mb-3 text-text-main">Une question sur cette montre ?</h2>
+          <p class="text-base lg:text-lg text-muted">
             Contactez-nous par WhatsApp ou email pour plus d'informations
           </p>
         </div>
@@ -682,11 +682,11 @@
   <!-- Sticky Buy Button Mobile — désactivé temporairement
   <div
     v-if="showAddToCartButton"
-    class="fixed bottom-0 left-0 right-0 lg:hidden z-20 bg-white shadow-lg border-t border-gray-200 px-4 py-3"
+    class="fixed bottom-0 left-0 right-0 lg:hidden z-20 bg-white shadow-lg border-t border-border-subtle px-4 py-3"
   >
     <div class="flex items-center justify-between gap-4 max-w-7xl mx-auto">
       <div class="flex-1 min-w-0">
-        <div class="text-sm font-medium text-gray-900 truncate mb-0.5">
+        <div class="text-sm font-medium text-text-main truncate mb-0.5">
           {{ watchItem.name }}
         </div>
         <div class="text-lg font-medium text-primary">
@@ -783,7 +783,7 @@
           <!-- Close button -->
           <button
             @click="closeShareLightbox"
-            class="absolute top-4 right-4 bg-cream-100 hover:bg-cream-200 text-gray-600 rounded-full p-2 transition-all duration-200"
+            class="absolute top-4 right-4 bg-cream-100 hover:bg-cream-200 text-muted rounded-full p-2 transition-all duration-200"
             title="Fermer"
             aria-label="Fermer"
           >
@@ -791,7 +791,7 @@
           </button>
 
           <!-- Title -->
-          <h2 class="text-xl lg:text-2xl font-bold text-gray-900 mb-6 text-center">Partager cette montre</h2>
+          <h2 class="text-xl lg:text-2xl font-bold text-text-main mb-6 text-center">Partager cette montre</h2>
 
           <!-- Share buttons -->
           <div class="flex flex-col gap-4">

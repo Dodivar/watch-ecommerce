@@ -27,7 +27,7 @@ const hasContent = computed(() =>
           <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">
             {{ aboutPreview.title }}
           </h2>
-          <p class="text-lg text-gray-600 leading-relaxed mb-6">
+          <p class="text-lg text-muted leading-relaxed mb-6">
             {{ aboutPreview.description }}
           </p>
           <RouterLink
@@ -50,7 +50,7 @@ const hasContent = computed(() =>
           />
           <div
             v-else
-            class="h-full min-h-[280px] flex items-center justify-center text-gray-400 text-lg font-medium tracking-wide"
+            class="h-full min-h-[280px] flex items-center justify-center text-subtle text-lg font-medium tracking-wide"
             aria-hidden="true"
           >
             {{ aboutPreview.imageFallback || 'Place des Montres' }}

@@ -19,7 +19,7 @@
           <h1 class="text-4xl lg:text-5xl font-bold text-text-main leading-tight mb-5">
             {{ content.hero.title }}
           </h1>
-          <p class="text-lg lg:text-xl text-gray-600 leading-relaxed">
+          <p class="text-lg lg:text-xl text-muted leading-relaxed">
             {{ content.hero.lead }}
           </p>
         </div>
@@ -44,7 +44,7 @@
               </span>
               <div>
                 <h2 class="text-xl lg:text-2xl font-bold text-text-main">{{ section.title }}</h2>
-                <p v-if="section.intro" class="mt-1 text-gray-600">{{ section.intro }}</p>
+                <p v-if="section.intro" class="mt-1 text-muted">{{ section.intro }}</p>
               </div>
             </div>
 
@@ -74,7 +74,7 @@
                       {{ item.price }}
                     </span>
                   </div>
-                  <p class="text-sm text-gray-600 leading-relaxed">{{ item.description }}</p>
+                  <p class="text-sm text-muted leading-relaxed">{{ item.description }}</p>
                   <a
                     v-if="item.link?.href"
                     :href="item.link.href"
@@ -147,7 +147,7 @@
     <section v-if="content.cta" class="py-14 lg:py-16 bg-white">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">{{ content.cta.title }}</h2>
-        <p class="text-lg text-gray-600 mb-8">{{ content.cta.subtitle }}</p>
+        <p class="text-lg text-muted mb-8">{{ content.cta.subtitle }}</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <RouterLink
             to="/contact"

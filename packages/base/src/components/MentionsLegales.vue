@@ -1,14 +1,14 @@
 <template>
   <div class="min-h-screen bg-white">
-    <section class="py-12 border-b border-gray-100">
+    <section class="py-12 border-b border-border-subtle">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
           Mentions légales
         </h1>
-        <p class="text-gray-600 text-sm">
+        <p class="text-muted text-sm">
           Dernière mise à jour : 31 mars 2026
         </p>
-        <p class="mt-6 text-gray-700 leading-relaxed">
+        <p class="mt-6 text-text-main/85 leading-relaxed">
           Les présentes mentions légales s’appliquent au site édité par
           <strong class="text-text-main">{{ LEGAL_COMPANY_NAME }}</strong>, conformément aux obligations
           en vigueur en France, notamment la loi pour la confiance dans l’économie numérique (LCEN).
@@ -16,7 +16,7 @@
       </div>
     </section>
 
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 text-gray-700 leading-relaxed">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 text-text-main/85 leading-relaxed">
       <section>
         <h2 class="text-xl font-bold text-text-main mb-4">1. Éditeur du site</h2>
         <p>
@@ -26,7 +26,7 @@
           <li v-if="LEGAL_ADDRESS">{{ LEGAL_ADDRESS }}</li>
           <li v-if="LEGAL_SIRET">SIRET : {{ LEGAL_SIRET }}</li>
         </ul>
-        <p v-else class="mt-3 text-sm text-gray-600">
+        <p v-else class="mt-3 text-sm text-muted">
           Les informations détaillées d’immatriculation (adresse du siège, SIRET) peuvent être complétées
           via les variables d’environnement décrites dans la documentation interne du projet, afin d’assurer
           la conformité lorsque ces données sont publiquement exigées.

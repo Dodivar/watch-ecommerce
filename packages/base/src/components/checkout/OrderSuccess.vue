@@ -224,7 +224,7 @@ onMounted(async () => {
     <div class="w-full max-w-5xl mx-auto">
       <div
         v-if="loading"
-        class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8 text-center text-gray-600"
+        class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8 text-center text-muted"
       >
         Vérification du paiement…
       </div>
@@ -233,8 +233,8 @@ onMounted(async () => {
         v-else-if="error"
         class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8 text-center"
       >
-        <h1 class="text-2xl font-bold text-gray-900 mb-4">Confirmation indisponible</h1>
-        <p class="text-gray-600 mb-6">{{ error }}</p>
+        <h1 class="text-2xl font-bold text-text-main mb-4">Confirmation indisponible</h1>
+        <p class="text-muted mb-6">{{ error }}</p>
         <router-link :to="browsePath" class="text-primary underline">Retour à la boutique</router-link>
       </div>
 
@@ -263,18 +263,18 @@ onMounted(async () => {
                 </svg>
               </div>
             </div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-3">Paiement réussi</h1>
-            <p class="text-lg text-gray-600 mb-1">Merci pour votre commande.</p>
-            <p v-if="orderId" class="text-sm text-gray-400 mb-4">
-              Commande <span class="font-medium text-gray-500">{{ orderId }}</span>
+            <h1 class="text-3xl font-bold text-text-main mb-3">Paiement réussi</h1>
+            <p class="text-lg text-muted mb-1">Merci pour votre commande.</p>
+            <p v-if="orderId" class="text-sm text-subtle mb-4">
+              Commande <span class="font-medium text-subtle">{{ orderId }}</span>
             </p>
-            <p v-if="customerEmail" class="text-sm text-gray-500 mb-6">
+            <p v-if="customerEmail" class="text-sm text-subtle mb-6">
               Un email de confirmation a été envoyé à
-              <span class="font-medium text-gray-700">{{ customerEmail }}</span>.
+              <span class="font-medium text-text-main/85">{{ customerEmail }}</span>.
             </p>
 
-            <div class="rounded-xl bg-gray-50 border border-gray-100 p-4 mb-8">
-              <p class="text-gray-600 text-sm leading-relaxed">{{ followUpMessage }}</p>
+            <div class="rounded-xl bg-cream border border-border-subtle p-4 mb-8">
+              <p class="text-muted text-sm leading-relaxed">{{ followUpMessage }}</p>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3">
@@ -287,7 +287,7 @@ onMounted(async () => {
               <button
                 v-if="!isPreview"
                 type="button"
-                class="px-6 py-3 border border-gray-300 text-gray-800 rounded-lg font-medium text-center transition-colors hover:bg-gray-50 disabled:opacity-60"
+                class="px-6 py-3 border border-border-strong text-text-main/85 rounded-lg font-medium text-center transition-colors hover:bg-cream disabled:opacity-60"
                 :disabled="receiptDownloading"
                 @click="downloadReceipt"
               >
@@ -299,12 +299,12 @@ onMounted(async () => {
 
           <!-- Colonne droite : reçu -->
           <div class="bg-white rounded-2xl shadow-lg p-6 lg:p-8">
-            <h2 class="text-lg font-semibold text-gray-900 mb-5">Votre commande</h2>
+            <h2 class="text-lg font-semibold text-text-main mb-5">Votre commande</h2>
 
             <ul v-if="lines.length" class="space-y-4 mb-6">
               <li v-for="line in lines" :key="line.id" class="flex items-center gap-4">
                 <div
-                  class="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center"
+                  class="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-cream-100 overflow-hidden flex items-center justify-center"
                 >
                   <img
                     v-if="lineImageSrc(line)"
@@ -333,24 +333,24 @@ onMounted(async () => {
                   </svg>
                 </div>
                 <div class="min-w-0 flex-1">
-                  <p class="font-medium text-gray-900 truncate">{{ line.name }}</p>
-                  <p v-if="line.reference" class="text-xs text-gray-400 truncate">
+                  <p class="font-medium text-text-main truncate">{{ line.name }}</p>
+                  <p v-if="line.reference" class="text-xs text-subtle truncate">
                     Réf. {{ line.reference }}
                   </p>
-                  <p class="text-sm text-gray-500">Quantité : {{ line.quantity }}</p>
+                  <p class="text-sm text-subtle">Quantité : {{ line.quantity }}</p>
                 </div>
-                <span class="shrink-0 font-medium text-gray-900">
+                <span class="shrink-0 font-medium text-text-main">
                   {{ formatPrice(line.unit_price_cents * line.quantity) }}
                 </span>
               </li>
             </ul>
 
-            <div class="border-t border-gray-100 pt-4 space-y-2 text-sm">
-              <div class="flex justify-between text-gray-600">
+            <div class="border-t border-border-subtle pt-4 space-y-2 text-sm">
+              <div class="flex justify-between text-muted">
                 <span>Sous-total</span>
                 <span>{{ formatPrice(subtotalCents) }}</span>
               </div>
-              <div class="flex justify-between text-gray-600">
+              <div class="flex justify-between text-muted">
                 <span>{{ shippingMethodLabel || 'Livraison' }}</span>
                 <span>{{ shippingCents > 0 ? formatPrice(shippingCents) : 'Offerte' }}</span>
               </div>
@@ -360,11 +360,11 @@ onMounted(async () => {
                 </span>
                 <span>-{{ formatPrice(discountCents) }}</span>
               </div>
-              <p v-if="hasDiscount && discountTypeLabel" class="text-xs text-gray-400">
+              <p v-if="hasDiscount && discountTypeLabel" class="text-xs text-subtle">
                 {{ discountTypeLabel }}
               </p>
               <div
-                class="flex justify-between items-center pt-3 mt-1 border-t border-gray-100 text-base font-semibold text-gray-900"
+                class="flex justify-between items-center pt-3 mt-1 border-t border-border-subtle text-base font-semibold text-text-main"
               >
                 <span>Total</span>
                 <span class="text-primary text-lg">{{ formatPrice(totalCents) }}</span>

@@ -69,8 +69,8 @@ onMounted(async () => {
   <section class="min-h-screen bg-cream py-10 px-4 sm:py-12">
     <div class="max-w-7xl mx-auto">
       <header class="mb-8 max-w-3xl">
-        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">{{ heading }}</h1>
-        <p class="text-gray-600 text-base sm:text-lg">
+        <h1 class="text-3xl sm:text-4xl font-bold text-text-main mb-3">{{ heading }}</h1>
+        <p class="text-muted text-base sm:text-lg">
           Ces montres ont trouvé preneur. Chaque fiche reste consultable à titre
           d'archive — et si un modèle vous fait de l'œil, nous pouvons rechercher le
           même pour vous.
@@ -95,7 +95,7 @@ onMounted(async () => {
         <WatchCardSkeleton v-for="n in 8" :key="n" />
       </div>
 
-      <p v-else-if="!error && watches.length === 0" class="text-gray-600">
+      <p v-else-if="!error && watches.length === 0" class="text-muted">
         Aucune vente à afficher pour le moment.
       </p>
 

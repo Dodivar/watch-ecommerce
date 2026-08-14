@@ -13,18 +13,25 @@ export default {
 
   /** Design tokens → CSS variables via vite/site-from-config.mjs + Tailwind theme.extend */
   theme: {
-    colorScheme: 'dark',
+    /**
+     * Identité « vert Sauvage » : le vert profond porte la marque (héros, bandeaux,
+     * CTA, pied de page), le beige et le blanc portent le contenu. Les nuances
+     * intermédiaires (`primary-soft/deep/tint/sage`), les dégradés et les ombres
+     * teintées sont dérivés de `primary` — voir `vite/site-from-config.mjs`.
+     */
+    surface: 'gradient',
     colors: {
       primary: '#0f2a1d',
       primaryHover: '#163d2a',
-      /** Variante de démonstration : surfaces vert Sauvage, sans fond beige. */
-      cream: '#0f2a1d',
-      cream100: '#163d2a',
-      cream200: '#234c38',
-      cream300: '#315d47',
-      textMain: '#000000',
+      /** Beige chaud : fond de page et respiration entre les blocs verts. */
+      cream: '#f6efe3',
+      cream100: '#efe6d7',
+      cream200: '#e4d8c6',
+      cream300: '#d5c6ae',
+      textMain: '#0a0a0a',
       textOnDark: '#ffffff',
-      browserChrome: '#0f2a1d',
+      /** Barre système mobile alignée sur le verre clair de l'en-tête. */
+      browserChrome: '#f6efe3',
     },
     /** Typographie de référence du socle — fichiers dans `public/fonts/`. */
     typography: {

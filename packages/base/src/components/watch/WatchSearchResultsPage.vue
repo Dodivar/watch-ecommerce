@@ -14,7 +14,7 @@
         </h1>
         <p
           v-if="listingReady && !listing.isLoading && !listing.error"
-          class="text-gray-600"
+          class="text-muted"
           aria-live="polite"
         >
           {{ totalFiltered }} montre{{ totalFiltered > 1 ? 's' : '' }} trouvée{{ totalFiltered > 1 ? 's' : '' }}
@@ -45,8 +45,8 @@
             />
           </svg>
         </div>
-        <h2 class="text-xl text-gray-900 mb-2">Erreur de chargement</h2>
-        <p class="text-gray-600 mb-3">{{ listing.error }}</p>
+        <h2 class="text-xl text-text-main mb-2">Erreur de chargement</h2>
+        <p class="text-muted mb-3">{{ listing.error }}</p>
         <button
           type="button"
           class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
@@ -60,7 +60,7 @@
         v-else-if="searchQuery && totalFiltered === 0"
         class="text-center py-10"
       >
-        <div class="text-gray-400 mb-3">
+        <div class="text-subtle mb-3">
           <svg class="w-16 h-16 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-linecap="round"
@@ -70,8 +70,8 @@
             />
           </svg>
         </div>
-        <h2 class="text-xl text-gray-900 mb-2">Aucune montre trouvée</h2>
-        <p class="text-gray-600 mb-6">
+        <h2 class="text-xl text-text-main mb-2">Aucune montre trouvée</h2>
+        <p class="text-muted mb-6">
           Aucun résultat pour « {{ searchQuery }} ». Essayez un autre terme (marque, modèle ou référence).
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
@@ -84,7 +84,7 @@
           <RouterLink
             v-if="features.recherche"
             to="/recherche"
-            class="inline-block px-6 py-2 border border-gray-300 text-text-main rounded-lg hover:bg-cream-100 transition-colors"
+            class="inline-block px-6 py-2 border border-border-strong text-text-main rounded-lg hover:bg-cream-100 transition-colors"
           >
             Recherche personnalisée
           </RouterLink>
@@ -112,7 +112,7 @@
           v-if="listingReady && totalPages > 1"
           class="mb-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center sm:gap-8"
         >
-          <p class="order-2 text-center text-sm text-gray-500 sm:order-1 sm:text-center">
+          <p class="order-2 text-center text-sm text-subtle sm:order-1 sm:text-center">
             {{ totalFiltered }} montre{{ totalFiltered > 1 ? 's' : '' }}
           </p>
           <nav
@@ -122,7 +122,7 @@
             <div class="flex max-w-full shrink-0 items-center gap-0 sm:gap-1.5">
               <button
                 type="button"
-                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
+                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-border-strong bg-white p-0 text-text-main/85 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
                 :class="currentPage === 1 ? 'cursor-not-allowed bg-cream-200 text-gray-400' : ''"
                 :disabled="currentPage === 1"
                 aria-label="Page précédente"
@@ -154,7 +154,7 @@
                 >
                   <span
                     v-if="item.type === 'ellipsis'"
-                    class="box-border inline-flex h-11 w-11 shrink-0 items-center justify-center text-sm font-medium text-gray-500 sm:h-10 sm:w-10"
+                    class="box-border inline-flex h-11 w-11 shrink-0 items-center justify-center text-sm font-medium text-subtle sm:h-10 sm:w-10"
                     aria-hidden="true"
                   >
                     …
@@ -169,7 +169,7 @@
                   <button
                     v-else-if="item.type === 'page'"
                     type="button"
-                    class="box-border inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
+                    class="box-border inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-border-strong bg-white text-sm font-medium text-text-main/85 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
                     :aria-label="`Page ${item.n}`"
                     @click="goToPage(item.n)"
                   >
@@ -179,7 +179,7 @@
               </ul>
               <button
                 type="button"
-                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
+                class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-border-strong bg-white p-0 text-text-main/85 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
                 :class="
                   currentPage === totalPages
                     ? 'cursor-not-allowed bg-cream-200 text-gray-400'

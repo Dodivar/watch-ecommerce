@@ -45,8 +45,8 @@ onMounted(async () => {
           </svg>
         </div>
       </div>
-      <h1 class="text-3xl font-bold text-gray-900 mb-4">Commande annulée</h1>
-      <p class="text-lg text-gray-600 mb-4">Aucun montant n'a été débité.</p>
+      <h1 class="text-3xl font-bold text-text-main mb-4">Commande annulée</h1>
+      <p class="text-lg text-muted mb-4">Aucun montant n'a été débité.</p>
       <p v-if="released" class="text-sm text-green-700 mb-4">Votre réservation a été libérée.</p>
       <p v-if="error" class="text-sm text-red-600 mb-4">{{ error }}</p>
       <a
@@ -61,7 +61,7 @@ onMounted(async () => {
         <router-link :to="browsePath" class="px-6 py-3 bg-primary text-white rounded-lg font-medium">
           Voir la collection
         </router-link>
-        <router-link to="/" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700">
+        <router-link to="/" class="px-6 py-3 border border-border-strong rounded-lg text-text-main/85">
           Accueil
         </router-link>
       </div>

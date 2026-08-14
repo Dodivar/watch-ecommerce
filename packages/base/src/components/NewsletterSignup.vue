@@ -109,7 +109,7 @@ async function submit() {
 .newsletter-signup__input {
   flex: 1 1 12rem;
   padding: 0.6rem 0.85rem;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--color-border-strong);
   border-radius: 0.5rem;
   font-size: 0.9rem;
 }
@@ -117,16 +117,37 @@ async function submit() {
   padding: 0.6rem 1.1rem;
   border: none;
   border-radius: 0.5rem;
-  background: var(--color-primary, #0f2a1d);
-  color: #fff;
+  background-image: var(--gradient-cta);
+  color: var(--color-text-on-dark);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition:
+    background-image 0.2s,
+    opacity 0.2s;
+}
+.newsletter-signup__button:hover:not(:disabled) {
+  background-image: var(--gradient-cta-hover);
 }
 .newsletter-signup__button:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/*
+  Variante pied de page : le bloc est posé sur le vert de marque. Un bouton vert
+  y serait invisible — il s'inverse donc en masse beige, et le champ passe en
+  verre clair.
+*/
+.newsletter-signup.newsletter-footer .newsletter-signup__button {
+  background-image: linear-gradient(140deg, #ffffff 0%, var(--color-cream) 100%);
+  color: var(--color-primary);
+}
+.newsletter-signup.newsletter-footer .newsletter-signup__button:hover:not(:disabled) {
+  background-image: linear-gradient(140deg, #ffffff 0%, var(--color-cream-100) 100%);
+}
+.newsletter-signup.newsletter-footer .newsletter-signup__input {
+  border-color: var(--color-border-on-dark);
 }
 .newsletter-signup__message {
   margin: 0.6rem 0 0;
@@ -137,6 +158,13 @@ async function submit() {
 }
 .newsletter-signup__message.is-error {
   color: #b91c1c;
+}
+/* Sur le vert du pied de page, les messages ont besoin de tons clairs. */
+.newsletter-signup.newsletter-footer .newsletter-signup__message.is-success {
+  color: #86efac;
+}
+.newsletter-signup.newsletter-footer .newsletter-signup__message.is-error {
+  color: #fca5a5;
 }
 .newsletter-signup__consent {
   margin: 0.6rem 0 0;

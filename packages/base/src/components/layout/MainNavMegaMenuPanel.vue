@@ -86,21 +86,21 @@ const gridClass = computed(() => {
                 <li v-for="(link, linkIndex) in column.items" :key="'link-' + linkIndex + '-' + link.to">
                   <RouterLink
                     :to="link.to"
-                    class="text-sm text-gray-700 hover:text-primary transition-colors"
+                    class="text-sm text-text-main/85 hover:text-primary transition-colors"
                   >
                     {{ link.label }}
                   </RouterLink>
                 </li>
                 <template v-if="column.dynamicCampaigns">
-                  <li v-if="campaignsLoading" class="text-sm text-gray-400">Chargement…</li>
-                  <li v-else-if="campaignsError" class="text-sm text-gray-500">{{ campaignsError }}</li>
+                  <li v-if="campaignsLoading" class="text-sm text-subtle">Chargement…</li>
+                  <li v-else-if="campaignsError" class="text-sm text-subtle">{{ campaignsError }}</li>
                   <li
                     v-for="campaignLink in campaignLinks"
                     :key="'campaign-' + campaignLink.slug"
                   >
                     <RouterLink
                       :to="campaignLink.to"
-                      class="text-sm text-gray-700 hover:text-primary transition-colors"
+                      class="text-sm text-text-main/85 hover:text-primary transition-colors"
                     >
                       {{ campaignLink.label }}
                     </RouterLink>
@@ -122,11 +122,11 @@ const gridClass = computed(() => {
                 />
               </div>
 
-              <p v-else-if="error" class="text-sm text-gray-500">
+              <p v-else-if="error" class="text-sm text-subtle">
                 {{ error }}
               </p>
 
-              <p v-else-if="brands.length === 0" class="text-sm text-gray-500">
+              <p v-else-if="brands.length === 0" class="text-sm text-subtle">
                 Aucune marque disponible pour le moment.
               </p>
 
@@ -143,7 +143,7 @@ const gridClass = computed(() => {
                   <li v-for="brandName in brandList" :key="brandName">
                     <RouterLink
                       :to="brandRoute(brandName)"
-                      class="text-sm text-gray-700 hover:text-primary transition-colors"
+                      class="text-sm text-text-main/85 hover:text-primary transition-colors"
                     >
                       {{ brandName }}
                     </RouterLink>

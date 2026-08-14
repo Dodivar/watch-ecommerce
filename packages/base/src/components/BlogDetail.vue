@@ -4,7 +4,7 @@
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-10">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-        <p class="text-gray-600">Chargement de l'article...</p>
+        <p class="text-muted">Chargement de l'article...</p>
       </div>
 
       <!-- Error State -->
@@ -19,8 +19,8 @@
             />
           </svg>
         </div>
-        <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
-        <p class="text-gray-600 mb-4">{{ error }}</p>
+        <h3 class="text-xl text-text-main mb-2">Erreur de chargement</h3>
+        <p class="text-muted mb-4">{{ error }}</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             @click="loadArticle"
@@ -30,7 +30,7 @@
           </button>
           <router-link
             :to="backLink"
-            class="px-6 py-2 bg-cream-200 text-gray-700 rounded-lg hover:bg-cream-200 transition-colors inline-flex items-center justify-center"
+            class="px-6 py-2 bg-cream-200 text-text-main/85 rounded-lg hover:bg-cream-200 transition-colors inline-flex items-center justify-center"
           >
             {{ backText }}
           </router-link>
@@ -40,7 +40,7 @@
       <!-- Article Content -->
       <article v-else-if="article" class="bg-white rounded-md shadow-lg overflow-hidden">
         <!-- Header -->
-        <div class="p-8 border-b border-gray-200">
+        <div class="p-8 border-b border-border-subtle">
           <div class="mb-6 flex items-center justify-between">
             <router-link
               :to="backLink"
@@ -61,7 +61,7 @@
             <div class="flex items-center gap-2">
               <button
                 @click="shareOnFacebook"
-                class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-[#1877F2] hover:text-white transition-colors"
+                class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-muted hover:bg-[#1877F2] hover:text-white transition-colors"
                 title="Partager sur Facebook"
                 aria-label="Partager sur Facebook"
               >
@@ -71,7 +71,7 @@
               </button>
               <button
                 @click="shareOnTwitter"
-                class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-black hover:text-white transition-colors"
+                class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-muted hover:bg-black hover:text-white transition-colors"
                 title="Partager sur X"
                 aria-label="Partager sur X"
               >
@@ -81,7 +81,7 @@
               </button>
               <button
                 @click="shareByEmail"
-                class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-gray-600 hover:text-white transition-colors"
+                class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-muted hover:bg-gray-600 hover:text-white transition-colors"
                 title="Partager par email"
                 aria-label="Partager par email"
               >
@@ -91,7 +91,7 @@
               </button>
               <button
                 @click="copyUrl"
-                class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-primary hover:text-white transition-colors relative"
+                class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-muted hover:bg-primary hover:text-white transition-colors relative"
                 :title="urlCopied ? 'URL copiée !' : 'Copier l\'URL'"
                 :aria-label="urlCopied ? 'URL copiée' : 'Copier l\'URL'"
               >
@@ -110,7 +110,7 @@
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 
             <!-- Date -->
-            <div v-if="article.created_at" class="flex items-center text-gray-600 text-sm">
+            <div v-if="article.created_at" class="flex items-center text-muted text-sm">
               <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   stroke-linecap="round"
@@ -142,7 +142,7 @@
         </div>
 
         <!-- Footer -->
-        <div class="p-8 border-t border-gray-200 bg-white">
+        <div class="p-8 border-t border-border-subtle bg-white">
           <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
             <router-link
               :to="backLink"
@@ -208,7 +208,7 @@
               </div>
 
               <div v-if="article.categories && article.categories.length > 0" class="flex items-center gap-2 flex-wrap justify-end">
-                <span class="text-sm text-gray-600">Catégories :</span>
+                <span class="text-sm text-muted">Catégories :</span>
                 <span
                   v-for="cat in article.categories"
                   :key="cat"

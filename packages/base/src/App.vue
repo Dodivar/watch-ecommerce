@@ -14,7 +14,6 @@ import AdminPublicModeBar from '@/components/layout/AdminPublicModeBar.vue'
 import HeaderQuickSearch from '@/components/layout/HeaderQuickSearch.vue'
 import logoMobileMenuVerticalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB vertical/Logo SW blanc vertical RVB.png'
 import logoHeaderIconGreen from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW verte RVB.png'
-import logoHeaderIconWhite from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW blanche RVB.png'
 import logoFooterHorizontalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW blanc horizontal RVB.png'
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import CookieBanner from '@/components/CookieBanner.vue'
@@ -26,8 +25,6 @@ import { useCart } from '@/composables/useCart.js'
 
 const site = getSiteConfig()
 const features = site.features
-const usesDarkTheme = site.theme?.colorScheme === 'dark'
-const headerLogoSrc = usesDarkTheme ? logoHeaderIconWhite : logoHeaderIconGreen
 
 const globalStructuredData = buildGlobalStructuredData(site, BASE_URL)
 const mainNavItems = resolveMainNavigation(site)
@@ -134,7 +131,7 @@ function displayMobileMenu() {
       <div class="flex justify-between items-center h-16 gap-2">
         <div class="flex items-center shrink-0">
           <RouterLink to="/">
-            <img width="50px" height="50px" :src="headerLogoSrc" alt="" />
+            <img width="50px" height="50px" :src="logoHeaderIconGreen" alt="" />
           </RouterLink>
         </div>
         <MainNavDesktop :nav-items="mainNavItems" />
@@ -147,20 +144,25 @@ function displayMobileMenu() {
           <button
             v-if="cartAccessible"
             type="button"
-            class="relative p-2 rounded-lg text-text-main hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            class="relative p-2 rounded-lg text-primary transition-colors hover:bg-primary-tint focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Ouvrir le panier"
             @click="toggleDrawer"
           >
             <ShoppingBag class="h-6 w-6" :stroke-width="2" />
             <span
               v-if="badgeLabel"
-              class="absolute -top-0.5 -right-0.5 min-h-[1.125rem] min-w-[1.125rem] px-1 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white leading-none"
+              class="absolute -top-0.5 -right-0.5 min-h-[1.125rem] min-w-[1.125rem] px-1 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white leading-none shadow-soft"
             >
               {{ badgeLabel }}
             </span>
           </button>
-          <button type="button" class="md:hidden p-2" @click="displayMobileMenu" aria-label="Ouvrir le menu">
-            <Menu class="h-6 w-6 text-black" :stroke-width="2" />
+          <button
+            type="button"
+            class="md:hidden p-2 rounded-lg text-primary transition-colors hover:bg-primary-tint focus:outline-none focus:ring-2 focus:ring-primary"
+            @click="displayMobileMenu"
+            aria-label="Ouvrir le menu"
+          >
+            <Menu class="h-6 w-6" :stroke-width="2" />
           </button>
         </div>
       </div>
@@ -173,12 +175,16 @@ function displayMobileMenu() {
     />
   </header>
 
-  <main :class="{ 'public-dark-theme': usesDarkTheme && !isAdminPage }">
+  <main>
     <RouterView />
   </main>
 
   <!-- Footer -->
-  <footer v-if="!isMaintenancePage && !isAdminPage" id="contact" class="bg-primary text-white py-12">
+  <footer
+    v-if="!isMaintenancePage && !isAdminPage"
+    id="contact"
+    class="surface-forest surface-forest-glow text-white py-12"
+  >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div :class="isAdmin ? 'grid md:grid-cols-5 gap-8' : 'grid md:grid-cols-4 gap-8'">
         <div class="sm:col-span-2">

@@ -29,7 +29,7 @@ const useCompactHero = computed(() => site.home?.hero?.variant === 'compact')
             <path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg> -->
         </h1>
-        <p class="text-xl text-gray-600 mb-6 leading-relaxed">
+        <p class="text-xl text-muted mb-6 leading-relaxed">
           Consultez notre sélection de montres en stock garanties 1 an.
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">

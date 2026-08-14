@@ -8,17 +8,17 @@
       aria-labelledby="watch-filters-drawer-title"
     >
       <div
-        class="absolute inset-0 bg-black/50 transition-opacity"
+        class="scrim absolute inset-0 transition-opacity"
         aria-hidden="true"
         @click="onClose"
       />
       <aside
         class="relative flex h-full w-full max-w-full flex-col bg-white shadow-2xl sm:max-w-md md:min-w-[380px] md:max-w-lg lg:min-w-[420px] lg:max-w-xl xl:min-w-[460px] xl:max-w-2xl animate-drawer-in"
       >
-        <header class="flex shrink-0 items-center gap-3 border-b border-gray-200 px-4 py-4">
+        <header class="flex shrink-0 items-center gap-3 border-b border-border-subtle px-4 py-4">
           <button
             type="button"
-            class="rounded-lg p-2 text-gray-600 hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            class="rounded-lg p-2 text-muted hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Fermer les filtres"
             @click="onClose"
           >
@@ -33,7 +33,7 @@
           class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-2"
         >
           <!-- Marque -->
-          <section v-if="sections.brand" class="border-b border-gray-100">
+          <section v-if="sections.brand" class="border-b border-border-subtle">
             <button
               type="button"
               class="flex w-full items-center justify-between gap-2 py-4 text-left"
@@ -49,7 +49,7 @@
                 </span>
               </span>
               <ChevronDown
-                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                class="h-5 w-5 shrink-0 text-subtle transition-transform"
                 :class="{ 'rotate-180': expanded.brand }"
                 :stroke-width="2"
               />
@@ -64,7 +64,7 @@
                   :class="
                     listing.tempSelectedBrands.includes(brand)
                       ? 'border-primary bg-primary text-white'
-                      : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                      : 'border-border-strong bg-white text-text-main hover:border-primary'
                   "
                   @click="listing.toggleBrand(brand)"
                 >
@@ -75,7 +75,7 @@
           </section>
 
           <!-- Prix -->
-          <section v-if="sections.price" class="border-b border-gray-100">
+          <section v-if="sections.price" class="border-b border-border-subtle">
             <button
               type="button"
               class="flex w-full items-center justify-between gap-2 py-4 text-left"
@@ -91,14 +91,14 @@
                 </span>
               </span>
               <ChevronDown
-                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                class="h-5 w-5 shrink-0 text-subtle transition-transform"
                 :class="{ 'rotate-180': expanded.price }"
                 :stroke-width="2"
               />
             </button>
             <div v-show="expanded.price" class="space-y-4 pb-4">
               <!-- <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">Prix les plus recherchés</label>
+                <label class="mb-2 block text-sm font-medium text-text-main/85">Prix les plus recherchés</label>
                 <div class="flex flex-wrap gap-2">
                   <button
                     v-for="quickPrice in listing.quickPriceRanges"
@@ -108,7 +108,7 @@
                     :class="
                       listing.isQuickPriceSelected(quickPrice)
                         ? 'border-primary bg-primary text-white'
-                        : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                        : 'border-border-strong bg-white text-text-main hover:border-primary'
                     "
                     @click="listing.applyQuickPrice(quickPrice)"
                   >
@@ -126,42 +126,42 @@
                   :format="{ suffix: ' €', decimals: 0, thousand: ' ' }"
                   class="w-full max-w-full min-w-0"
                 />
-                <div class="mt-2 flex justify-between text-xs text-gray-500">
+                <div class="mt-2 flex justify-between text-xs text-subtle">
                   <span>{{ listing.priceMinLimit.toLocaleString() }} €</span>
                   <span>{{ listing.priceMaxLimit.toLocaleString() }} €</span>
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="mb-1 block text-sm font-medium text-gray-700">Minimum</label>
+                  <label class="mb-1 block text-sm font-medium text-text-main/85">Minimum</label>
                   <div class="relative">
                     <input
                       v-model.number="listing.tempPriceMinInput"
                       type="number"
                       :min="listing.priceMinLimit"
                       :max="listing.priceMaxLimit"
-                      class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary"
+                      class="w-full rounded-lg border border-border-strong px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary"
                       @blur="listing.updatePriceFromInput"
                     />
-                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">€</span>
+                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-subtle">€</span>
                   </div>
                 </div>
                 <div>
-                  <label class="mb-1 block text-sm font-medium text-gray-700">Maximum</label>
+                  <label class="mb-1 block text-sm font-medium text-text-main/85">Maximum</label>
                   <div class="relative">
                     <input
                       v-model.number="listing.tempPriceMaxInput"
                       type="number"
                       :min="listing.priceMinLimit"
                       :max="listing.priceMaxLimit"
-                      class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary"
+                      class="w-full rounded-lg border border-border-strong px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-primary"
                       @blur="listing.updatePriceFromInput"
                     />
-                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">€</span>
+                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-subtle">€</span>
                   </div>
                 </div>
               </div>
-              <!-- <p class="text-sm text-gray-600">
+              <!-- <p class="text-sm text-muted">
                 {{ listing.getDraftFilteredCount() }} résultat{{
                   listing.getDraftFilteredCount() > 1 ? 's' : ''
                 }}
@@ -170,7 +170,7 @@
           </section>
 
           <!-- Diamètre du boîtier -->
-          <section v-if="sections.caseSize" class="border-b border-gray-100">
+          <section v-if="sections.caseSize" class="border-b border-border-subtle">
             <button
               type="button"
               class="flex w-full items-center justify-between gap-2 py-4 text-left"
@@ -186,13 +186,13 @@
                 </span>
               </span>
               <ChevronDown
-                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                class="h-5 w-5 shrink-0 text-subtle transition-transform"
                 :class="{ 'rotate-180': expanded.caseSize }"
                 :stroke-width="2"
               />
             </button>
             <div v-show="expanded.caseSize" class="pb-4">
-              <p v-if="listing.availableCaseSizes.length === 0" class="text-sm text-gray-500">
+              <p v-if="listing.availableCaseSizes.length === 0" class="text-sm text-subtle">
                 Aucun diamètre renseigné sur les montres en stock.
               </p>
               <div v-else class="flex flex-wrap gap-2">
@@ -204,7 +204,7 @@
                   :class="
                     listing.tempSelectedCaseSizes.includes(size)
                       ? 'border-primary bg-primary text-white'
-                      : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                      : 'border-border-strong bg-white text-text-main hover:border-primary'
                   "
                   @click="listing.toggleCaseSize(size)"
                 >
@@ -215,7 +215,7 @@
           </section>
 
           <!-- Couleur du bracelet -->
-          <section v-if="sections.braceletColor" class="border-b border-gray-100">
+          <section v-if="sections.braceletColor" class="border-b border-border-subtle">
             <button
               type="button"
               class="flex w-full items-center justify-between gap-2 py-4 text-left"
@@ -231,7 +231,7 @@
                 </span>
               </span>
               <ChevronDown
-                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                class="h-5 w-5 shrink-0 text-subtle transition-transform"
                 :class="{ 'rotate-180': expanded.braceletColor }"
                 :stroke-width="2"
               />
@@ -239,7 +239,7 @@
             <div v-show="expanded.braceletColor" class="pb-4">
               <p
                 v-if="listing.availableBraceletColors.length === 0"
-                class="text-sm text-gray-500"
+                class="text-sm text-subtle"
               >
                 Aucune couleur de bracelet renseignée sur les montres en stock.
               </p>
@@ -283,7 +283,7 @@
           </section>
 
           <!-- Matière du bracelet -->
-          <section v-if="sections.braceletMaterial" class="border-b border-gray-100">
+          <section v-if="sections.braceletMaterial" class="border-b border-border-subtle">
             <button
               type="button"
               class="flex w-full items-center justify-between gap-2 py-4 text-left"
@@ -299,7 +299,7 @@
                 </span>
               </span>
               <ChevronDown
-                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                class="h-5 w-5 shrink-0 text-subtle transition-transform"
                 :class="{ 'rotate-180': expanded.braceletMaterial }"
                 :stroke-width="2"
               />
@@ -307,7 +307,7 @@
             <div v-show="expanded.braceletMaterial" class="pb-4">
               <p
                 v-if="listing.availableBraceletMaterials.length === 0"
-                class="text-sm text-gray-500"
+                class="text-sm text-subtle"
               >
                 Aucune matière de bracelet renseignée sur les montres en stock.
               </p>
@@ -320,7 +320,7 @@
                   :class="
                     listing.tempSelectedBraceletMaterials.includes(material.slug)
                       ? 'border-primary bg-primary text-white'
-                      : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                      : 'border-border-strong bg-white text-text-main hover:border-primary'
                   "
                   @click="listing.toggleBraceletMaterial(material.slug)"
                 >
@@ -331,7 +331,7 @@
           </section>
 
           <!-- Public -->
-          <section v-if="sections.audience" class="border-b border-gray-100">
+          <section v-if="sections.audience" class="border-b border-border-subtle">
             <button
               type="button"
               class="flex w-full items-center justify-between gap-2 py-4 text-left"
@@ -347,7 +347,7 @@
                 </span>
               </span>
               <ChevronDown
-                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                class="h-5 w-5 shrink-0 text-subtle transition-transform"
                 :class="{ 'rotate-180': expanded.audience }"
                 :stroke-width="2"
               />
@@ -361,7 +361,7 @@
                 :class="
                   listing.tempAudience === opt.id
                     ? 'border-primary bg-primary text-white'
-                    : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                    : 'border-border-strong bg-white text-text-main hover:border-primary'
                 "
                 @click="listing.tempAudience = opt.id"
               >
@@ -371,7 +371,7 @@
           </section>
 
           <!-- Promotion -->
-          <section v-if="sections.promotion" class="border-b border-gray-100">
+          <section v-if="sections.promotion" class="border-b border-border-subtle">
             <button
               type="button"
               class="flex w-full items-center justify-between gap-2 py-4 text-left"
@@ -387,7 +387,7 @@
                 </span>
               </span>
               <ChevronDown
-                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                class="h-5 w-5 shrink-0 text-subtle transition-transform"
                 :class="{ 'rotate-180': expanded.promotion }"
                 :stroke-width="2"
               />
@@ -401,7 +401,7 @@
                 :class="
                   listing.tempPromotionOnly === opt.id
                     ? 'border-primary bg-primary text-white'
-                    : 'border-gray-300 bg-white text-text-main hover:border-primary'
+                    : 'border-border-strong bg-white text-text-main hover:border-primary'
                 "
                 @click="listing.tempPromotionOnly = opt.id"
               >
@@ -412,7 +412,7 @@
         </div>
 
         <footer
-          class="flex shrink-0 gap-3 border-t border-gray-200 bg-white px-4 py-4 safe-area-pb"
+          class="flex shrink-0 gap-3 border-t border-border-subtle bg-white px-4 py-4 safe-area-pb"
         >
           <button
             type="button"

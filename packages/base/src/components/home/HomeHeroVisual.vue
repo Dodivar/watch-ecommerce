@@ -108,7 +108,7 @@ onUnmounted(() => {
             <stop offset="100%" stop-color="#a88455" />
           </linearGradient>
           <filter id="hero-dial-shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#0f2a1d" flood-opacity="0.18" />
+            <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000000" flood-opacity="0.45" />
           </filter>
         </defs>
 
@@ -188,12 +188,13 @@ onUnmounted(() => {
   animation: hero-drift 28s ease-in-out infinite;
 }
 
+/* Halos posés sur le vert du héros : lumière chaude, pas de tache sombre. */
 .hero-visual__ambient--one {
   top: -8%;
   right: -6%;
   width: min(52vw, 520px);
   height: min(52vw, 520px);
-  background: radial-gradient(circle, rgba(201, 168, 118, 0.28) 0%, transparent 68%);
+  background: radial-gradient(circle, rgba(201, 168, 118, 0.22) 0%, transparent 68%);
 }
 
 .hero-visual__ambient--two {
@@ -201,7 +202,8 @@ onUnmounted(() => {
   right: 18%;
   width: min(44vw, 440px);
   height: min(44vw, 440px);
-  background: radial-gradient(circle, rgba(15, 42, 29, 0.16) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--color-primary-soft) 0%, transparent 70%);
+  opacity: 0.4;
   animation-delay: -9s;
 }
 
@@ -210,17 +212,17 @@ onUnmounted(() => {
   left: 42%;
   width: min(36vw, 360px);
   height: min(36vw, 360px);
-  background: radial-gradient(circle, rgba(247, 237, 224, 0.95) 0%, transparent 72%);
+  background: radial-gradient(circle, rgba(247, 237, 224, 0.16) 0%, transparent 72%);
   animation-delay: -16s;
 }
 
 .hero-visual__grid {
   position: absolute;
   inset: 0;
-  opacity: 0.35;
+  opacity: 0.4;
   background-image:
-    linear-gradient(rgba(15, 42, 29, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 42, 29, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
   background-size: 72px 72px;
   mask-image: radial-gradient(circle at 72% 50%, black 12%, transparent 72%);
 }
@@ -240,7 +242,7 @@ onUnmounted(() => {
 .hero-visual__orbit--inner {
   width: min(58vw, 500px);
   right: min(14vw, 150px);
-  border-color: rgba(15, 42, 29, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
   animation-direction: reverse;
   animation-duration: 36s;
 }
@@ -260,7 +262,7 @@ onUnmounted(() => {
 .hero-visual__orbit-dot--small {
   width: 5px;
   height: 5px;
-  background: rgba(15, 42, 29, 0.45);
+  background: rgba(255, 255, 255, 0.55);
   box-shadow: none;
 }
 
@@ -323,7 +325,7 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.45);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.65),
-    0 24px 60px rgba(15, 42, 29, 0.12);
+    0 24px 70px rgba(0, 0, 0, 0.35);
 }
 
 .hero-visual__particles {

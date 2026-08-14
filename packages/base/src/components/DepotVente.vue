@@ -18,7 +18,7 @@ onMounted(() => {
       <h1 class="text-4xl font-bold text-text-main mb-8 text-center">Dépôt-Vente de montres</h1>
 
       <div class="prose-lg max-w-none">
-        <p class="text-xl text-gray-600 mb-8 text-center">
+        <p class="text-xl text-muted mb-8 text-center">
           Confiez-nous votre montre et bénéficiez de notre expertise pour une vente optimale
         </p>
 
@@ -80,7 +80,7 @@ onMounted(() => {
             <h3 class="text-xl font-semibold text-text-main mb-4">
               Le processus en quelques étapes :
             </h3>
-            <ol class="list-decimal list-inside space-y-3 text-gray-700">
+            <ol class="list-decimal list-inside space-y-3 text-text-main/85">
               <li>Estimation gratuite et confidentielle de votre montre</li>
               <li>Proposition d'un prix de vente conseillé</li>
               <li>Mise en place du dépôt-vente avec contrat détaillé</li>
@@ -95,7 +95,7 @@ onMounted(() => {
           <h2 class="text-2xl font-semibold text-text-main mb-6">
             Prêt à nous confier votre montre ?
           </h2>
-          <p class="text-lg text-gray-600 mb-8">
+          <p class="text-lg text-muted mb-8">
             Contactez-nous dès maintenant pour une estimation gratuite et sans engagement
           </p>
 

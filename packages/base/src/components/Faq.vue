@@ -1,5 +1,9 @@
 <template>
-  <section :id="asPage ? undefined : 'faq'" :class="asPage ? 'py-10 lg:py-14' : 'py-12'">
+  <!-- En bas de page d'accueil : transition blanc → beige avant le pied vert. -->
+  <section
+    :id="asPage ? undefined : 'faq'"
+    :class="asPage ? 'py-10 lg:py-14' : 'surface-fade-to-sand py-16'"
+  >
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
         <component
@@ -9,18 +13,22 @@
         >
           {{ heading }}
         </component>
-        <p v-if="subheading" class="text-xl text-gray-600">{{ subheading }}</p>
+        <p v-if="subheading" class="text-lg text-muted">{{ subheading }}</p>
       </div>
-      <div class="space-y-2">
-        <div v-for="item in faqItems" :key="item.id" class="bg-white rounded-md shadow-sm">
+      <div class="space-y-3">
+        <div
+          v-for="item in faqItems"
+          :key="item.id"
+          class="card-quiet rounded-md overflow-hidden"
+        >
           <button
             class="w-full text-left p-6 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset faq-button"
             @click="toggleFaq(item.id)"
           >
-            <div class="flex justify-between items-center">
-              <h3 class="text-lg font-semibold">{{ item.question }}</h3>
+            <div class="flex justify-between items-center gap-4">
+              <h3 class="text-lg font-semibold text-text-main">{{ item.question }}</h3>
               <ChevronDown
-                class="h-5 w-5 transform transition-transform duration-300 ease-out"
+                class="h-5 w-5 shrink-0 text-primary transform transition-transform duration-300 ease-out"
                 :class="{ 'rotate-180': activeFaqId === item.id }"
                 :stroke-width="2"
               />

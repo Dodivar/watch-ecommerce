@@ -96,7 +96,7 @@ const inputClasses =
   <button
     v-if="isHeaderTrigger"
     type="button"
-    class="p-2 rounded-lg text-text-main hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+    class="p-2 rounded-lg text-primary transition-colors hover:bg-primary-tint focus:outline-none focus:ring-2 focus:ring-primary"
     :aria-label="open ? 'Fermer la recherche' : 'Ouvrir la recherche'"
     :aria-expanded="open ? 'true' : 'false'"
     aria-controls="header-catalog-search-panel"
@@ -118,7 +118,7 @@ const inputClasses =
       v-if="open"
       id="header-catalog-search-panel"
       ref="panelRef"
-      class="absolute left-0 right-0 top-full z-30 border-t border-gray-200 bg-white shadow-md"
+      class="absolute left-0 right-0 top-full z-30 border-t border-border-subtle bg-white shadow-md"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <form class="flex items-center gap-2" role="search" @submit.prevent="submitSearch">
@@ -131,13 +131,13 @@ const inputClasses =
             name="q"
             autocomplete="off"
             placeholder="Rechercher marque, modèle, référence…"
-            :class="[inputClasses, isInvalid ? 'border-red-400' : 'border-gray-300']"
+            :class="[inputClasses, isInvalid ? 'border-red-400' : 'border-border-strong']"
             :aria-invalid="isInvalid ? 'true' : 'false'"
             @input="isInvalid = false"
           />
           <button
             type="button"
-            class="shrink-0 p-2 rounded-lg text-text-main hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            class="shrink-0 p-2 rounded-lg text-primary transition-colors hover:bg-primary-tint focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Fermer la recherche"
             @click="closePanel"
           >
@@ -164,7 +164,7 @@ const inputClasses =
       placeholder="Rechercher marque, modèle, référence…"
       :class="[
         inputClasses,
-        isInvalid ? 'border-red-400' : 'border-gray-300',
+        isInvalid ? 'border-red-400' : 'border-border-strong',
         'py-3 text-base',
       ]"
       :aria-invalid="isInvalid ? 'true' : 'false'"

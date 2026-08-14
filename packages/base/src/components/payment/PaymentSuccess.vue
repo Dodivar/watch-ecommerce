@@ -102,8 +102,8 @@
       </div>
 
       <!-- Success Message -->
-      <h1 class="text-3xl font-bold text-gray-900 mb-4">Paiement réussi !</h1>
-      <p class="text-lg text-gray-600 mb-6">
+      <h1 class="text-3xl font-bold text-text-main mb-4">Paiement réussi !</h1>
+      <p class="text-lg text-muted mb-6">
         Merci pour votre achat. Votre commande a été confirmée avec succès.
       </p>
 
@@ -124,7 +124,7 @@
 
       <!-- Watch Image - Display -->
       <div v-else-if="displayWatches.length > 0" class="mb-6 space-y-6">
-        <h2 v-if="displayWatches.length > 1" class="text-xl font-semibold text-gray-900 text-center mb-2">
+        <h2 v-if="displayWatches.length > 1" class="text-xl font-semibold text-text-main text-center mb-2">
           Vos montres
         </h2>
         <div
@@ -132,7 +132,7 @@
           :key="w.id"
           class="bg-white rounded-xl p-6 shadow-lg"
         >
-          <h3 v-if="displayWatches.length === 1" class="text-xl font-semibold text-gray-900 mb-4 text-center">
+          <h3 v-if="displayWatches.length === 1" class="text-xl font-semibold text-text-main mb-4 text-center">
             Votre montre
           </h3>
           <div v-if="w.images && w.images.length > 0" class="flex flex-col sm:flex-row items-center gap-6">
@@ -145,16 +145,16 @@
               />
             </div>
             <div class="flex-1 text-left w-full">
-              <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ w.name }}</h3>
+              <h3 class="text-2xl font-bold text-text-main mb-2">{{ w.name }}</h3>
               <p v-if="w.reference" class="text-lg font-semibold text-primary mb-3">
                 Réf. {{ w.reference }}
               </p>
               <div class="space-y-2">
-                <p v-if="w.brand" class="text-gray-700">
-                  <span class="font-semibold text-gray-900">Marque :</span> {{ w.brand }}
+                <p v-if="w.brand" class="text-text-main/85">
+                  <span class="font-semibold text-text-main">Marque :</span> {{ w.brand }}
                 </p>
-                <p v-if="w.model" class="text-gray-700">
-                  <span class="font-semibold text-gray-900">Modèle :</span> {{ w.model }}
+                <p v-if="w.model" class="text-text-main/85">
+                  <span class="font-semibold text-text-main">Modèle :</span> {{ w.model }}
                 </p>
                 <p v-if="w.price" class="text-lg font-bold text-primary mt-3">
                   {{ new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(w.price) }}
@@ -176,20 +176,20 @@
 
       <!-- Order Details -->
       <div v-if="sessionId || watchId || displayWatches.length" class="bg-white rounded-lg p-6 mb-6 shadow-lg">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Détails de la commande</h2>
+        <h2 class="text-xl font-semibold text-text-main mb-4">Détails de la commande</h2>
         <div class="space-y-3 text-left">
           <div
             v-for="w in displayWatches"
             :key="'ord-' + w.id"
-            class="pb-3 border-b border-gray-200 last:border-0 last:pb-0"
+            class="pb-3 border-b border-border-subtle last:border-0 last:pb-0"
           >
-            <span class="text-gray-600 block mb-1">Montre :</span>
-            <span class="font-semibold text-lg text-gray-900">{{ w.name }}</span>
-            <p v-if="w.reference" class="text-sm text-gray-600 mt-1">Réf. {{ w.reference }}</p>
+            <span class="text-muted block mb-1">Montre :</span>
+            <span class="font-semibold text-lg text-text-main">{{ w.name }}</span>
+            <p v-if="w.reference" class="text-sm text-muted mt-1">Réf. {{ w.reference }}</p>
           </div>
           <div v-if="sessionId" class="flex justify-between pt-2">
-            <span class="text-gray-600">Référence de paiement :</span>
-            <span class="font-medium text-gray-900 text-right break-all max-w-[60%]">{{ sessionId }}</span>
+            <span class="text-muted">Référence de paiement :</span>
+            <span class="font-medium text-text-main text-right break-all max-w-[60%]">{{ sessionId }}</span>
           </div>
         </div>
       </div>
@@ -221,7 +221,7 @@
         </router-link>
         <router-link
           to="/"
-          class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-cream transition-colors duration-200"
+          class="inline-flex items-center justify-center px-6 py-3 border border-border-strong text-base font-medium rounded-lg text-text-main/85 bg-white hover:bg-cream transition-colors duration-200"
         >
           Retour à l'accueil
         </router-link>

@@ -888,8 +888,8 @@ onUnmounted(() => {
 <template>
   <section class="min-h-screen bg-cream py-8 px-4 sm:py-10">
     <div class="max-w-6xl mx-auto">
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Finaliser la commande</h1>
-      <p class="text-gray-600 mb-6 text-sm sm:text-base">
+      <h1 class="text-2xl sm:text-3xl font-bold text-text-main mb-1">Finaliser la commande</h1>
+      <p class="text-muted mb-6 text-sm sm:text-base">
         Paiement sécurisé par carte bancaire.
       </p>
 
@@ -902,12 +902,12 @@ onUnmounted(() => {
         aria-label="Préparation de la commande"
       >
         <div class="order-1 lg:order-2">
-          <aside class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-6">
+          <aside class="bg-white rounded-lg shadow-sm border border-border-subtle p-6 space-y-6">
             <ul v-if="items.length" class="space-y-4">
               <li v-for="item in items" :key="item.watchId" class="flex gap-3">
                 <div class="relative shrink-0">
                   <div
-                    class="h-16 w-16 overflow-hidden rounded-lg bg-gray-200 border border-gray-100"
+                    class="h-16 w-16 overflow-hidden rounded-lg bg-gray-200 border border-border-subtle"
                   />
                   <span
                     class="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-gray-300 px-1 text-xs font-medium text-white"
@@ -918,7 +918,7 @@ onUnmounted(() => {
                 <div class="min-w-0 flex-1 flex justify-between gap-2">
                   <div class="min-w-0 space-y-2 flex-1">
                     <div class="h-4 bg-gray-200 rounded w-4/5" />
-                    <div class="h-3 bg-gray-100 rounded w-1/3" />
+                    <div class="h-3 bg-cream-100 rounded w-1/3" />
                   </div>
                   <div class="h-4 w-16 bg-gray-200 rounded shrink-0" />
                 </div>
@@ -929,14 +929,14 @@ onUnmounted(() => {
                 <div class="h-16 w-16 rounded-lg bg-gray-200 shrink-0" />
                 <div class="flex-1 space-y-2">
                   <div class="h-4 bg-gray-200 rounded w-3/4" />
-                  <div class="h-3 bg-gray-100 rounded w-1/2" />
+                  <div class="h-3 bg-cream-100 rounded w-1/2" />
                 </div>
               </div>
             </div>
-            <div class="h-10 bg-gray-100 rounded-lg" />
-            <div class="border-t border-gray-200 pt-4 space-y-3">
+            <div class="h-10 bg-cream-100 rounded-lg" />
+            <div class="border-t border-border-subtle pt-4 space-y-3">
               <div v-for="n in 4" :key="n" class="flex justify-between gap-4">
-                <div class="h-4 bg-gray-100 rounded w-24" />
+                <div class="h-4 bg-cream-100 rounded w-24" />
                 <div class="h-4 bg-gray-200 rounded w-16" />
               </div>
               <div class="flex justify-between items-baseline pt-2">
@@ -948,29 +948,29 @@ onUnmounted(() => {
         </div>
 
         <div class="order-2 lg:order-1 space-y-6">
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-8">
+          <div class="bg-white rounded-lg shadow-sm border border-border-subtle p-6 space-y-8">
             <section class="space-y-4">
               <div class="h-6 bg-gray-200 rounded w-24" />
-              <div class="h-10 bg-gray-100 rounded-lg" />
+              <div class="h-10 bg-cream-100 rounded-lg" />
               <div class="grid sm:grid-cols-2 gap-4">
-                <div class="h-10 bg-gray-100 rounded-lg" />
-                <div class="h-10 bg-gray-100 rounded-lg" />
+                <div class="h-10 bg-cream-100 rounded-lg" />
+                <div class="h-10 bg-cream-100 rounded-lg" />
               </div>
-              <div class="h-10 bg-gray-100 rounded-lg" />
+              <div class="h-10 bg-cream-100 rounded-lg" />
             </section>
             <section class="space-y-4">
               <div class="h-6 bg-gray-200 rounded w-28" />
-              <div class="h-10 bg-gray-100 rounded-lg" />
-              <div class="h-10 bg-gray-100 rounded-lg" />
+              <div class="h-10 bg-cream-100 rounded-lg" />
+              <div class="h-10 bg-cream-100 rounded-lg" />
               <div class="grid sm:grid-cols-3 gap-4">
-                <div class="h-10 bg-gray-100 rounded-lg" />
-                <div class="sm:col-span-2 h-10 bg-gray-100 rounded-lg" />
+                <div class="h-10 bg-cream-100 rounded-lg" />
+                <div class="sm:col-span-2 h-10 bg-cream-100 rounded-lg" />
               </div>
             </section>
           </div>
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-4">
+          <div class="bg-white rounded-lg shadow-sm border border-border-subtle p-6 space-y-4">
             <div class="h-6 bg-gray-200 rounded w-20" />
-            <div class="h-24 bg-gray-100 rounded-lg" />
+            <div class="h-24 bg-cream-100 rounded-lg" />
             <div class="h-12 bg-gray-200 rounded-lg" />
           </div>
         </div>
@@ -1001,11 +1001,11 @@ onUnmounted(() => {
 
         <!-- Formulaire -->
         <div class="order-2 lg:order-1 space-y-6">
-          <form class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-8">
+          <form class="bg-white rounded-lg shadow-sm border border-border-subtle p-6 space-y-8">
             <section ref="contactSectionRef" class="space-y-4">
-              <h2 class="font-semibold text-lg text-gray-900">Contact</h2>
+              <h2 class="font-semibold text-lg text-text-main">Contact</h2>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <label class="block text-sm font-medium text-text-main/85 mb-1">Email *</label>
                 <input
                   v-model="email"
                   type="email"
@@ -1017,7 +1017,7 @@ onUnmounted(() => {
               </div>
               <div class="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+                  <label class="block text-sm font-medium text-text-main/85 mb-1">Prénom *</label>
                   <input
                     v-model="billing.firstName"
                     required
@@ -1027,7 +1027,7 @@ onUnmounted(() => {
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+                  <label class="block text-sm font-medium text-text-main/85 mb-1">Nom *</label>
                   <input
                     v-model="billing.lastName"
                     required
@@ -1038,7 +1038,7 @@ onUnmounted(() => {
                 </div>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                <label class="block text-sm font-medium text-text-main/85 mb-1">Téléphone</label>
                 <input
                   v-model="phone"
                   type="tel"
@@ -1050,7 +1050,7 @@ onUnmounted(() => {
 
               <label
                 v-if="site.features.newsletter"
-                class="flex items-start gap-2 text-sm text-gray-600 cursor-pointer"
+                class="flex items-start gap-2 text-sm text-muted cursor-pointer"
               >
                 <input v-model="newsletterOptIn" type="checkbox" class="mt-1 shrink-0" />
                 <span>
@@ -1061,21 +1061,21 @@ onUnmounted(() => {
             </section>
 
             <section ref="shippingSectionRef" class="space-y-4">
-              <h2 class="font-semibold text-lg text-gray-900">
+              <h2 class="font-semibold text-lg text-text-main">
                 {{ isPickup ? 'Retrait en boutique' : 'Livraison' }}
               </h2>
 
               <div
                 v-if="showFulfillmentToggle"
-                class="grid grid-cols-2 gap-0 rounded-lg border border-gray-300 overflow-hidden"
+                class="grid grid-cols-2 gap-0 rounded-lg border border-border-strong overflow-hidden"
               >
                 <button
                   type="button"
                   class="flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors"
                   :class="
                     fulfillmentMode === 'home'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-50'
+                      ? 'bg-white text-text-main shadow-sm'
+                      : 'bg-cream-100 text-muted hover:bg-cream'
                   "
                   @click="fulfillmentMode = 'home'"
                 >
@@ -1084,11 +1084,11 @@ onUnmounted(() => {
                 </button>
                 <button
                   type="button"
-                  class="flex items-center justify-center gap-2 py-3 text-sm font-medium border-l border-gray-300 transition-colors"
+                  class="flex items-center justify-center gap-2 py-3 text-sm font-medium border-l border-border-strong transition-colors"
                   :class="
                     fulfillmentMode === 'pickup'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-50'
+                      ? 'bg-white text-text-main shadow-sm'
+                      : 'bg-cream-100 text-muted hover:bg-cream'
                   "
                   @click="fulfillmentMode = 'pickup'"
                 >
@@ -1099,7 +1099,7 @@ onUnmounted(() => {
 
               <template v-if="isHomeDelivery">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
+                  <label class="block text-sm font-medium text-text-main/85 mb-1">Pays *</label>
                   <select
                     v-model="shippingAddress.country"
                     :class="CHECKOUT_FIELD_CLASS"
@@ -1114,7 +1114,7 @@ onUnmounted(() => {
                   </select>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
+                  <label class="block text-sm font-medium text-text-main/85 mb-1">Adresse *</label>
                   <AddressAutocompleteInput
                     v-model="shippingAddress.line1"
                     :countries="allowedShippingCountries"
@@ -1124,7 +1124,7 @@ onUnmounted(() => {
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1"
+                  <label class="block text-sm font-medium text-text-main/85 mb-1"
                     >Complément d’adresse</label
                   >
                   <input
@@ -1136,7 +1136,7 @@ onUnmounted(() => {
                 </div>
                 <div class="grid sm:grid-cols-3 gap-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1"
+                    <label class="block text-sm font-medium text-text-main/85 mb-1"
                       >Code postal *</label
                     >
                     <input
@@ -1148,7 +1148,7 @@ onUnmounted(() => {
                     />
                   </div>
                   <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+                    <label class="block text-sm font-medium text-text-main/85 mb-1">Ville *</label>
                     <input
                       v-model="shippingAddress.city"
                       required
@@ -1169,9 +1169,9 @@ onUnmounted(() => {
                 />
 
                 <div class="space-y-4 pt-2">
-                  <h3 class="font-medium text-gray-900">Adresse de facturation</h3>
+                  <h3 class="font-medium text-text-main">Adresse de facturation</h3>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
+                    <label class="block text-sm font-medium text-text-main/85 mb-1">Pays *</label>
                     <select v-model="billingAddress.country" :class="CHECKOUT_FIELD_CLASS">
                       <option
                         v-for="code in allowedShippingCountries"
@@ -1183,7 +1183,7 @@ onUnmounted(() => {
                     </select>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
+                    <label class="block text-sm font-medium text-text-main/85 mb-1">Adresse *</label>
                     <AddressAutocompleteInput
                       v-model="billingAddress.line1"
                       :countries="allowedShippingCountries"
@@ -1193,7 +1193,7 @@ onUnmounted(() => {
                     />
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1"
+                    <label class="block text-sm font-medium text-text-main/85 mb-1"
                       >Complément d’adresse</label
                     >
                     <input
@@ -1205,7 +1205,7 @@ onUnmounted(() => {
                   </div>
                   <div class="grid sm:grid-cols-3 gap-4">
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-1"
+                      <label class="block text-sm font-medium text-text-main/85 mb-1"
                         >Code postal *</label
                       >
                       <input
@@ -1217,7 +1217,7 @@ onUnmounted(() => {
                       />
                     </div>
                     <div class="sm:col-span-2">
-                      <label class="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+                      <label class="block text-sm font-medium text-text-main/85 mb-1">Ville *</label>
                       <input
                         v-model="billingAddress.city"
                         required
@@ -1232,11 +1232,11 @@ onUnmounted(() => {
             </section>
 
             <section v-if="showShippingMethodSection" class="space-y-4">
-              <h2 class="font-semibold text-lg text-gray-900">Mode d’expédition</h2>
+              <h2 class="font-semibold text-lg text-text-main">Mode d’expédition</h2>
 
               <p
                 v-if="isHomeDelivery && !shippingAddressComplete"
-                class="flex items-start gap-2 text-sm text-gray-500"
+                class="flex items-start gap-2 text-sm text-subtle"
               >
                 <Info class="h-4 w-4 shrink-0 mt-0.5" :stroke-width="1.5" aria-hidden="true" />
                 <span
@@ -1295,7 +1295,7 @@ onUnmounted(() => {
                     :class="
                       selectedMethodId === method.id
                         ? 'border-primary bg-cream'
-                        : 'border-gray-200'
+                        : 'border-border-subtle'
                     "
                   >
                     <input
@@ -1306,7 +1306,7 @@ onUnmounted(() => {
                     />
                     <span class="min-w-0 flex-1">
                       <span class="font-medium block">{{ method.label }}</span>
-                      <span v-if="method.estimatedDays" class="text-xs text-gray-500 block">{{
+                      <span v-if="method.estimatedDays" class="text-xs text-subtle block">{{
                         method.estimatedDays
                       }}</span>
                     </span>
@@ -1318,18 +1318,18 @@ onUnmounted(() => {
 
           <section
             ref="paymentSectionRef"
-            class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-4"
+            class="bg-white rounded-lg shadow-sm border border-border-subtle p-6 space-y-4"
           >
             <div>
-              <h2 class="font-semibold text-lg text-gray-900">Paiement</h2>
-              <p class="text-sm text-gray-500 mt-1">
+              <h2 class="font-semibold text-lg text-text-main">Paiement</h2>
+              <p class="text-sm text-subtle mt-1">
                 Toutes les transactions sont sécurisées et chiffrées.
               </p>
             </div>
 
             <p
               v-if="!canConfirmPayment"
-              class="text-sm text-gray-500"
+              class="text-sm text-subtle"
             >
               Complétez vos informations de livraison pour afficher le montant final.
               <button
@@ -1380,7 +1380,7 @@ onUnmounted(() => {
 
             <div
               v-if="paymentLoading && !stripeReady"
-              class="text-sm text-gray-500 py-6 text-center"
+              class="text-sm text-subtle py-6 text-center"
             >
               Préparation du paiement sécurisé…
             </div>
@@ -1410,7 +1410,7 @@ onUnmounted(() => {
 
           <button
             type="button"
-            class="text-sm text-gray-600 underline"
+            class="text-sm text-muted underline"
             @click="onCancelCheckout"
           >
             Annuler et retourner à la boutique

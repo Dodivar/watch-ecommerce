@@ -46,7 +46,7 @@ const shippingLabel = computed(() => {
 </script>
 
 <template>
-  <aside class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-6">
+  <aside class="bg-white rounded-lg shadow-sm border border-border-subtle p-6 space-y-6">
     <ul v-if="orderLines.length" class="space-y-4">
       <li
         v-for="line in orderLines"
@@ -55,7 +55,7 @@ const shippingLabel = computed(() => {
       >
         <div class="relative shrink-0">
           <div
-            class="h-16 w-16 overflow-hidden rounded-lg bg-cream-100 flex items-center justify-center border border-gray-100"
+            class="h-16 w-16 overflow-hidden rounded-lg bg-cream-100 flex items-center justify-center border border-border-subtle"
           >
             <img
               v-if="line.imageUrl"
@@ -63,7 +63,7 @@ const shippingLabel = computed(() => {
               :alt="line.name"
               class="h-full w-full object-cover"
             />
-            <Clock v-else class="h-7 w-7 text-gray-400" :stroke-width="1.5" />
+            <Clock v-else class="h-7 w-7 text-subtle" :stroke-width="1.5" />
           </div>
           <span
             class="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-medium text-white"
@@ -73,14 +73,14 @@ const shippingLabel = computed(() => {
         </div>
         <div class="min-w-0 flex-1 flex justify-between gap-2">
           <div class="min-w-0">
-            <p class="text-sm font-medium text-gray-900 leading-snug line-clamp-2">
+            <p class="text-sm font-medium text-text-main leading-snug line-clamp-2">
               {{ line.name }}
             </p>
-            <p v-if="line.reference" class="text-xs text-gray-500 mt-0.5">
+            <p v-if="line.reference" class="text-xs text-subtle mt-0.5">
               Réf. {{ line.reference }}
             </p>
           </div>
-          <p class="text-sm font-medium text-gray-900 whitespace-nowrap shrink-0">
+          <p class="text-sm font-medium text-text-main whitespace-nowrap shrink-0">
             {{ formatPrice(line.unitPriceCents * line.quantity) }}
           </p>
         </div>
@@ -97,7 +97,7 @@ const shippingLabel = computed(() => {
       />
       <button
         type="button"
-        class="shrink-0 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+        class="shrink-0 px-4 py-2 border border-border-strong rounded-lg text-sm font-medium text-text-main/85 hover:bg-cream disabled:opacity-50"
         :disabled="promoLoading"
         @click="emit('apply-promo')"
       >
@@ -110,7 +110,7 @@ const shippingLabel = computed(() => {
       :class="
         promoMessageType === 'success'
           ? 'text-green-700'
-          : 'text-gray-500'
+          : 'text-subtle'
       "
     >
       {{ promoMessage }}
@@ -118,22 +118,22 @@ const shippingLabel = computed(() => {
     <button
       v-if="quote?.discountCents > 0"
       type="button"
-      class="text-sm text-gray-600 underline -mt-4"
+      class="text-sm text-muted underline -mt-4"
       @click="emit('remove-promo')"
     >
       Retirer le code
     </button>
 
-    <div v-if="quote" class="border-t border-gray-200 pt-4 space-y-2 text-sm">
-      <div class="flex justify-between text-gray-700">
+    <div v-if="quote" class="border-t border-border-subtle pt-4 space-y-2 text-sm">
+      <div class="flex justify-between text-text-main/85">
         <span>Sous-total</span>
         <span>{{ formatPrice(quote.subtotalCents) }}</span>
       </div>
-      <div class="flex justify-between text-gray-700 gap-4">
+      <div class="flex justify-between text-text-main/85 gap-4">
         <span>{{ shippingLineLabel }}</span>
         <span
           class="text-right"
-          :class="shippingQuoteReady ? 'text-gray-900' : 'text-gray-500 text-xs max-w-[10rem]'"
+          :class="shippingQuoteReady ? 'text-text-main' : 'text-subtle text-xs max-w-[10rem]'"
         >
           {{ shippingQuoteReady ? shippingLabel : shippingPendingLabel }}
         </span>
@@ -146,12 +146,12 @@ const shippingLabel = computed(() => {
         <span>-{{ formatPrice(quote.discountCents) }}</span>
       </div>
       <div class="flex justify-between items-baseline pt-2">
-        <span class="text-lg font-semibold text-gray-900">Total</span>
-        <span class="text-lg font-semibold text-gray-900">
+        <span class="text-lg font-semibold text-text-main">Total</span>
+        <span class="text-lg font-semibold text-text-main">
           EUR {{ formatPrice(quote.totalCents) }}
         </span>
       </div>
-      <p v-if="quote.totalCents > 0" class="text-xs text-gray-500 text-right">
+      <p v-if="quote.totalCents > 0" class="text-xs text-subtle text-right">
         Taxes de {{ formatPrice(taxCents) }} incluses
       </p>
     </div>

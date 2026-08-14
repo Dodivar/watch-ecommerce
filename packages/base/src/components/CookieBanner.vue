@@ -56,9 +56,9 @@ function onSaveCustomize() {
     v-if="open"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 md:items-end md:justify-end md:p-4 md:pointer-events-none"
   >
-    <div class="absolute inset-0 bg-black/55 md:hidden" aria-hidden="true" />
+    <div class="scrim absolute inset-0 md:hidden" aria-hidden="true" />
     <div
-      class="relative w-full max-w-lg min-h-[280px] max-h-[min(90vh,640px)] overflow-y-auto rounded-xl border border-gray-100 bg-white p-6 shadow-2xl md:max-w-md md:pointer-events-auto"
+      class="relative w-full max-w-lg min-h-[280px] max-h-[min(90vh,640px)] overflow-y-auto rounded-xl border border-border-subtle bg-white p-6 shadow-2xl md:max-w-md md:pointer-events-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="cookie-banner-title"
@@ -88,7 +88,7 @@ function onSaveCustomize() {
         </button>
         <button
           type="button"
-          class="order-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-center text-sm font-semibold text-text-main transition-colors hover:bg-gray-50 sm:w-auto sm:px-5"
+          class="order-2 w-full rounded-lg border border-border-strong bg-white px-4 py-3 text-center text-sm font-semibold text-text-main transition-colors hover:bg-cream sm:w-auto sm:px-5"
           @click="onRefuse"
         >
           Tout refuser
@@ -102,13 +102,13 @@ function onSaveCustomize() {
         </button>
       </div>
 
-      <div v-else class="mt-6 space-y-4 border-t border-gray-100 pt-6">
+      <div v-else class="mt-6 space-y-4 border-t border-border-subtle pt-6">
         <p class="text-sm font-medium text-text-main">Préférences</p>
-        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-100 bg-gray-50/80 p-4">
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-border-subtle bg-cream/80 p-4">
           <input
             v-model="analyticsChoice"
             type="checkbox"
-            class="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            class="mt-1 h-4 w-4 rounded border-border-strong text-primary focus:ring-primary"
           />
           <span class="text-sm leading-snug text-text-main">
             <span class="font-semibold text-primary">Mesure d’audience</span>

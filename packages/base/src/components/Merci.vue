@@ -34,7 +34,7 @@ onMounted(() => {
         />
       </svg>
       <h1 class="text-3xl font-bold text-text-main mb-4">Merci pour votre demande !</h1>
-      <p class="text-lg text-gray-600 mb-6">
+      <p class="text-lg text-muted mb-6">
         {{
           $route.query.from == 'estimation'
             ? "Nous avons bien reçu votre demande d'estimation. Un membre de notre équipe vous contactera sous 24h pour répondre à votre demande."
@@ -49,7 +49,7 @@ onMounted(() => {
       >
         Retour à l'accueil
       </a>
-      <p class="mt-8 text-sm text-gray-400">Redirection dans {{ countdown }} secondes...</p>
+      <p class="mt-8 text-sm text-subtle">Redirection dans {{ countdown }} secondes...</p>
     </div>
   </section>
 </template>

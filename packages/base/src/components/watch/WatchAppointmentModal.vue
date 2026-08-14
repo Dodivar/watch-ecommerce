@@ -213,7 +213,7 @@ onUnmounted(() => {
       aria-labelledby="appointment-modal-title"
     >
       <div
-        class="absolute inset-0 bg-black/50"
+        class="scrim absolute inset-0"
         aria-hidden="true"
         @click="onBackdropClick"
       />
@@ -222,7 +222,7 @@ onUnmounted(() => {
         class="relative w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto bg-white rounded-t-xl sm:rounded-xl shadow-2xl"
         @click.stop
       >
-        <div class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-5 py-4 rounded-t-xl">
+        <div class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border-subtle bg-white px-5 py-4 rounded-t-xl">
           <h2 id="appointment-modal-title" class="text-lg font-semibold text-text-main">
             <template v-if="modalState === 'success'">Demande envoyée</template>
             <template v-else-if="modalState === 'error'">Envoi impossible</template>
@@ -230,7 +230,7 @@ onUnmounted(() => {
           </h2>
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full text-subtle hover:bg-cream-100 hover:text-text-main/85 transition-colors"
             aria-label="Fermer"
             @click="closeModal"
           >
@@ -247,7 +247,7 @@ onUnmounted(() => {
             <p class="text-text-main font-medium">
               Votre demande de rendez-vous a bien été envoyée.
             </p>
-            <div v-if="submittedSummary" class="rounded-lg bg-cream p-4 text-left text-sm text-gray-700 space-y-1">
+            <div v-if="submittedSummary" class="rounded-lg bg-cream p-4 text-left text-sm text-text-main/85 space-y-1">
               <p><span class="font-semibold">Date :</span> {{ submittedSummary.dateLabel }}</p>
               <p><span class="font-semibold">Créneau :</span> {{ submittedSummary.timeSlotLabel }}</p>
               <p class="pt-1">
@@ -261,7 +261,7 @@ onUnmounted(() => {
                 <span v-if="storeOpeningHours.hoursLabel">{{ storeOpeningHours.hoursLabel }}</span>
               </p>
             </div>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-muted">
               Un email de confirmation vous a été envoyé. Notre équipe vous recontactera si nécessaire.
             </p>
             <button
@@ -290,7 +290,7 @@ onUnmounted(() => {
               </button>
               <button
                 type="button"
-                class="flex-1 inline-flex justify-center items-center px-6 py-3 rounded-lg bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors"
+                class="flex-1 inline-flex justify-center items-center px-6 py-3 rounded-lg bg-cream-100 text-text-main/85 font-semibold hover:bg-gray-200 transition-colors"
                 @click="closeModal"
               >
                 Fermer
@@ -300,22 +300,22 @@ onUnmounted(() => {
 
           <!-- Form -->
           <template v-else>
-            <div class="rounded-lg border border-gray-100 bg-cream/60 p-4 space-y-3">
+            <div class="rounded-lg border border-border-subtle bg-cream/60 p-4 space-y-3">
               <p class="text-sm font-semibold text-text-main">{{ brandDisplayName }}</p>
-              <div class="flex gap-2 items-start text-sm text-gray-700">
+              <div class="flex gap-2 items-start text-sm text-text-main/85">
                 <MapPin class="w-5 h-5 shrink-0 mt-0.5 text-primary" :stroke-width="2" />
                 <span v-html="site.contact.footerAddressHtml" />
               </div>
               <div
                 v-if="storeOpeningHours.hasHours"
-                class="flex gap-2 items-start text-sm text-gray-700"
+                class="flex gap-2 items-start text-sm text-text-main/85"
               >
                 <Clock class="w-5 h-5 shrink-0 mt-0.5 text-primary" :stroke-width="2" />
                 <div>
                   <p v-if="storeOpeningHours.daysLabel" class="font-medium text-text-main">
                     {{ storeOpeningHours.daysLabel }}
                   </p>
-                  <p v-if="storeOpeningHours.hoursLabel" class="text-gray-600">
+                  <p v-if="storeOpeningHours.hoursLabel" class="text-muted">
                     {{ storeOpeningHours.hoursLabel }}
                   </p>
                 </div>
@@ -415,7 +415,7 @@ onUnmounted(() => {
                     :class="
                       form.time_slot === slot.value
                         ? 'border-primary bg-primary/5 text-primary'
-                        : 'border-cream-300 text-gray-700 hover:border-primary/40'
+                        : 'border-cream-300 text-text-main/85 hover:border-primary/40'
                     "
                   >
                     <input
@@ -435,7 +435,7 @@ onUnmounted(() => {
                 {{ errorMessage }}
               </p>
 
-              <p class="text-xs text-gray-500 italic">* Champs obligatoires</p>
+              <p class="text-xs text-subtle italic">* Champs obligatoires</p>
 
               <NewsletterOptInField />
 

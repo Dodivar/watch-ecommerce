@@ -6,7 +6,7 @@
       aria-label="Fil d'Ariane"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <ol class="flex flex-wrap items-center gap-1.5 text-sm text-gray-500">
+        <ol class="flex flex-wrap items-center gap-1.5 text-sm text-subtle">
           <li>
             <RouterLink to="/" class="hover:text-primary transition-colors">Accueil</RouterLink>
           </li>
@@ -33,7 +33,7 @@
             <h1 class="text-4xl lg:text-5xl font-bold text-text-main leading-tight mb-5">
               {{ content.hero.title }}
             </h1>
-            <p class="text-lg lg:text-xl text-gray-600 leading-relaxed">
+            <p class="text-lg lg:text-xl text-muted leading-relaxed">
               {{ content.hero.lead }}
             </p>
           </div>
@@ -45,7 +45,7 @@
     <!-- Sommaire horizontal -->
     <section class="border-b border-cream-300 bg-white py-8 lg:py-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p class="text-xs font-semibold uppercase tracking-[0.15em] text-gray-400 mb-4">
+        <p class="text-xs font-semibold uppercase tracking-[0.15em] text-subtle mb-4">
           Sommaire
         </p>
         <nav aria-label="Sommaire du guide">
@@ -57,13 +57,13 @@
               >
                 <span class="flex items-center gap-2">
                   <span
-                    class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cream-200 text-xs font-bold text-gray-600"
+                    class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cream-200 text-xs font-bold text-muted"
                   >
                     {{ index + 1 }}
                   </span>
                   <AppIcon
                     :name="entry.icon"
-                    class="h-4 w-4 shrink-0 text-gray-400"
+                    class="h-4 w-4 shrink-0 text-subtle"
                   />
                 </span>
                 <span class="text-sm font-medium leading-snug text-text-main">
@@ -102,7 +102,7 @@
           </span>
           <div>
             <h2 class="text-2xl lg:text-3xl font-bold text-text-main">{{ section.title }}</h2>
-            <p v-if="section.intro" class="mt-2 text-gray-600 leading-relaxed max-w-4xl">
+            <p v-if="section.intro" class="mt-2 text-muted leading-relaxed max-w-4xl">
               {{ section.intro }}
             </p>
           </div>
@@ -120,7 +120,7 @@
             class="rounded-xl border border-cream-200 bg-white px-5 py-4 shadow-sm"
           >
             <h3 class="font-semibold text-text-main mb-2">{{ item.question }}</h3>
-            <p class="text-sm text-gray-600 leading-relaxed">{{ item.answer }}</p>
+            <p class="text-sm text-muted leading-relaxed">{{ item.answer }}</p>
           </div>
         </div>
 
@@ -147,7 +147,7 @@
                     <td class="px-4 py-3 font-medium text-text-main align-top">
                       {{ row.marking }}
                     </td>
-                    <td class="px-4 py-3 text-gray-600 align-top">{{ row.usage }}</td>
+                    <td class="px-4 py-3 text-muted align-top">{{ row.usage }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -161,7 +161,7 @@
               class="rounded-xl border border-cream-200 bg-white px-5 py-4 shadow-sm"
             >
               <h3 class="font-semibold text-text-main mb-2">{{ item.question }}</h3>
-              <p class="text-sm text-gray-600 leading-relaxed">{{ item.answer }}</p>
+              <p class="text-sm text-muted leading-relaxed">{{ item.answer }}</p>
             </div>
           </div>
         </div>
@@ -175,7 +175,7 @@
               class="rounded-xl border border-cream-200 bg-white p-5 shadow-sm"
             >
               <h3 class="font-semibold text-text-main mb-2">{{ def.title }}</h3>
-              <p class="text-sm text-gray-600 leading-relaxed">{{ def.description }}</p>
+              <p class="text-sm text-muted leading-relaxed">{{ def.description }}</p>
             </div>
           </div>
 
@@ -196,7 +196,7 @@
                 <p class="text-sm font-medium text-text-main">{{ row.value }}</p>
               </div>
             </div>
-            <p v-if="section.precision.note" class="text-sm text-gray-600 italic">
+            <p v-if="section.precision.note" class="text-sm text-muted italic">
               {{ section.precision.note }}
             </p>
           </div>
@@ -214,7 +214,7 @@
             class="rounded-xl border border-cream-200 bg-white p-5 shadow-sm"
           >
             <h3 class="font-semibold text-text-main mb-2">{{ card.title }}</h3>
-            <p class="text-sm text-gray-600 leading-relaxed">{{ card.description }}</p>
+            <p class="text-sm text-muted leading-relaxed">{{ card.description }}</p>
           </div>
         </div>
 
@@ -234,7 +234,7 @@
                 class="rounded-xl border border-cream-200 bg-white px-5 py-4 shadow-sm"
               >
                 <dt class="font-semibold text-text-main mb-1">{{ item.term }}</dt>
-                <dd class="text-sm text-gray-600 leading-relaxed">{{ item.description }}</dd>
+                <dd class="text-sm text-muted leading-relaxed">{{ item.description }}</dd>
               </div>
             </dl>
           </div>
@@ -249,7 +249,7 @@
     >
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">{{ content.cta.title }}</h2>
-        <p class="text-lg text-gray-600 mb-8">{{ content.cta.subtitle }}</p>
+        <p class="text-lg text-muted mb-8">{{ content.cta.subtitle }}</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <RouterLink
             v-if="features.servicesPage"

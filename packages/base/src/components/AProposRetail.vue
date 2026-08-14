@@ -23,7 +23,7 @@
             <h1 class="text-4xl lg:text-5xl xl:text-6xl font-bold text-text-main leading-tight mb-5">
               {{ about.hero.title }}
             </h1>
-            <p class="text-lg lg:text-xl text-gray-600 leading-relaxed mb-8 max-w-xl">
+            <p class="text-lg lg:text-xl text-muted leading-relaxed mb-8 max-w-xl">
               {{ about.hero.lead }}
             </p>
 
@@ -78,7 +78,7 @@
           >
             <p class="text-3xl lg:text-4xl font-bold text-primary mb-1">{{ stat.value }}</p>
             <p class="text-base font-semibold text-text-main">{{ stat.label }}</p>
-            <p v-if="stat.detail" class="mt-1 text-sm text-gray-500">{{ stat.detail }}</p>
+            <p v-if="stat.detail" class="mt-1 text-sm text-subtle">{{ stat.detail }}</p>
           </div>
         </div>
       </div>
@@ -92,7 +92,7 @@
             <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-8">
               {{ about.story.title }}
             </h2>
-            <div class="space-y-5 text-gray-600 text-lg leading-relaxed">
+            <div class="space-y-5 text-muted text-lg leading-relaxed">
               <p v-for="(paragraph, index) in about.story.paragraphs" :key="index">
                 {{ paragraph }}
               </p>
@@ -128,7 +128,7 @@
           <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">
             Un style pour chaque moment
           </h2>
-          <p class="text-lg text-gray-600">
+          <p class="text-lg text-muted">
             Que vous rêviez d'une montre sport, d'une montre élégante ou d'une mécanique à contempler,
             nous saurons vous guider.
           </p>
@@ -146,7 +146,7 @@
               <StyleIcon :name="style.icon" />
             </div>
             <h3 class="text-xl font-semibold text-text-main mb-3">{{ style.title }}</h3>
-            <p class="text-gray-600 leading-relaxed">{{ style.description }}</p>
+            <p class="text-muted leading-relaxed">{{ style.description }}</p>
           </article>
         </div>
       </div>
@@ -159,7 +159,7 @@
           <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">
             {{ about.brands.title }}
           </h2>
-          <p v-if="about.brands.intro" class="text-lg text-gray-600 leading-relaxed">
+          <p v-if="about.brands.intro" class="text-lg text-muted leading-relaxed">
             {{ about.brands.intro }}
           </p>
         </div>
@@ -231,7 +231,7 @@
             <h2 class="text-xl lg:text-2xl font-bold text-text-main mb-2">
               {{ about.guidePromo.title }}
             </h2>
-            <p class="text-gray-600 leading-relaxed">
+            <p class="text-muted leading-relaxed">
               {{ about.guidePromo.description }}
             </p>
           </div>
@@ -251,7 +251,7 @@
         <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">
           {{ about.cta.title }}
         </h2>
-        <p v-if="about.cta.subtitle" class="text-lg text-gray-600 mb-8 leading-relaxed">
+        <p v-if="about.cta.subtitle" class="text-lg text-muted mb-8 leading-relaxed">
           {{ about.cta.subtitle }}
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">

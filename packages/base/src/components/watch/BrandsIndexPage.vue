@@ -17,14 +17,14 @@
 
       <div
         v-else-if="listing.error"
-        class="text-center py-16 text-gray-600"
+        class="text-center py-16 text-muted"
       >
         {{ listing.error }}
       </div>
 
       <div
         v-else-if="listing.availableBrands.length === 0"
-        class="text-center py-16 text-gray-600"
+        class="text-center py-16 text-muted"
       >
         Aucune marque disponible pour le moment.
       </div>
@@ -49,14 +49,14 @@
             />
             <div
               v-else
-              class="relative z-0 hidden h-full w-full items-center justify-center px-2 text-center text-sm font-semibold uppercase tracking-wide text-gray-500 md:flex"
+              class="relative z-0 hidden h-full w-full items-center justify-center px-2 text-center text-sm font-semibold uppercase tracking-wide text-subtle md:flex"
             >
               {{ brandName }}
             </div>
 
             <!-- Desktop : assombrissement + nom au-dessus du visuel au survol -->
             <div
-              class="pointer-events-none absolute inset-0 z-10 hidden md:flex flex-col items-center justify-center bg-black/0 px-3 text-center transition-colors duration-200 group-hover:bg-black/50"
+              class="pointer-events-none absolute inset-0 z-10 hidden md:flex flex-col items-center justify-center px-3 text-center transition-colors duration-200 group-hover:bg-[rgb(var(--color-primary-deep-rgb)/0.55)]"
             >
               <span
                 class="max-w-full text-base md:text-lg font-semibold uppercase tracking-wide leading-tight text-white opacity-0 transition-opacity duration-200 drop-shadow-xl [text-shadow:0_2px_10px_rgba(0,0,0,0.85),0_1px_3px_rgba(0,0,0,0.9)] group-hover:opacity-100 line-clamp-3"

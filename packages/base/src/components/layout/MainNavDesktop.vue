@@ -64,19 +64,21 @@ function closeMegaMenu() {
       >
         <div
           v-if="openMegaMenuIndex !== null"
-          class="fixed inset-0 z-10 bg-black/30"
+          class="scrim-light fixed inset-0 z-10"
           aria-hidden="true"
           @click="closeMegaMenu"
         />
       </Transition>
     </Teleport>
 
-    <div class="ml-10 flex items-baseline space-x-8">
+    <!-- Marges resserrées au point de bascule `md` : au-delà de 7 entrées, la
+         barre débordait de quelques pixels à 768 px. -->
+    <div class="ml-6 flex items-baseline space-x-6 lg:ml-10 lg:space-x-8">
       <template v-for="(item, idx) in navItems" :key="'nav-' + idx + '-' + item.type">
         <RouterLink
           v-if="item.type === 'link'"
           :to="item.to"
-          class="text-text-main hover:text-primary transition-colors"
+          class="nav-link"
           >{{ item.label }}</RouterLink
         >
         <div
@@ -111,13 +113,13 @@ function closeMegaMenu() {
             <ChevronDown class="w-4 h-4 ml-1 shrink-0 pointer-events-none" :stroke-width="2" />
           </div>
           <div
-            class="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-30"
+            class="absolute left-0 mt-2 w-48 overflow-hidden rounded-md bg-white shadow-lg ring-1 ring-border-subtle opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-30"
           >
             <RouterLink
               v-for="(sub, j) in item.items"
               :key="'sub-' + j + '-' + sub.to"
               :to="sub.to"
-              class="block px-4 py-2 text-sm text-gray-700 hover:text-primary hover:bg-primary/10"
+              class="block px-4 py-2 text-sm text-text-main/85 transition-colors hover:bg-primary-tint hover:text-primary"
               >{{ sub.label }}</RouterLink
             >
           </div>
@@ -134,3 +136,54 @@ function closeMegaMenu() {
     />
   </div>
 </template>
+
+<style scoped>
+/*
+  Navigation : le survol et l'état actif sont signalés par un filet vert qui se
+  déploie sous le libellé — plus discret qu'un aplat, cohérent avec `.link-forest`.
+  L'état actif reste visible en permanence.
+*/
+.nav-link {
+  position: relative;
+  color: var(--color-text-main);
+  transition: color 200ms ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.375rem;
+  height: 2px;
+  border-radius: 2px;
+  background-image: var(--gradient-cta);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/*
+  `:not([href*='#'])` : les entrées qui pointent vers une ancre de la page
+  courante (ex. « FAQ » → `/#faq`) sont considérées actives par vue-router dès
+  qu'on est sur cette page. Les exclure évite un soulignement permanent qui ne
+  signale aucune navigation.
+*/
+.nav-link:hover,
+.nav-link:focus-visible,
+.nav-link.router-link-active:not([href*='#']) {
+  color: var(--color-primary);
+}
+
+.nav-link:hover::after,
+.nav-link:focus-visible::after,
+.nav-link.router-link-active:not([href*='#'])::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-link::after {
+    transition: none;
+  }
+}
+</style>

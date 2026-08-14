@@ -91,25 +91,25 @@ function onCheckout() {
       aria-labelledby="cart-drawer-title"
     >
       <div
-        class="absolute inset-0 bg-black/50 transition-opacity"
+        class="scrim absolute inset-0 transition-opacity"
         aria-hidden="true"
         @click="onOverlayClick"
       />
       <aside
         class="relative flex h-full w-full max-w-full flex-col bg-white shadow-2xl sm:max-w-md md:min-w-[380px] md:max-w-lg lg:min-w-[420px] lg:max-w-xl xl:min-w-[460px] xl:max-w-2xl animate-cart-drawer-in"
       >
-        <header class="flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 px-4 py-4">
+        <header class="flex shrink-0 items-center justify-between gap-3 border-b border-border-subtle px-4 py-4">
           <div>
             <h2 id="cart-drawer-title" class="text-lg font-semibold text-text-main">
               Mon panier
             </h2>
-            <p class="text-sm text-gray-500">
+            <p class="text-sm text-subtle">
               {{ itemCount }} article{{ itemCount > 1 ? 's' : '' }}
             </p>
           </div>
           <button
             type="button"
-            class="rounded-lg p-2 text-gray-600 hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            class="rounded-lg p-2 text-muted hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
             aria-label="Fermer le panier"
             @click="closeDrawer"
           >
@@ -117,14 +117,14 @@ function onCheckout() {
         </header>
 
         <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
-          <p v-if="itemCount === 0" class="text-center text-gray-500 py-12">
+          <p v-if="itemCount === 0" class="text-center text-subtle py-12">
             Votre panier est vide.
           </p>
           <ul v-else class="space-y-4">
             <li
               v-for="line in items"
               :key="line.watchId"
-              class="flex gap-3 border-b border-gray-100 pb-4"
+              class="flex gap-3 border-b border-border-subtle pb-4"
             >
               <router-link
                 :to="watchPath(line.watchId)"
@@ -138,7 +138,7 @@ function onCheckout() {
                   :alt="line.name"
                   class="h-full w-full object-cover"
                 />
-                <Clock v-else class="h-8 w-8 text-gray-400" :stroke-width="1.5" />              </router-link>
+                <Clock v-else class="h-8 w-8 text-subtle" :stroke-width="1.5" />              </router-link>
               <div class="min-w-0 flex-1">
                 <div class="flex justify-between gap-2">
                   <router-link
@@ -150,18 +150,18 @@ function onCheckout() {
                   </router-link>
                   <button
                     type="button"
-                    class="shrink-0 rounded p-1 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                    class="shrink-0 rounded p-1 text-subtle hover:text-red-600 hover:bg-red-50"
                     :aria-label="'Retirer ' + line.name"
                     @click="remove(line.watchId)"
                   >
                     <X class="h-5 w-5" :stroke-width="2" />                  </button>
                 </div>
-                <p v-if="line.reference" class="text-xs text-gray-500 mt-0.5">
+                <p v-if="line.reference" class="text-xs text-subtle mt-0.5">
                   Réf. {{ line.reference }}
                 </p>
                 <div
                   v-if="cartMultiQuantity"
-                  class="mt-3 inline-flex items-center rounded-lg border border-gray-200 bg-cream-100/60 p-0.5"
+                  class="mt-3 inline-flex items-center rounded-lg border border-border-subtle bg-cream-100/60 p-0.5"
                 >
                   <button
                     type="button"
@@ -187,7 +187,7 @@ function onCheckout() {
                 <div class="mt-2 space-y-0.5">
                   <p
                     v-if="cartMultiQuantity && lineQty(line) > 1"
-                    class="text-xs text-gray-500"
+                    class="text-xs text-subtle"
                   >
                     {{ formatPrice(line.price) }} × {{ lineQty(line) }}
                   </p>
@@ -201,20 +201,20 @@ function onCheckout() {
         </div>
 
         <footer
-          class="shrink-0 border-t border-gray-200 bg-white px-4 py-4 space-y-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]"
+          class="shrink-0 border-t border-border-subtle bg-white px-4 py-4 space-y-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]"
         >
           <p v-if="checkoutError" class="text-sm text-red-600">
             {{ checkoutError }}
           </p>
           <div
-            class="flex justify-between text-sm text-gray-600"
+            class="flex justify-between text-sm text-muted"
             role="region"
             aria-label="Livraison"
           >
             <span>Livraison</span>
             <span class="font-medium text-text-main">Gratuite</span>
           </div>
-          <div class="flex justify-between text-sm text-gray-600">
+          <div class="flex justify-between text-sm text-muted">
             <span>Sous-total</span>
             <span class="font-medium text-text-main">{{ formatPrice(totalPrice) }}</span>
           </div>
@@ -222,7 +222,7 @@ function onCheckout() {
             <span>Total</span>
             <span>{{ formatPrice(totalPrice) }}</span>
           </div>
-          <p class="text-xs text-gray-500 text-center">Paiement 100% sécurisé via Stripe</p>
+          <p class="text-xs text-subtle text-center">Paiement 100% sécurisé via Stripe</p>
           <button
             type="button"
             class="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-lg text-base font-semibold text-white bg-primary hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

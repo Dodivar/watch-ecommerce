@@ -105,7 +105,7 @@ onUnmounted(() => {
   <div class="relative">
     <Info
       ref="triggerRef"
-      class="tooltip-trigger text-gray-400 hover:text-gray-600 cursor-help w-5 h-5"
+      class="tooltip-trigger text-subtle hover:text-muted cursor-help w-5 h-5"
       :stroke-width="2"
     />
     <!-- Tooltip -->

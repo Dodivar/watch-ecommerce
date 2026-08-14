@@ -102,8 +102,8 @@
       </div>
 
       <!-- Cancel Message -->
-      <h1 class="text-3xl font-bold text-gray-900 mb-4">Paiement annulé</h1>
-      <p class="text-lg text-gray-600 mb-6">
+      <h1 class="text-3xl font-bold text-text-main mb-4">Paiement annulé</h1>
+      <p class="text-lg text-muted mb-6">
         Votre paiement a été annulé. Aucun montant n'a été débité.
       </p>
 
@@ -125,7 +125,7 @@
       <!-- Watch Image - Display -->
       <div v-else-if="watch && watch.images && watch.images.length > 0" class="mb-6">
         <div class="bg-white rounded-xl p-6 shadow-lg">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4 text-center">Votre montre</h2>
+          <h2 class="text-xl font-semibold text-text-main mb-4 text-center">Votre montre</h2>
           <div class="flex flex-col sm:flex-row items-center gap-6">
             <!-- Image Container -->
             <div class="w-full sm:w-64 h-64 bg-white rounded-xl overflow-hidden shadow-xl flex-shrink-0">
@@ -138,16 +138,16 @@
             </div>
             <!-- Watch Details -->
             <div class="flex-1 text-left w-full">
-              <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ watch.name }}</h3>
+              <h3 class="text-2xl font-bold text-text-main mb-2">{{ watch.name }}</h3>
               <p v-if="watch.reference" class="text-lg font-semibold text-primary mb-3">
                 Réf. {{ watch.reference }}
               </p>
               <div class="space-y-2">
-                <p v-if="watch.brand" class="text-gray-700">
-                  <span class="font-semibold text-gray-900">Marque :</span> {{ watch.brand }}
+                <p v-if="watch.brand" class="text-text-main/85">
+                  <span class="font-semibold text-text-main">Marque :</span> {{ watch.brand }}
                 </p>
-                <p v-if="watch.model" class="text-gray-700">
-                  <span class="font-semibold text-gray-900">Modèle :</span> {{ watch.model }}
+                <p v-if="watch.model" class="text-text-main/85">
+                  <span class="font-semibold text-text-main">Modèle :</span> {{ watch.model }}
                 </p>
                 <p v-if="watch.price" class="text-lg font-bold text-primary mt-3">
                   {{ new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(watch.price) }}
@@ -169,7 +169,7 @@
 
       <!-- Information -->
       <div class="bg-white rounded-lg p-6 mb-6 shadow-lg">
-        <p class="text-gray-700 mb-4">
+        <p class="text-text-main/85 mb-4">
           Si vous avez rencontré un problème lors du paiement ou si vous souhaitez finaliser votre
           achat, n'hésitez pas à nous contacter.
         </p>
@@ -224,7 +224,7 @@
         </router-link>
         <router-link
           to="/"
-          class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-cream transition-colors duration-200"
+          class="inline-flex items-center justify-center px-6 py-3 border border-border-strong text-base font-medium rounded-lg text-text-main/85 bg-white hover:bg-cream transition-colors duration-200"
         >
           Retour à l'accueil
         </router-link>

@@ -2,21 +2,21 @@
   <section
     v-if="isLoading || latestWatches.length > 0"
     ref="sectionRef"
-    class="py-12 bg-white"
+    class="surface-fade-to-sand py-16"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center">
         <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
           {{ nouvelles.title }}
         </h2>
-        <p v-if="nouvelles.subtitle" class="text-xl text-gray-600">{{ nouvelles.subtitle }}</p>
+        <p v-if="nouvelles.subtitle" class="text-xl text-muted">{{ nouvelles.subtitle }}</p>
       </div>
       <div class="relative group">
         <!-- Flèche gauche -->
         <button
           v-if="canScrollLeft"
           @click="scrollLeftManual"
-          class="carousel-arrow carousel-arrow-left absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 sm:p-3 hover:bg-cream transition-all duration-200"
+          class="carousel-arrow carousel-arrow-left absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 rounded-full border border-border-subtle bg-white p-2 text-primary shadow-card transition-all duration-200 hover:border-border-strong hover:bg-primary-tint sm:p-3"
           aria-label="Défiler vers la gauche"
         >
           <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -33,7 +33,7 @@
         <button
           v-if="canScrollRight"
           @click="scrollRightManual"
-          class="carousel-arrow carousel-arrow-right absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 sm:p-3 hover:bg-cream transition-all duration-200"
+          class="carousel-arrow carousel-arrow-right absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 rounded-full border border-border-subtle bg-white p-2 text-primary shadow-card transition-all duration-200 hover:border-border-strong hover:bg-primary-tint sm:p-3"
           aria-label="Défiler vers la droite"
         >
           <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

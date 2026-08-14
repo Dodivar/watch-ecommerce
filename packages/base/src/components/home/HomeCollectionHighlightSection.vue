@@ -52,7 +52,7 @@ function handleViewDetails(watch) {
         >
           {{ config.title || 'Un aperçu de la collection' }}
         </h2>
-        <p v-if="config.subtitle" class="text-xl text-gray-600">
+        <p v-if="config.subtitle" class="text-xl text-muted">
           {{ config.subtitle }}
         </p>
       </div>

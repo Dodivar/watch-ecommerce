@@ -22,7 +22,7 @@ defineProps({
     <div class="flex items-start justify-between gap-4 pl-2.5">
       <div class="min-w-0 flex items-start gap-2">
         <MapPin class="mt-0.5 h-4 w-4 shrink-0 text-primary/70" :stroke-width="1.5" />
-        <p class="font-semibold text-gray-900 leading-snug">{{ name }}</p>
+        <p class="font-semibold text-text-main leading-snug">{{ name }}</p>
       </div>
 
       <span
@@ -33,11 +33,11 @@ defineProps({
       </span>
     </div>
 
-    <p class="mt-2 pl-6 text-sm text-gray-600 leading-relaxed">{{ address }}</p>
+    <p class="mt-2 pl-6 text-sm text-muted leading-relaxed">{{ address }}</p>
 
     <p
       v-if="estimatedDays"
-      class="mt-2.5 pl-6 flex items-center gap-1.5 text-xs text-gray-500"
+      class="mt-2.5 pl-6 flex items-center gap-1.5 text-xs text-subtle"
     >
       <Clock class="h-3.5 w-3.5 shrink-0" :stroke-width="1.5" />
       <span>{{ estimatedDays }}</span>

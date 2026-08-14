@@ -1,6 +1,6 @@
 <template>
   <div :class="{ 'cursor-pointer': clickable }" @click="handleCardClick">
-    <div class="relative w-full aspect-square bg-gray-100 rounded-md overflow-hidden mb-2 border border-gray-100 group">
+    <div class="watch-card-media group relative mb-3 aspect-square w-full overflow-hidden rounded-md">
       <span
         v-if="showNewBadge"
         class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-primary text-white shadow-sm"
@@ -16,7 +16,7 @@
       </span>
       <span
         v-if="showCornerYearBadge"
-        class="absolute top-2 right-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-medium rounded bg-white/90 text-gray-800 shadow-sm backdrop-blur-sm"
+        class="absolute top-2 right-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-medium rounded bg-white/90 text-primary shadow-sm backdrop-blur-sm"
       >
         {{ watchItem.year }}
       </span>
@@ -24,7 +24,7 @@
         v-if="!watchItem.images || watchItem.images.length === 0"
         class="absolute inset-0 flex items-center justify-center"
       >
-        <div class="text-gray-400 text-lg">Image non disponible</div>
+        <div class="text-muted text-lg">Image non disponible</div>
       </div>
 
       <div
@@ -125,7 +125,7 @@
     <div>
       <div class="flex items-start justify-between mb-1 md:mb-2">
         <h3
-          class="text-xs md:text-base lg:text-xl font-semibold text-gray-900 leading-tight flex-1 pr-1 truncate"
+          class="text-xs md:text-base lg:text-xl font-semibold text-text-main leading-tight flex-1 pr-1 truncate"
           style="max-width: 100%"
           :title="watchItem.name"
         >
@@ -145,18 +145,18 @@
         </span>
       </div>
 
-      <p v-if="effectiveShowReference" class="text-[10px] md:text-sm text-gray-600 md:mb-2 font-light">
+      <p v-if="effectiveShowReference" class="text-[10px] md:text-sm text-muted md:mb-2 font-light">
         Réf. {{ watchItem.reference }}
       </p>
 
       <div
         v-if="showPrice || (catalogDisplay.showResaleFields && (watchItem.contenu || watchItem.details?.content || showInlineYear))"
-        class="mt-2 md:mt-3 flex items-center gap-2 text-[10px] md:text-sm text-gray-500"
+        class="mt-2 md:mt-3 flex items-center gap-2 text-[10px] md:text-sm text-muted"
       >
         <span v-if="showPrice" class="inline-flex items-baseline gap-2">
           <span
             v-if="watchItem.isOnPromotion"
-            class="text-sm md:text-base font-normal text-gray-400 line-through"
+            class="text-sm md:text-base font-normal text-subtle line-through"
           >
             {{ formatPrice(watchItem.price) }}
           </span>
@@ -166,7 +166,7 @@
         </span>
         <span
           v-if="catalogDisplay.showResaleFields && (watchItem.contenu || watchItem.details?.content)"
-          class="hidden md:inline bg-cream-200 px-1.5 md:px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs text-black"
+          class="hidden md:inline bg-primary/[0.07] border border-primary/10 px-1.5 md:px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs text-primary"
         >
           {{ watchItem.contenu || watchItem.details?.content }}
         </span>
@@ -461,3 +461,24 @@ const formatPrice = (price) => {
 }
 
 </script>
+
+<style scoped>
+/*
+  Tuile produit : la montre repose sur un beige de marque plutôt que sur un gris
+  neutre, avec un filet discret et une ombre teintée vert. Au survol, le filet
+  se renforce et l'ombre s'approfondit — même langage que `.card-elevated`.
+*/
+.watch-card-media {
+  background-image: linear-gradient(168deg, #ffffff 0%, var(--color-cream) 100%);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-soft);
+  transition:
+    box-shadow 300ms ease,
+    border-color 300ms ease;
+}
+
+.watch-card-media:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-card);
+}
+</style>

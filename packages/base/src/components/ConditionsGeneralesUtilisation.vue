@@ -1,14 +1,14 @@
 <template>
   <div class="min-h-screen bg-white">
-    <section class="py-12 border-b border-gray-100">
+    <section class="py-12 border-b border-border-subtle">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
           Conditions générales d’utilisation
         </h1>
-        <p class="text-gray-600 text-sm">
+        <p class="text-muted text-sm">
           Dernière mise à jour : 31 mars 2026
         </p>
-        <p class="mt-6 text-gray-700 leading-relaxed">
+        <p class="mt-6 text-text-main/85 leading-relaxed">
           Les présentes conditions générales d’utilisation (ci-après les « CGU ») encadrent l’accès et
           l’usage du site exploité par <strong class="text-text-main">{{ LEGAL_COMPANY_NAME }}</strong>. En
           naviguant sur le site, vous acceptez sans réserve les CGU en vigueur.
@@ -16,7 +16,7 @@
       </div>
     </section>
 
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 text-gray-700 leading-relaxed">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 text-text-main/85 leading-relaxed">
       <section>
         <h2 class="text-xl font-bold text-text-main mb-4">1. Objet</h2>
         <p>

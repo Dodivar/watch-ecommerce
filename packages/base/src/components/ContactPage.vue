@@ -4,7 +4,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10">
           <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Contact</h1>
-          <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p class="text-lg text-muted max-w-2xl mx-auto">
             Une question, un projet de montre ou besoin d'un conseil ? Écrivez-nous<span v-if="showStoreMap"> ou passez nous voir</span>.
           </p>
         </div>
@@ -118,7 +118,7 @@
           <!-- Formulaire -->
           <div class="bg-white rounded-lg shadow-lg p-8 border border-cream-300">
             <h2 class="text-xl font-semibold text-text-main mb-2">Envoyer un message</h2>
-            <p class="text-gray-600 text-sm mb-6">
+            <p class="text-muted text-sm mb-6">
               Renseignez le formulaire ci-dessous : votre message sera transmis directement à
               {{ brandDisplayName }}.
             </p>
@@ -183,7 +183,7 @@
                 />
               </div>
 
-              <p class="text-sm text-gray-600 italic">
+              <p class="text-sm text-muted italic">
                 * Les champs marqués d'un astérisque sont obligatoires
               </p>
 

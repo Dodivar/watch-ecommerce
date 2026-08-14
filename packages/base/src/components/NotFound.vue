@@ -13,7 +13,7 @@
         <h1 class="text-3xl font-semibold">
           On dirait que même nos montres les plus précises ont perdu cette page.
         </h1>
-        <p class="text-lg text-gray-600">
+        <p class="text-lg text-muted">
           Pas de panique&nbsp;! Profitons-en pour revenir à l’essentiel et
           retrouver notre collection depuis l’accueil.
         </p>
