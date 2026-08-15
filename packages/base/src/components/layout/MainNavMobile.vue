@@ -34,7 +34,7 @@ const {
 const SEARCH_THRESHOLD = 12
 
 // Pile de navigation en drill-down. Vide = niveau racine.
-// Chaque entrée : { type: 'mega' | 'brands', index } (index dans navItems).
+// Chaque entrée : { type: 'mega' | 'group' | 'brands', index } (index dans navItems).
 const navStack = ref([])
 const direction = ref('forward')
 const brandQuery = ref('')
@@ -148,6 +148,11 @@ function openMega(index) {
   if (item?.columns?.some((column) => column.dynamicCampaigns)) {
     loadCampaigns()
   }
+}
+
+function openGroup(index) {
+  direction.value = 'forward'
+  navStack.value = [...navStack.value, { type: 'group', index }]
 }
 
 function openBrands(index) {
@@ -286,6 +291,16 @@ function brandRoute(brandName) {
                     <span>{{ item.label }}</span>
                     <ChevronRight class="w-6 h-6 shrink-0 text-white/70" :stroke-width="2" />
                   </button>
+                  <button
+                    v-else-if="idx === 0 && item.type === 'group'"
+                    type="button"
+                    class="mnav-reveal-item mb-3 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-4 text-xl hover:bg-white/15 transition-colors"
+                    :style="{ animationDelay: 120 + idx * 60 + 'ms' }"
+                    @click="openGroup(idx)"
+                  >
+                    <span>{{ item.label }}</span>
+                    <ChevronRight class="w-6 h-6 shrink-0 text-white/70" :stroke-width="2" />
+                  </button>
 
                   <!-- Entrées secondaires : lignes pleine largeur -->
                   <RouterLink
@@ -309,34 +324,17 @@ function brandRoute(brandName) {
                     <ChevronRight class="w-5 h-5 shrink-0 text-white/60" :stroke-width="2" />
                   </button>
 
-                  <!-- Groupe : sous-liens dépliés sur place (pas de niveau supplémentaire,
-                       les groupes ne comptent que quelques entrées). -->
-                  <div
+                  <!-- Groupe : drill-down vers un sous-niveau (même geste que le mega-menu). -->
+                  <button
                     v-else-if="item.type === 'group'"
-                    class="mnav-reveal-item py-4 border-b border-white/10"
+                    type="button"
+                    class="mnav-reveal-item flex items-center justify-between py-4 border-b border-white/10 hover:text-cream-100 transition-colors"
                     :style="{ animationDelay: 120 + idx * 60 + 'ms' }"
+                    @click="openGroup(idx)"
                   >
-                    <RouterLink
-                      v-if="item.to"
-                      :to="item.to"
-                      @click="close"
-                      class="flex items-center justify-between hover:text-cream-100 transition-colors"
-                    >
-                      <span>{{ item.label }}</span>
-                      <ChevronRight class="w-5 h-5 shrink-0 text-white/40" :stroke-width="2" />
-                    </RouterLink>
-                    <p v-else class="text-white/90">{{ item.label }}</p>
-                    <RouterLink
-                      v-for="(sub, subIdx) in item.items"
-                      :key="'mnav-sub-' + idx + '-' + subIdx + '-' + sub.to"
-                      :to="sub.to"
-                      @click="close"
-                      class="mt-1 flex items-center justify-between py-2.5 pl-4 text-base text-white/80 hover:text-cream-100 transition-colors"
-                    >
-                      <span>{{ sub.label }}</span>
-                      <ChevronRight class="w-4 h-4 shrink-0 text-white/30" :stroke-width="2" />
-                    </RouterLink>
-                  </div>
+                    <span>{{ item.label }}</span>
+                    <ChevronRight class="w-5 h-5 shrink-0 text-white/60" :stroke-width="2" />
+                  </button>
                 </template>
               </nav>
 
@@ -353,6 +351,44 @@ function brandRoute(brandName) {
                 <Phone class="w-5 h-5 shrink-0" :stroke-width="2" />
                 <span>{{ phone.display }}</span>
               </a>
+            </div>
+
+            <!-- Niveau 1 : sous-liens d'un groupe -->
+            <div
+              v-else-if="currentView.type === 'group' && activeItem"
+              class="flex flex-col min-h-full px-5 pt-20 pb-10"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-1 -ml-1 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
+                @click="goBack"
+              >
+                <ChevronLeft class="w-5 h-5 shrink-0" :stroke-width="2" />
+                Retour
+              </button>
+
+              <h2 class="mt-2 mb-5 text-2xl font-semibold">{{ activeItem.label }}</h2>
+
+              <RouterLink
+                v-if="activeItem.to"
+                :to="activeItem.to"
+                @click="close"
+                class="flex items-center justify-between py-3 text-base font-medium text-white/90 hover:text-cream-100 border-b border-white/10 transition-colors"
+              >
+                <span>Tout voir</span>
+                <ChevronRight class="w-5 h-5 shrink-0 text-white/40" :stroke-width="2" />
+              </RouterLink>
+
+              <RouterLink
+                v-for="(sub, subIdx) in activeItem.items"
+                :key="'mgroup-sub-' + subIdx + '-' + sub.to"
+                :to="sub.to"
+                @click="close"
+                class="flex items-center justify-between py-4 text-base font-medium border-b border-white/10 hover:text-cream-100 transition-colors"
+              >
+                <span>{{ sub.label }}</span>
+                <ChevronRight class="w-5 h-5 shrink-0 text-white/40" :stroke-width="2" />
+              </RouterLink>
             </div>
 
             <!-- Niveau 1 : détail d'un mega-menu -->
