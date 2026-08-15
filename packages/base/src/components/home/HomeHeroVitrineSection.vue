@@ -1,12 +1,15 @@
 <script setup>
 /**
- * Hero « vitrine » — sans animation : le discours à gauche, une pièce du
- * catalogue posée dans un panneau blanc à droite, comme une devanture.
+ * Hero « vitrine » : le discours à gauche, une pièce du catalogue posée dans un
+ * panneau blanc à droite, comme une devanture.
  *
  * Le texte vient de `home.hero` (voir `site/homeHero.js`) ; la montre exposée
  * est la première du catalogue encore en vente, donc la vitrine se renouvelle
  * toute seule. Sans catalogue joignable, le panneau disparaît et le discours
  * occupe toute la largeur.
+ *
+ * Le panneau s'oriente vers le pointeur (ou suit l'inclinaison du téléphone) :
+ * la mécanique vit dans `useTiltMotion`, le rendu 3D dans le style ci-dessous.
  */
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -15,6 +18,7 @@ import { BadgeCheck, MapPin, ShieldCheck } from '@lucide/vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isHomeHeroCtaVisible } from '@/site/homeHero.js'
 import { getLatestAvailableWatches } from '@/services/watchService.js'
+import { useTiltMotion } from '@/composables/useTiltMotion.js'
 import { watchCardImageUrl } from '@/utils/watchImageUrl.js'
 import { buildWatchPath } from '@/utils/watchSlug.js'
 
@@ -46,6 +50,8 @@ const piecePath = computed(() =>
 /** Le panneau n'existe que s'il a une vraie pièce et une vraie photo à montrer. */
 const showPiece = computed(() => Boolean(piece.value && pieceImage.value))
 const showPanel = computed(() => isLoadingPiece.value || showPiece.value)
+
+const { tiltRef, tiltStyle } = useTiltMotion()
 
 const showPrimaryCta = computed(() =>
   isHomeHeroCtaVisible(hero.value.primaryCta, features.value),
@@ -135,54 +141,107 @@ onMounted(async () => {
         </ul>
       </div>
 
-      <component
-        :is="piecePath ? RouterLink : 'div'"
-        v-if="showPanel"
-        :to="piecePath"
-        class="flex flex-col bg-white p-7 shadow-lg sm:p-10"
-        :class="piecePath ? 'transition-shadow hover:shadow-xl' : ''"
-      >
-        <div class="flex items-baseline justify-between gap-4 border-b border-gray-200 pb-5">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
-            Pièce en vitrine
-          </p>
-          <p
-            v-if="showPiece"
-            class="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary"
-          >
-            En stock
-          </p>
-        </div>
-
-        <div class="flex flex-1 items-center justify-center py-8 sm:py-10">
-          <div class="aspect-square w-full max-w-[19rem] lg:max-w-[24rem]">
-            <img
-              v-if="showPiece"
-              :src="pieceImage"
-              :alt="piece.name"
-              class="h-full w-full object-contain"
-              width="800"
-              height="800"
-              fetchpriority="high"
-              decoding="async"
-            />
-          </div>
-        </div>
-
-        <div class="border-t border-gray-200 pt-5">
-          <template v-if="showPiece">
+      <div v-if="showPanel" ref="tiltRef" class="vitrine-tilt" :style="tiltStyle">
+        <component
+          :is="piecePath ? RouterLink : 'div'"
+          :to="piecePath"
+          class="vitrine-panel flex h-full flex-col bg-white p-7 sm:p-10"
+        >
+          <div class="flex items-baseline justify-between gap-4 border-b border-gray-200 pb-5">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
+              Pièce en vitrine
+            </p>
             <p
-              v-if="piece.brand"
-              class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500"
+              v-if="showPiece"
+              class="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary"
             >
-              {{ piece.brand }}
+              En stock
             </p>
-            <p v-if="piece.model" class="mt-1.5 text-lg font-semibold text-text-main">
-              {{ piece.model }}
-            </p>
-          </template>
-        </div>
-      </component>
+          </div>
+
+          <div class="vitrine-stage flex flex-1 items-center justify-center py-8 sm:py-10">
+            <div class="vitrine-piece aspect-square w-full max-w-[19rem] lg:max-w-[24rem]">
+              <img
+                v-if="showPiece"
+                :src="pieceImage"
+                :alt="piece.name"
+                class="h-full w-full object-contain"
+                width="800"
+                height="800"
+                fetchpriority="high"
+                decoding="async"
+              />
+            </div>
+          </div>
+
+          <div class="border-t border-gray-200 pt-5">
+            <template v-if="showPiece">
+              <p
+                v-if="piece.brand"
+                class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500"
+              >
+                {{ piece.brand }}
+              </p>
+              <p v-if="piece.model" class="mt-1.5 text-lg font-semibold text-text-main">
+                {{ piece.model }}
+              </p>
+            </template>
+          </div>
+        </component>
+      </div>
     </div>
   </section>
 </template>
+
+<style scoped>
+/*
+ * Le `transform` (perspective + rotations) est posé en style inline par
+ * `useTiltMotion`, qui publie aussi `--tilt-x` / `--tilt-y` (-1 → 1). Ici on ne
+ * fait qu'en tirer les conséquences : profondeur des calques et ombre portée.
+ */
+.vitrine-tilt {
+  /* La chaîne complète doit rester en 3D pour que la montre décolle du panneau. */
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.vitrine-panel,
+.vitrine-stage {
+  transform-style: preserve-3d;
+}
+
+.vitrine-panel {
+  /* L'ombre glisse à l'opposé de l'inclinaison : la carte paraît décollée. */
+  box-shadow:
+    calc(var(--tilt-x, 0) * -20px) calc(14px - var(--tilt-y, 0) * 16px) 40px -12px
+    rgba(15, 42, 29, 0.4);
+}
+
+/* La montre flotte au-dessus du panneau : la perspective en fait un parallaxe. */
+.vitrine-piece {
+  transform: translateZ(46px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .vitrine-tilt {
+    transition: scale 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* `scale` est une propriété à part : elle n'écrase pas le `transform` inline. */
+  .vitrine-tilt:hover {
+    scale: 1.015;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vitrine-tilt {
+    transform: none !important;
+    scale: 1 !important;
+    transition: none;
+  }
+
+  .vitrine-piece {
+    transform: none;
+  }
+}
+</style>
