@@ -11,7 +11,8 @@
  * décrivant le CONTEXTE de la surface courante. Deux jeux de valeurs existent :
  *
  *   « sur vert »  — valeur par défaut sous <html data-ui-color-scheme="dark">
- *   « sur blanc » — reposé par toute surface claire (.bg-white, champs, admin…)
+ *   « sur blanc » — reposé par toute surface claire (.bg-white, champs, aplats
+ *                   teintés des messages d'état…)
  *
  * Les variables CSS étant héritées, une carte blanche remet automatiquement
  * tout son contenu (gris, filets, boutons verts) dans ses valeurs d'origine :
@@ -73,20 +74,37 @@ html[data-ui-color-scheme='dark'] {
 /**
  * Contexte « sur blanc » — toute surface claire repose les valeurs d'origine
  * (gris Tailwind exacts, beiges de la marque, bouton vert à libellé blanc).
- * `.admin-scope` fait partie de la liste : l'administration reste en clair.
+ * L'administration suit la même règle que le reste du site : fond vert, et
+ * chaque carte `bg-white` (panneaux, listes, formulaires) rebascule ici.
+ *
+ * Les aplats teintés (`bg-red-50`, `bg-green-50`… des messages d'état) ne sont
+ * pas repeints par ce fichier : ils restent clairs, donc ils reposent eux aussi
+ * le contexte, sinon leur libellé passerait en teinte « sur vert ».
  */
 html[data-ui-color-scheme='dark'] :is(
     .bg-white,
     .bg-white\/70,
     .bg-white\/80,
     .bg-white\/90,
+    .bg-white\/95,
     .bg-gray-50,
     .bg-gray-100,
     .bg-gray-200,
+    .bg-red-50,
+    .bg-red-100,
+    .bg-green-50,
+    .bg-green-100,
+    .bg-amber-50,
+    .bg-amber-100,
+    .bg-yellow-50,
+    .bg-orange-100,
+    .bg-blue-50,
+    .bg-blue-100,
+    .bg-purple-50,
+    .bg-purple-100,
     input,
     textarea,
-    select,
-    .admin-scope
+    select
   ) {
   color: var(--ui-text);
 
@@ -129,16 +147,27 @@ html[data-ui-color-scheme='dark'] :is(
 }
 
 /**
- * Bandes pleine largeur : elles portent le fond de page, pas une surface de
- * contenu. `section.bg-white` / `<div class="min-h-screen bg-white">` sont donc
- * repeints en vert et restent en contexte « sur vert ».
+ * Retour forcé au contexte « sur vert » — pour les surfaces que leur classe
+ * `bg-white` ferait basculer en clair alors qu'elles appartiennent au décor,
+ * pas au contenu :
  *
- * Volontairement limité à `section` et `.min-h-screen` : `aside.bg-white`
- * (récapitulatif de commande) et `footer.bg-white` (pied du tiroir panier) sont
- * des cartes, pas des bandes, et doivent rester blancs.
+ *   1. Bandes pleine largeur de la boutique : `section.bg-white` et
+ *      `<div class="min-h-screen bg-white">`. Volontairement limité à `section`
+ *      et `.min-h-screen` : `aside.bg-white` (récapitulatif de commande) et
+ *      `footer.bg-white` (pied du tiroir panier) sont des cartes, pas des
+ *      bandes, et doivent rester blanches. L'administration est exclue : ses
+ *      `section.bg-white` sont des panneaux (tableau de bord, promotions).
+ *   2. Menu latéral de l'administration — l'équivalent de l'en-tête du site.
+ *   3. Boutons secondaires de la barre de titre de l'administration : posés
+ *      sur le vert, ils passent en boutons fantômes (cf. plus bas), comme les
+ *      CTA secondaires de la boutique.
+ *
+ * Les fonds propres à chaque cas sont posés plus bas ; ce bloc ne fixe que le
+ * jeu de variables hérité par leur contenu.
  */
-html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white {
-  background-color: var(--ui-page);
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *),
+html[data-ui-color-scheme='dark'] aside.admin-sidebar,
+html[data-ui-color-scheme='dark'] .admin-topbar :is(a, button).bg-white {
   color: var(--ui-text);
 
   /* `bg-cream*` sert de bande alternée : un vert légèrement plus clair que la
@@ -179,6 +208,11 @@ html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white {
   --ui-warning: #fdba74;
 }
 
+/** Cas 1 : la bande porte le fond de page. */
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *) {
+  background-color: var(--ui-page);
+}
+
 /* ------------------------------------------------------------------- socle */
 
 html[data-ui-color-scheme='dark'],
@@ -188,11 +222,12 @@ html[data-ui-color-scheme='dark'] body {
 }
 
 /**
- * Administration : hors thème vert. Le fond beige est reposé explicitement,
- * sans quoi les écrans sans classe de fond laisseraient voir le vert du body.
+ * Administration : même fond vert que la boutique. Les écrans sans classe de
+ * fond (connexion, mot de passe oublié) reposent dessus, le contenu vit sur
+ * les cartes blanches déclarées par les composants.
  */
 html[data-ui-color-scheme='dark'] main.admin-scope {
-  background-color: var(--ui-panel);
+  background-color: var(--color-page);
   min-height: 100vh;
   min-height: 100dvh;
 }
@@ -270,8 +305,12 @@ html[data-ui-color-scheme='dark'] :is(.bg-primary\/10, .bg-primary\/5, .hover\:b
  * Bouton secondaire posé sur le vert (`bg-white` + bordure `border-primary`).
  * Le CTA principal étant devenu blanc, un second aplat blanc juste à côté
  * effacerait la hiérarchie : il passe en bouton fantôme, filet blanc sur vert.
- * Exclu dès qu'il se trouve sur une surface claire (tiroir, carte, admin),
- * où l'aplat blanc d'origine reste le bon rendu.
+ * Exclu dès qu'il se trouve sur une surface claire (tiroir, carte), où l'aplat
+ * blanc d'origine reste le bon rendu.
+ *
+ * L'administration est exclue : ses cartes cliquables (`AdminKpiCard`) sont des
+ * `<a class="border-primary/10 bg-white">` et se feraient vider de leur fond.
+ * Ses boutons secondaires sont traités par `.admin-topbar` (voir plus bas).
  */
 html[data-ui-color-scheme='dark']
   :is(a, button, [role='button']):is(.border-primary, [class*='border-primary\/']).bg-white:not(.bg-white *):not(
@@ -365,6 +404,56 @@ html[data-ui-color-scheme='dark'] :is(.border-cream-300, .hover\:border-cream-30
   border-color: var(--ui-line-300);
 }
 
+/* --------------------------------------------- chrome de l'administration */
+
+/**
+ * L'administration reprend la façade de la boutique : vert partout, contenu sur
+ * cartes blanches. Trois surfaces portent ce vert (leur contexte est posé plus
+ * haut, avec les bandes de la boutique) :
+ *
+ *   - l'enveloppe `AdminShell` (`bg-cream`), remise au vert de page pour
+ *     coïncider avec le fond du site public ;
+ *   - le menu latéral, d'un vert légèrement plus clair : comme l'en-tête, il se
+ *     lit comme du décor et non comme un panneau ;
+ *   - les boutons secondaires de la barre de titre.
+ *
+ * Placé après la section « fonds » : `.admin-shell` et `.bg-cream` ont la même
+ * spécificité, c'est l'ordre du fichier qui tranche.
+ */
+html[data-ui-color-scheme='dark'] .admin-shell {
+  background-color: var(--color-page);
+}
+
+html[data-ui-color-scheme='dark'] aside.admin-sidebar {
+  background-color: var(--color-page-alt);
+}
+
+/**
+ * Barre de titre : le CTA principal (`bg-primary`) devient un aplat blanc à
+ * libellé vert. Un second aplat blanc juste à côté effacerait la hiérarchie —
+ * les boutons secondaires (`bg-white`) passent donc en boutons fantômes, comme
+ * les CTA secondaires de la boutique.
+ */
+html[data-ui-color-scheme='dark'] .admin-topbar :is(a, button).bg-white {
+  background-color: transparent;
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: none;
+}
+html[data-ui-color-scheme='dark'] .admin-topbar :is(a, button).bg-white:hover {
+  background-color: var(--ui-accent-soft);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+/**
+ * Anneaux de focus : `ring-primary` est le vert de marque, invisible sur le
+ * vert. Le décor de l'administration le repose en blanc.
+ */
+html[data-ui-color-scheme='dark']
+  :is(.admin-sidebar, .admin-topbar)
+  :is(.focus-visible\:ring-primary:focus-visible, .focus\:ring-primary:focus) {
+  --tw-ring-color: var(--ui-accent);
+}
+
 /* ------------------------------------------------------- chrome du site */
 
 /**
@@ -401,7 +490,7 @@ html[data-ui-color-scheme='dark'] :is(.shadow, .shadow-sm, .shadow-md, .shadow-l
 html[data-ui-color-scheme='dark'] :is(.bg-white, .bg-gray-50, .bg-gray-100):is(.shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .watch-shadow) {
   box-shadow: var(--ui-shadow);
 }
-html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white {
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *) {
   box-shadow: none;
 }
 

@@ -39,9 +39,19 @@ defineProps({
   },
 })
 
+/*
+ * Chaque variante porte `bg-white` : sur le thème vert, c'est cette classe qui
+ * repose le contexte clair (voir theme-dark.css). Sans elle, la carte resterait
+ * en contexte « sur vert » et ses gris passeraient en blanc.
+ *
+ * Le dégradé de la variante `ops` finit sur `to-cream` plutôt que `to-cream/40` :
+ * `cream` étant une variable CSS, Tailwind n'émet pas la version avec opacité, et
+ * le dégradé s'éteignait donc en transparent — invisible sur le fond beige d'un
+ * site clair, mais laissant passer le vert sur le thème sombre.
+ */
 const variantClasses = {
-  default: 'border-gray-100',
-  ops: 'border-primary/10 bg-gradient-to-br from-white to-cream/40',
+  default: 'border-gray-100 bg-white',
+  ops: 'border-primary/10 bg-white bg-gradient-to-br from-white to-cream',
   inventory: 'border-gray-100 bg-white',
 }
 </script>

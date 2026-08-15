@@ -22,9 +22,13 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { logoutAdmin, getCurrentAdmin } from '@/services/admin/adminAuthService'
 import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import { ROLE_LABELS } from '@/services/admin/adminPermissions'
-import logoSidebar from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW vert horizontal RVB.png'
+import logoSidebarGreen from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW vert horizontal RVB.png'
+import logoSidebarWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW blanc horizontal RVB.png'
 
 const site = getSiteConfig()
+
+// Menu vert sur le thème sombre (cf. theme-dark.css) : le logo vert y disparaîtrait.
+const logoSidebar = site.theme?.colorScheme === 'dark' ? logoSidebarWhite : logoSidebarGreen
 
 defineProps({
   open: {
@@ -163,7 +167,7 @@ onMounted(async () => {
   </Transition>
 
   <aside
-    class="fixed inset-y-0 left-0 z-40 flex h-screen w-64 shrink-0 flex-col overflow-hidden bg-white border-r border-gray-200 transition-transform duration-300 lg:static lg:z-auto lg:translate-x-0"
+    class="admin-sidebar fixed inset-y-0 left-0 z-40 flex h-screen w-64 shrink-0 flex-col overflow-hidden bg-white border-r border-gray-200 transition-transform duration-300 lg:static lg:z-auto lg:translate-x-0"
     :class="open ? 'translate-x-0' : '-translate-x-full'"
   >
     <div class="flex items-center justify-between px-5 h-16 border-b border-gray-200 shrink-0">
