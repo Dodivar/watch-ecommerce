@@ -1,18 +1,17 @@
-/** @typedef {'parallax' | 'compact' | 'vitrine' | 'editorial'} HomeHeroVariant */
+/** @typedef {'parallax' | 'compact' | 'vitrine'} HomeHeroVariant */
 
 /**
  * Variants pilotés par `home.hero.variant` dans le manifest client.
- * - `parallax`  : hero historique (texte + cadran animé), aucune config requise.
- * - `compact`   : bandeau titre + CTAs, entièrement piloté par la config.
- * - `vitrine`   : texte à gauche, pièce photographiée dans un panneau blanc à droite.
- * - `editorial` : composition centrée typographique + planche de pièces alignées.
+ * - `parallax` : hero historique (texte + cadran animé), aucune config requise.
+ * - `compact`  : bandeau titre + CTAs, entièrement piloté par la config.
+ * - `vitrine`  : discours à gauche, pièce du catalogue dans un panneau blanc à droite.
  */
-export const HOME_HERO_VARIANTS = ['parallax', 'compact', 'vitrine', 'editorial']
+export const HOME_HERO_VARIANTS = ['parallax', 'compact', 'vitrine']
 
 const KNOWN_VARIANTS = new Set(HOME_HERO_VARIANTS)
 
 /** Variants dont tout le contenu vient de la config : sans titre, rien à afficher. */
-const CONFIG_DRIVEN_VARIANTS = new Set(['compact', 'vitrine', 'editorial'])
+const CONFIG_DRIVEN_VARIANTS = new Set(['compact', 'vitrine'])
 
 /** CTA pointant vers une page optionnelle : masqué si la feature est coupée. */
 const CTA_FEATURE_BY_PATH = {
@@ -44,31 +43,6 @@ function resolveOptionalString(value) {
 }
 
 /**
- * Une pièce mise en avant dans le hero (photo détourée + cartel).
- *
- * @param {unknown} raw
- * @returns {{
- *   image: string,
- *   alt: string | null,
- *   brand: string | null,
- *   model: string | null,
- *   meta: string | null,
- * } | null}
- */
-function resolvePiece(raw) {
-  if (!raw || typeof raw !== 'object') return null
-  const image = resolveOptionalString(raw.image)
-  if (!image) return null
-  return {
-    image,
-    alt: resolveOptionalString(raw.alt),
-    brand: resolveOptionalString(raw.brand),
-    model: resolveOptionalString(raw.model),
-    meta: resolveOptionalString(raw.meta),
-  }
-}
-
-/**
  * @param {unknown} raw
  * @returns {string[]}
  */
@@ -97,7 +71,6 @@ function resolveStringList(raw) {
  *   image: string | null,
  *   imageAlt: string | null,
  *   highlights: string[],
- *   pieces: ReturnType<typeof resolvePiece>[],
  * }}
  */
 export function resolveHomeHeroConfig(siteConfig) {
@@ -113,17 +86,11 @@ export function resolveHomeHeroConfig(siteConfig) {
       image: null,
       imageAlt: null,
       highlights: [],
-      pieces: [],
     }
   }
 
-  const variant = KNOWN_VARIANTS.has(raw.variant) ? raw.variant : 'parallax'
-  const pieces = Array.isArray(raw.pieces)
-    ? raw.pieces.map(resolvePiece).filter(Boolean)
-    : []
-
   return {
-    variant,
+    variant: KNOWN_VARIANTS.has(raw.variant) ? raw.variant : 'parallax',
     eyebrow: resolveOptionalString(raw.eyebrow),
     title: resolveOptionalString(raw.title),
     subtitle: resolveOptionalString(raw.subtitle),
@@ -132,7 +99,6 @@ export function resolveHomeHeroConfig(siteConfig) {
     image: resolveOptionalString(raw.image),
     imageAlt: resolveOptionalString(raw.imageAlt),
     highlights: resolveStringList(raw.highlights),
-    pieces,
   }
 }
 

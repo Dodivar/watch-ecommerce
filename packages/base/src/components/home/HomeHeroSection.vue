@@ -1,11 +1,8 @@
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 
 import { getSiteConfig } from '@/site/getSiteConfig.js'
-import { HOME_HERO_VARIANTS } from '@/site/homeHero.js'
 import HomeHeroCompactSection from './HomeHeroCompactSection.vue'
-import HomeHeroEditorialSection from './HomeHeroEditorialSection.vue'
 import HomeHeroVitrineSection from './HomeHeroVitrineSection.vue'
 import HomeHeroVisual from './HomeHeroVisual.vue'
 
@@ -13,28 +10,14 @@ import HomeHeroVisual from './HomeHeroVisual.vue'
 const VARIANT_COMPONENTS = {
   compact: HomeHeroCompactSection,
   vitrine: HomeHeroVitrineSection,
-  editorial: HomeHeroEditorialSection,
 }
 
 const site = getSiteConfig()
 const features = site.features
-const route = useRoute()
 
-/**
- * `?hero=editorial` force un variant le temps d'une visite : de quoi comparer
- * deux propositions sur la recette sans redéployer. Ignoré si le manifest ne
- * porte pas de contenu hero (les variants pilotés par la config seraient vides).
- */
-const previewVariant = computed(() => {
-  if (!site.home?.hero?.title) return null
-  const requested = route.query?.hero
-  return typeof requested === 'string' && HOME_HERO_VARIANTS.includes(requested)
-    ? requested
-    : null
-})
-
-const variant = computed(() => previewVariant.value ?? site.home?.hero?.variant ?? 'parallax')
-const variantComponent = computed(() => VARIANT_COMPONENTS[variant.value] ?? null)
+const variantComponent = computed(
+  () => VARIANT_COMPONENTS[site.home?.hero?.variant] ?? null,
+)
 </script>
 
 <template>

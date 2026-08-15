@@ -2,8 +2,6 @@
  * First-site manifest: current production storefront (Sauvage).
  * Template extraction — all brand-specific defaults for `sites/sauvage-watches` live here.
  */
-import { publicPath } from '../../packages/base/src/utils/publicPath.js'
-
 import faq from './faq.config.js'
 
 export default {
@@ -221,12 +219,10 @@ export default {
    */
   home: {
     /**
-     * Hero d'accueil — deux propositions sans animation partagent ce contenu :
-     *   `vitrine`   : discours à gauche, pièce photographiée dans un panneau blanc à droite.
-     *   `editorial` : composition centrée + planche de trois pièces + bandeau de réassurance.
-     * Changer `variant` suffit pour basculer de l'une à l'autre ; `parallax` remet
-     * le hero historique (cadran animé). Pour comparer sans redéployer, ajouter
-     * `?hero=editorial`, `?hero=vitrine` ou `?hero=parallax` à l'URL d'accueil.
+     * Hero d'accueil « vitrine » : discours à gauche, panneau blanc à droite.
+     * La montre exposée n'est pas configurée ici — c'est la première du catalogue
+     * encore en vente, chargée à l'affichage (voir `HomeHeroVitrineSection.vue`).
+     * `variant: 'parallax'` remet le hero historique au cadran animé.
      */
     hero: {
       variant: 'vitrine',
@@ -236,33 +232,11 @@ export default {
         'Nous achetons, vérifions et détenons nos montres. Chaque pièce est contrôlée par nos experts, garantie un an et disponible immédiatement.',
       primaryCta: { label: 'Voir les montres en stock', to: '/collection' },
       secondaryCta: { label: 'Recherche personnalisée', to: '/recherche' },
-      /** Les trois premiers points portent des icônes dans le variant `vitrine` ; le quatrième n'apparaît que dans `editorial`. */
+      /** Trois points de réassurance maximum : le variant `vitrine` leur associe une icône. */
       highlights: [
         'Authenticité vérifiée par nos experts',
         'Garantie un an sur chaque montre',
         'Boutique à Strasbourg, sur rendez-vous',
-        'Paiement sécurisé et livraison assurée',
-      ],
-      pieces: [
-        {
-          image: publicPath('home/omega-speedmaster-professional.webp'),
-          brand: 'Oméga',
-          model: 'Speedmaster Professional',
-          meta: 'En stock',
-          alt: 'Montre Oméga Speedmaster Professional, boîtier acier et bracelet acier',
-        },
-        {
-          image: publicPath('home/rolex-daytona.webp'),
-          brand: 'Rolex',
-          model: 'Cosmograph Daytona',
-          alt: 'Montre Rolex Cosmograph Daytona, cadran noir et bracelet Oyster acier',
-        },
-        {
-          image: publicPath('home/cartier-santos.webp'),
-          brand: 'Cartier',
-          model: 'Santos de Cartier',
-          alt: 'Montre Santos de Cartier, boîtier carré acier et or, cadran blanc',
-        },
       ],
     },
     nouvelles: {

@@ -1,15 +1,22 @@
 <script setup>
 /**
- * Hero « vitrine » — proposition sans animation : le discours à gauche, une
- * pièce photographiée posée dans un panneau blanc à droite, comme une devanture.
- * Tout le contenu vient de `home.hero` (voir `site/homeHero.js`).
+ * Hero « vitrine » — sans animation : le discours à gauche, une pièce du
+ * catalogue posée dans un panneau blanc à droite, comme une devanture.
+ *
+ * Le texte vient de `home.hero` (voir `site/homeHero.js`) ; la montre exposée
+ * est la première du catalogue encore en vente, donc la vitrine se renouvelle
+ * toute seule. Sans catalogue joignable, le panneau disparaît et le discours
+ * occupe toute la largeur.
  */
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { BadgeCheck, MapPin, ShieldCheck } from '@lucide/vue'
 
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isHomeHeroCtaVisible } from '@/site/homeHero.js'
+import { getLatestAvailableWatches } from '@/services/watchService.js'
+import { watchCardImageUrl } from '@/utils/watchImageUrl.js'
+import { buildWatchPath } from '@/utils/watchSlug.js'
 
 /** Une icône par point de réassurance, dans l'ordre déclaré par la config. */
 const HIGHLIGHT_ICONS = [ShieldCheck, BadgeCheck, MapPin]
@@ -22,15 +29,23 @@ const highlights = computed(() =>
   (hero.value.highlights ?? []).slice(0, HIGHLIGHT_ICONS.length),
 )
 
-/** Le panneau ne met en avant qu'une pièce : la première déclarée. */
-const piece = computed(() => hero.value.pieces?.[0] ?? null)
+/** Montre exposée : chargée au montage, `null` tant qu'elle n'est pas connue. */
+const piece = ref(null)
+const isLoadingPiece = ref(true)
 
-const pieceAlt = computed(() => {
-  const current = piece.value
-  if (!current) return ''
-  if (current.alt) return current.alt
-  return [current.brand, current.model].filter(Boolean).join(' ')
+const pieceImage = computed(() => {
+  const url = piece.value?.images?.[0]
+  if (!url) return null
+  return watchCardImageUrl(url, { width: 800 }) ?? url
 })
+
+const piecePath = computed(() =>
+  features.value.collection && piece.value ? buildWatchPath(piece.value) : null,
+)
+
+/** Le panneau n'existe que s'il a une vraie pièce et une vraie photo à montrer. */
+const showPiece = computed(() => Boolean(piece.value && pieceImage.value))
+const showPanel = computed(() => isLoadingPiece.value || showPiece.value)
 
 const showPrimaryCta = computed(() =>
   isHomeHeroCtaVisible(hero.value.primaryCta, features.value),
@@ -38,12 +53,25 @@ const showPrimaryCta = computed(() =>
 const showSecondaryCta = computed(() =>
   isHomeHeroCtaVisible(hero.value.secondaryCta, features.value),
 )
+
+onMounted(async () => {
+  try {
+    const [latest] = await getLatestAvailableWatches(1)
+    piece.value = latest ?? null
+  } catch {
+    // Catalogue injoignable : le hero reste lisible sans son panneau.
+    piece.value = null
+  } finally {
+    isLoadingPiece.value = false
+  }
+})
 </script>
 
 <template>
   <section id="accueil" class="bg-cream border-b border-cream-200">
     <div
-      class="mx-auto grid max-w-7xl gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:px-8 lg:py-20"
+      class="mx-auto grid max-w-7xl gap-12 px-4 py-14 sm:px-6 lg:gap-16 lg:px-8 lg:py-20"
+      :class="showPanel ? 'lg:grid-cols-[1.05fr_1fr]' : ''"
     >
       <div class="flex flex-col justify-center">
         <p
@@ -107,40 +135,54 @@ const showSecondaryCta = computed(() =>
         </ul>
       </div>
 
-      <div v-if="piece" class="flex flex-col bg-white p-7 shadow-lg sm:p-10">
+      <component
+        :is="piecePath ? RouterLink : 'div'"
+        v-if="showPanel"
+        :to="piecePath"
+        class="flex flex-col bg-white p-7 shadow-lg sm:p-10"
+        :class="piecePath ? 'transition-shadow hover:shadow-xl' : ''"
+      >
         <div class="flex items-baseline justify-between gap-4 border-b border-gray-200 pb-5">
           <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
             Pièce en vitrine
           </p>
           <p
-            v-if="piece.meta"
+            v-if="showPiece"
             class="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary"
           >
-            {{ piece.meta }}
+            En stock
           </p>
         </div>
 
         <div class="flex flex-1 items-center justify-center py-8 sm:py-10">
-          <img
-            :src="piece.image"
-            :alt="pieceAlt"
-            class="max-h-[19rem] w-auto max-w-full object-contain lg:max-h-[24rem]"
-            decoding="async"
-          />
+          <div class="aspect-square w-full max-w-[19rem] lg:max-w-[24rem]">
+            <img
+              v-if="showPiece"
+              :src="pieceImage"
+              :alt="piece.name"
+              class="h-full w-full object-contain"
+              width="800"
+              height="800"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </div>
         </div>
 
         <div class="border-t border-gray-200 pt-5">
-          <p
-            v-if="piece.brand"
-            class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500"
-          >
-            {{ piece.brand }}
-          </p>
-          <p v-if="piece.model" class="mt-1.5 text-lg font-semibold text-text-main">
-            {{ piece.model }}
-          </p>
+          <template v-if="showPiece">
+            <p
+              v-if="piece.brand"
+              class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500"
+            >
+              {{ piece.brand }}
+            </p>
+            <p v-if="piece.model" class="mt-1.5 text-lg font-semibold text-text-main">
+              {{ piece.model }}
+            </p>
+          </template>
         </div>
-      </div>
+      </component>
     </div>
   </section>
 </template>

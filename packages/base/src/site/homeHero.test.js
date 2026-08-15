@@ -18,7 +18,6 @@ describe('resolveHomeHeroConfig', () => {
       image: null,
       imageAlt: null,
       highlights: [],
-      pieces: [],
     })
   })
 
@@ -51,46 +50,19 @@ describe('resolveHomeHeroConfig', () => {
     ).toBe('parallax')
   })
 
-  it('normalise les pièces et les points de réassurance du hero vitrine', () => {
+  it('normalise les points de réassurance du hero vitrine', () => {
     const hero = resolveHomeHeroConfig({
       home: {
         hero: {
           variant: 'vitrine',
-          title: 'Une sélection courte, vérifiée pièce par pièce.',
-          highlights: ['Authentifiée', '  ', 'Garantie 1 an', 42],
-          pieces: [
-            {
-              image: '/home/omega.webp',
-              brand: 'Oméga',
-              model: 'Speedmaster Professional',
-              meta: 'Réf. 310.30.42',
-            },
-            { brand: 'Sans image' },
-            'invalide',
-          ],
+          title: 'Des montres authentifiées.',
+          highlights: ['Authenticité vérifiée', '  ', 'Garantie un an', 42],
         },
       },
     })
 
     expect(hero.variant).toBe('vitrine')
-    expect(hero.highlights).toEqual(['Authentifiée', 'Garantie 1 an'])
-    expect(hero.pieces).toEqual([
-      {
-        image: '/home/omega.webp',
-        alt: null,
-        brand: 'Oméga',
-        model: 'Speedmaster Professional',
-        meta: 'Réf. 310.30.42',
-      },
-    ])
-  })
-
-  it('accepte le variant editorial', () => {
-    expect(
-      resolveHomeHeroConfig({
-        home: { hero: { variant: 'editorial', title: 'Titre' } },
-      }).variant,
-    ).toBe('editorial')
+    expect(hero.highlights).toEqual(['Authenticité vérifiée', 'Garantie un an'])
   })
 })
 
@@ -100,7 +72,7 @@ describe('isHomeHeroRenderable', () => {
   })
 
   it('exige un titre pour les variants pilotés par la config', () => {
-    for (const variant of ['compact', 'vitrine', 'editorial']) {
+    for (const variant of ['compact', 'vitrine']) {
       expect(isHomeHeroRenderable({ variant, title: null })).toBe(false)
       expect(isHomeHeroRenderable({ variant, title: 'Titre' })).toBe(true)
     }
