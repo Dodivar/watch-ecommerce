@@ -173,7 +173,7 @@ function displayMobileMenu() {
     />
   </header>
 
-  <!-- `admin-scope` remet l'administration en contexte clair (voir theme-dark.css). -->
+  <!-- `admin-scope` marque les écrans d'administration (voir theme-dark.css). -->
   <main :class="{ 'admin-scope': isAdminPage }">
     <RouterView />
   </main>
