@@ -218,6 +218,27 @@ export default {
    * Sans clé `home` ou sans `sections`, l’accueil est vide (pas de défaut dans le socle).
    */
   home: {
+    /**
+     * Hero d'accueil « vitrine » : discours à gauche, panneau blanc à droite.
+     * La montre exposée n'est pas configurée ici — c'est la première du catalogue
+     * encore en vente, chargée à l'affichage (voir `HomeHeroVitrineSection.vue`).
+     * `variant: 'parallax'` remet le hero historique au cadran animé.
+     */
+    hero: {
+      variant: 'vitrine',
+      eyebrow: 'Revendeur horloger — Strasbourg',
+      title: 'Des montres authentifiées, choisies une par une.',
+      subtitle:
+        'Nous achetons, vérifions et détenons nos montres. Chaque pièce est contrôlée par nos experts, garantie un an et disponible immédiatement.',
+      primaryCta: { label: 'Voir les montres en stock', to: '/collection' },
+      secondaryCta: { label: 'Recherche personnalisée', to: '/recherche' },
+      /** Trois points de réassurance maximum : le variant `vitrine` leur associe une icône. */
+      highlights: [
+        'Authenticité vérifiée par nos experts',
+        'Garantie un an sur chaque montre',
+        'Boutique à Strasbourg, sur rendez-vous',
+      ],
+    },
     nouvelles: {
       title: 'Nouvelles arrivées',
       // subtitle: 'Découvrez nos dernières pièces ajoutées à notre sélection',

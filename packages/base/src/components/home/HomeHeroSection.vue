@@ -3,15 +3,25 @@ import { computed } from 'vue'
 
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import HomeHeroCompactSection from './HomeHeroCompactSection.vue'
+import HomeHeroVitrineSection from './HomeHeroVitrineSection.vue'
 import HomeHeroVisual from './HomeHeroVisual.vue'
+
+/** Variants portés par un composant dédié ; `parallax` est le rendu par défaut ci-dessous. */
+const VARIANT_COMPONENTS = {
+  compact: HomeHeroCompactSection,
+  vitrine: HomeHeroVitrineSection,
+}
 
 const site = getSiteConfig()
 const features = site.features
-const useCompactHero = computed(() => site.home?.hero?.variant === 'compact')
+
+const variantComponent = computed(
+  () => VARIANT_COMPONENTS[site.home?.hero?.variant] ?? null,
+)
 </script>
 
 <template>
-  <HomeHeroCompactSection v-if="useCompactHero" />
+  <component :is="variantComponent" v-if="variantComponent" />
   <section
     v-else
     id="accueil"
