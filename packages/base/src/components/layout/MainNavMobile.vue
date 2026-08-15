@@ -308,6 +308,35 @@ function brandRoute(brandName) {
                     <span>{{ item.label }}</span>
                     <ChevronRight class="w-5 h-5 shrink-0 text-white/60" :stroke-width="2" />
                   </button>
+
+                  <!-- Groupe : sous-liens dépliés sur place (pas de niveau supplémentaire,
+                       les groupes ne comptent que quelques entrées). -->
+                  <div
+                    v-else-if="item.type === 'group'"
+                    class="mnav-reveal-item py-4 border-b border-white/10"
+                    :style="{ animationDelay: 120 + idx * 60 + 'ms' }"
+                  >
+                    <RouterLink
+                      v-if="item.to"
+                      :to="item.to"
+                      @click="close"
+                      class="flex items-center justify-between hover:text-cream-100 transition-colors"
+                    >
+                      <span>{{ item.label }}</span>
+                      <ChevronRight class="w-5 h-5 shrink-0 text-white/40" :stroke-width="2" />
+                    </RouterLink>
+                    <p v-else class="text-white/90">{{ item.label }}</p>
+                    <RouterLink
+                      v-for="(sub, subIdx) in item.items"
+                      :key="'mnav-sub-' + idx + '-' + subIdx + '-' + sub.to"
+                      :to="sub.to"
+                      @click="close"
+                      class="mt-1 flex items-center justify-between py-2.5 pl-4 text-base text-white/80 hover:text-cream-100 transition-colors"
+                    >
+                      <span>{{ sub.label }}</span>
+                      <ChevronRight class="w-4 h-4 shrink-0 text-white/30" :stroke-width="2" />
+                    </RouterLink>
+                  </div>
                 </template>
               </nav>
 
