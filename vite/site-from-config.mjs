@@ -33,6 +33,8 @@ function buildFontFaceCss(typography) {
 
 function buildThemeCss(siteConfig) {
   const t = siteConfig.theme.colors
+  /** Surfaces de page : par défaut les beiges du site (aucun changement pour un thème clair). */
+  const s = siteConfig.theme.surfaces ?? {}
   const typography = resolveTypography(siteConfig)
   const { radius } = resolveVisual(siteConfig)
 
@@ -45,7 +47,12 @@ function buildThemeCss(siteConfig) {
   --color-cream-100: ${t.cream100};
   --color-cream-200: ${t.cream200};
   --color-cream-300: ${t.cream300};
+  --color-page: ${s.page ?? t.cream};
+  --color-page-alt: ${s.pageAlt ?? t.cream100};
+  --color-page-raised: ${s.pageRaised ?? t.cream200};
+  --color-page-line: ${s.pageLine ?? t.cream300};
   --color-text-main: ${t.textMain};
+  --color-text-on-dark: ${t.textOnDark ?? '#ffffff'};
   --font-sans: ${typography.sans.stack};
   --font-heading: ${typography.heading.stack};
   --font-subheading: ${typography.subheading.stack};
@@ -121,6 +128,9 @@ export function siteFromConfigPlugin(siteConfig) {
       const radiusPreset = getRadiusPreset(siteConfig)
       if (radiusPreset !== 'rounded') {
         out = out.replace('<html', `<html data-ui-radius="${escapeHtmlAttr(radiusPreset)}"`)
+      }
+      if (siteConfig.theme?.colorScheme === 'dark') {
+        out = out.replace('<html', '<html data-ui-color-scheme="dark"')
       }
 
       return out

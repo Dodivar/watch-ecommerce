@@ -12,6 +12,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:place"],
       "port": 5173
+    },
+    {
+      "name": "dev-sauvage",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:sauvage"],
+      "port": 5173
     }
   ]
 }

@@ -1,0 +1,449 @@
+/*
+ * Thème « vert » — activé quand `site.theme.colorScheme === 'dark'`
+ * (attribut `data-ui-color-scheme="dark"` posé sur <html> par vite/site-from-config.mjs).
+ *
+ * Parti pris : le fond de page est vert profond sur tout le site, et le contenu
+ * est posé sur des surfaces blanches (cartes, visuels, formulaires, modales).
+ *
+ * Mise en œuvre : plutôt que de retoucher les ~110 composants, les utilitaires
+ * neutres de Tailwind (bg-white, bg-cream*, text-gray-*, border-gray-*,
+ * bg-primary, text-primary…) sont réécrits pour lire des variables `--ui-*`
+ * décrivant le CONTEXTE de la surface courante. Deux jeux de valeurs existent :
+ *
+ *   « sur vert »  — valeur par défaut sous <html data-ui-color-scheme="dark">
+ *   « sur blanc » — reposé par toute surface claire (.bg-white, champs, admin…)
+ *
+ * Les variables CSS étant héritées, une carte blanche remet automatiquement
+ * tout son contenu (gris, filets, boutons verts) dans ses valeurs d'origine :
+ * aucune règle en cascade à maintenir composant par composant.
+ *
+ * Tout ce fichier est préfixé par `html[data-ui-color-scheme='dark']` : les
+ * sites au thème clair ne sont pas concernés.
+ */
+
+/* ---------------------------------------------------------------- contextes */
+
+/** Contexte « sur vert » — racine du site. */
+html[data-ui-color-scheme='dark'] {
+  /* Couleur héritée : le texte sans utilitaire suit le contexte. */
+  color: var(--ui-text);
+
+  /* `bg-cream*` sert de bande alternée : un vert légèrement plus clair que la
+     page donne le rythme entre sections, sans quitter le vert. */
+  --ui-page: var(--color-page);
+  --ui-panel: var(--color-page-alt);
+  --ui-panel-1: var(--color-page-raised);
+  --ui-panel-2: var(--color-page-raised);
+  --ui-panel-3: var(--color-page-line);
+
+  --ui-text: var(--color-text-on-dark);
+  --ui-text-700: rgba(255, 255, 255, 0.88);
+  --ui-text-600: rgba(255, 255, 255, 0.78);
+  --ui-text-500: rgba(255, 255, 255, 0.68);
+  --ui-text-400: rgba(255, 255, 255, 0.55);
+  --ui-text-300: rgba(255, 255, 255, 0.45);
+
+  --ui-line-100: rgba(255, 255, 255, 0.12);
+  --ui-line-200: rgba(255, 255, 255, 0.18);
+  --ui-line-300: rgba(255, 255, 255, 0.28);
+
+  --ui-accent: var(--color-text-on-dark);
+  --ui-accent-soft: rgba(255, 255, 255, 0.1);
+  --ui-accent-muted: rgba(255, 255, 255, 0.7);
+
+  /* CTA posé sur le vert : aplat blanc, libellé vert (survol beige). */
+  --ui-fill: var(--color-text-on-dark);
+  --ui-fill-hover: var(--color-cream);
+  --ui-on-fill: var(--color-primary);
+
+  --ui-white-text: var(--color-text-on-dark);
+
+  --ui-g50: rgba(255, 255, 255, 0.06);
+  --ui-g100: rgba(255, 255, 255, 0.1);
+  --ui-g200: rgba(255, 255, 255, 0.16);
+
+  /* Messages d'état posés directement sur le vert : teintes éclaircies. */
+  --ui-danger: #fca5a5;
+  --ui-success: #86efac;
+  --ui-warning: #fdba74;
+
+  --ui-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+/**
+ * Contexte « sur blanc » — toute surface claire repose les valeurs d'origine
+ * (gris Tailwind exacts, beiges de la marque, bouton vert à libellé blanc).
+ * `.admin-scope` fait partie de la liste : l'administration reste en clair.
+ */
+html[data-ui-color-scheme='dark'] :is(
+    .bg-white,
+    .bg-white\/70,
+    .bg-white\/80,
+    .bg-white\/90,
+    .bg-gray-50,
+    .bg-gray-100,
+    .bg-gray-200,
+    input,
+    textarea,
+    select,
+    .admin-scope
+  ) {
+  color: var(--ui-text);
+
+  --ui-page: #ffffff;
+  --ui-panel: var(--color-cream);
+  --ui-panel-1: var(--color-cream-100);
+  --ui-panel-2: var(--color-cream-200);
+  --ui-panel-3: var(--color-cream-300);
+
+  --ui-text: var(--color-text-main);
+  --ui-text-700: #374151;
+  --ui-text-600: #4b5563;
+  --ui-text-500: #6b7280;
+  --ui-text-400: #9ca3af;
+  --ui-text-300: #d1d5db;
+
+  --ui-line-100: #f3f4f6;
+  --ui-line-200: #e5e7eb;
+  --ui-line-300: #d1d5db;
+
+  --ui-accent: var(--color-primary);
+  --ui-accent-soft: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --ui-accent-muted: color-mix(in srgb, var(--color-primary) 75%, transparent);
+
+  --ui-fill: var(--color-primary);
+  --ui-fill-hover: var(--color-primary-hover);
+  --ui-on-fill: #ffffff;
+
+  --ui-white-text: #ffffff;
+
+  --ui-g50: #f9fafb;
+  --ui-g100: #f3f4f6;
+  --ui-g200: #e5e7eb;
+
+  --ui-danger: #dc2626;
+  --ui-success: #15803d;
+  --ui-warning: #ea580c;
+
+  --ui-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/**
+ * Bandes pleine largeur : elles portent le fond de page, pas une surface de
+ * contenu. `section.bg-white` / `<div class="min-h-screen bg-white">` sont donc
+ * repeints en vert et restent en contexte « sur vert ».
+ *
+ * Volontairement limité à `section` et `.min-h-screen` : `aside.bg-white`
+ * (récapitulatif de commande) et `footer.bg-white` (pied du tiroir panier) sont
+ * des cartes, pas des bandes, et doivent rester blancs.
+ */
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white {
+  background-color: var(--ui-page);
+  color: var(--ui-text);
+
+  /* `bg-cream*` sert de bande alternée : un vert légèrement plus clair que la
+     page donne le rythme entre sections, sans quitter le vert. */
+  --ui-page: var(--color-page);
+  --ui-panel: var(--color-page-alt);
+  --ui-panel-1: var(--color-page-raised);
+  --ui-panel-2: var(--color-page-raised);
+  --ui-panel-3: var(--color-page-line);
+
+  --ui-text: var(--color-text-on-dark);
+  --ui-text-700: rgba(255, 255, 255, 0.88);
+  --ui-text-600: rgba(255, 255, 255, 0.78);
+  --ui-text-500: rgba(255, 255, 255, 0.68);
+  --ui-text-400: rgba(255, 255, 255, 0.55);
+  --ui-text-300: rgba(255, 255, 255, 0.45);
+
+  --ui-line-100: rgba(255, 255, 255, 0.12);
+  --ui-line-200: rgba(255, 255, 255, 0.18);
+  --ui-line-300: rgba(255, 255, 255, 0.28);
+
+  --ui-accent: var(--color-text-on-dark);
+  --ui-accent-soft: rgba(255, 255, 255, 0.1);
+  --ui-accent-muted: rgba(255, 255, 255, 0.7);
+
+  --ui-fill: var(--color-text-on-dark);
+  --ui-fill-hover: var(--color-cream);
+  --ui-on-fill: var(--color-primary);
+
+  --ui-white-text: var(--color-text-on-dark);
+
+  --ui-g50: rgba(255, 255, 255, 0.06);
+  --ui-g100: rgba(255, 255, 255, 0.1);
+  --ui-g200: rgba(255, 255, 255, 0.16);
+
+  --ui-danger: #fca5a5;
+  --ui-success: #86efac;
+  --ui-warning: #fdba74;
+}
+
+/* ------------------------------------------------------------------- socle */
+
+html[data-ui-color-scheme='dark'],
+html[data-ui-color-scheme='dark'] body {
+  background-color: var(--color-page);
+  color: var(--color-text-on-dark);
+}
+
+/**
+ * Administration : hors thème vert. Le fond beige est reposé explicitement,
+ * sans quoi les écrans sans classe de fond laisseraient voir le vert du body.
+ */
+html[data-ui-color-scheme='dark'] main.admin-scope {
+  background-color: var(--ui-panel);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ------------------------------------------------------------------- fonds */
+
+html[data-ui-color-scheme='dark'] .bg-cream {
+  background-color: var(--ui-panel);
+}
+html[data-ui-color-scheme='dark'] .bg-cream-100 {
+  background-color: var(--ui-panel-1);
+}
+html[data-ui-color-scheme='dark'] .bg-cream-200 {
+  background-color: var(--ui-panel-2);
+}
+html[data-ui-color-scheme='dark'] .bg-cream-300 {
+  background-color: var(--ui-panel-3);
+}
+html[data-ui-color-scheme='dark'] .bg-gray-50 {
+  background-color: var(--ui-g50);
+}
+html[data-ui-color-scheme='dark'] .bg-gray-100 {
+  background-color: var(--ui-g100);
+}
+html[data-ui-color-scheme='dark'] .bg-gray-200 {
+  background-color: var(--ui-g200);
+}
+
+html[data-ui-color-scheme='dark'] :is(.hover\:bg-cream:hover, .hover\:bg-cream\/50:hover, .hover\:bg-cream\/60:hover, .hover\:bg-cream\/40:hover) {
+  background-color: var(--ui-panel-1);
+}
+html[data-ui-color-scheme='dark'] .hover\:bg-cream-100:hover {
+  background-color: var(--ui-panel-1);
+}
+html[data-ui-color-scheme='dark'] .hover\:bg-cream-200:hover {
+  background-color: var(--ui-panel-2);
+}
+html[data-ui-color-scheme='dark'] .hover\:bg-gray-50:hover {
+  background-color: var(--ui-g50);
+}
+
+/* ------------------------------------------------ aplats et accents « primary » */
+
+/*
+ * `bg-primary` reste vert par défaut : les panneaux, bandes et pieds de page
+ * verts à texte blanc sont déjà justes sur le fond vert.
+ *
+ * Seuls les APLATS qui doivent ressortir du fond basculent sur `--ui-fill` :
+ * les éléments cliquables (boutons, liens) et les pastilles/médaillons
+ * `rounded-full`. Sur le vert ils deviennent blancs à libellé vert ; dans une
+ * carte blanche, `--ui-fill` vaut le vert de marque et rien ne change.
+ */
+html[data-ui-color-scheme='dark']
+  :is(a, button, summary, label, [role='button'], input[type='submit'], .cursor-pointer, .rounded-full).bg-primary {
+  background-color: var(--ui-fill);
+  color: var(--ui-on-fill);
+
+  /* `--ui-fill` / `--ui-on-fill` ne sont pas redéfinis ici : ils viennent du
+     contexte parent, d'où le bon libellé des deux côtés. */
+  --ui-text: var(--ui-on-fill);
+  --ui-accent: var(--ui-on-fill);
+  --ui-white-text: var(--ui-on-fill);
+}
+
+html[data-ui-color-scheme='dark']
+  :is(a, button, summary, label, [role='button'], input[type='submit'], .cursor-pointer, .rounded-full).hover\:bg-primary-hover:hover {
+  background-color: var(--ui-fill-hover);
+}
+
+html[data-ui-color-scheme='dark'] :is(.bg-primary\/10, .bg-primary\/5, .hover\:bg-primary\/5:hover) {
+  background-color: var(--ui-accent-soft);
+}
+
+/**
+ * Bouton secondaire posé sur le vert (`bg-white` + bordure `border-primary`).
+ * Le CTA principal étant devenu blanc, un second aplat blanc juste à côté
+ * effacerait la hiérarchie : il passe en bouton fantôme, filet blanc sur vert.
+ * Exclu dès qu'il se trouve sur une surface claire (tiroir, carte, admin),
+ * où l'aplat blanc d'origine reste le bon rendu.
+ */
+html[data-ui-color-scheme='dark']
+  :is(a, button, [role='button']):is(.border-primary, [class*='border-primary\/']).bg-white:not(.bg-white *):not(
+    .admin-scope *
+  ) {
+  background-color: transparent;
+  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--color-text-on-dark);
+
+  --ui-accent: var(--color-text-on-dark);
+  --ui-accent-soft: rgba(255, 255, 255, 0.12);
+}
+
+html[data-ui-color-scheme='dark'] .text-primary {
+  color: var(--ui-accent);
+}
+html[data-ui-color-scheme='dark'] :is(.text-primary\/80, .text-primary\/70) {
+  color: var(--ui-accent-muted);
+}
+html[data-ui-color-scheme='dark'] :is(.text-primary\/30, .text-primary\/20) {
+  color: var(--ui-line-300);
+}
+
+html[data-ui-color-scheme='dark'] .border-primary {
+  border-color: var(--ui-accent);
+}
+html[data-ui-color-scheme='dark'] :is(
+    .border-primary\/40,
+    .border-primary\/30,
+    .border-primary\/20,
+    .border-primary\/15,
+    .hover\:border-primary\/40:hover
+  ) {
+  border-color: var(--ui-line-300);
+}
+
+/* ------------------------------------------------------------------ textes */
+
+html[data-ui-color-scheme='dark'] :is(.text-text-main, .text-black, .text-gray-900, .text-gray-800) {
+  color: var(--ui-text);
+}
+html[data-ui-color-scheme='dark'] .text-gray-700 {
+  color: var(--ui-text-700);
+}
+html[data-ui-color-scheme='dark'] .text-gray-600 {
+  color: var(--ui-text-600);
+}
+html[data-ui-color-scheme='dark'] .text-gray-500 {
+  color: var(--ui-text-500);
+}
+html[data-ui-color-scheme='dark'] .text-gray-400 {
+  color: var(--ui-text-400);
+}
+html[data-ui-color-scheme='dark'] .text-gray-300 {
+  color: var(--ui-text-300);
+}
+html[data-ui-color-scheme='dark'] .text-white {
+  color: var(--ui-white-text);
+}
+
+/*
+ * Messages d'état sans fond propre (erreurs de formulaire, confirmations).
+ * Les puces qui portent déjà leur aplat clair (`bg-red-100 text-red-800`…)
+ * ne sont pas concernées : elles restent lisibles telles quelles.
+ */
+html[data-ui-color-scheme='dark'] :is(.text-red-500, .text-red-600, .text-red-700) {
+  color: var(--ui-danger);
+}
+html[data-ui-color-scheme='dark'] :is(.text-green-600, .text-green-700, .hover\:text-green-700:hover) {
+  color: var(--ui-success);
+}
+html[data-ui-color-scheme='dark'] :is(.text-orange-600, .text-orange-500) {
+  color: var(--ui-warning);
+}
+
+/* ----------------------------------------------------------------- bordures */
+
+html[data-ui-color-scheme='dark'] :is(.border-gray-100, .divide-gray-100 > * + *) {
+  border-color: var(--ui-line-100);
+}
+html[data-ui-color-scheme='dark'] :is(.border-gray-200, .divide-gray-200 > * + *) {
+  border-color: var(--ui-line-200);
+}
+html[data-ui-color-scheme='dark'] :is(.border-gray-300, .divide-gray-300 > * + *) {
+  border-color: var(--ui-line-300);
+}
+html[data-ui-color-scheme='dark'] :is(.border-cream-200, .divide-cream-200 > * + *) {
+  border-color: var(--ui-line-200);
+}
+html[data-ui-color-scheme='dark'] :is(.border-cream-300, .hover\:border-cream-300:hover) {
+  border-color: var(--ui-line-300);
+}
+
+/* ------------------------------------------------------- chrome du site */
+
+/**
+ * En-tête : vert translucide, filet bas. Le contexte reste « sur vert », donc
+ * les libellés de navigation (text-text-main, text-gray-*) passent en blanc.
+ */
+html[data-ui-color-scheme='dark'] #header {
+  background-color: color-mix(in srgb, var(--color-page) 92%, transparent);
+  border-bottom: 1px solid var(--ui-line-200);
+  box-shadow: none;
+}
+
+/** Pied de page : même vert que la page, séparé par un filet plutôt qu'un aplat. */
+html[data-ui-color-scheme='dark'] footer#contact {
+  border-top: 1px solid var(--ui-line-200);
+}
+
+/**
+ * Rythme des bandes : deux sections voisines peuvent porter le même vert
+ * (ex. `bg-white` suivi de `bg-primary`). Un filet fin les sépare, plutôt
+ * qu'un changement d'aplat.
+ */
+html[data-ui-color-scheme='dark'] section + section {
+  border-top: 1px solid var(--ui-line-100);
+}
+
+/**
+ * Ombres portées : illisibles d'un vert sur l'autre. Elles sont conservées sous
+ * les surfaces blanches (où elles détachent la carte) et neutralisées ailleurs.
+ */
+html[data-ui-color-scheme='dark'] :is(.shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .watch-shadow) {
+  box-shadow: none;
+}
+html[data-ui-color-scheme='dark'] :is(.bg-white, .bg-gray-50, .bg-gray-100):is(.shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .watch-shadow) {
+  box-shadow: var(--ui-shadow);
+}
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white {
+  box-shadow: none;
+}
+
+/**
+ * Champs de saisie : fond blanc conservé (cf. main.css) et filet gris, pour
+ * rester lisibles et cohérents avec les cartes blanches.
+ */
+html[data-ui-color-scheme='dark'] :is(input, textarea, select) {
+  border-color: var(--ui-line-300);
+}
+
+/**
+ * Cadran décoratif de la page d'accueil (`HomeHeroVisual.vue`) : cadran blanc
+ * posé sur le vert, cerclage et orbites en filets blancs. Aplats uniquement.
+ */
+html[data-ui-color-scheme='dark'] .hero-visual {
+  --hero-face: #ffffff;
+  --hero-ring: rgba(255, 255, 255, 0.5);
+  --hero-line: rgba(255, 255, 255, 0.3);
+  --hero-orbit: rgba(255, 255, 255, 0.16);
+  --hero-orbit-dot: rgba(255, 255, 255, 0.85);
+}
+
+/** Barre de défilement du carrousel : aplats, sans dégradé. */
+html[data-ui-color-scheme='dark'] .custom-scrollbar-carrousel::-webkit-scrollbar-track {
+  background: var(--color-page-alt);
+}
+html[data-ui-color-scheme='dark'] .custom-scrollbar-carrousel::-webkit-scrollbar-thumb {
+  background: var(--color-page-line);
+  border-color: var(--color-page);
+}
+html[data-ui-color-scheme='dark'] .custom-scrollbar-carrousel::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-on-dark);
+}
+html[data-ui-color-scheme='dark'] .custom-scrollbar-carrousel {
+  scrollbar-color: var(--color-page-line) var(--color-page-alt);
+}
+/* Fondu latéral du carrousel : reprend la teinte de la bande qui le porte. */
+html[data-ui-color-scheme='dark'] #sales-carousel {
+  box-shadow:
+    inset 0 9px 0px 0px var(--ui-panel),
+    inset 0 -9px 0px 0px var(--ui-panel),
+    inset 30px 0 15px -4px var(--ui-panel),
+    inset -30px 0 15px -4px var(--ui-panel);
+}

@@ -13,6 +13,11 @@ export default {
 
   /** Design tokens → CSS variables via vite/site-from-config.mjs + Tailwind theme.extend */
   theme: {
+    /**
+     * `dark` = fond de page vert, contenu sur surfaces blanches.
+     * Le rendu est piloté par `packages/base/src/assets/theme-dark.css`.
+     */
+    colorScheme: 'dark',
     colors: {
       primary: '#0f2a1d',
       primaryHover: '#163d2a',
@@ -21,6 +26,19 @@ export default {
       cream200: '#e3d9cc',
       cream300: '#d9cec0',
       textMain: '#000000',
+      textOnDark: '#ffffff',
+      browserChrome: '#0f2a1d',
+    },
+    /**
+     * Surfaces du thème vert. Quatre déclinaisons du vert de marque : fond de
+     * page, bande alternée, panneau posé sur la bande, filet de séparation.
+     * Sans ce bloc, un site retombe sur ses beiges (`colors.cream*`).
+     */
+    surfaces: {
+      page: '#0f2a1d',
+      pageAlt: '#163d2a',
+      pageRaised: '#234c38',
+      pageLine: '#315d47',
     },
     /** Typographie de référence du socle — fichiers dans `public/fonts/`. */
     typography: {

@@ -216,7 +216,7 @@ function brandRoute(brandName) {
             <div
               v-if="!currentView"
               :key="reveal"
-              class="flex flex-col min-h-full w-full px-5 pt-20 pb-8 bg-gradient-to-b from-primary via-primary to-primary-hover"
+              class="flex flex-col min-h-full w-full px-5 pt-20 pb-8 bg-primary"
             >
               <RouterLink
                 to="/"

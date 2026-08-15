@@ -55,7 +55,7 @@ input[type="checkbox"] ~ label {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-cream);
+  background-color: var(--color-page);
   color: var(--color-text-main);
   min-height: 100vh;
   min-height: 100dvh;
@@ -103,18 +103,18 @@ h4 {
 }
 
 .custom-scrollbar-carrousel::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  background: var(--color-primary);
   border-radius: var(--radius-md);
   border: 2px solid var(--color-cream);
   transition: all 0.3s ease;
 }
 
 .custom-scrollbar-carrousel::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, var(--color-primary-hover), #1a4830);
+  background: var(--color-primary-hover);
 }
 
 .custom-scrollbar-carrousel::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(135deg, #0a1c16, var(--color-primary));
+  background: var(--color-primary);
 }
 
 /* Pour Firefox */

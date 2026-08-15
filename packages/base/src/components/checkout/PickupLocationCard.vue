@@ -12,7 +12,7 @@ defineProps({
 
 <template>
   <div
-    class="relative overflow-hidden rounded-xl border border-cream-200 bg-gradient-to-br from-cream/80 to-white px-4 py-3.5 sm:px-5 sm:py-4"
+    class="relative overflow-hidden rounded-xl border border-cream-200 bg-white px-4 py-3.5 sm:px-5 sm:py-4"
   >
     <div
       class="absolute inset-y-0 left-0 w-1 rounded-l-xl bg-primary"

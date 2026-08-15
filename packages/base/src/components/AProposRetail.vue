@@ -1,16 +1,7 @@
 <template>
   <div class="min-h-screen bg-cream">
     <!-- Hero -->
-    <section class="relative overflow-hidden bg-gradient-to-br from-cream via-cream-100 to-cream-200 py-16 lg:py-24">
-      <div
-        class="pointer-events-none absolute -right-16 top-8 hidden h-72 w-72 rounded-full bg-primary/10 blur-3xl lg:block"
-        aria-hidden="true"
-      />
-      <div
-        class="pointer-events-none absolute -left-20 bottom-0 h-56 w-56 rounded-full bg-primary/5 blur-3xl"
-        aria-hidden="true"
-      />
-
+    <section class="relative overflow-hidden bg-cream border-b border-cream-300 py-16 lg:py-24">
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
           class="grid items-center gap-10 lg:gap-12"

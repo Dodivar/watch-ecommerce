@@ -1,6 +1,7 @@
 <template>
   <div :class="{ 'cursor-pointer': clickable }" @click="handleCardClick">
-    <div class="relative w-full aspect-square bg-gray-100 rounded-md overflow-hidden mb-2 border border-gray-100 group">
+    <!-- Plaque blanche : les visuels montres gardent leur fond clair quel que soit le thème. -->
+    <div class="relative w-full aspect-square bg-white rounded-md overflow-hidden mb-2 border border-gray-100 group">
       <span
         v-if="showNewBadge"
         class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-primary text-white shadow-sm"
@@ -16,7 +17,7 @@
       </span>
       <span
         v-if="showCornerYearBadge"
-        class="absolute top-2 right-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-medium rounded bg-white/90 text-gray-800 shadow-sm backdrop-blur-sm"
+        class="absolute top-2 right-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-medium rounded border border-gray-200 bg-white/90 text-gray-800 shadow-sm backdrop-blur-sm"
       >
         {{ watchItem.year }}
       </span>
