@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { isHomeHeroRenderable, resolveHomeHeroConfig } from './homeHero.js'
+import {
+  isHomeHeroCtaVisible,
+  isHomeHeroRenderable,
+  resolveHomeHeroConfig,
+} from './homeHero.js'
 
 describe('resolveHomeHeroConfig', () => {
   it('retourne le variant parallax par défaut sans config hero', () => {
@@ -13,6 +17,7 @@ describe('resolveHomeHeroConfig', () => {
       secondaryCta: null,
       image: null,
       imageAlt: null,
+      highlights: [],
     })
   })
 
@@ -44,6 +49,21 @@ describe('resolveHomeHeroConfig', () => {
       }).variant,
     ).toBe('parallax')
   })
+
+  it('normalise les points de réassurance du hero vitrine', () => {
+    const hero = resolveHomeHeroConfig({
+      home: {
+        hero: {
+          variant: 'vitrine',
+          title: 'Des montres authentifiées.',
+          highlights: ['Authenticité vérifiée', '  ', 'Garantie un an', 42],
+        },
+      },
+    })
+
+    expect(hero.variant).toBe('vitrine')
+    expect(hero.highlights).toEqual(['Authenticité vérifiée', 'Garantie un an'])
+  })
 })
 
 describe('isHomeHeroRenderable', () => {
@@ -51,8 +71,36 @@ describe('isHomeHeroRenderable', () => {
     expect(isHomeHeroRenderable({ variant: 'parallax', title: null })).toBe(true)
   })
 
-  it('exige un titre pour le hero compact', () => {
-    expect(isHomeHeroRenderable({ variant: 'compact', title: null })).toBe(false)
-    expect(isHomeHeroRenderable({ variant: 'compact', title: 'Titre' })).toBe(true)
+  it('exige un titre pour les variants pilotés par la config', () => {
+    for (const variant of ['compact', 'vitrine']) {
+      expect(isHomeHeroRenderable({ variant, title: null })).toBe(false)
+      expect(isHomeHeroRenderable({ variant, title: 'Titre' })).toBe(true)
+    }
+  })
+})
+
+describe('isHomeHeroCtaVisible', () => {
+  const features = { collection: true, recherche: false, estimation: true }
+
+  it('masque un CTA incomplet', () => {
+    expect(isHomeHeroCtaVisible(null, features)).toBe(false)
+    expect(isHomeHeroCtaVisible({ label: 'Voir', to: '' }, features)).toBe(false)
+  })
+
+  it('suit la feature de la page visée', () => {
+    expect(isHomeHeroCtaVisible({ label: 'Voir', to: '/collection' }, features)).toBe(true)
+    expect(isHomeHeroCtaVisible({ label: 'Chercher', to: '/recherche' }, features)).toBe(false)
+    expect(isHomeHeroCtaVisible({ label: 'Estimer', to: '/estimation' }, features)).toBe(true)
+  })
+
+  it('affiche le contact sauf si la feature est explicitement coupée', () => {
+    expect(isHomeHeroCtaVisible({ label: 'Contact', to: '/contact' }, features)).toBe(true)
+    expect(
+      isHomeHeroCtaVisible({ label: 'Contact', to: '/contact' }, { contact: false }),
+    ).toBe(false)
+  })
+
+  it('laisse passer une destination libre', () => {
+    expect(isHomeHeroCtaVisible({ label: 'Blog', to: '/blog' }, features)).toBe(true)
   })
 })

@@ -1,4 +1,24 @@
-/** @typedef {'parallax' | 'compact'} HomeHeroVariant */
+/** @typedef {'parallax' | 'compact' | 'vitrine'} HomeHeroVariant */
+
+/**
+ * Variants pilotés par `home.hero.variant` dans le manifest client.
+ * - `parallax` : hero historique (texte + cadran animé), aucune config requise.
+ * - `compact`  : bandeau titre + CTAs, entièrement piloté par la config.
+ * - `vitrine`  : discours à gauche, pièce du catalogue dans un panneau blanc à droite.
+ */
+export const HOME_HERO_VARIANTS = ['parallax', 'compact', 'vitrine']
+
+const KNOWN_VARIANTS = new Set(HOME_HERO_VARIANTS)
+
+/** Variants dont tout le contenu vient de la config : sans titre, rien à afficher. */
+const CONFIG_DRIVEN_VARIANTS = new Set(['compact', 'vitrine'])
+
+/** CTA pointant vers une page optionnelle : masqué si la feature est coupée. */
+const CTA_FEATURE_BY_PATH = {
+  '/collection': 'collection',
+  '/recherche': 'recherche',
+  '/estimation': 'estimation',
+}
 
 /**
  * @param {unknown} raw
@@ -23,8 +43,22 @@ function resolveOptionalString(value) {
 }
 
 /**
+ * @param {unknown} raw
+ * @returns {string[]}
+ */
+function resolveStringList(raw) {
+  if (!Array.isArray(raw)) return []
+  const out = []
+  for (const value of raw) {
+    const resolved = resolveOptionalString(value)
+    if (resolved) out.push(resolved)
+  }
+  return out
+}
+
+/**
  * Valide et normalise `home.hero` depuis le manifest client.
- * Sans config ou sans `variant: 'compact'`, le socle conserve le hero parallax par défaut.
+ * Sans config ou sans variant connu, le socle conserve le hero parallax par défaut.
  *
  * @param {Record<string, unknown>} siteConfig
  * @returns {{
@@ -36,6 +70,7 @@ function resolveOptionalString(value) {
  *   secondaryCta: { label: string, to: string } | null,
  *   image: string | null,
  *   imageAlt: string | null,
+ *   highlights: string[],
  * }}
  */
 export function resolveHomeHeroConfig(siteConfig) {
@@ -50,13 +85,12 @@ export function resolveHomeHeroConfig(siteConfig) {
       secondaryCta: null,
       image: null,
       imageAlt: null,
+      highlights: [],
     }
   }
 
-  const variant = raw.variant === 'compact' ? 'compact' : 'parallax'
-
   return {
-    variant,
+    variant: KNOWN_VARIANTS.has(raw.variant) ? raw.variant : 'parallax',
     eyebrow: resolveOptionalString(raw.eyebrow),
     title: resolveOptionalString(raw.title),
     subtitle: resolveOptionalString(raw.subtitle),
@@ -64,6 +98,7 @@ export function resolveHomeHeroConfig(siteConfig) {
     secondaryCta: resolveCta(raw.secondaryCta),
     image: resolveOptionalString(raw.image),
     imageAlt: resolveOptionalString(raw.imageAlt),
+    highlights: resolveStringList(raw.highlights),
   }
 }
 
@@ -71,6 +106,21 @@ export function resolveHomeHeroConfig(siteConfig) {
  * @param {ReturnType<typeof resolveHomeHeroConfig>} hero
  */
 export function isHomeHeroRenderable(hero) {
-  if (!hero || hero.variant !== 'compact') return true
+  if (!hero || !CONFIG_DRIVEN_VARIANTS.has(hero.variant)) return true
   return Boolean(hero.title)
+}
+
+/**
+ * Un CTA de hero n'est affiché que si la page qu'il vise est active.
+ *
+ * @param {{ label: string, to: string } | null | undefined} cta
+ * @param {Record<string, boolean> | undefined} features
+ * @returns {boolean}
+ */
+export function isHomeHeroCtaVisible(cta, features) {
+  if (!cta?.label || !cta?.to) return false
+  const feature = CTA_FEATURE_BY_PATH[cta.to]
+  if (feature) return Boolean(features?.[feature])
+  if (cta.to === '/contact') return features?.contact !== false
+  return true
 }

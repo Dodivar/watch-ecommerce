@@ -3,25 +3,18 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { isHomeHeroCtaVisible } from '@/site/homeHero.js'
 
 const site = getSiteConfig()
 const hero = computed(() => site.home?.hero ?? {})
 const features = computed(() => site.features ?? {})
 
 const showPrimaryCta = computed(() =>
-  Boolean(
-    hero.value.primaryCta?.label
-      && hero.value.primaryCta?.to
-      && (hero.value.primaryCta.to !== '/collection' || features.value.collection),
-  ),
+  isHomeHeroCtaVisible(hero.value.primaryCta, features.value),
 )
 
 const showSecondaryCta = computed(() =>
-  Boolean(
-    hero.value.secondaryCta?.label
-      && hero.value.secondaryCta?.to
-      && (hero.value.secondaryCta.to !== '/contact' || features.value.contact !== false),
-  ),
+  isHomeHeroCtaVisible(hero.value.secondaryCta, features.value),
 )
 </script>
 
