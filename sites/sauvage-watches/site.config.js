@@ -229,12 +229,12 @@ export default {
       eyebrow: 'Revendeur horloger — Strasbourg',
       title: 'Des montres authentifiées, choisies une par une.',
       subtitle:
-        'Nous achetons, vérifions et détenons nos montres. Chaque pièce est contrôlée par nos experts, garantie un an et disponible immédiatement.',
+        'Nous achetons, vérifions et détenons nos montres. Chaque pièce est contrôlée, garantie un an et disponible immédiatement.',
       primaryCta: { label: 'Voir les montres en stock', to: '/collection' },
       secondaryCta: { label: 'Recherche personnalisée', to: '/recherche' },
       /** Trois points de réassurance maximum : le variant `vitrine` leur associe une icône. */
       highlights: [
-        'Authenticité vérifiée par nos experts',
+        'Montre certifiée',
         'Garantie un an sur chaque montre',
         'Boutique à Strasbourg, sur rendez-vous',
       ],
