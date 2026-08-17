@@ -2,6 +2,7 @@
   <div
     ref="containerRef"
     class="relative h-full w-full overflow-hidden"
+    style="overscroll-behavior: contain"
     @touchstart.passive="onTouchStart"
     @touchmove="onTouchMove"
     @touchend="onTouchEnd"
