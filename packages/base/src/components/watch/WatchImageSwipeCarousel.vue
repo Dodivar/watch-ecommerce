@@ -2,12 +2,13 @@
   <div
     ref="containerRef"
     class="relative h-full w-full overflow-hidden"
+    style="overscroll-behavior: contain"
     @touchstart.passive="onTouchStart"
     @touchmove="onTouchMove"
     @touchend="onTouchEnd"
     @touchcancel="onTouchEnd"
   >
-    <div class="flex h-full touch-pan-y" :style="trackStyle">
+    <div class="flex h-full" :class="lockVerticalScroll ? 'touch-none' : 'touch-pan-y'" :style="trackStyle">
       <div
         v-for="(image, index) in images"
         :key="slideKey(image, index)"
@@ -110,6 +111,10 @@ const props = defineProps({
   nextLabel: {
     type: String,
     default: 'Image suivante',
+  },
+  lockVerticalScroll: {
+    type: Boolean,
+    default: false,
   },
 })
 
