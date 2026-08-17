@@ -29,13 +29,13 @@ export default {
       id: 4,
       question: 'Quelles montres proposez-vous dans votre collection en stock ?',
       answer:
-        'Nous proposons une <strong>sélection de montres de collection et de prestige en stock</strong> : Rolex, Omega, Cartier, Breitling, Audemars Piguet, Patek Philippe, Tag Heuer, Tudor, et bien d\'autres marques prestigieuses. Toutes nos montres sont authentifiées, vérifiées par nos experts et accompagnées de leur historique. Nous mettons régulièrement à jour notre collection avec de nouveaux modèles. Vous pouvez consulter notre collection complète directement sur notre site.',
+        'Nous proposons une <strong>sélection de montres de collection et de prestige en stock</strong> : Rolex, Omega, Cartier, Breitling, Audemars Piguet, Patek Philippe, Tag Heuer, Tudor, et bien d\'autres marques prestigieuses. Toutes nos montres sont authentifiées, vérifiées et accompagnées de leur historique. Nous mettons régulièrement à jour notre collection avec de nouveaux modèles. Vous pouvez consulter notre collection complète directement sur notre site.',
     },
     {
       id: 6,
       question: 'Les montres que vous proposez sont-elles authentiques et garanties ?',
       answer:
-        'Oui, <strong>toutes nos montres sont authentifiées</strong> par nos experts avant d\'être proposées, qu\'il s\'agisse de notre collection en stock ou de montres trouvées via notre service de recherche personnalisée. Nous vérifions l\'authenticité, l\'état, et l\'historique de chaque pièce. Nous proposons également une garantie sur nos transactions et nous engageons sur la qualité et l\'authenticité de chaque pièce que nous proposons.',
+        'Oui, <strong>toutes nos montres sont authentifiées</strong> avant d\'être proposées, qu\'il s\'agisse de notre collection en stock ou de montres trouvées via notre service de recherche personnalisée. Nous vérifions l\'authenticité, l\'état, et l\'historique de chaque pièce. Nous proposons également une garantie sur nos transactions et nous engageons sur la qualité et l\'authenticité de chaque pièce que nous proposons.',
     },
     {
       id: 8,

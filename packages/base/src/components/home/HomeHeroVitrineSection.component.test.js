@@ -32,7 +32,7 @@ const siteConfig = {
       subtitle: 'Nous achetons, vérifions et détenons nos montres.',
       primaryCta: { label: 'Voir les montres en stock', to: '/collection' },
       secondaryCta: { label: 'Recherche personnalisée', to: '/recherche' },
-      highlights: ['Authenticité vérifiée par nos experts'],
+      highlights: ['Authenticité vérifiée'],
     },
   },
 }
