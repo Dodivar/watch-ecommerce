@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, onUnmounted, unref, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, unref, nextTick, watch } from 'vue'
 
 function resolveImageCount(source) {
   const raw = typeof source === 'function' ? source() : unref(source)
@@ -33,6 +33,7 @@ export function useWatchImageSwipe({
   containerRef,
   currentIndex,
   onIndexChange,
+  swipeDisabled,
 }) {
   const dragOffset = ref(0)
   const transitionMs = ref(0)
@@ -49,6 +50,10 @@ export function useWatchImageSwipe({
   let resizeObserver = null
 
   const count = computed(() => resolveImageCount(imageCount))
+  const isSwipeDisabled = computed(() => {
+    const raw = typeof swipeDisabled === 'function' ? swipeDisabled() : unref(swipeDisabled)
+    return Boolean(raw)
+  })
 
   const trackStyle = computed(() => ({
     transform: `translate3d(${-currentIndex.value * slideWidth.value + dragOffset.value}px, 0, 0)`,
@@ -60,6 +65,16 @@ export function useWatchImageSwipe({
   function syncSlideWidth() {
     slideWidth.value = containerRef.value?.clientWidth ?? 0
   }
+
+  // Le zoom peut prendre la main en cours de glissement (second doigt posé) :
+  // on abandonne le drag en cours pour éviter une piste figée en travers.
+  watch(isSwipeDisabled, (disabled) => {
+    if (!disabled) return
+    isDragging.value = false
+    isHorizontalSwipe = null
+    dragOffset.value = 0
+    transitionMs.value = 0
+  })
 
   function setIndex(nextIndex, { animate = true, fast = true } = {}) {
     const total = count.value
@@ -107,7 +122,7 @@ export function useWatchImageSwipe({
   }
 
   function onTouchStart(event) {
-    if (count.value <= 1) return
+    if (count.value <= 1 || isSwipeDisabled.value) return
 
     const touch = event.touches[0]
     transitionMs.value = 0
@@ -121,7 +136,7 @@ export function useWatchImageSwipe({
   }
 
   function onTouchMove(event) {
-    if (!isDragging.value || count.value <= 1) return
+    if (!isDragging.value || count.value <= 1 || isSwipeDisabled.value) return
 
     const touch = event.touches[0]
     const deltaX = touch.clientX - touchStartX
@@ -159,7 +174,7 @@ export function useWatchImageSwipe({
     if (!isDragging.value) return
     isDragging.value = false
 
-    if (!isHorizontalSwipe || count.value <= 1) {
+    if (!isHorizontalSwipe || count.value <= 1 || isSwipeDisabled.value) {
       dragOffset.value = 0
       transitionMs.value = 0
       isHorizontalSwipe = null

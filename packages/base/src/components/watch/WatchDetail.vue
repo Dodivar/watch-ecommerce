@@ -38,7 +38,7 @@
           <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
           <p class="text-gray-600 mb-3">{{ error }}</p>
           <button
-            @click="loadWatch"
+            @click="loadWatch({ force: true })"
             class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
           >
             Réessayer
@@ -705,67 +705,14 @@
   -->
 
     <!-- Lightbox Modal -->
-    <Teleport to="body">
-      <div
-        v-if="isLightboxOpen"
-        class="lightbox-overlay fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-90 p-4"
-        @click="closeLightbox"
-        @keydown.esc="closeLightbox"
-        tabindex="-1"
-      >
-        <!-- Close button -->
-        <button
-          @click.stop="closeLightbox"
-          class="absolute top-4 right-4 z-10 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-full p-3 transition-all duration-200"
-          title="Fermer"
-          aria-label="Fermer la lightbox"
-        >
-          <X class="w-6 h-6" :stroke-width="2" />
-        </button>
-
-        <div
-          v-if="watchItem"
-          class="relative h-[90vh] w-[90vw]"
-          @click.stop
-        >
-          <WatchImageSwipeCarousel
-            v-model="currentImageIndex"
-            :images="watchItem.images"
-            :show-navigation="watchItem.images.length > 1"
-            navigation-button-class="bg-white bg-opacity-20 hover:bg-opacity-30 p-4 transition-all duration-200 z-10"
-            prev-navigation-class="left-4"
-            next-navigation-class="right-4"
-            lock-vertical-scroll
-          >
-            <template #slide="{ image }">
-              <div class="flex h-full w-full items-center justify-center">
-                <img
-                  :src="image"
-                  :alt="watchItem.name"
-                  class="max-h-[90vh] max-w-[90vw] object-contain"
-                />
-              </div>
-            </template>
-
-            <template #prev-icon>
-              <ChevronLeft class="w-8 h-8" :stroke-width="2" />
-            </template>
-
-            <template #next-icon>
-              <ChevronRight class="w-8 h-8" :stroke-width="2" />
-            </template>
-          </WatchImageSwipeCarousel>
-        </div>
-
-        <!-- Image counter -->
-        <div
-          v-if="watchItem && watchItem.images.length > 1"
-          class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm pointer-events-none"
-        >
-          {{ currentImageIndex + 1 }} / {{ watchItem.images.length }}
-        </div>
-      </div>
-    </Teleport>
+    <WatchImageLightbox
+      v-if="watchItem"
+      v-model="currentImageIndex"
+      :open="isLightboxOpen"
+      :images="lightboxImages"
+      :title="watchItem.name"
+      @close="closeLightbox"
+    />
 
     <!-- Share Lightbox Modal -->
     <Teleport to="body">
@@ -899,7 +846,9 @@ import { useCart } from '@/composables/useCart.js'
 import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import WatchDetailSkeleton from '@/components/watch/WatchDetailSkeleton.vue'
 import WatchImageSwipeCarousel from '@/components/watch/WatchImageSwipeCarousel.vue'
+import WatchImageLightbox from '@/components/watch/WatchImageLightbox.vue'
 import WatchAppointmentModal from '@/components/watch/WatchAppointmentModal.vue'
+import { watchLightboxImageUrl } from '@/utils/watchImageUrl.js'
 import PaymentIcons from '@/components/payment/PaymentIcons.vue'
 import TrustHighlightIcon from '@/components/watch/TrustHighlightIcon.vue'
 
@@ -947,6 +896,10 @@ function scrollActiveThumbnailIntoView() {
 
 // Lightbox state
 const isLightboxOpen = ref(false)
+
+const lightboxImages = computed(() =>
+  (watchItem.value?.images ?? []).map((image) => watchLightboxImageUrl(image) ?? image),
+)
 
 // Share lightbox state
 const isShareLightboxOpen = ref(false)
@@ -1029,8 +982,30 @@ const displayedDescription = computed(() => {
 
 const isSlugRoute = computed(() => route.path.startsWith('/montre/'))
 
+function currentWatchRouteKey() {
+  const routeKey = isSlugRoute.value ? route.params.slug : route.params.id
+  return routeKey ? String(routeKey) : null
+}
+
 // Load watch from Supabase
-const loadWatch = async () => {
+const loadWatch = async ({ force = false } = {}) => {
+  const routeKey = currentWatchRouteKey()
+  if (!routeKey) {
+    error.value = 'Identifiant de montre manquant'
+    isLoading.value = false
+    return
+  }
+
+  const alreadyLoaded =
+    !force &&
+    watchItem.value &&
+    (String(watchItem.value.id) === routeKey ||
+      (isSlugRoute.value && watchItem.value.slug === routeKey))
+
+  if (alreadyLoaded) {
+    return
+  }
+
   try {
     isLoading.value = true
     error.value = null
@@ -1039,16 +1014,11 @@ const loadWatch = async () => {
     // Vérifier si l'utilisateur est admin
     isAdmin.value = await isAdminAuthenticated()
     
-    const routeKey = isSlugRoute.value ? route.params.slug : route.params.id
-    if (!routeKey) {
-      throw new Error('Identifiant de montre manquant')
-    }
-    
     // Si l'utilisateur est admin, permettre de voir les montres hors-stock ;
     // si l'archive des ventes est active, les montres vendues restent consultables.
     const data = isSlugRoute.value
-      ? await getWatchBySlug(String(routeKey), isAdmin.value, soldArchiveEnabled)
-      : await getWatchById(String(routeKey), isAdmin.value, soldArchiveEnabled)
+      ? await getWatchBySlug(routeKey, isAdmin.value, soldArchiveEnabled)
+      : await getWatchById(routeKey, isAdmin.value, soldArchiveEnabled)
     watchItem.value = data
 
     const canonicalPath = buildWatchPath(data)
@@ -1474,14 +1444,15 @@ const pageStructuredSchemas = computed(() =>
 
 // Lightbox methods
 const openLightbox = () => {
+  // Relever la position avant de figer le body : `position: fixed` remet
+  // immédiatement `window.scrollY` à 0 et la position de lecture serait perdue.
+  const scrollY = window.scrollY
   isLightboxOpen.value = true
-  // Prevent body and html scroll when lightbox is open
   document.body.style.overflow = 'hidden'
   document.documentElement.style.overflow = 'hidden'
-  // Prevent scroll on touch devices
   document.body.style.position = 'fixed'
   document.body.style.width = '100%'
-  document.body.style.top = `-${window.scrollY}px`
+  document.body.style.top = `-${scrollY}px`
   // Prevent pull-to-refresh / rubber-band gestures from reloading the page
   // when a vertical touch drag happens inside the lightbox
   document.documentElement.style.overscrollBehavior = 'none'
@@ -1507,14 +1478,13 @@ const closeLightbox = () => {
 
 // Share lightbox methods
 const openShareLightbox = () => {
+  const scrollY = window.scrollY
   isShareLightboxOpen.value = true
-  // Prevent body and html scroll when lightbox is open
   document.body.style.overflow = 'hidden'
   document.documentElement.style.overflow = 'hidden'
-  // Prevent scroll on touch devices
   document.body.style.position = 'fixed'
   document.body.style.width = '100%'
-  document.body.style.top = `-${window.scrollY}px`
+  document.body.style.top = `-${scrollY}px`
 }
 
 const closeShareLightbox = () => {
@@ -1596,54 +1566,22 @@ const copyUrl = async () => {
   }
 }
 
-// Handle ESC key press
+// La visionneuse photo gère son propre clavier ; il ne reste que le partage.
 const handleKeyDown = (event) => {
-  if (event.key === 'Escape') {
-    if (isLightboxOpen.value) {
-      closeLightbox()
-    }
-    if (isShareLightboxOpen.value) {
-      closeShareLightbox()
-    }
+  if (event.key === 'Escape' && isShareLightboxOpen.value) {
+    closeShareLightbox()
   }
 }
 
-// Watch for lightbox state changes to handle focus and keyboard events
-watch(isLightboxOpen, async (isOpen) => {
-  if (isOpen) {
-    await nextTick()
-    // Add keyboard event listener
-    document.addEventListener('keydown', handleKeyDown)
-    // Focus the lightbox overlay for keyboard navigation
-    const overlay = document.querySelector('.lightbox-overlay')
-    if (overlay) {
-      overlay.focus()
-    }
-  } else {
-    // Remove keyboard event listener only if share lightbox is also closed
-    if (!isShareLightboxOpen.value) {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }
-})
-
-// Watch for share lightbox state changes
 watch(isShareLightboxOpen, async (isOpen) => {
-  if (isOpen) {
-    await nextTick()
-    // Add keyboard event listener
-    document.addEventListener('keydown', handleKeyDown)
-    // Focus the lightbox overlay for keyboard navigation
-    const overlay = document.querySelector('.lightbox-overlay')
-    if (overlay) {
-      overlay.focus()
-    }
-  } else {
-    // Remove keyboard event listener only if image lightbox is also closed
-    if (!isLightboxOpen.value) {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
+  if (!isOpen) {
+    document.removeEventListener('keydown', handleKeyDown)
+    return
   }
+
+  await nextTick()
+  document.addEventListener('keydown', handleKeyDown)
+  document.querySelector('.lightbox-overlay')?.focus()
 })
 
 onMounted(async () => {

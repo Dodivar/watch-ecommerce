@@ -8,7 +8,7 @@
     @touchend="onTouchEnd"
     @touchcancel="onTouchEnd"
   >
-    <div class="flex h-full" :class="lockVerticalScroll ? 'touch-none' : 'touch-pan-y'" :style="trackStyle">
+    <div class="flex h-full" :class="trackClass" :style="trackStyle">
       <div
         v-for="(image, index) in images"
         :key="slideKey(image, index)"
@@ -112,9 +112,14 @@ const props = defineProps({
     type: String,
     default: 'Image suivante',
   },
-  lockVerticalScroll: {
+  swipeDisabled: {
     type: Boolean,
     default: false,
+  },
+  /** `touch-none` quand la gestuelle verticale est pilotée en JS (visionneuse). */
+  trackClass: {
+    type: String,
+    default: 'touch-pan-y',
   },
 })
 
@@ -152,6 +157,7 @@ const {
   containerRef,
   currentIndex,
   onIndexChange: emitIndexChange,
+  swipeDisabled: () => props.swipeDisabled,
 })
 
 function slideKey(image, index) {
