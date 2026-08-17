@@ -12,8 +12,8 @@ import { getAvailableCatalogBrands } from '@/services/watchService.js'
 import { getActiveWatchPromotionCampaignsForCarousel } from '@/services/admin/adminWatchPromotionService.js'
 
 /** @typedef {'none' | 'brand' | 'watch' | 'campaign'} LinkMode */
-/** @typedef {{ id: string, image_url: string, image_path?: string, alt_text: string, brand_name: string, watch_id: string, promotion_campaign_id: string, _isNew?: false }} SavedDraftSlide */
-/** @typedef {{ localId: string, previewUrl: string, file: File, alt_text: string, brand_name: string, watch_id: string, promotion_campaign_id: string, _isNew: true }} NewDraftSlide */
+/** @typedef {{ id: string, image_url: string, image_path?: string, alt_text: string, brand_name: string, watch_id: string, promotion_campaign_id: string, _linkMode: LinkMode, _isNew?: false }} SavedDraftSlide */
+/** @typedef {{ localId: string, previewUrl: string, file: File, alt_text: string, brand_name: string, watch_id: string, promotion_campaign_id: string, _linkMode: LinkMode, _isNew: true }} NewDraftSlide */
 
 const savedSlides = ref(/** @type {SavedDraftSlide[]} */ ([]))
 const draftSlides = ref(/** @type {(SavedDraftSlide | NewDraftSlide)[]} */ ([]))
@@ -35,14 +35,21 @@ const uploadMeta = ref({
   promotionCampaignId: '',
 })
 
-function getLinkMode(slide) {
+/** @returns {LinkMode} */
+function deriveLinkMode(slide) {
   if (slide.watch_id) return 'watch'
   if (slide.promotion_campaign_id) return 'campaign'
   if (slide.brand_name?.trim()) return 'brand'
   return 'none'
 }
 
+/** @returns {LinkMode} */
+function getLinkMode(slide) {
+  return slide._linkMode ?? deriveLinkMode(slide)
+}
+
 function setLinkMode(slide, mode) {
+  slide._linkMode = mode
   if (mode === 'none') {
     slide.brand_name = ''
     slide.watch_id = ''
@@ -85,15 +92,35 @@ const hasValidAltTexts = computed(() => slidesWithMissingAlt.value.length === 0)
 const hasValidCampaignLinks = computed(() =>
   draftSlides.value.every((slide) => {
     if (getLinkMode(slide) !== 'campaign') return true
-    if (!slide.promotion_campaign_id) return false
+    if (!slide.promotion_campaign_id) return true
     return campaigns.value.some((entry) => entry.id === slide.promotion_campaign_id)
   }),
 )
 
-const canPublish = computed(() => hasChanges.value && hasValidAltTexts.value && hasValidCampaignLinks.value)
+const slidesWithIncompleteLink = computed(() =>
+  draftSlides.value
+    .map((slide, index) => ({ slide, index }))
+    .filter(({ slide }) => {
+      const mode = getLinkMode(slide)
+      if (mode === 'brand') return !slide.brand_name?.trim()
+      if (mode === 'watch') return !slide.watch_id
+      if (mode === 'campaign') return !slide.promotion_campaign_id
+      return false
+    }),
+)
+
+const hasCompleteLinkTargets = computed(() => slidesWithIncompleteLink.value.length === 0)
+
+const canPublish = computed(
+  () =>
+    hasChanges.value
+    && hasValidAltTexts.value
+    && hasValidCampaignLinks.value
+    && hasCompleteLinkTargets.value,
+)
 
 function normalizeSavedSlide(row) {
-  return {
+  const slide = {
     id: row.id,
     image_url: row.image_url,
     image_path: row.image_path,
@@ -102,6 +129,8 @@ function normalizeSavedSlide(row) {
     watch_id: row.watch_id ?? '',
     promotion_campaign_id: row.promotion_campaign_id ?? '',
   }
+  slide._linkMode = deriveLinkMode(slide)
+  return slide
 }
 
 function cloneSavedSlides(rows) {
@@ -241,6 +270,7 @@ function handleUpload(event) {
     watch_id: uploadMeta.value.linkMode === 'watch' ? uploadMeta.value.watchId : '',
     promotion_campaign_id:
       uploadMeta.value.linkMode === 'campaign' ? uploadMeta.value.promotionCampaignId : '',
+    _linkMode: uploadMeta.value.linkMode,
   }
 
   draftSlides.value.push(slide)
@@ -285,6 +315,12 @@ async function saveChanges() {
   if (!hasValidCampaignLinks.value) {
     error.value =
       'Chaque slide liée à un événement promotionnel doit pointer vers un événement en cours.'
+    return
+  }
+
+  if (!hasCompleteLinkTargets.value) {
+    error.value =
+      'Chaque slide avec une redirection doit avoir une destination sélectionnée (marque, montre ou événement).'
     return
   }
 
@@ -403,6 +439,17 @@ onUnmounted(() => {
     >
       Une ou plusieurs slides pointent vers un événement promotionnel inactif ou non sélectionné.
       Choisissez un événement en cours ou retirez la redirection.
+    </div>
+
+    <div
+      v-if="hasChanges && !hasCompleteLinkTargets"
+      class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+      role="alert"
+    >
+      Redirection sans destination sur
+      {{ slidesWithIncompleteLink.length > 1 ? 'les images' : "l'image" }}
+      {{ slidesWithIncompleteLink.map(({ index }) => index + 1).join(', ') }}.
+      Choisissez une marque, une montre ou un événement, ou repassez sur « Aucune redirection ».
     </div>
 
     <div
