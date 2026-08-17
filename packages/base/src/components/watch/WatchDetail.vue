@@ -735,6 +735,7 @@
             navigation-button-class="bg-white bg-opacity-20 hover:bg-opacity-30 p-4 transition-all duration-200 z-10"
             prev-navigation-class="left-4"
             next-navigation-class="right-4"
+            lock-vertical-scroll
           >
             <template #slide="{ image }">
               <div class="flex h-full w-full items-center justify-center">
@@ -1481,6 +1482,10 @@ const openLightbox = () => {
   document.body.style.position = 'fixed'
   document.body.style.width = '100%'
   document.body.style.top = `-${window.scrollY}px`
+  // Prevent pull-to-refresh / rubber-band gestures from reloading the page
+  // when a vertical touch drag happens inside the lightbox
+  document.documentElement.style.overscrollBehavior = 'none'
+  document.body.style.overscrollBehavior = 'none'
 }
 
 const closeLightbox = () => {
@@ -1492,6 +1497,8 @@ const closeLightbox = () => {
   document.body.style.position = ''
   document.body.style.width = ''
   document.body.style.top = ''
+  document.documentElement.style.overscrollBehavior = ''
+  document.body.style.overscrollBehavior = ''
   if (scrollY) {
     const scrollPosition = parseInt(scrollY.replace('px', '') || '0', 10)
     window.scrollTo(0, Math.abs(scrollPosition))
@@ -1683,6 +1690,8 @@ onUnmounted(() => {
   document.body.style.position = ''
   document.body.style.width = ''
   document.body.style.top = ''
+  document.documentElement.style.overscrollBehavior = ''
+  document.body.style.overscrollBehavior = ''
   document.removeEventListener('keydown', handleKeyDown)
 })
 </script>
@@ -1703,6 +1712,7 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   z-index: 9999;
+  overscroll-behavior: none;
 }
 
 @keyframes fadeIn {
