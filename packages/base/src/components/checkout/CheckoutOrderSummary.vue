@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { Clock } from '@lucide/vue'
 import { CHECKOUT_FIELD_CLASS } from './checkoutFieldClasses.js'
+import { formatPrice as formatAmount } from '@/utils/formatters.js'
 
 const props = defineProps({
   orderLines: { type: Array, default: () => [] },
@@ -22,10 +23,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:promoInput', 'apply-promo', 'remove-promo'])
 
+/** Les montants du tunnel sont en centimes. */
 function formatPrice(cents) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
-    (cents || 0) / 100,
-  )
+  return formatAmount((cents || 0) / 100, { decimals: true })
 }
 
 const taxCents = computed(() => {

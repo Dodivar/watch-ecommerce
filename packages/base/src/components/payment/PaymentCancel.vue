@@ -150,7 +150,7 @@
                   <span class="font-semibold text-gray-900">Modèle :</span> {{ watch.model }}
                 </p>
                 <p v-if="watch.price" class="text-lg font-bold text-primary mt-3">
-                  {{ new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(watch.price) }}
+                  {{ formatPrice(watch.price, { decimals: true }) }}
                 </p>
               </div>
             </div>
@@ -241,6 +241,7 @@ import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
 import { getWatchById } from '@/services/watchService'
+import { formatPrice } from '@/utils/formatters.js'
 
 const features = getSiteConfig().features
 const browsePath = getBrowsePath(features)

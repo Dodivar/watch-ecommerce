@@ -412,6 +412,7 @@ import {
 } from '@/utils/collectionPagination.js'
 import { getActiveCampaignBySlugPublic } from '@/services/watchPromotionCampaignService.js'
 import { isValidCampaignSlug } from '@/utils/campaignSlug.js'
+import { formatNumber } from '@/utils/formatters.js'
 
 const props = defineProps({
   showFilters: { type: Boolean, default: true },
@@ -773,7 +774,7 @@ const activeFilterChips = computed(() => {
     chips.push({
       id: 'price',
       type: 'price',
-      label: `${min.toLocaleString('fr-FR')} € – ${max.toLocaleString('fr-FR')} €`,
+      label: `${formatNumber(min)} € – ${formatNumber(max)} €`,
     })
   }
 

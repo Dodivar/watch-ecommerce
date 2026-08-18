@@ -21,6 +21,7 @@ import AddressAutocompleteInput from './AddressAutocompleteInput.vue'
 import PickupLocationCard from './PickupLocationCard.vue'
 import LegalPageLinks from '@/components/legal/LegalPageLinks.vue'
 import { CHECKOUT_FIELD_CLASS } from './checkoutFieldClasses.js'
+import { formatPrice as formatAmount } from '@/utils/formatters.js'
 
 const COUNTRY_LABELS = {
   FR: 'France',
@@ -201,10 +202,9 @@ const canShowPayment = computed(
 
 const canConfirmPayment = computed(() => canSyncOrder.value)
 
+/** Les montants du tunnel sont en centimes. */
 function formatPrice(cents) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
-    (cents || 0) / 100,
-  )
+  return formatAmount((cents || 0) / 100, { decimals: true })
 }
 
 async function scrollToElement(el, { focus = false } = {}) {

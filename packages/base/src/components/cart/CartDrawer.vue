@@ -3,6 +3,7 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { Clock, X } from '@lucide/vue'
 import { useCart } from '@/composables/useCart.js'
 import { useRouter } from 'vue-router'
+import { formatPrice } from '@/utils/formatters.js'
 
 const {
   items,
@@ -27,13 +28,6 @@ function lineQty(line) {
 const router = useRouter()
 const checkoutError = ref('')
 const isCheckingOut = ref(false)
-
-function formatPrice(value) {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(Number(value) || 0)
-}
 
 function onOverlayClick() {
   closeDrawer()

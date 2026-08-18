@@ -851,6 +851,7 @@ import WatchAppointmentModal from '@/components/watch/WatchAppointmentModal.vue'
 import { watchLightboxImageUrl } from '@/utils/watchImageUrl.js'
 import PaymentIcons from '@/components/payment/PaymentIcons.vue'
 import TrustHighlightIcon from '@/components/watch/TrustHighlightIcon.vue'
+import { formatDate, formatPrice } from '@/utils/formatters.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -1238,15 +1239,6 @@ const zoomImageStyle = computed(() => {
   }
 })
 
-// Price formatting
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-  }).format(price)
-}
-
 const displayPrice = computed(() => {
   if (!watchItem.value) return 0
   return getEffectiveWatchPrice(watchItem.value)
@@ -1267,15 +1259,7 @@ const getArticleExcerpt = (text) => {
 }
 
 // Helper function to format article date
-const formatArticleDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
+const formatArticleDate = (dateString) => formatDate(dateString)
 
 // Navigate to article
 const goToArticle = (articleId) => {

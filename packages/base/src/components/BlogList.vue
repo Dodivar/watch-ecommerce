@@ -186,6 +186,7 @@ import { getAllArticles, getAllCategories } from '@/services/articleService'
 import { scrollAnimation } from '@/animation'
 import { BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { formatDate } from '@/utils/formatters.js'
 
 const seo = getSiteConfig().seo.blog
 
@@ -266,23 +267,12 @@ const visiblePages = computed(() => {
   return pages
 })
 
-
 // Methods
 const getExcerpt = (text) => {
   if (!text) return ''
   // Supprimer le markdown basique pour l'extrait
   const plainText = text.replace(/[#*\[\]()]/g, '').replace(/\n/g, ' ')
   return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
 }
 
 const handleViewArticle = (articleId) => {

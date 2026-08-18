@@ -157,7 +157,7 @@
                   <span class="font-semibold text-gray-900">Modèle :</span> {{ w.model }}
                 </p>
                 <p v-if="w.price" class="text-lg font-bold text-primary mt-3">
-                  {{ new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(w.price) }}
+                  {{ formatPrice(w.price, { decimals: true }) }}
                 </p>
               </div>
             </div>
@@ -239,6 +239,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
 import { verifyPaymentSession } from '@/services/stripeService'
 import { useCart } from '@/composables/useCart.js'
+import { formatPrice } from '@/utils/formatters.js'
 
 const features = getSiteConfig().features
 const browsePath = getBrowsePath(features)

@@ -194,6 +194,7 @@ import {
 } from '@/utils/watchImageUrl.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
+import { formatPrice } from '@/utils/formatters.js'
 
 const site = getSiteConfig()
 const catalogDisplay = site.watchCatalog.display
@@ -449,16 +450,6 @@ const handleCardClick = () => {
   if (props.clickable) {
     emit('viewDetails', props.watch)
   }
-}
-
-const formatPrice = (price) => {
-  const value = Number(price)
-  if (!Number.isFinite(value)) return ''
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-  }).format(value)
 }
 
 </script>

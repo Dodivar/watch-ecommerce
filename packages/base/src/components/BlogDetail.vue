@@ -236,6 +236,7 @@ import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { scrollAnimation } from '@/animation'
 import { BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { formatDate } from '@/utils/formatters.js'
 
 const route = useRoute()
 const seoBlog = getSiteConfig().seo.blog
@@ -268,17 +269,6 @@ const backText = computed(() => {
   }
   return 'Retour au blog'
 })
-
-// Methods
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
 
 // Share methods
 const shareOnFacebook = () => {

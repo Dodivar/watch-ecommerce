@@ -12,6 +12,7 @@ import {
   buildWatchCardSrcSet,
   WATCH_CARD_IMAGE_SIZES,
 } from '@/utils/watchImageUrl.js'
+import { formatPrice as formatAmount } from '@/utils/formatters.js'
 
 const route = useRoute()
 const site = getSiteConfig()
@@ -42,10 +43,9 @@ const DISCOUNT_TYPE_LABELS = {
   free_shipping: 'Livraison offerte',
 }
 
+/** Les montants du tunnel sont en centimes. */
 function formatPrice(cents) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
-    (cents || 0) / 100,
-  )
+  return formatAmount((cents || 0) / 100, { decimals: true })
 }
 
 const hasDiscount = computed(() => !!discountInfo.value || discountCents.value > 0)
