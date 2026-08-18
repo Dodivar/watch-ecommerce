@@ -1,5 +1,6 @@
 <script setup>
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { t } from '@/i18n'
 
 const features = getSiteConfig().features
 </script>
@@ -17,8 +18,7 @@ const features = getSiteConfig().features
       class="mt-1 shrink-0"
     />
     <span>
-      Je souhaite recevoir la newsletter (nouveautés et offres par email). Désinscription possible à
-      tout moment.
+      {{ t('newsletter.optIn') }}
     </span>
   </label>
 </template>

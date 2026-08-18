@@ -424,7 +424,7 @@ function displayMobileMenu() {
               class="text-white/90 hover:text-white text-sm transition-colors bg-transparent border-0 cursor-pointer p-0 font-inherit text-left md:text-center"
               @click="openCookiePreferences"
             >
-              Préférences cookies
+              {{ t('legal.cookiePreferences') }}
             </button>
           </div>
         </div>

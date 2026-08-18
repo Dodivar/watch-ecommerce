@@ -101,7 +101,7 @@
                     v-if="showNouveauBadge"
                     class="absolute top-2 left-2 lg:top-4 lg:left-4 z-10 px-2 py-0.5 lg:px-3 lg:py-1 text-xs lg:text-sm font-semibold rounded-full bg-primary text-white shadow-sm pointer-events-none"
                   >
-                    Nouveau
+                    {{ t('watch.new') }}
                   </span>
 
                   <!-- Zoom Preview Encart -->
@@ -222,7 +222,7 @@
                   v-if="watchItem.isSold"
                   class="ml-4 px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800 whitespace-nowrap"
                 >
-                  Vendue
+                  {{ t('watch.sold') }}
                 </span>
               </div>
             </div>
@@ -278,7 +278,7 @@
                 class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
               >
                 <ShoppingBag class="w-5 h-5 mr-2" :stroke-width="2" />
-                Ajouter au panier
+                {{ t('watch.addToCart') }}
               </button>
             </div>
 
@@ -698,7 +698,7 @@
         class="flex-shrink-0 inline-flex items-center justify-center px-4 py-2.5 border border-transparent text-sm font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
       >
         <ShoppingBag class="w-4 h-4 mr-1.5" :stroke-width="2" />
-        Ajouter au panier
+        {{ t('watch.addToCart') }}
       </button>
     </div>
   </div>
@@ -817,7 +817,7 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { scrollAnimation } from '@/animation'
-import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, PURCHASE_ENABLED } from '@/config'
+import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, PURCHASE_ENABLED, localizedUrl } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
 import { resolveRetailTrustHighlights, resolveWatchGuarantees, isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
@@ -916,7 +916,9 @@ const watchAppointmentContext = computed(() => {
     id: watchItem.value.id,
     name: watchItem.value.name,
     price: getEffectiveWatchPrice(watchItem.value),
-    url: `${BASE_URL}${route.fullPath}`,
+    // `route.fullPath` est dépréfixé : sans `localizedUrl()`, le lien du mail de rendez-vous
+    // renverrait un visiteur anglophone ou germanophone vers la version française de la fiche.
+    url: localizedUrl(route.fullPath),
   }
 })
 

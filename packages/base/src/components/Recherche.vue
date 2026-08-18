@@ -45,7 +45,7 @@ async function submitSearchForm(event) {
     },
     (error) => {
       errorMessage.value =
-        "Une erreur s'est produite lors de l'envoi du formulaire. Veuillez réessayer."
+        t('form.submitError')
       console.error('Erreur:', error)
     },
   ).finally(() => {
@@ -69,9 +69,7 @@ onMounted(() => {
         <h1 class="text-3xl font-bold text-text-main">{{ t('crossSell.sourcing') }}</h1>
         <h2 class="text-2xl font-bold text-text-main mb-4">{{ t('sourcing.lead') }}</h2>
         <p class="text-lg text-gray-600">
-          Notre équipe spécialisée vous aide à trouver des montres rares, discontinuées ou très
-          demandées. Grâce à notre réseau de confiance, nous sécurisons pour vous l'achat d'une
-          pièce d'exception, au prix du marché et en toute sérénité.
+          {{ t('sourcing.intro') }}
         </p>
       </div>
 
@@ -260,7 +258,7 @@ onMounted(() => {
             :disabled="isSubmitting"
             class="w-full bg-primary text-white py-4 px-8 rounded-lg font-semibold text-lg hover:bg-primary-hover transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ isSubmitting ? `Envoi en cours${loadingDots}` : 'Envoyer ma demande de recherche' }}
+            {{ isSubmitting ? `${t('form.sendingInProgress')}${loadingDots}` : t('sourcing.submit') }}
           </button>
         </form>
       </div>
@@ -273,7 +271,7 @@ onMounted(() => {
       <div class="text-center mb-8">
         <h2 class="text-3xl font-bold text-text-main mb-3">{{ t('crossSell.otherServices') }}</h2>
         <p class="text-lg text-gray-600">
-          Découvrez nos autres services spécialisés dans l'univers des montres
+          {{ t('crossSell.servicesLead') }}
         </p>
       </div>
 
@@ -295,13 +293,13 @@ onMounted(() => {
             </div>
             <h3 class="text-2xl font-bold text-text-main mb-3">{{ t('crossSell.ourCollection') }}</h3>
             <p class="text-gray-600 mb-4">
-              Parcourez notre sélection de montres de prestige actuellement disponibles.
+              {{ t('crossSell.collectionText') }}
             </p>
             <RouterLink
               to="/collection"
               class="inline-flex items-center bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-all"
             >
-              Découvrir la collection
+              {{ t('crossSell.collectionCta') }}
               <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -322,13 +320,13 @@ onMounted(() => {
             </div>
             <h3 class="text-2xl font-bold text-text-main mb-3">{{ t('crossSell.valuation') }}</h3>
             <p class="text-gray-600 mb-4">
-              Obtenez une estimation précise et gratuite de votre montre. Notre expertise vous garantit une évaluation juste de la valeur de votre pièce.
+              {{ t('crossSell.valuationText') }}
             </p>
             <RouterLink
               to="/estimation"
               class="inline-flex items-center bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-all"
             >
-              Estimer ma montre
+              {{ t('crossSell.valuationCta') }}
               <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>

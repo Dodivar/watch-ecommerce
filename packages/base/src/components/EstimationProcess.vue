@@ -160,7 +160,7 @@
               <div class="flex items-start gap-3">
                 <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
-                  <h4 class="font-semibold text-text-main mb-1">État général</h4>
+                  <h4 class="font-semibold text-text-main mb-1">{{ t('process.condition') }}</h4>
                   <p class="text-sm text-gray-600">{{ t('process.conditionText') }}</p>
                 </div>
               </div>
@@ -196,23 +196,23 @@
             <ul class="space-y-3 text-gray-700">
 <!--               <li class="flex items-start gap-3">
                 <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
-                <span><strong>{{ t('process.recognisedExpertise') }}</strong> : Notre équipe possède des années d'expérience dans l'horlogerie de luxe.</span>
+                <span><strong>{{ t('process.recognisedExpertise') }}</strong> : {{ t('process.recognisedExpertiseText') }}</span>
               </li> -->
               <li class="flex items-start gap-3">
                 <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
-                <span><strong>Transparence totale</strong> : Nous vous expliquons clairement notre méthode et nos critères d'évaluation.</span>
+                <span><strong>{{ t('process.transparency') }}</strong> : {{ t('process.transparencyText') }}</span>
               </li>
               <li class="flex items-start gap-3">
                 <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
-                <span><strong>{{ t('process.freeValuation') }}</strong> : Aucun engagement de votre part, l'estimation est 100% gratuite.</span>
+                <span><strong>{{ t('process.freeValuation') }}</strong> : {{ t('process.freeValuationText') }}</span>
               </li>
               <li class="flex items-start gap-3">
                 <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
-                <span><strong>{{ t('process.marketPrices') }}</strong> : Nos estimations sont basées sur les prix réels du marché, pas sur des prix gonflés.</span>
+                <span><strong>{{ t('process.marketPrices') }}</strong> : {{ t('process.marketPricesText') }}</span>
               </li>
               <li class="flex items-start gap-3">
                 <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
-                <span><strong>{{ t('process.personalSupport') }}</strong> : Nous restons à votre disposition pour répondre à toutes vos questions.</span>
+                <span><strong>{{ t('process.personalSupport') }}</strong> : {{ t('process.personalSupportText') }}</span>
               </li>
             </ul>
           </div>

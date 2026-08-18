@@ -891,7 +891,7 @@ onUnmounted(() => {
     <div class="max-w-6xl mx-auto">
       <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{{ t('checkout.finalise') }}</h1>
       <p class="text-gray-600 mb-6 text-sm sm:text-base">
-        Paiement sécurisé par carte bancaire.
+        {{ t('checkout.securePaymentByCard') }}
       </p>
 
       <p v-if="pageError" class="mb-4 text-sm text-red-600" role="alert">{{ pageError }}</p>
@@ -1055,8 +1055,7 @@ onUnmounted(() => {
               >
                 <input v-model="newsletterOptIn" type="checkbox" class="mt-1 shrink-0" />
                 <span>
-                  Je souhaite recevoir la newsletter (nouveautés et offres par email).
-                  Désinscription possible à tout moment.
+                  {{ t('newsletter.optIn') }}
                 </span>
               </label>
             </section>
@@ -1081,7 +1080,7 @@ onUnmounted(() => {
                   @click="fulfillmentMode = 'home'"
                 >
                   <Package class="h-5 w-5" :stroke-width="1.5" />
-                  Expédier
+                  {{ t('checkout.ship') }}
                 </button>
                 <button
                   type="button"
@@ -1241,8 +1240,7 @@ onUnmounted(() => {
               >
                 <Info class="h-4 w-4 shrink-0 mt-0.5" :stroke-width="1.5" aria-hidden="true" />
                 <span
-                  >Saisissez votre adresse d’expédition pour voir les modes d’expédition
-                  disponibles.</span
+                  >{{ t('checkout.enterShippingAddress') }}</span
                 >
               </p>
 
@@ -1250,14 +1248,14 @@ onUnmounted(() => {
                 v-else-if="isPickup && !billingAddressComplete"
                 class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
               >
-                Complétez votre adresse de facturation pour finaliser le retrait en boutique.
+                {{ t('checkout.completeBillingForPickup') }}
               </div>
 
               <div
                 v-else-if="methodsForCurrentMode.length === 0"
                 class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
               >
-                Aucun mode de livraison disponible pour cette destination.
+                {{ t('checkout.noShippingMethod') }}
               </div>
 
               <div v-else class="space-y-2">
@@ -1324,7 +1322,7 @@ onUnmounted(() => {
             <div>
               <h2 class="font-semibold text-lg text-gray-900">{{ t('checkout.payment') }}</h2>
               <p class="text-sm text-gray-500 mt-1">
-                Toutes les transactions sont sécurisées et chiffrées.
+                {{ t('checkout.transactionsSecured') }}
               </p>
             </div>
 
@@ -1332,13 +1330,13 @@ onUnmounted(() => {
               v-if="!canConfirmPayment"
               class="text-sm text-gray-500"
             >
-              Complétez vos informations de livraison pour afficher le montant final.
+              {{ t('checkout.completeShippingForTotal') }}
               <button
                 type="button"
                 class="ml-1 text-primary underline font-medium"
                 @click="scrollToFirstIncompleteSection"
               >
-                Compléter mes informations
+                {{ t('checkout.completeMyDetails') }}
               </button>
             </p>
 
@@ -1360,7 +1358,7 @@ onUnmounted(() => {
                   :aria-describedby="cgvError ? 'cgv-error' : undefined"
                 />
                 <span>
-                  J'accepte les
+                  {{ t('checkout.acceptTerms') }}
                   <router-link
                     :to="checkoutConfig.legal?.cgvUrl || '/conditions-generales-utilisation'"
                     class="text-primary underline"
@@ -1383,7 +1381,7 @@ onUnmounted(() => {
               v-if="paymentLoading && !stripeReady"
               class="text-sm text-gray-500 py-6 text-center"
             >
-              Préparation du paiement sécurisé…
+              {{ t('checkout.preparingPayment') }}
             </div>
             <div id="payment-element" class="min-h-[120px]" />
 
@@ -1414,7 +1412,7 @@ onUnmounted(() => {
             class="text-sm text-gray-600 underline"
             @click="onCancelCheckout"
           >
-            Annuler et retourner à la boutique
+            {{ t('checkout.cancelAndReturn') }}
           </button>
         </div>
       </div>

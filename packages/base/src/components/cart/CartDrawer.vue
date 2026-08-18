@@ -4,7 +4,7 @@ import { Clock, X } from '@lucide/vue'
 import { useCart } from '@/composables/useCart.js'
 import { useRouter } from 'vue-router'
 import { formatPrice as formatAmount } from '@/utils/formatters.js'
-import { t } from '@/i18n'
+import { t, tc } from '@/i18n'
 
 /** Le tiroir a toujours affiché les centimes (« 8 690,00 € ») : on conserve ce rendu. */
 const formatPrice = (value) => formatAmount(value, { decimals: true })
@@ -102,7 +102,7 @@ function onCheckout() {
               {{ t('cart.title') }}
             </h2>
             <p class="text-sm text-gray-500">
-              {{ itemCount }} article{{ itemCount > 1 ? 's' : '' }}
+              {{ tc('cart.itemCount', itemCount) }}
             </p>
           </div>
           <button
