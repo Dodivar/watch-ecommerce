@@ -7,7 +7,7 @@
       :style="overlayStyle"
       role="dialog"
       aria-modal="true"
-      ::aria-label="t('watch.photosOf', { title })"
+      :aria-label="t('watch.photosOf', { title })"
       tabindex="-1"
       @click="requestClose"
       @touchstart="onDismissTouchStart"
@@ -67,7 +67,7 @@
               :key="index"
               type="button"
               class="flex h-6 w-6 items-center justify-center"
-              ::aria-label="t('watch.viewPhoto', { index: index + 1 })"
+              :aria-label="t('watch.viewPhoto', { index: index + 1 })"
               :aria-current="activeIndex === index"
               @click.stop="activeIndex = index"
             >
