@@ -4,10 +4,10 @@
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8">
           <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
-            Estimation gratuite de votre montre
+            {{ t('valuation.pageTitle') }}
           </h1>
           <p class="text-xl text-gray-600 mb-3">
-            Remplissez ce formulaire pour recevoir une estimation personnalisée
+            {{ t('valuation.pageLead') }}
           </p>
           <RouterLink
             v-if="features.estimationProcess"
@@ -22,7 +22,7 @@
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            Comment estimons-nous votre montre ?
+            {{ t('valuation.howWeEstimate') }}
           </RouterLink>
         </div>
         <div class="bg-white rounded-md shadow-2xl p-8">
@@ -156,12 +156,12 @@
               <div class="flex items-center gap-2">
                 <label
                   class="block text-sm font-medium text-text-main mb-2"
-                  title="Le numéro de série sera examiné pour garantir l'authenticité de la montre"
+                  :title="t('valuation.serialTitle')"
                   for="serienumber"
                   >{{ t('valuation.serialNumber') }}</label
                 >
                 <TooltipInfo
-                  tooltip-text="Le numéro de série permet de garantir l'authenticité de la montre. Il se trouve généralement sur le boîtier ou les papiers d'origine."
+                  :tooltip-text="t('valuation.serialTooltip')"
                 />
               </div>
               <input
@@ -206,7 +206,7 @@
                   >{{ t('valuation.photos') }}</label
                 >
                 <TooltipInfo
-                  tooltip-text="Ajoutez des photos nettes de la montre (face, dos, bracelet, papiers, boîte, etc.). Cela aide à une estimation plus précise."
+                  :tooltip-text="t('valuation.photosTooltip')"
                 />
               </div>
               <div
@@ -241,8 +241,7 @@
               <div
                 class="w-full bg-green-50 border-l-4 border-primary text-primary font-semibold rounded-lg p-4 mt-4 text-center shadow-sm"
               >
-                Merci d'ajouter <span class="underline">{{ t('valuation.proofOfPurchase') }}</span> de la
-                montre (facture, reçu, etc.).
+                <span v-html="proofOfPurchaseNotice" />
               </div>
               <div id="preview-attachments-container"></div>
             </div>
@@ -269,7 +268,7 @@
               :disabled="isSubmitting"
               class="w-full bg-primary text-white py-4 px-8 rounded-lg font-semibold text-lg hover:bg-primary-hover transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ isSubmitting ? `Envoi en cours${loadingDots}` : 'Faire estimer ma montre' }}
+              {{ isSubmitting ? `${t('form.sendingInProgress')}${loadingDots}` : t('valuation.submit') }}
             </button>
           </form>
         </div>
@@ -283,7 +282,7 @@
       <div class="text-center mb-8">
         <h2 class="text-3xl font-bold text-text-main mb-3">{{ t('crossSell.otherServices') }}</h2>
         <p class="text-lg text-gray-600">
-          Découvrez nos autres services spécialisés dans l'univers des montres
+          {{ t('crossSell.servicesLead') }}
         </p>
       </div>
 
@@ -305,13 +304,13 @@
             </div>
             <h3 class="text-2xl font-bold text-text-main mb-3">{{ t('crossSell.ourCollection') }}</h3>
             <p class="text-gray-600 mb-4">
-              Parcourez notre sélection de montres de prestige actuellement disponibles.
+              {{ t('crossSell.collectionText') }}
             </p>
             <RouterLink
               to="/collection"
               class="inline-flex items-center bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-all"
             >
-              Découvrir la collection
+              {{ t('crossSell.collectionCta') }}
               <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -332,13 +331,13 @@
             </div>
             <h3 class="text-2xl font-bold text-text-main mb-3">{{ t('crossSell.sourcing') }}</h3>
             <p class="text-gray-600 mb-4">
-              Trouvez la montre de vos rêves grâce à notre service de recherche personnalisée. Notre équipe spécialisée vous aidera à trouver votre montre de rêve.
+              {{ t('crossSell.sourcingText') }}
             </p>
             <RouterLink
               to="/recherche"
               class="inline-flex items-center bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-all"
             >
-              Lancer ma recherche
+              {{ t('crossSell.sourcingCta') }}
               <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -356,7 +355,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { handleFormSubmit, prepareEstimationFormData } from '@/services/emailService'
 import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
 import { createPreviewElement } from '@/services/imagePreviewService'
@@ -366,6 +365,16 @@ import ContactCTA from './ContactCTA.vue'
 import { t } from '@/i18n'
 const router = useRouter()
 const features = getSiteConfig().features
+
+/**
+ * Le fragment souligné est traduit à part puis réinjecté : sans ce découpage, la phrase
+ * porteuse resterait française autour d'un segment anglais.
+ */
+const proofOfPurchaseNotice = computed(() =>
+  t('valuation.proofOfPurchaseNotice', {
+    highlight: `<span class="underline">${t('valuation.proofOfPurchase')}</span>`,
+  }),
+)
 
 const isSubmitting = ref(false)
 const errorMessage = ref('')
@@ -387,14 +396,14 @@ async function submitEstimationForm(event) {
       (error) => {
         errorMessage.value =
           error.message ||
-          "Une erreur s'est produite lors de l'envoi du formulaire. Veuillez réessayer."
+          t('form.submitError')
         console.error('Erreur détaillée:', error)
       },
     )
   } catch (error) {
     errorMessage.value =
       error.message ||
-      "Une erreur s'est produite lors de l'envoi du formulaire. Veuillez réessayer."
+      t('form.submitError')
     console.error('Erreur détaillée:', error)
   } finally {
     isSubmitting.value = false

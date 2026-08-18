@@ -25,7 +25,7 @@
             <ChevronLeft class="h-6 w-6" :stroke-width="2" />
           </button>
           <h2 id="watch-filters-drawer-title" class="text-lg font-bold text-text-main">
-            Filtrer les produits
+            {{ t('collection.filterProducts') }}
           </h2>
         </header>
 
@@ -40,7 +40,7 @@
               @click="toggleSection('brand')"
             >
               <span class="flex items-center gap-2 font-medium text-text-main">
-                Marque
+                {{ t('collection.brand') }}
                 <span
                   v-if="listing.getDraftSectionCount('brand') > 0"
                   class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
@@ -82,7 +82,7 @@
               @click="toggleSection('price')"
             >
               <span class="flex items-center gap-2 font-medium text-text-main">
-                Prix
+                {{ t('collection.price') }}
                 <span
                   v-if="listing.getDraftSectionCount('price') > 0"
                   class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
@@ -177,7 +177,7 @@
               @click="toggleSection('caseSize')"
             >
               <span class="flex items-center gap-2 font-medium text-text-main">
-                Diamètre du boîtier
+                {{ t('collection.caseSize') }}
                 <span
                   v-if="listing.getDraftSectionCount('caseSize') > 0"
                   class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
@@ -193,7 +193,7 @@
             </button>
             <div v-show="expanded.caseSize" class="pb-4">
               <p v-if="listing.availableCaseSizes.length === 0" class="text-sm text-gray-500">
-                Aucun diamètre renseigné sur les montres en stock.
+                {{ t('collection.noCaseSize') }}
               </p>
               <div v-else class="flex flex-wrap gap-2">
                 <button
@@ -222,7 +222,7 @@
               @click="toggleSection('braceletColor')"
             >
               <span class="flex items-center gap-2 font-medium text-text-main">
-                Couleur du bracelet
+                {{ t('collection.braceletColor') }}
                 <span
                   v-if="listing.getDraftSectionCount('braceletColor') > 0"
                   class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
@@ -241,7 +241,7 @@
                 v-if="listing.availableBraceletColors.length === 0"
                 class="text-sm text-gray-500"
               >
-                Aucune couleur de bracelet renseignée sur les montres en stock.
+                {{ t('collection.noBraceletColor') }}
               </p>
               <div v-else class="flex flex-wrap gap-5">
                 <button
@@ -290,7 +290,7 @@
               @click="toggleSection('braceletMaterial')"
             >
               <span class="flex items-center gap-2 font-medium text-text-main">
-                Matière du bracelet
+                {{ t('collection.braceletMaterial') }}
                 <span
                   v-if="listing.getDraftSectionCount('braceletMaterial') > 0"
                   class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
@@ -309,7 +309,7 @@
                 v-if="listing.availableBraceletMaterials.length === 0"
                 class="text-sm text-gray-500"
               >
-                Aucune matière de bracelet renseignée sur les montres en stock.
+                {{ t('collection.noBraceletMaterial') }}
               </p>
               <div v-else class="flex flex-wrap gap-2">
                 <button
@@ -338,7 +338,7 @@
               @click="toggleSection('audience')"
             >
               <span class="flex items-center gap-2 font-medium text-text-main">
-                Public
+                {{ t('collection.audience') }}
                 <span
                   v-if="listing.getDraftSectionCount('audience') > 0"
                   class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
@@ -426,7 +426,7 @@
             class="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             @click="handleApply"
           >
-            Appliquer ({{ listing.draftFilterCount }})
+            {{ t('collection.applyFilters') }} ({{ listing.draftFilterCount }})
           </button>
         </footer>
       </aside>
@@ -463,7 +463,7 @@ const props = defineProps({
 })
 
 const promotionOptions = [
-  { id: false, label: 'Toutes' },
+  { id: false, label: t('collection.allFemale') },
   { id: true, label: 'En promotion' },
 ]
 
@@ -474,11 +474,11 @@ function formatCaseSizeLabel(size) {
 const emit = defineEmits(['close', 'applied'])
 
 /** @type {import('vue').Ref<Array<{ id: string, label: string }>>} */
-const audienceOptions = ref([{ id: 'all', label: 'Tous' }])
+const audienceOptions = ref([{ id: 'all', label: t('collection.allMale') }])
 
 async function loadAudienceFilterOptions() {
   const rows = await getWatchAudiencesForCollectionFilter()
-  audienceOptions.value = [{ id: 'all', label: 'Tous' }, ...rows]
+  audienceOptions.value = [{ id: 'all', label: t('collection.allMale') }, ...rows]
 }
 
 const expanded = reactive({

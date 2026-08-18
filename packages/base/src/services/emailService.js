@@ -3,9 +3,25 @@
  */
 
 import { getBackendApiUrl, readApiResponseBody } from './backendApiUrl.js'
+import { getActiveLocale, t } from '@/i18n'
 
 /** Site actif (build Vite) — évite qu'en local le backend prenne le mauvais site via Origin :5173. */
 const SITE_ID = import.meta.env.VITE_SITE_ID || 'sauvage-watches'
+
+/**
+ * Joint la langue du visiteur à un envoi de formulaire.
+ *
+ * Le backend répond aujourd'hui en français quel que soit l'expéditeur ; sans ce champ il n'a
+ * aucun moyen de faire autrement. Le transmettre dès maintenant permet de localiser les mails
+ * de confirmation sans retoucher les composants.
+ *
+ * @param {FormData} formData
+ * @returns {FormData}
+ */
+function withLocale(formData) {
+  formData.append('locale', getActiveLocale())
+  return formData
+}
 
 // Fonction pour envoyer un email avec retry
 export const sendEmailWithRetry = async (endpoint, formData, maxRetries = 3) => {
@@ -34,7 +50,7 @@ export const sendEmailWithRetry = async (endpoint, formData, maxRetries = 3) => 
             ? " (l'URL du backend est peut-être incorrecte — vérifiez VITE_BACKEND_URL)"
             : ''
         throw new Error(
-          (error.message || error.error || "Erreur lors de l'envoi de l'email") + hint,
+          (error.message || error.error || t('form.emailSendError')) + hint,
         )
       }
 
@@ -44,7 +60,7 @@ export const sendEmailWithRetry = async (endpoint, formData, maxRetries = 3) => 
       retries++
 
       if (retries === maxRetries) {
-        throw new Error("Une erreur s'est produite, veuillez réessayer dans quelques instants.")
+        throw new Error(t('form.sendFailedRetry'))
       }
 
       // Attendre avant de réessayer
@@ -67,7 +83,7 @@ export async function sendEmail(formData) {
     return response
   } catch (error) {
     console.error("Erreur lors de l'envoi de l'email:", error)
-    throw new Error(error.message || "Une erreur est survenue lors de l'envoi de l'email")
+    throw new Error(error.message || t('form.emailSendError'))
   }
 }
 
@@ -91,7 +107,7 @@ export function prepareEstimationFormData(form) {
   )
   formData.append('contact_mode', checked.join(', '))
 
-  return formData
+  return withLocale(formData)
 }
 
 /**
@@ -114,7 +130,7 @@ export function prepareSearchFormData(form) {
   )
   formData.append('contact_mode', checked.join(', '))
 
-  return formData
+  return withLocale(formData)
 }
 
 /**
@@ -125,7 +141,7 @@ export function prepareSearchFormData(form) {
 export function prepareContactFormData(form) {
   const formData = new FormData(form)
   formData.append('type', 'contact')
-  return formData
+  return withLocale(formData)
 }
 
 /**
@@ -145,7 +161,7 @@ export function prepareAppointmentFormData(form, watchContext) {
   if (watchContext.url) {
     formData.append('watch_url', watchContext.url)
   }
-  return formData
+  return withLocale(formData)
 }
 
 /**
