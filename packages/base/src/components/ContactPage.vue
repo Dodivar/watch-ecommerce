@@ -213,7 +213,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { Mail, MapPin, Phone } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
-import { BASE_URL, EMAIL_CONTACT, WHATSAPP_NUMBER } from '@/config'
+import { EMAIL_CONTACT, WHATSAPP_NUMBER, CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import StoreLocationMap from '@/components/StoreLocationMap.vue'
 import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
@@ -277,7 +277,7 @@ useHead({
     { name: 'description', content: pageDescription },
     { property: 'og:title', content: pageTitle },
     { property: 'og:description', content: pageDescription },
-    { property: 'og:url', content: `${BASE_URL}/contact` },
+    { property: 'og:url', content: `${CANONICAL_BASE_URL}/contact` },
     { property: 'og:type', content: 'website' },
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:title', content: pageTitle },

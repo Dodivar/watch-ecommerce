@@ -127,11 +127,11 @@
 import { computed } from 'vue'
 import { useHead } from '@vueuse/head'
 import {
-  BASE_URL,
   EMAIL_CONTACT,
   LEGAL_ADDRESS,
   LEGAL_COMPANY_NAME,
   LEGAL_SIRET,
+  CANONICAL_BASE_URL,
 } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 
@@ -156,7 +156,7 @@ useHead({
     },
     {
       property: 'og:url',
-      content: `${BASE_URL}/mentions-legales`,
+      content: `${CANONICAL_BASE_URL}/mentions-legales`,
     },
     {
       property: 'og:type',
@@ -178,7 +178,7 @@ useHead({
   link: [
     {
       rel: 'canonical',
-      href: `${BASE_URL}/mentions-legales`,
+      href: `${CANONICAL_BASE_URL}/mentions-legales`,
     },
   ],
 })

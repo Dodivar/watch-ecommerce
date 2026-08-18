@@ -8,6 +8,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { buildSitemapStaticRoutes } from '../packages/base/src/site/buildSitemapStaticRoutes.js'
 import { resolveSiteFeaturesForNode } from '../packages/base/src/site/resolveSiteFeaturesForNode.js'
+import { resolveI18nConfig } from '../packages/base/src/site/resolveI18nConfig.js'
+import { localePrefix } from '../packages/base/src/i18n/localePaths.js'
 import { resolveSitePaths } from '../vite/resolve-site.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -25,18 +27,33 @@ async function main() {
   const features = resolveSiteFeaturesForNode(siteConfig)
   const routes = buildSitemapStaticRoutes(features, siteConfig)
 
-  const html = fs.readFileSync(indexPath, 'utf8')
+  const i18n = resolveI18nConfig(siteConfig)
   let written = 0
 
-  for (const route of routes) {
-    if (!route.path || route.path === '') continue
-    const targetDir = path.join(distDir, route.path.replace(/^\//, ''))
-    fs.mkdirSync(targetDir, { recursive: true })
-    fs.writeFileSync(path.join(targetDir, 'index.html'), html, 'utf8')
-    written += 1
+  // Chaque langue part de sa propre coquille (`dist/en/index.html`), écrite au build par
+  // `vite/site-from-config.mjs` : c'est elle qui porte le bon `lang`, le bon titre et la
+  // bonne canonique. Sans coquille de langue, la langue est simplement ignorée.
+  for (const locale of i18n.locales) {
+    const prefix = localePrefix(locale, i18n)
+    const shellPath = prefix ? path.join(distDir, prefix.slice(1), 'index.html') : indexPath
+    if (!fs.existsSync(shellPath)) {
+      console.warn(`[prerender] coquille absente pour « ${locale} » — langue ignorée.`)
+      continue
+    }
+    const html = fs.readFileSync(shellPath, 'utf8')
+
+    for (const route of routes) {
+      if (!route.path || route.path === '') continue
+      const targetDir = path.join(distDir, prefix.slice(1), route.path.replace(/^\//, ''))
+      fs.mkdirSync(targetDir, { recursive: true })
+      fs.writeFileSync(path.join(targetDir, 'index.html'), html, 'utf8')
+      written += 1
+    }
   }
 
-  console.log(`[prerender] ${written} route(s) statique(s) pré-rendue(s) dans dist/.`)
+  console.log(
+    `[prerender] ${written} route(s) statique(s) pré-rendue(s) dans dist/ (${i18n.locales.join(', ')}).`,
+  )
 }
 
 main().catch((err) => {

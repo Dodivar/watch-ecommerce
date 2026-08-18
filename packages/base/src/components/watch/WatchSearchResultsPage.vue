@@ -222,7 +222,7 @@ import WatchCard from './WatchCard.vue'
 import WatchCardSkeleton from './WatchCardSkeleton.vue'
 import { WATCH_CARD_GRID_PROPS } from '@/constants/watchCardDefaults.js'
 import { scrollAnimation } from '@/animation'
-import { BASE_URL } from '@/config'
+import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
@@ -377,12 +377,12 @@ const searchHead = computed(() => {
       { name: 'robots', content: 'noindex, follow' },
       { name: 'description', content: `Résultats de recherche pour ${q}` },
       { property: 'og:title', content: title },
-      { property: 'og:url', content: `${BASE_URL}/collection/recherche?q=${encodeURIComponent(q)}` },
+      { property: 'og:url', content: `${CANONICAL_BASE_URL}/collection/recherche?q=${encodeURIComponent(q)}` },
     ],
     link: [
       {
         rel: 'canonical',
-        href: `${BASE_URL}/collection/recherche?q=${encodeURIComponent(q)}`,
+        href: `${CANONICAL_BASE_URL}/collection/recherche?q=${encodeURIComponent(q)}`,
       },
     ],
   }

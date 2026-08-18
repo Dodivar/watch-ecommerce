@@ -1310,6 +1310,14 @@ const ogImage = computed(() => {
   return watchItem.value.images[0]
 })
 
+/**
+ * Canonique volontairement **sans préfixe de langue**.
+ *
+ * Le contenu de cette page vient de la base et n'est pas traduit : `/en/…` et `/de/…` ne font
+ * qu'habiller un texte resté français. Pointer la canonique vers la langue par défaut évite de
+ * mettre en concurrence des quasi-doublons ; `useLocaleHead()` n'émet pas non plus d'alternates
+ * `hreflang` sur ces routes (voir `i18n.untranslatedRoutes`).
+ */
 const canonicalUrl = computed(() => {
   if (watchItem.value) {
     return `${BASE_URL}${buildWatchPath(watchItem.value)}`

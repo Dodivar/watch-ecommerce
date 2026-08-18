@@ -184,7 +184,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { getAllArticles, getAllCategories } from '@/services/articleService'
 import { scrollAnimation } from '@/animation'
-import { BASE_URL } from '@/config'
+import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { formatDate } from '@/utils/formatters.js'
 
@@ -208,7 +208,7 @@ useHead({
     },
     {
       property: 'og:url',
-        content: `${BASE_URL}/blog`,
+        content: `${CANONICAL_BASE_URL}/blog`,
     },
     {
       property: 'og:type',
@@ -230,7 +230,7 @@ useHead({
   link: [
     {
       rel: 'canonical',
-        href: `${BASE_URL}/blog`,
+        href: `${CANONICAL_BASE_URL}/blog`,
     },
   ],
 })

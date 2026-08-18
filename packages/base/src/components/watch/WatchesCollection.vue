@@ -391,7 +391,7 @@ import WatchCard from './WatchCard.vue'
 import WatchCardSkeleton from './WatchCardSkeleton.vue'
 import WatchCollectionFiltersDrawer from './WatchCollectionFiltersDrawer.vue'
 import { scrollAnimation } from '@/animation'
-import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL } from '@/config'
+import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getMergedCollectionFilters, getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
@@ -858,13 +858,13 @@ const collectionHead = computed(() => {
         { name: 'description', content: seoCollection.metaDescription },
         { property: 'og:title', content: seoCollection.ogTitle },
         { property: 'og:description', content: seoCollection.ogDescription },
-        { property: 'og:url', content: `${BASE_URL}/collection` },
+        { property: 'og:url', content: `${CANONICAL_BASE_URL}/collection` },
         { property: 'og:type', content: 'website' },
         { name: 'twitter:card', content: 'summary' },
         { name: 'twitter:title', content: seoCollection.twitterTitle },
         { name: 'twitter:description', content: seoCollection.twitterDescription },
       ],
-      link: [{ rel: 'canonical', href: `${BASE_URL}/collection` }],
+      link: [{ rel: 'canonical', href: `${CANONICAL_BASE_URL}/collection` }],
     }
   }
 
@@ -902,13 +902,13 @@ const collectionHead = computed(() => {
       { name: 'twitter:title', content: title },
       { name: 'twitter:description', content: desc },
     ],
-    link: [{ rel: 'canonical', href: buildBrandCollectionUrl(BASE_URL, brand) }],
+    link: [{ rel: 'canonical', href: buildBrandCollectionUrl(CANONICAL_BASE_URL, brand) }],
   }
 })
 
 const collectionBreadcrumbSchema = computed(() => {
   if (!singleBrandLabel.value || listing.selectedBrands.length !== 1) return null
-  return buildBreadcrumbStructuredData(BASE_URL, [
+  return buildBreadcrumbStructuredData(CANONICAL_BASE_URL, [
     { name: 'Accueil', path: '/' },
     { name: 'Collection', path: '/collection' },
     { name: singleBrandLabel.value, path: buildBrandCollectionPath(singleBrandLabel.value) },

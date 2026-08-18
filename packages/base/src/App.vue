@@ -8,6 +8,7 @@ import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
 import { buildGlobalStructuredData } from '@/site/buildGlobalStructuredData.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { t } from '@/i18n'
+import { useLocaleHead } from '@/composables/useLocaleHead.js'
 import { resolveMainNavigation, resolveFooterNavigation } from '@/site/mainNavigation.js'
 import MainNavDesktop from '@/components/layout/MainNavDesktop.vue'
 import MainNavMobile from '@/components/layout/MainNavMobile.vue'
@@ -30,6 +31,9 @@ const site = getSiteConfig()
 const features = site.features
 const usesDarkTheme = site.theme?.colorScheme === 'dark'
 const headerLogoSrc = usesDarkTheme ? logoHeaderIconWhite : logoHeaderIconGreen
+
+// `<html lang>`, alternates hreflang et og:locale, une fois pour toutes les pages.
+useLocaleHead()
 
 const globalStructuredData = buildGlobalStructuredData(site, BASE_URL)
 const mainNavItems = resolveMainNavigation(site)

@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { resolveTypography } from '../packages/base/src/site/resolveTypography.js'
 import { resolveVisual, getRadiusPreset } from '../packages/base/src/site/resolveVisual.js'
 import { localizeTree } from '../packages/base/src/site/i18nValue.js'
@@ -79,6 +82,9 @@ function buildThemeCss(siteConfig) {
  * @param {Record<string, unknown>} siteConfig
  */
 export function siteFromConfigPlugin(siteConfig) {
+  /** Coquilles `index.html` par langue, calculées au transform et émises au bundle. */
+  let localizedShells = []
+
   const virtualId = '\0virtual:site-theme.css'
 
   return {
@@ -92,9 +98,37 @@ export function siteFromConfigPlugin(siteConfig) {
       }
     },
     transformIndexHtml(html) {
-      // Le shell par défaut. Les coquilles par langue (`dist/en/index.html`) sont émises
-      // dans `generateBundle`, à partir du même HTML déjà injecté par Vite.
-      return buildIndexHtml(html, siteConfig, resolveI18nConfig(siteConfig).defaultLocale)
+      const i18n = resolveI18nConfig(siteConfig)
+
+      // Les coquilles des autres langues sont dérivées du même HTML — celui-ci porte déjà les
+      // balises <script>/<link> hachées injectées par Vite, et leurs URLs sont absolues.
+      localizedShells = i18n.enabled
+        ? i18n.locales
+            .filter((locale) => locale !== i18n.defaultLocale)
+            .map((locale) => ({
+              fileName: `${locale}/index.html`,
+              source: buildIndexHtml(html, siteConfig, locale),
+            }))
+        : []
+
+      return buildIndexHtml(html, siteConfig, i18n.defaultLocale)
+    },
+    /**
+     * `writeBundle` et non `generateBundle` : `transformIndexHtml` est lui-même exécuté pendant
+     * la phase `generateBundle` de Vite, si bien que les coquilles ne sont pas encore calculées
+     * à ce moment-là.
+     */
+    writeBundle(options) {
+      const outDir = options.dir
+      if (!outDir) return
+      for (const shell of localizedShells) {
+        const target = path.join(outDir, shell.fileName)
+        fs.mkdirSync(path.dirname(target), { recursive: true })
+        fs.writeFileSync(target, shell.source, 'utf8')
+      }
+      if (localizedShells.length > 0) {
+        console.log(`[site-from-config] ${localizedShells.length} coquille(s) de langue écrite(s).`)
+      }
     },
   }
 }

@@ -83,7 +83,7 @@ import { computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useHead } from '@vueuse/head'
 
-import { BASE_URL } from '@/config'
+import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import {
@@ -137,7 +137,7 @@ useHead({
     { property: 'og:description', content: ogDescription },
     {
       property: 'og:url',
-      content: `${BASE_URL}/collection/marques`,
+      content: `${CANONICAL_BASE_URL}/collection/marques`,
     },
     { property: 'og:type', content: 'website' },
     { name: 'twitter:card', content: 'summary' },
@@ -147,7 +147,7 @@ useHead({
   link: [
     {
       rel: 'canonical',
-      href: `${BASE_URL}/collection/marques`,
+      href: `${CANONICAL_BASE_URL}/collection/marques`,
     },
   ],
 })

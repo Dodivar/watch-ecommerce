@@ -268,7 +268,7 @@
 
 <script setup>
 import { useHead } from '@vueuse/head'
-import { BASE_URL } from '@/config'
+import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import GuideImageSlot from '@/components/guide/GuideImageSlot.vue'
@@ -291,13 +291,13 @@ if (seo) {
       { name: 'description', content: seo.metaDescription },
       { property: 'og:title', content: seo.ogTitle },
       { property: 'og:description', content: seo.ogDescription },
-      { property: 'og:url', content: `${BASE_URL}/guide-horloger` },
+      { property: 'og:url', content: `${CANONICAL_BASE_URL}/guide-horloger` },
       { property: 'og:type', content: 'website' },
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: seo.twitterTitle },
       { name: 'twitter:description', content: seo.twitterDescription },
     ],
-    link: [{ rel: 'canonical', href: `${BASE_URL}/guide-horloger` }],
+    link: [{ rel: 'canonical', href: `${CANONICAL_BASE_URL}/guide-horloger` }],
   })
 }
 </script>

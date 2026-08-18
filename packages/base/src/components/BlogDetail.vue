@@ -373,6 +373,14 @@ const pageDescription = computed(() => {
   return firstParagraph.substring(0, 160) || 'Article sur les montres et l\'horlogerie'
 })
 
+/**
+ * Canonique volontairement **sans préfixe de langue**.
+ *
+ * Le contenu de cette page vient de la base et n'est pas traduit : `/en/…` et `/de/…` ne font
+ * qu'habiller un texte resté français. Pointer la canonique vers la langue par défaut évite de
+ * mettre en concurrence des quasi-doublons ; `useLocaleHead()` n'émet pas non plus d'alternates
+ * `hreflang` sur ces routes (voir `i18n.untranslatedRoutes`).
+ */
 const canonicalUrl = computed(() => {
   return `${BASE_URL}/blog/${route.params.id}`
 })

@@ -24,6 +24,13 @@ import { FALLBACK_LOCALE, isSupportedLocale, normalizeLocaleTag } from '../i18n/
 const DEFAULT_EXCLUDED_PATH_PREFIXES = ['/admin']
 
 /**
+ * Routes dont le contenu vient de la base (fiches montre, articles) et n'est donc pas traduit.
+ * Leur version `/en/…` n'est qu'un habillage traduit autour d'un texte français : on y pointe la
+ * canonique vers la langue par défaut plutôt que de laisser des quasi-doublons se concurrencer.
+ */
+const DEFAULT_UNTRANSLATED_ROUTE_PREFIXES = ['/montre/', '/watch/', '/blog/']
+
+/**
  * @typedef {object} ResolvedI18nConfig
  * @property {boolean} enabled            Vrai si le site propose plus d’une langue.
  * @property {import('../i18n/locales.js').Locale} defaultLocale
@@ -31,6 +38,7 @@ const DEFAULT_EXCLUDED_PATH_PREFIXES = ['/admin']
  * @property {string[]} excludePathPrefixes  Chemins servis sans préfixe de langue.
  * @property {{ storage: boolean, navigator: 'suggest' | 'redirect' | 'off' }} detect
  * @property {string} storageKey          Clé `localStorage` du choix explicite de l’utilisateur.
+ * @property {string[]} untranslatedRoutes  Préfixes dont la canonique reste en langue par défaut.
  * @property {Record<string, Record<string, string>>} messages  Surcharges du catalogue UI par langue.
  */
 
@@ -88,6 +96,9 @@ export function resolveI18nConfig(siteConfig) {
       : DEFAULT_EXCLUDED_PATH_PREFIXES,
     detect: { storage: detectRaw.storage !== false, navigator: navigatorMode },
     storageKey: typeof raw.storageKey === 'string' ? raw.storageKey : `${siteId}_locale_v1`,
+    untranslatedRoutes: Array.isArray(raw.untranslatedRoutes)
+      ? raw.untranslatedRoutes.filter((p) => typeof p === 'string' && p.startsWith('/'))
+      : DEFAULT_UNTRANSLATED_ROUTE_PREFIXES,
     messages: raw.messages != null && typeof raw.messages === 'object' ? raw.messages : {},
   }
 }
@@ -105,6 +116,7 @@ function monolingual(locale, siteId) {
     excludePathPrefixes: DEFAULT_EXCLUDED_PATH_PREFIXES,
     detect: { storage: false, navigator: 'off' },
     storageKey: `${siteId}_locale_v1`,
+    untranslatedRoutes: DEFAULT_UNTRANSLATED_ROUTE_PREFIXES,
     messages: {},
   }
 }
