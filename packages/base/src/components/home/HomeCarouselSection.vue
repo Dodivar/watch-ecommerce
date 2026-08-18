@@ -8,6 +8,7 @@ import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { buildWatchPath } from '@/utils/watchSlug.js'
 import { buildCampaignCollectionQuery } from '@/services/watchPromotionCampaignService.js'
 import { resolveLiveCampaignStatus } from '@/utils/watchPromotionCampaign.js'
+import { t } from '@/i18n'
 
 const AUTOPLAY_MS = 6000
 const ALT_FALLBACK = 'Visuel promotionnel du carrousel d\'accueil'
@@ -209,7 +210,7 @@ watch(
       v-if="isLoading"
       class="aspect-[14/9] sm:aspect-[21/9] w-full max-h-[min(70vh,520px)] animate-pulse bg-cream-200 motion-reduce:animate-none"
       role="status"
-      aria-label="Chargement du carrousel"
+      :aria-label="t('home.carouselLoading')"
     />
 
     <template v-else-if="hasSlides">
@@ -268,7 +269,7 @@ watch(
           <div
             class="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-2 sm:bottom-4"
             role="tablist"
-            aria-label="Choisir une image du carrousel"
+            :aria-label="t('home.carouselChooseImage')"
           >
             <button
               v-for="(slide, index) in slides"

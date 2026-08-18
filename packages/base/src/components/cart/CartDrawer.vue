@@ -4,6 +4,7 @@ import { Clock, X } from '@lucide/vue'
 import { useCart } from '@/composables/useCart.js'
 import { useRouter } from 'vue-router'
 import { formatPrice } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const {
   items,
@@ -95,7 +96,7 @@ function onCheckout() {
         <header class="flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 px-4 py-4">
           <div>
             <h2 id="cart-drawer-title" class="text-lg font-semibold text-text-main">
-              Mon panier
+              {{ t('cart.title') }}
             </h2>
             <p class="text-sm text-gray-500">
               {{ itemCount }} article{{ itemCount > 1 ? 's' : '' }}
@@ -104,7 +105,7 @@ function onCheckout() {
           <button
             type="button"
             class="rounded-lg p-2 text-gray-600 hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Fermer le panier"
+            :aria-label="t('cart.closeCart')"
             @click="closeDrawer"
           >
             <X class="h-6 w-6" :stroke-width="2" />          </button>
@@ -112,7 +113,7 @@ function onCheckout() {
 
         <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
           <p v-if="itemCount === 0" class="text-center text-gray-500 py-12">
-            Votre panier est vide.
+            {{ t('cart.empty') }}
           </p>
           <ul v-else class="space-y-4">
             <li
@@ -123,7 +124,7 @@ function onCheckout() {
               <router-link
                 :to="watchPath(line.watchId)"
                 class="h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-cream-100 flex items-center justify-center sm:h-32 sm:w-32 focus:outline-none focus:ring-2 focus:ring-primary hover:opacity-90 transition-opacity"
-                :aria-label="'Voir ' + line.name"
+                :aria-label="t('cart.viewItem', { name: line.name })"
                 @click="onLineNavigate"
               >
                 <img
@@ -145,7 +146,7 @@ function onCheckout() {
                   <button
                     type="button"
                     class="shrink-0 rounded p-1 text-gray-400 hover:text-red-600 hover:bg-red-50"
-                    :aria-label="'Retirer ' + line.name"
+                    :aria-label="t('cart.removeItem', { name: line.name })"
                     @click="remove(line.watchId)"
                   >
                     <X class="h-5 w-5" :stroke-width="2" />                  </button>
@@ -160,7 +161,7 @@ function onCheckout() {
                   <button
                     type="button"
                     class="flex h-8 w-8 items-center justify-center rounded-md text-lg font-medium text-text-main hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-40"
-                    aria-label="Diminuer la quantité"
+                    :aria-label="t('cart.decreaseQuantity')"
                     :disabled="lineQty(line) <= 1"
                     @click="decrementQuantity(line.watchId)"
                   >
@@ -172,7 +173,7 @@ function onCheckout() {
                   <button
                     type="button"
                     class="flex h-8 w-8 items-center justify-center rounded-md text-lg font-medium text-text-main hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
-                    aria-label="Augmenter la quantité"
+                    :aria-label="t('cart.increaseQuantity')"
                     @click="incrementQuantity(line.watchId)"
                   >
                     +
@@ -203,28 +204,28 @@ function onCheckout() {
           <div
             class="flex justify-between text-sm text-gray-600"
             role="region"
-            aria-label="Livraison"
+            :aria-label="t('checkout.shipping')"
           >
-            <span>Livraison</span>
-            <span class="font-medium text-text-main">Gratuite</span>
+            <span>{{ t('checkout.shipping') }}</span>
+            <span class="font-medium text-text-main">{{ t('checkout.freeShipping') }}</span>
           </div>
           <div class="flex justify-between text-sm text-gray-600">
-            <span>Sous-total</span>
+            <span>{{ t('cart.subtotal') }}</span>
             <span class="font-medium text-text-main">{{ formatPrice(totalPrice) }}</span>
           </div>
           <div class="flex justify-between text-base font-semibold text-text-main">
-            <span>Total</span>
+            <span>{{ t('checkout.total') }}</span>
             <span>{{ formatPrice(totalPrice) }}</span>
           </div>
-          <p class="text-xs text-gray-500 text-center">Paiement 100% sécurisé via Stripe</p>
+          <p class="text-xs text-gray-500 text-center">{{ t('cart.securePayment') }}</p>
           <button
             type="button"
             class="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-lg text-base font-semibold text-white bg-primary hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="itemCount === 0 || isCheckingOut"
             @click="onCheckout"
           >
-            <span v-if="isCheckingOut">Redirection…</span>
-            <span v-else>Commander</span>
+            <span v-if="isCheckingOut">{{ t('cart.redirecting') }}</span>
+            <span v-else>{{ t('cart.checkout') }}</span>
           </button>
         </footer>
       </aside>

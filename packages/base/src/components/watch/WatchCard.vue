@@ -25,7 +25,7 @@
         v-if="!watchItem.images || watchItem.images.length === 0"
         class="absolute inset-0 flex items-center justify-center"
       >
-        <div class="text-gray-400 text-lg">Image non disponible</div>
+        <div class="text-gray-400 text-lg">{{ t('watch.imageUnavailable') }}</div>
       </div>
 
       <div
@@ -109,7 +109,7 @@
               v-for="(_, index) in navigableImages"
               :key="index"
               type="button"
-              :aria-label="`Image ${index + 1}`"
+              ::aria-label="t('watch.imageIndex', { index: index + 1 })"
               :aria-current="currentImageIndex === index ? 'true' : undefined"
               @click.stop="goToImage(index)"
               :class="[
@@ -195,6 +195,7 @@ import {
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
 import { formatPrice } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const site = getSiteConfig()
 const catalogDisplay = site.watchCatalog.display

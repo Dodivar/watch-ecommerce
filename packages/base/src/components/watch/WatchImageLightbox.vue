@@ -7,7 +7,7 @@
       :style="overlayStyle"
       role="dialog"
       aria-modal="true"
-      :aria-label="`Photos : ${title}`"
+      ::aria-label="t('watch.photosOf', { title })"
       tabindex="-1"
       @click="requestClose"
       @touchstart="onDismissTouchStart"
@@ -50,8 +50,8 @@
         <button
           type="button"
           class="lightbox-close pointer-events-auto absolute rounded-full bg-white/15 text-white backdrop-blur-sm transition-colors hover:bg-white/25"
-          title="Fermer"
-          aria-label="Fermer les photos"
+          :title="t('common.close')"
+          :aria-label="t('watch.closePhotos')"
           @click.stop="requestClose"
         >
           <X class="h-5 w-5" :stroke-width="2" />
@@ -67,7 +67,7 @@
               :key="index"
               type="button"
               class="flex h-6 w-6 items-center justify-center"
-              :aria-label="`Voir la photo ${index + 1}`"
+              ::aria-label="t('watch.viewPhoto', { index: index + 1 })"
               :aria-current="activeIndex === index"
               @click.stop="activeIndex = index"
             >
@@ -96,6 +96,7 @@ import { ChevronLeft, ChevronRight, X } from '@lucide/vue'
 import WatchImageSwipeCarousel from '@/components/watch/WatchImageSwipeCarousel.vue'
 import WatchImageZoomable from '@/components/watch/WatchImageZoomable.vue'
 import { canPreloadWatchImages } from '@/utils/watchImageUrl.js'
+import { t } from '@/i18n'
 
 /** Au-delà, la rangée de pastilles devient illisible : le compteur suffit. */
 const MAX_DOTS = 10
