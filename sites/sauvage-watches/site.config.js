@@ -3,6 +3,7 @@
  * Template extraction — all brand-specific defaults for `sites/sauvage-watches` live here.
  */
 import faq from './faq.config.js'
+import { t } from '../../packages/base/src/site/i18nValue.js'
 
 export default {
   siteId: 'sauvage-watches',
@@ -10,6 +11,23 @@ export default {
   faq,
 
   locale: 'fr',
+
+  /**
+   * Langues du site. Le client ne déclare que des codes : libellés, formats de nombre/date
+   * et `og:locale` viennent du socle (`packages/base/src/i18n/locales.js`).
+   *
+   * `defaultLocale` sert quand le navigateur du visiteur ne dit rien d'exploitable, et
+   * garde les URLs sans préfixe (`/collection`) ; les autres langues sont servies sous
+   * `/en/...` et `/de/...`.
+   *
+   * Un texte se traduit sur place avec `t({ fr, en, de })` ; une chaîne simple reste
+   * valide et sert pour les trois langues.
+   */
+  i18n: {
+    enabled: true,
+    defaultLocale: 'fr',
+    locales: ['fr', 'en', 'de'],
+  },
 
   /** Design tokens → CSS variables via vite/site-from-config.mjs + Tailwind theme.extend */
   theme: {
@@ -272,29 +290,75 @@ export default {
    */
   navigation: {
     main: [
-      { type: 'link', label: 'Nos montres', to: '/collection', feature: 'collection' },
-      { type: 'link', label: 'Nos ventes', to: '/ventes', feature: 'soldArchive' },
+      {
+        type: 'link',
+        label: t({ fr: 'Nos montres', en: 'Our watches', de: 'Unsere Uhren' }),
+        to: '/collection',
+        feature: 'collection',
+      },
+      {
+        type: 'link',
+        label: t({ fr: 'Nos ventes', en: 'Past sales', de: 'Verkaufte Uhren' }),
+        to: '/ventes',
+        feature: 'soldArchive',
+      },
       {
         type: 'group',
-        label: 'Nos services',
+        label: t({ fr: 'Nos services', en: 'Our services', de: 'Unsere Leistungen' }),
         items: [
-          { label: 'Recherche personnalisée', to: '/recherche', feature: 'recherche' },
-          { label: 'Estimation', to: '/estimation', feature: 'estimation' },
+          {
+            label: t({ fr: 'Recherche personnalisée', en: 'Watch sourcing', de: 'Uhrensuche' }),
+            to: '/recherche',
+            feature: 'recherche',
+          },
+          {
+            label: t({ fr: 'Estimation', en: 'Valuation', de: 'Schätzung' }),
+            to: '/estimation',
+            feature: 'estimation',
+          },
         ],
       },
       { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
-      { type: 'link', label: 'À propos', to: '/a-propos', feature: 'about' },
+      {
+        type: 'link',
+        label: t({ fr: 'À propos', en: 'About', de: 'Über uns' }),
+        to: '/a-propos',
+        feature: 'about',
+      },
       { type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' },
       { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
     ],
     footer: [
-      { label: 'Accueil', to: '/#accueil' },
-      { label: 'Nos montres', to: '/collection', feature: 'collection' },
-      { label: 'Nos ventes', to: '/ventes', feature: 'soldArchive' },
-      { label: 'Recherche personnalisée', to: '/recherche', feature: 'recherche' },
-      { label: 'Estimation', to: '/estimation', feature: 'estimation' },
+      {
+        label: t({ fr: 'Accueil', en: 'Home', de: 'Startseite' }),
+        to: '/#accueil',
+      },
+      {
+        label: t({ fr: 'Nos montres', en: 'Our watches', de: 'Unsere Uhren' }),
+        to: '/collection',
+        feature: 'collection',
+      },
+      {
+        label: t({ fr: 'Nos ventes', en: 'Past sales', de: 'Verkaufte Uhren' }),
+        to: '/ventes',
+        feature: 'soldArchive',
+      },
+      {
+        label: t({ fr: 'Recherche personnalisée', en: 'Watch sourcing', de: 'Uhrensuche' }),
+        to: '/recherche',
+        feature: 'recherche',
+      },
+      {
+        label: t({ fr: 'Estimation', en: 'Valuation', de: 'Schätzung' }),
+        to: '/estimation',
+        feature: 'estimation',
+      },
       { label: 'Blog', to: '/blog', feature: 'blog' },
-      { label: 'À propos', to: '/a-propos', feature: 'about' },
+      {
+        label: t({ fr: 'À propos', en: 'About', de: 'Über uns' }),
+        to: '/a-propos',
+        feature: 'about',
+      },
       { label: 'Contact', to: '/contact', feature: 'contact' },
     ],
   },
