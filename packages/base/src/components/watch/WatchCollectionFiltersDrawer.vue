@@ -19,7 +19,7 @@
           <button
             type="button"
             class="rounded-lg p-2 text-gray-600 hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Fermer les filtres"
+            :aria-label="t('collection.closeFilters')"
             @click="onClose"
           >
             <ChevronLeft class="h-6 w-6" :stroke-width="2" />
@@ -98,7 +98,7 @@
             </button>
             <div v-show="expanded.price" class="space-y-4 pb-4">
               <!-- <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700">Prix les plus recherchés</label>
+                <label class="mb-2 block text-sm font-medium text-gray-700">{{ t('collection.popularPrices') }}</label>
                 <div class="flex flex-wrap gap-2">
                   <button
                     v-for="quickPrice in listing.quickPriceRanges"
@@ -133,7 +133,7 @@
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="mb-1 block text-sm font-medium text-gray-700">Minimum</label>
+                  <label class="mb-1 block text-sm font-medium text-gray-700">{{ t('collection.minimum') }}</label>
                   <div class="relative">
                     <input
                       v-model.number="listing.tempPriceMinInput"
@@ -147,7 +147,7 @@
                   </div>
                 </div>
                 <div>
-                  <label class="mb-1 block text-sm font-medium text-gray-700">Maximum</label>
+                  <label class="mb-1 block text-sm font-medium text-gray-700">{{ t('collection.maximum') }}</label>
                   <div class="relative">
                     <input
                       v-model.number="listing.tempPriceMaxInput"
@@ -441,6 +441,7 @@ import { getWatchAudiencesForCollectionFilter } from '@/services/watchService'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
+import { t } from '@/i18n'
 
 const props = defineProps({
   open: { type: Boolean, default: false },

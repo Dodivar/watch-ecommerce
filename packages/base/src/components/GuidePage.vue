@@ -3,12 +3,12 @@
     <!-- Breadcrumb -->
     <nav
       class="border-b border-cream-300 bg-white/80 backdrop-blur-sm"
-      aria-label="Fil d'Ariane"
+      :aria-label="t('guide.breadcrumb')"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <ol class="flex flex-wrap items-center gap-1.5 text-sm text-gray-500">
           <li>
-            <RouterLink to="/" class="hover:text-primary transition-colors">Accueil</RouterLink>
+            <RouterLink to="/" class="hover:text-primary transition-colors">{{ t('common.home') }}</RouterLink>
           </li>
           <li aria-hidden="true" class="text-gray-300">›</li>
           <li class="font-medium text-text-main" aria-current="page">
@@ -44,7 +44,7 @@
         <p class="text-xs font-semibold uppercase tracking-[0.15em] text-gray-400 mb-4">
           Sommaire
         </p>
-        <nav aria-label="Sommaire du guide">
+        <nav :aria-label="t('guide.contents')">
           <ol class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <li v-for="(entry, index) in content.toc" :key="entry.id">
               <a
@@ -272,6 +272,7 @@ import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import GuideImageSlot from '@/components/guide/GuideImageSlot.vue'
+import { t } from '@/i18n'
 
 const site = getSiteConfig()
 const content = site.guidePage

@@ -3,9 +3,9 @@
     <section class="py-10 lg:py-14">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10">
-          <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Contact</h1>
+          <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">{{ t('contact.title') }}</h1>
           <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            Une question, un projet de montre ou besoin d'un conseil ? Écrivez-nous<span v-if="showStoreMap"> ou passez nous voir</span>.
+            Une question, un projet de montre ou besoin d'un conseil ? Écrivez-nous<span v-if="showStoreMap"> {{ t('contact.orVisitUs') }}</span>.
           </p>
         </div>
 
@@ -117,7 +117,7 @@
 
           <!-- Formulaire -->
           <div class="bg-white rounded-lg shadow-lg p-8 border border-cream-300">
-            <h2 class="text-xl font-semibold text-text-main mb-2">Envoyer un message</h2>
+            <h2 class="text-xl font-semibold text-text-main mb-2">{{ t('contact.sendMessage') }}</h2>
             <p class="text-gray-600 text-sm mb-6">
               Renseignez le formulaire ci-dessous : votre message sera transmis directement à
               {{ brandDisplayName }}.
@@ -141,7 +141,7 @@
               </div>
               <div>
                 <label for="contact-email" class="block text-sm font-medium text-text-main mb-1"
-                  >E-mail *</label
+                  >{{ t('form.email') }} *</label
                 >
                 <input
                   id="contact-email"
@@ -156,7 +156,7 @@
               </div>
               <div>
                 <label for="contact-tel" class="block text-sm font-medium text-text-main mb-1"
-                  >Téléphone</label
+                  >{{ t('form.phone') }}</label
                 >
                 <input
                   id="contact-tel"
@@ -170,7 +170,7 @@
               </div>
               <div>
                 <label for="contact-message" class="block text-sm font-medium text-text-main mb-1"
-                  >Message *</label
+                  >{{ t('form.message') }} *</label
                 >
                 <textarea
                   id="contact-message"
@@ -218,6 +218,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import StoreLocationMap from '@/components/StoreLocationMap.vue'
 import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
 import { handleFormSubmit, prepareContactFormData } from '@/services/emailService'
+import { t } from '@/i18n'
 
 const router = useRouter()
 const site = getSiteConfig()

@@ -76,7 +76,7 @@
             <input
               v-model="adminWatchId"
               type="text"
-              placeholder="Entrez l'ID d'une montre (ex: uuid)"
+              :placeholder="t('payment.watchIdPlaceholder')"
               class="w-full px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
             />
           </div>
@@ -85,8 +85,8 @@
             :disabled="!adminWatchId || isLoadingWatch"
             class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
           >
-            <span v-if="isLoadingWatch">Chargement...</span>
-            <span v-else>Charger la montre</span>
+            <span v-if="isLoadingWatch">{{ t('common.loading') }}</span>
+            <span v-else>{{ t('payment.loadWatch') }}</span>
           </button>
           <button
             v-if="watch"
@@ -102,7 +102,7 @@
       </div>
 
       <!-- Success Message -->
-      <h1 class="text-3xl font-bold text-gray-900 mb-4">Paiement réussi !</h1>
+      <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ t('payment.successTitle') }}</h1>
       <p class="text-lg text-gray-600 mb-6">
         Merci pour votre achat. Votre commande a été confirmée avec succès.
       </p>
@@ -133,7 +133,7 @@
           class="bg-white rounded-xl p-6 shadow-lg"
         >
           <h3 v-if="displayWatches.length === 1" class="text-xl font-semibold text-gray-900 mb-4 text-center">
-            Votre montre
+            {{ t('payment.yourWatch') }}
           </h3>
           <div v-if="w.images && w.images.length > 0" class="flex flex-col sm:flex-row items-center gap-6">
             <div class="w-full sm:w-64 h-64 bg-white rounded-xl overflow-hidden shadow-xl flex-shrink-0">
@@ -151,10 +151,10 @@
               </p>
               <div class="space-y-2">
                 <p v-if="w.brand" class="text-gray-700">
-                  <span class="font-semibold text-gray-900">Marque :</span> {{ w.brand }}
+                  <span class="font-semibold text-gray-900">{{ t('payment.brandLabel') }}</span> {{ w.brand }}
                 </p>
                 <p v-if="w.model" class="text-gray-700">
-                  <span class="font-semibold text-gray-900">Modèle :</span> {{ w.model }}
+                  <span class="font-semibold text-gray-900">{{ t('payment.modelLabel') }}</span> {{ w.model }}
                 </p>
                 <p v-if="w.price" class="text-lg font-bold text-primary mt-3">
                   {{ formatPrice(w.price, { decimals: true }) }}
@@ -169,26 +169,26 @@
       <div v-else-if="watchError" class="mb-6">
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p class="text-sm text-yellow-800">
-            <strong>Note :</strong> Impossible de charger les détails de la montre. Les informations de commande restent valides.
+            <strong>{{ t('payment.noteLabel') }}</strong> Impossible de charger les détails de la montre. Les informations de commande restent valides.
           </p>
         </div>
       </div>
 
       <!-- Order Details -->
       <div v-if="sessionId || watchId || displayWatches.length" class="bg-white rounded-lg p-6 mb-6 shadow-lg">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Détails de la commande</h2>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ t('payment.orderDetails') }}</h2>
         <div class="space-y-3 text-left">
           <div
             v-for="w in displayWatches"
             :key="'ord-' + w.id"
             class="pb-3 border-b border-gray-200 last:border-0 last:pb-0"
           >
-            <span class="text-gray-600 block mb-1">Montre :</span>
+            <span class="text-gray-600 block mb-1">{{ t('payment.watchLabel') }}</span>
             <span class="font-semibold text-lg text-gray-900">{{ w.name }}</span>
             <p v-if="w.reference" class="text-sm text-gray-600 mt-1">Réf. {{ w.reference }}</p>
           </div>
           <div v-if="sessionId" class="flex justify-between pt-2">
-            <span class="text-gray-600">Référence de paiement :</span>
+            <span class="text-gray-600">{{ t('payment.reference') }}</span>
             <span class="font-medium text-gray-900 text-right break-all max-w-[60%]">{{ sessionId }}</span>
           </div>
         </div>
@@ -197,7 +197,7 @@
       <!-- Information -->
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <p class="text-sm text-blue-800">
-          <strong>Prochaines étapes :</strong> Vous recevrez un email de confirmation avec tous les
+          <strong>{{ t('payment.nextSteps') }}</strong> Vous recevrez un email de confirmation avec tous les
           détails de votre commande. Notre équipe finalisera sous peu la livraison.
         </p>
       </div>
@@ -240,6 +240,7 @@ import { getBrowsePath } from '@/site/siteFeatures.js'
 import { verifyPaymentSession } from '@/services/stripeService'
 import { useCart } from '@/composables/useCart.js'
 import { formatPrice } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const features = getSiteConfig().features
 const browsePath = getBrowsePath(features)

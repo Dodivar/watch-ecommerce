@@ -45,7 +45,7 @@
             />
           </svg>
         </div>
-        <h2 class="text-xl text-gray-900 mb-2">Erreur de chargement</h2>
+        <h2 class="text-xl text-gray-900 mb-2">{{ t('watch.loadError') }}</h2>
         <p class="text-gray-600 mb-3">{{ listing.error }}</p>
         <button
           type="button"
@@ -70,7 +70,7 @@
             />
           </svg>
         </div>
-        <h2 class="text-xl text-gray-900 mb-2">Aucune montre trouvée</h2>
+        <h2 class="text-xl text-gray-900 mb-2">{{ t('collection.noWatchFound') }}</h2>
         <p class="text-gray-600 mb-6">
           Aucun résultat pour « {{ searchQuery }} ». Essayez un autre terme (marque, modèle ou référence).
         </p>
@@ -117,7 +117,7 @@
           </p>
           <nav
             class="order-1 flex w-full max-w-full justify-center overflow-x-auto overflow-y-hidden py-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:order-2 sm:overflow-visible sm:py-0 [&::-webkit-scrollbar]:hidden"
-            aria-label="Pagination des résultats de recherche"
+            :aria-label="t('pagination.searchLabel')"
           >
             <div class="flex max-w-full shrink-0 items-center gap-0 sm:gap-1.5">
               <button
@@ -125,7 +125,7 @@
                 class="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white p-0 text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
                 :class="currentPage === 1 ? 'cursor-not-allowed bg-cream-200 text-gray-400' : ''"
                 :disabled="currentPage === 1"
-                aria-label="Page précédente"
+                :aria-label="t('pagination.previous')"
                 @click="goToPage(currentPage - 1)"
               >
                 <svg
@@ -145,7 +145,7 @@
               </button>
               <ul
                 class="m-0 flex shrink-0 list-none flex-wrap items-center justify-center gap-0 p-0 sm:gap-1"
-                aria-label="Sélection de page"
+                :aria-label="t('pagination.pageSelect')"
               >
                 <li
                   v-for="(item, itemIdx) in paginationItems"
@@ -170,7 +170,7 @@
                     v-else-if="item.type === 'page'"
                     type="button"
                     class="box-border inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
-                    :aria-label="`Page ${item.n}`"
+                    ::aria-label="t('pagination.page', { n: item.n })"
                     @click="goToPage(item.n)"
                   >
                     {{ item.n }}
@@ -186,7 +186,7 @@
                     : ''
                 "
                 :disabled="currentPage === totalPages"
-                aria-label="Page suivante"
+                :aria-label="t('pagination.next')"
                 @click="goToPage(currentPage + 1)"
               >
                 <svg
@@ -234,6 +234,7 @@ import {
 } from '@/utils/collectionPagination.js'
 import { compareWatchesByRecent } from '@/utils/watchSort.js'
 import { navigateToWatch } from '@/utils/watchSlug.js'
+import { t } from '@/i18n'
 
 defineOptions({ name: 'WatchSearchResultsPage' })
 

@@ -20,6 +20,7 @@ import {
   parseDateISO,
   SLOT_LABELS,
 } from '@/composables/useRetailAppointmentSlots.js'
+import { t } from '@/i18n'
 
 function formatDateISO(date) {
   const y = date.getFullYear()
@@ -224,14 +225,14 @@ onUnmounted(() => {
       >
         <div class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-5 py-4 rounded-t-xl">
           <h2 id="appointment-modal-title" class="text-lg font-semibold text-text-main">
-            <template v-if="modalState === 'success'">Demande envoyée</template>
-            <template v-else-if="modalState === 'error'">Envoi impossible</template>
-            <template v-else>Prendre rendez-vous</template>
+            <template v-if="modalState === 'success'">{{ t('appointment.sent') }}</template>
+            <template v-else-if="modalState === 'error'">{{ t('appointment.sendFailed') }}</template>
+            <template v-else>{{ t('appointment.book') }}</template>
           </h2>
           <button
             type="button"
             class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-            aria-label="Fermer"
+            :aria-label="t('common.close')"
             @click="closeModal"
           >
             <X class="h-5 w-5" :stroke-width="2" />
@@ -248,14 +249,14 @@ onUnmounted(() => {
               Votre demande de rendez-vous a bien été envoyée.
             </p>
             <div v-if="submittedSummary" class="rounded-lg bg-cream p-4 text-left text-sm text-gray-700 space-y-1">
-              <p><span class="font-semibold">Date :</span> {{ submittedSummary.dateLabel }}</p>
-              <p><span class="font-semibold">Créneau :</span> {{ submittedSummary.timeSlotLabel }}</p>
+              <p><span class="font-semibold">{{ t('appointment.dateLabel') }}</span> {{ submittedSummary.dateLabel }}</p>
+              <p><span class="font-semibold">{{ t('appointment.slotLabel') }}</span> {{ submittedSummary.timeSlotLabel }}</p>
               <p class="pt-1">
-                <span class="font-semibold">Boutique :</span>
+                <span class="font-semibold">{{ t('appointment.storeLabel') }}</span>
                 <span v-html="site.contact.footerAddressHtml" />
               </p>
               <p v-if="storeOpeningHours.hasHours" class="pt-1">
-                <span class="font-semibold">Horaires :</span>
+                <span class="font-semibold">{{ t('appointment.hoursLabel') }}</span>
                 <span v-if="storeOpeningHours.daysLabel">{{ storeOpeningHours.daysLabel }}</span>
                 <span v-if="storeOpeningHours.daysLabel && storeOpeningHours.hoursLabel"> · </span>
                 <span v-if="storeOpeningHours.hoursLabel">{{ storeOpeningHours.hoursLabel }}</span>
@@ -278,7 +279,7 @@ onUnmounted(() => {
             <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600">
               <AlertCircle class="h-7 w-7" :stroke-width="2" />
             </div>
-            <p class="text-text-main font-medium">Impossible d'envoyer votre demande</p>
+            <p class="text-text-main font-medium">{{ t('appointment.sendFailedDetail') }}</p>
             <p class="text-sm text-red-600">{{ errorMessage }}</p>
             <div class="flex flex-col sm:flex-row gap-3">
               <button
@@ -394,7 +395,7 @@ onUnmounted(() => {
                     :formats="datePickerFormats"
                     :input-attrs="datePickerInputAttrs"
                     :time-config="datePickerTimeConfig"
-                    placeholder="Choisir une date"
+                    :placeholder="t('appointment.chooseDate')"
                     :week-start="1"
                     auto-apply
                     prevent-min-max-navigation
@@ -406,7 +407,7 @@ onUnmounted(() => {
               </div>
 
               <fieldset>
-                <legend class="block text-sm font-medium text-text-main mb-2">Créneau *</legend>
+                <legend class="block text-sm font-medium text-text-main mb-2">{{ t('appointment.slot') }}</legend>
                 <div class="flex flex-wrap gap-3">
                   <label
                     v-for="slot in slotOptions"
@@ -435,7 +436,7 @@ onUnmounted(() => {
                 {{ errorMessage }}
               </p>
 
-              <p class="text-xs text-gray-500 italic">* Champs obligatoires</p>
+              <p class="text-xs text-gray-500 italic">{{ t('form.requiredFields') }}</p>
 
               <NewsletterOptInField />
 
