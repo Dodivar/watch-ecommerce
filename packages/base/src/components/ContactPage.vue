@@ -5,7 +5,7 @@
         <div class="text-center mb-10">
           <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">{{ t('contact.title') }}</h1>
           <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            Une question, un projet de montre ou besoin d'un conseil ? Écrivez-nous<span v-if="showStoreMap"> {{ t('contact.orVisitUs') }}</span>.
+            {{ t('contact.lead') }}<span v-if="showStoreMap"> {{ t('contact.orVisitUs') }}</span>.
           </p>
         </div>
 
@@ -19,7 +19,7 @@
               </p>
 
               <h3 class="text-sm font-semibold uppercase tracking-wide text-white/80 mb-3">
-                Coordonnées
+                {{ t('contact.details') }}
               </h3>
               <ul class="space-y-3 text-white/90">
                 <li v-if="WHATSAPP_NUMBER">
@@ -63,7 +63,7 @@
 
               <div v-if="hasSocialLinks" class="mt-6 pt-6 border-t border-white/20">
                 <h3 class="text-sm font-semibold uppercase tracking-wide text-white/80 mb-3">
-                  Réseaux sociaux
+                  {{ t('contact.socialNetworks') }}
                 </h3>
                 <div class="flex flex-wrap gap-3">
                   <a
@@ -119,14 +119,13 @@
           <div class="bg-white rounded-lg shadow-lg p-8 border border-cream-300">
             <h2 class="text-xl font-semibold text-text-main mb-2">{{ t('contact.sendMessage') }}</h2>
             <p class="text-gray-600 text-sm mb-6">
-              Renseignez le formulaire ci-dessous : votre message sera transmis directement à
-              {{ brandDisplayName }}.
+              {{ t('contact.formIntro', { brand: brandDisplayName }) }}
             </p>
 
             <form class="space-y-5" @submit="submitContactForm">
               <div>
                 <label for="contact-name" class="block text-sm font-medium text-text-main mb-1"
-                  >Nom *</label
+                  >{{ t('form.fullName') }} *</label
                 >
                 <input
                   id="contact-name"
@@ -198,7 +197,7 @@
                 :disabled="isSubmitting"
                 class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 rounded-md bg-primary text-white font-semibold hover:bg-primaryHover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {{ isSubmitting ? `Envoi en cours${loadingDots}` : 'Envoyer le message' }}
+                {{ isSubmitting ? `${t('form.sendingInProgress')}${loadingDots}` : t('contact.submit') }}
               </button>
             </form>
           </div>
@@ -269,8 +268,8 @@ const form = reactive({
   message: '',
 })
 
-const pageTitle = `Contact — ${brandDisplayName}`
-const pageDescription = `Contacter ${brandDisplayName} : formulaire, e-mail, téléphone et adresse.`
+const pageTitle = `${t('contact.title')} — ${brandDisplayName}`
+const pageDescription = t('contact.metaDescription', { brand: brandDisplayName })
 
 useHead({
   title: pageTitle,
@@ -298,8 +297,7 @@ async function submitContactForm(event) {
       router.push({ path: '/merci', query: { from: 'contact' } })
     },
     (error) => {
-      errorMessage.value =
-        "Une erreur s'est produite lors de l'envoi du formulaire. Veuillez réessayer."
+      errorMessage.value = t('form.submitError')
       console.error('Erreur:', error)
     },
   ).finally(() => {

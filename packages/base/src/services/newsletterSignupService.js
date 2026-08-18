@@ -2,6 +2,7 @@
  * Inscription à la newsletter depuis la vitrine (formulaire public).
  */
 import { getBackendApiUrl, readApiResponseBody } from './backendApiUrl.js'
+import { getActiveLocale } from '@/i18n'
 
 /** Site actif (build Vite) — cohérent avec emailService.js. */
 const SITE_ID = import.meta.env.VITE_SITE_ID || 'sauvage-watches'
@@ -24,6 +25,8 @@ export async function subscribeToNewsletter(input) {
       email: input.email,
       name: input.name || undefined,
       website: input.website || undefined,
+      // Le backend confirme aujourd'hui en français ; la langue voyage pour qu'il puisse changer.
+      locale: getActiveLocale(),
     }),
   })
 

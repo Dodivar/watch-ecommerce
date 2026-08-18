@@ -1,12 +1,13 @@
 <script setup>
 import { ref } from 'vue'
 import { subscribeToNewsletter } from '@/services/newsletterSignupService.js'
+import { t } from '@/i18n'
 
 defineProps({
-  title: { type: String, default: 'Newsletter' },
+  title: { type: String, default: () => t('newsletter.title') },
   description: {
     type: String,
-    default: 'Recevez nos nouveautés et actualités par email.',
+    default: () => t('newsletter.description'),
   },
 })
 
@@ -23,11 +24,11 @@ async function submit() {
   try {
     await subscribeToNewsletter({ email: email.value.trim(), website: website.value })
     status.value = 'success'
-    message.value = 'Merci ! Votre inscription est confirmée.'
+    message.value = t('newsletter.success')
     email.value = ''
   } catch (err) {
     status.value = 'error'
-    message.value = err.message || "Une erreur est survenue, veuillez réessayer."
+    message.value = err.message || t('newsletter.error')
   }
 }
 </script>
@@ -50,13 +51,13 @@ async function submit() {
         v-model="email"
         type="email"
         required
-        placeholder="votre@email.fr"
-        aria-label="Adresse email"
+        :placeholder="t('newsletter.placeholder')"
+        :aria-label="t('newsletter.emailLabel')"
         class="newsletter-signup__input"
         :disabled="status === 'loading'"
       />
       <button type="submit" class="newsletter-signup__button" :disabled="status === 'loading'">
-        {{ status === 'loading' ? 'Envoi…' : "S'inscrire" }}
+        {{ status === 'loading' ? t('common.sending') : t('newsletter.subscribe') }}
       </button>
     </form>
     <p
@@ -68,11 +69,9 @@ async function submit() {
       {{ message }}
     </p>
     <p class="newsletter-signup__consent">
-      En vous inscrivant, vous acceptez de recevoir nos communications par email. Désinscription
-      possible à tout moment via le lien présent dans chaque message. Pour en savoir plus, consultez
-      notre
+      {{ t('newsletter.consent') }}
       <RouterLink to="/politique-confidentialite" class="newsletter-signup__consent-link">
-        politique de confidentialité</RouterLink
+        {{ t('cookies.privacyLink') }}</RouterLink
       >.
     </p>
   </section>

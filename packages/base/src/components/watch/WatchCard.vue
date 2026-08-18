@@ -6,7 +6,7 @@
         v-if="showNewBadge"
         class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-primary text-white shadow-sm"
       >
-        Nouveau
+        {{ t('watch.new') }}
       </span>
       <span
         v-if="watchItem.isOnPromotion"
@@ -136,7 +136,7 @@
           v-if="watchItem.isSold && effectiveShowSoldBadge"
           class="ml-1 md:ml-2 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-red-100 text-red-800 whitespace-nowrap flex-shrink-0"
         >
-          Vendue
+          {{ t('watch.sold') }}
         </span>
         <span
           v-else-if="isOutOfStock"

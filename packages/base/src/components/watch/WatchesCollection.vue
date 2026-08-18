@@ -44,7 +44,7 @@
           to="/collection"
           class="inline-flex px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
         >
-          Voir toute la collection
+          {{ t('collection.seeAll') }}
         </RouterLink>
       </div>
 
@@ -183,7 +183,7 @@
             class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
             @click="listing.loadWatches"
           >
-            Réessayer
+            {{ t('common.retry') }}
           </button>
         </div>
 
@@ -319,8 +319,8 @@
           <p class="text-gray-500">
             {{
               campaignLoadError
-                ? 'Cet événement est terminé ou n\'existe pas. Consultez nos autres promotions.'
-                : 'Essayez de modifier vos critères de recherche'
+                ? t('collection.eventOver')
+                : t('blog.adjustSearch')
             }}
           </p>
         </div>
@@ -423,9 +423,9 @@ const props = defineProps({
 })
 
 const sortOptions = [
-  { value: 'recent', label: 'Ajout récent' },
-  { value: 'price-asc', label: 'Prix croissant' },
-  { value: 'price-desc', label: 'Prix décroissant' },
+  { value: 'recent', label: t('collection.sortNewest') },
+  { value: 'price-asc', label: t('collection.sortPriceAsc') },
+  { value: 'price-desc', label: t('collection.sortPriceDesc') },
 ]
 
 const route = useRoute()
@@ -697,7 +697,7 @@ const resolvedTitle = computed(() => singleBrandLabel.value || 'Marque')
 const pageHeadingTitle = computed(() => {
   if (listing.campaignFilterLabel) return listing.campaignFilterLabel
   if (singleBrandLabel.value) return singleBrandLabel.value
-  return 'Toutes nos montres'
+  return t('collection.title')
 })
 
 const audienceLabelBySlug = Object.fromEntries(

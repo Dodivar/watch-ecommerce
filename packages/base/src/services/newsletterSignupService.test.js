@@ -25,7 +25,11 @@ describe('subscribeToNewsletter', () => {
     expect(url).toBe('http://localhost:3000/api/newsletter/subscribe')
     expect(options.method).toBe('POST')
     expect(options.headers['X-Site-Id']).toBe('sauvage-watches')
-    expect(JSON.parse(options.body)).toEqual({ email: 'client@example.com', name: 'Jean' })
+    expect(JSON.parse(options.body)).toEqual({
+      email: 'client@example.com',
+      name: 'Jean',
+      locale: 'fr',
+    })
   })
 
   it('omet le nom quand il est vide', async () => {
@@ -36,6 +40,7 @@ describe('subscribeToNewsletter', () => {
 
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
       email: 'client@example.com',
+      locale: 'fr',
     })
   })
 
