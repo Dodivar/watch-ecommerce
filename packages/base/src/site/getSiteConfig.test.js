@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { t } from './i18nValue.js'
 import { resolveSiteConfig } from './resolveSiteConfig.js'
 
 describe('resolveSiteConfig', () => {
@@ -103,5 +104,55 @@ describe('resolveSiteConfig', () => {
       watchCatalog: { mode: 'retail', guarantees },
     })
     expect(resolved.watchCatalog.guarantees).toEqual(guarantees)
+  })
+
+  it('aplatit les textes traduits dans la langue demandée', () => {
+    const raw = {
+      i18n: { enabled: true, defaultLocale: 'fr', locales: ['fr', 'en', 'de'] },
+      copy: {
+        footerTagline: t({ fr: 'Montres', en: 'Watches', de: 'Uhren' }),
+        copyrightLine: '© 2026',
+      },
+    }
+    expect(resolveSiteConfig(raw, 'de').copy).toEqual({
+      footerTagline: 'Uhren',
+      copyrightLine: '© 2026',
+    })
+    expect(resolveSiteConfig(raw, 'en').copy.footerTagline).toBe('Watches')
+  })
+
+  it('retombe sur la langue par défaut sans locale, ou pour une locale non activée', () => {
+    const raw = {
+      i18n: { enabled: true, defaultLocale: 'fr', locales: ['fr', 'en'] },
+      copy: { footerTagline: t({ fr: 'Montres', en: 'Watches', de: 'Uhren' }) },
+    }
+    expect(resolveSiteConfig(raw).copy.footerTagline).toBe('Montres')
+    expect(resolveSiteConfig(raw, 'de').copy.footerTagline).toBe('Montres')
+  })
+
+  it('traduit aussi les libellés de navigation et les entrées FAQ', () => {
+    const resolved = resolveSiteConfig(
+      {
+        i18n: { enabled: true, defaultLocale: 'fr', locales: ['fr', 'de'] },
+        faq: {
+          enabled: true,
+          items: [{ id: 'a', question: t({ fr: 'Quoi ?', de: 'Was?' }), answer: 'A' }],
+        },
+        navigation: {
+          main: [{ type: 'link', label: t({ fr: 'Nos montres', de: 'Unsere Uhren' }), to: '/collection' }],
+        },
+      },
+      'de',
+    )
+    expect(resolved.faq.items[0].question).toBe('Was?')
+    expect(resolved.navigation.main[0].label).toBe('Unsere Uhren')
+    expect(resolved.features.faq).toBe(true)
+  })
+
+  it('expose la langue active et laisse un manifest monolingue inchangé', () => {
+    const monolingual = resolveSiteConfig({ locale: 'fr', copy: { copyrightLine: '© 2026' } })
+    expect(monolingual.i18n).toMatchObject({ enabled: false, activeLocale: 'fr' })
+    expect(monolingual.locale).toBe('fr')
+    expect(monolingual.copy.copyrightLine).toBe('© 2026')
   })
 })
