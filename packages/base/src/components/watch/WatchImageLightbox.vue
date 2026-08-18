@@ -258,7 +258,15 @@ function onDismissTouchEnd() {
 
 /* --------------------------------------------------- Bouton retour Android */
 
+/** Estampille notre entrée d'historique pour la reconnaître avant de la dépiler. */
+const HISTORY_MARKER = '__watchLightbox'
+
 let hasHistoryEntry = false
+
+/** Vrai si l'entrée courante est bien celle empilée à l'ouverture. */
+function isLightboxHistoryEntry() {
+  return Boolean(router.options.history.state?.[HISTORY_MARKER])
+}
 
 function onPopState() {
   hasHistoryEntry = false
@@ -268,13 +276,34 @@ function onPopState() {
 
 async function pushHistoryEntry() {
   if (typeof window === 'undefined' || hasHistoryEntry) return
+
   // Même URL via vue-router : le bouton retour referme la visionneuse sans
-  // désynchroniser l'historique SPA (contrairement à pushState brut).
+  // désynchroniser l'historique SPA (contrairement à pushState brut). `force`
+  // est indispensable : sans lui vue-router classe la navigation vers l'URL
+  // courante comme un doublon, résout sans erreur… et n'empile rien. Le
+  // `router.back()` de fermeture retirait alors l'entrée de la page elle-même,
+  // ce qui sortait du site quand la fiche était la première page de l'onglet
+  // (lien partagé, résultat de recherche).
+  const { path, query, hash } = router.currentRoute.value
+  let failure
   try {
-    await router.push(router.currentRoute.value.fullPath)
+    failure = await router.push({
+      path,
+      query,
+      hash,
+      force: true,
+      state: { [HISTORY_MARKER]: true },
+    })
   } catch {
     return
   }
+
+  // Ceinture et bretelles : on n'active le retour arrière que si le navigateur
+  // a effectivement empilé notre entrée. Sinon la visionneuse se ferme sans
+  // toucher à l'historique — le bouton retour Android quitte la page, mais on
+  // n'éjecte jamais l'utilisateur du site à la fermeture.
+  if (failure || !isLightboxHistoryEntry()) return
+
   hasHistoryEntry = true
   window.addEventListener('popstate', onPopState)
 }
@@ -284,7 +313,9 @@ function releaseHistoryEntry() {
   window.removeEventListener('popstate', onPopState)
   if (!hasHistoryEntry) return
   hasHistoryEntry = false
-  router.back()
+  // L'entrée a pu être consommée entre-temps (retour navigateur pendant
+  // l'animation de sortie) : ne dépiler que si elle est toujours au sommet.
+  if (isLightboxHistoryEntry()) router.back()
 }
 
 /* ------------------------------------------------------------- Préchargement */

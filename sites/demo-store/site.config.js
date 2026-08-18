@@ -97,7 +97,7 @@ export default {
     estimationProcessLead:
       'Chez Demo Store, nous croyons que la transparence est la clé de la confiance.',
     watchSecurityAuthentic:
-      "Toutes les montres vendues sur Demo Store sont authentiques. Chaque montre est vérifiée par nos experts avant la mise en vente. Si vous avez le moindre doute sur l'authenticité de votre montre, contactez-nous dans les 14 jours suivant la réception pour un remboursement complet.",
+      "Toutes les montres vendues sur Demo Store sont authentiques. Chaque montre est vérifiée avant la mise en vente. Si vous avez le moindre doute sur l'authenticité de votre montre, contactez-nous dans les 14 jours suivant la réception pour un remboursement complet.",
     watchSecurityInsurance:
       "Chaque montre vendue est assurée pour sa valeur totale par Demo Store. Cela garantit qu'il n'y a aucun risque pour l'acheteur, même en cas de résidence à l'étranger. Votre montre est protégée de bout en bout.",
   },
@@ -283,7 +283,7 @@ export default {
       h1: 'Toutes les marques',
       title: 'Marques de montres de luxe | Demo Store',
       metaDescription:
-        'Parcourez les marques disponibles sur Demo Store et ouvrez chaque collection : montres authentifiées, garanties et sélectionnées par nos experts.',
+        'Parcourez les marques disponibles sur Demo Store et ouvrez chaque collection : montres authentifiées, garanties et sélectionnées avec soin.',
       ogTitle: 'Marques | Demo Store',
       ogDescription:
         'Accédez aux collections par marque : Rolex, Omega, Cartier et bien d’autres références.',

@@ -154,9 +154,9 @@ export default {
       de: 'Bei Sauvage sind wir überzeugt: Transparenz schafft Vertrauen.',
     }),
     watchSecurityAuthentic: t({
-      fr: "Toutes les montres vendues sur Sauvage sont authentiques. Chaque montre est vérifiée par nos experts avant la mise en vente. Si vous avez le moindre doute sur l'authenticité de votre montre, contactez-nous dans les 14 jours suivant la réception pour un remboursement complet.",
-      en: 'Every watch sold by Sauvage is authentic. Each one is checked by our experts before going on sale. Should you have the slightest doubt about your watch’s authenticity, contact us within 14 days of delivery for a full refund.',
-      de: 'Alle bei Sauvage verkauften Uhren sind authentisch. Jede Uhr wird vor dem Verkauf von unseren Experten geprüft. Sollten Sie den geringsten Zweifel an der Echtheit Ihrer Uhr haben, kontaktieren Sie uns innerhalb von 14 Tagen nach Erhalt für eine vollständige Rückerstattung.',
+      fr: "Toutes les montres vendues sur Sauvage sont authentiques. Chaque montre est vérifiée avant la mise en vente. Si vous avez le moindre doute sur l'authenticité de votre montre, contactez-nous dans les 14 jours suivant la réception pour un remboursement complet.",
+      en: 'Every watch sold by Sauvage is authentic. Each one is checked before going on sale. Should you have the slightest doubt about your watch’s authenticity, contact us within 14 days of delivery for a full refund.',
+      de: 'Alle bei Sauvage verkauften Uhren sind authentisch. Jede Uhr wird vor dem Verkauf geprüft. Sollten Sie den geringsten Zweifel an der Echtheit Ihrer Uhr haben, kontaktieren Sie uns innerhalb von 14 Tagen nach Erhalt für eine vollständige Rückerstattung.',
     }),
     watchSecurityInsurance: t({
       fr: "Chaque montre vendue est assurée pour sa valeur totale par Sauvage. Cela garantit qu'il n'y a aucun risque pour l'acheteur, même en cas de résidence à l'étranger. Votre montre est protégée de bout en bout.",
