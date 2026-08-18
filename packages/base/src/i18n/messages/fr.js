@@ -29,7 +29,12 @@ export default {
   'nav.closeMenu': 'Fermer le menu',
   'nav.openCart': 'Ouvrir le panier',
   'nav.search': 'Rechercher',
-  'nav.searchPlaceholder': 'Rechercher une montre, une marque…',
+  'nav.searchPlaceholder': 'Rechercher marque, modèle, référence…',
+  'nav.mainMenu': 'Menu principal',
+  'nav.openSearch': 'Ouvrir la recherche',
+  'nav.closeSearch': 'Fermer la recherche',
+  'nav.searchWatchLabel': 'Rechercher une montre',
+  'nav.searchBrand': 'Rechercher une marque',
   'nav.language': 'Langue',
   'nav.callUs': 'Nous appeler',
   'nav.allBrands': 'Toutes les marques',
@@ -124,11 +129,18 @@ export default {
   'newsletter.placeholder': 'Votre adresse e-mail',
   'newsletter.subscribe': "S'inscrire",
   'newsletter.success': 'Inscription confirmée. À bientôt !',
-  'cookies.message':
-    'Nous utilisons des cookies pour mesurer l’audience et améliorer votre expérience.',
+  'cookies.title': 'Cookies et mesure d’audience',
+  'cookies.body':
+    'Nous utilisons des cookies et traceurs pour mesurer l’audience du site (Google Analytics) et améliorer votre navigation. Vous décidez : accepter, refuser ou personnaliser. L’enregistrement de votre choix sur cet appareil est nécessaire au fonctionnement de cette bannière. Pour plus de détails, consultez notre',
+  'cookies.privacyLink': 'politique de confidentialité',
   'cookies.accept': 'Tout accepter',
   'cookies.reject': 'Tout refuser',
   'cookies.customize': 'Personnaliser',
+  'cookies.preferences': 'Préférences',
+  'cookies.analyticsTitle': 'Mesure d’audience',
+  'cookies.analyticsBody':
+    '— Google Analytics : statistiques de fréquentation et de parcours, de façon anonymisée ou agrégée selon les réglages du service.',
+  'cookies.save': 'Enregistrer mes choix',
 
   // — Page introuvable
   'notFound.title': 'Page introuvable',

@@ -20,7 +20,12 @@ export default {
   'nav.closeMenu': 'Close menu',
   'nav.openCart': 'Open cart',
   'nav.search': 'Search',
-  'nav.searchPlaceholder': 'Search for a watch, a brand…',
+  'nav.searchPlaceholder': 'Search brand, model, reference…',
+  'nav.mainMenu': 'Main menu',
+  'nav.openSearch': 'Open search',
+  'nav.closeSearch': 'Close search',
+  'nav.searchWatchLabel': 'Search for a watch',
+  'nav.searchBrand': 'Search for a brand',
   'nav.language': 'Language',
   'nav.callUs': 'Call us',
   'nav.allBrands': 'All brands',
@@ -115,11 +120,18 @@ export default {
   'newsletter.placeholder': 'Your email address',
   'newsletter.subscribe': 'Subscribe',
   'newsletter.success': 'Subscription confirmed. See you soon!',
-  'cookies.message':
-    'We use cookies to measure our audience and improve your experience.',
+  'cookies.title': 'Cookies and audience measurement',
+  'cookies.body':
+    'We use cookies and trackers to measure site traffic (Google Analytics) and improve your browsing. You decide: accept, reject or customise. Storing your choice on this device is required for this banner to work. For more details, see our',
+  'cookies.privacyLink': 'privacy policy',
   'cookies.accept': 'Accept all',
   'cookies.reject': 'Reject all',
   'cookies.customize': 'Customise',
+  'cookies.preferences': 'Preferences',
+  'cookies.analyticsTitle': 'Audience measurement',
+  'cookies.analyticsBody':
+    '— Google Analytics: traffic and journey statistics, anonymised or aggregated according to the service settings.',
+  'cookies.save': 'Save my choices',
 
   // — Page introuvable
   'notFound.title': 'Page not found',

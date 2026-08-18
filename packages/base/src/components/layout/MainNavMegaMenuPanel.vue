@@ -3,6 +3,7 @@ import { computed, watch } from 'vue'
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { useCatalogBrands, splitIntoColumns } from '@/composables/useCatalogBrands.js'
 import { useMenuCampaigns } from '@/composables/useMenuCampaigns.js'
+import { t } from '@/i18n'
 
 const props = defineProps({
   item: { type: Object, required: true },
@@ -92,7 +93,7 @@ const gridClass = computed(() => {
                   </RouterLink>
                 </li>
                 <template v-if="column.dynamicCampaigns">
-                  <li v-if="campaignsLoading" class="text-sm text-gray-400">Chargement…</li>
+                  <li v-if="campaignsLoading" class="text-sm text-gray-400">{{ t('common.loading') }}</li>
                   <li v-else-if="campaignsError" class="text-sm text-gray-500">{{ campaignsError }}</li>
                   <li
                     v-for="campaignLink in campaignLinks"

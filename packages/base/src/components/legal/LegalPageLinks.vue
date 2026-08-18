@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { LEGAL_NAV_LINKS } from '@/site/legalPages.js'
+import { t } from '@/i18n'
 
 const props = defineProps({
   /** `checkout` : discret sous le paiement ; `footer` : barre du pied de page */
@@ -21,7 +22,7 @@ const isCheckout = computed(() => props.variant === 'checkout')
   <nav
     v-if="show"
     :class="isCheckout ? 'pt-3 mt-1 border-t border-gray-100' : 'contents'"
-    aria-label="Pages légales"
+    :aria-label="t('footer.legalLinks')"
   >
     <ul
       :class="
@@ -41,7 +42,7 @@ const isCheckout = computed(() => props.variant === 'checkout')
           :target="isCheckout ? '_blank' : undefined"
           :rel="isCheckout ? 'noopener noreferrer' : undefined"
         >
-          {{ link.label }}
+          {{ t(link.labelKey) }}
         </RouterLink>
       </li>
     </ul>

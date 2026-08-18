@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { getConsentState, shouldShowBanner, saveConsent } from '@/services/cookieConsent'
 import { cookiePreferencesTick } from '@/services/cookiePreferencesUi'
 import { ensureGoogleAnalytics } from '@/services/googleAnalytics'
+import { t } from '@/i18n'
 
 const route = useRoute()
 const GA_ID = import.meta.env.VITE_GA_ID
@@ -64,17 +65,14 @@ function onSaveCustomize() {
       aria-labelledby="cookie-banner-title"
     >
       <h2 id="cookie-banner-title" class="font-heading text-lg font-bold text-primary">
-        Cookies et mesure d’audience
+        {{ t('cookies.title') }}
       </h2>
       <p class="mt-3 text-sm leading-relaxed text-text-main">
-        Nous utilisons des cookies et traceurs pour mesurer l’audience du site (Google Analytics) et
-        améliorer votre navigation. Vous décidez : accepter, refuser ou personnaliser.
-        L’enregistrement de votre choix sur cet appareil est nécessaire au fonctionnement de cette
-        bannière. Pour plus de détails, consultez notre
+        {{ t('cookies.body') }}
         <RouterLink
           to="/politique-confidentialite"
           class="font-medium text-primary underline decoration-primary/40 hover:text-primary-hover"
-          >politique de confidentialité</RouterLink
+          >{{ t('cookies.privacyLink') }}</RouterLink
         >.
       </p>
 
@@ -84,26 +82,26 @@ function onSaveCustomize() {
           class="order-3 w-full rounded-lg bg-primary px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-primary-hover sm:order-1 sm:w-auto sm:px-5"
           @click="onAccept"
         >
-          Tout accepter
+          {{ t('cookies.accept') }}
         </button>
         <button
           type="button"
           class="order-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-center text-sm font-semibold text-text-main transition-colors hover:bg-gray-50 sm:w-auto sm:px-5"
           @click="onRefuse"
         >
-          Tout refuser
+          {{ t('cookies.reject') }}
         </button>
         <button
           type="button"
           class="order-1 w-full rounded-lg px-4 py-3 text-center text-sm font-semibold text-primary underline-offset-4 hover:underline sm:order-2 sm:w-auto"
           @click="onOpenCustomize"
         >
-          Personnaliser
+          {{ t('cookies.customize') }}
         </button>
       </div>
 
       <div v-else class="mt-6 space-y-4 border-t border-gray-100 pt-6">
-        <p class="text-sm font-medium text-text-main">Préférences</p>
+        <p class="text-sm font-medium text-text-main">{{ t('cookies.preferences') }}</p>
         <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-100 bg-gray-50/80 p-4">
           <input
             v-model="analyticsChoice"
@@ -111,9 +109,8 @@ function onSaveCustomize() {
             class="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
           />
           <span class="text-sm leading-snug text-text-main">
-            <span class="font-semibold text-primary">Mesure d’audience</span>
-            — Google Analytics : statistiques de fréquentation et de parcours, de façon anonymisée ou
-            agrégée selon les réglages du service.
+            <span class="font-semibold text-primary">{{ t('cookies.analyticsTitle') }}</span>
+            {{ t('cookies.analyticsBody') }}
           </span>
         </label>
         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
@@ -122,7 +119,7 @@ function onSaveCustomize() {
             class="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-hover sm:w-auto sm:px-5"
             @click="onSaveCustomize"
           >
-            Enregistrer mes choix
+            {{ t('cookies.save') }}
           </button>
         </div>
       </div>

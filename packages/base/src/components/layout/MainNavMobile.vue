@@ -9,6 +9,7 @@ import { useMenuCampaigns, prefetchMenuCampaigns } from '@/composables/useMenuCa
 import { navigationUsesCatalogBrands, navigationUsesMenuCampaigns } from '@/site/mainNavigation.js'
 import { parseSearchQuery } from '@/utils/watchSearch.js'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher.vue'
+import { t } from '@/i18n'
 
 const props = defineProps({
   features: { type: Object, required: true },
@@ -187,14 +188,14 @@ function brandRoute(brandName) {
       class="fixed inset-0 bg-primary z-30 flex flex-col"
       role="dialog"
       aria-modal="true"
-      aria-label="Menu principal"
+      :aria-label="t('nav.mainMenu')"
     >
       <div class="absolute top-6 right-6 z-10 flex items-center gap-2">
         <button
           v-if="purchaseEnabled"
           type="button"
           class="relative p-2 text-white hover:bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/80"
-          aria-label="Ouvrir le panier"
+          :aria-label="t('nav.openCart')"
           @click="openCartFromMenu"
         >
           <ShoppingBag class="w-6 h-6" :stroke-width="2" />
@@ -209,7 +210,7 @@ function brandRoute(brandName) {
           type="button"
           @click="close"
           class="text-white focus:outline-none p-2"
-          aria-label="Fermer le menu"
+          :aria-label="t('nav.closeMenu')"
         >
           <X class="w-6 h-6" :stroke-width="2" />
         </button>
@@ -248,7 +249,7 @@ function brandRoute(brandName) {
                 :style="{ animationDelay: '60ms' }"
                 @submit.prevent="submitSearch"
               >
-                <label for="mnav-search" class="sr-only">Rechercher une montre</label>
+                <label for="mnav-search" class="sr-only">{{ t('nav.searchWatchLabel') }}</label>
                 <Search
                   class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50"
                   :stroke-width="2"
@@ -260,7 +261,7 @@ function brandRoute(brandName) {
                   name="q"
                   inputmode="search"
                   autocomplete="off"
-                  placeholder="Rechercher marque, modèle, référence…"
+                  :placeholder="t('nav.searchPlaceholder')"
                   :aria-invalid="searchInvalid ? 'true' : 'false'"
                   class="w-full rounded-lg bg-white/10 py-3 pl-10 pr-3 text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/60"
                   :class="searchInvalid ? 'ring-2 ring-red-300' : ''"
@@ -384,7 +385,7 @@ function brandRoute(brandName) {
                 @click="close"
                 class="flex items-center justify-between py-3 text-base font-medium text-white/90 hover:text-cream-100 border-b border-white/10 transition-colors"
               >
-                <span>Tout voir</span>
+                <span>{{ t('common.seeAll') }}</span>
                 <ChevronRight class="w-5 h-5 shrink-0 text-white/40" :stroke-width="2" />
               </RouterLink>
 
@@ -463,7 +464,7 @@ function brandRoute(brandName) {
                     {{ link.label }}
                   </RouterLink>
                   <template v-if="column.dynamicCampaigns">
-                    <p v-if="campaignsLoading" class="py-2.5 text-sm text-white/60">Chargement…</p>
+                    <p v-if="campaignsLoading" class="py-2.5 text-sm text-white/60">{{ t('common.loading') }}</p>
                     <RouterLink
                       v-for="campaignLink in campaignLinks"
                       :key="'mcampaign-' + campaignLink.slug"
@@ -503,15 +504,15 @@ function brandRoute(brandName) {
                   v-model="brandQuery"
                   type="search"
                   inputmode="search"
-                  placeholder="Rechercher une marque"
-                  aria-label="Rechercher une marque"
+                  :placeholder="t('nav.searchBrand')"
+                  :aria-label="t('nav.searchBrand')"
                   class="w-full rounded-lg bg-white/10 py-2.5 pl-10 pr-3 text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/60"
                 />
               </div>
 
               <div class="relative flex-1 min-h-0">
                 <div ref="brandScrollContainer" class="h-full overflow-y-auto pr-7">
-                  <p v-if="isLoading" class="py-3 text-white/70 text-sm">Chargement…</p>
+                  <p v-if="isLoading" class="py-3 text-white/70 text-sm">{{ t('common.loading') }}</p>
                   <p v-else-if="error" class="py-3 text-white/70 text-sm">{{ error }}</p>
                   <p v-else-if="brands.length === 0" class="py-3 text-white/70 text-sm">
                     Aucune marque disponible pour le moment.

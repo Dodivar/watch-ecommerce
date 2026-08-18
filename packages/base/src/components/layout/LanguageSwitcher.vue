@@ -17,6 +17,7 @@ import { Check, Globe } from '@lucide/vue'
 import { getActiveLocale, getI18nConfig, setStoredLocale } from '@/i18n/activeLocale.js'
 import { LOCALE_LABELS, LOCALE_SHORT_LABELS } from '@/i18n/locales.js'
 import { localizedUrl } from '@/config'
+import { t } from '@/i18n'
 
 defineProps({
   /** `menu` : liste dépliée, pour le menu mobile. `dropdown` : bouton + panneau, pour le header. */
@@ -109,7 +110,7 @@ function select(locale) {
         class="flex items-center gap-1.5 rounded-full px-2 py-1 text-sm font-semibold transition-opacity hover:opacity-70"
         :aria-expanded="open"
         aria-haspopup="listbox"
-        :aria-label="`Langue : ${labelFor(activeLocale)}`"
+        :aria-label="`${t('nav.language')} : ${labelFor(activeLocale)}`"
         @click.stop="toggle"
       >
         <Globe class="h-4 w-4" aria-hidden="true" />

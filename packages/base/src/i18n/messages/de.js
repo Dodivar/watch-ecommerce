@@ -20,7 +20,12 @@ export default {
   'nav.closeMenu': 'Menü schließen',
   'nav.openCart': 'Warenkorb öffnen',
   'nav.search': 'Suchen',
-  'nav.searchPlaceholder': 'Nach einer Uhr oder Marke suchen…',
+  'nav.searchPlaceholder': 'Marke, Modell, Referenz suchen…',
+  'nav.mainMenu': 'Hauptmenü',
+  'nav.openSearch': 'Suche öffnen',
+  'nav.closeSearch': 'Suche schließen',
+  'nav.searchWatchLabel': 'Nach einer Uhr suchen',
+  'nav.searchBrand': 'Nach einer Marke suchen',
   'nav.language': 'Sprache',
   'nav.callUs': 'Rufen Sie uns an',
   'nav.allBrands': 'Alle Marken',
@@ -115,11 +120,18 @@ export default {
   'newsletter.placeholder': 'Ihre E-Mail-Adresse',
   'newsletter.subscribe': 'Abonnieren',
   'newsletter.success': 'Anmeldung bestätigt. Bis bald!',
-  'cookies.message':
-    'Wir verwenden Cookies, um die Reichweite zu messen und Ihr Erlebnis zu verbessern.',
+  'cookies.title': 'Cookies und Reichweitenmessung',
+  'cookies.body':
+    'Wir verwenden Cookies und Tracker, um die Reichweite der Website zu messen (Google Analytics) und Ihre Navigation zu verbessern. Sie entscheiden: akzeptieren, ablehnen oder anpassen. Die Speicherung Ihrer Wahl auf diesem Gerät ist für das Funktionieren dieses Banners erforderlich. Weitere Einzelheiten finden Sie in unserer',
+  'cookies.privacyLink': 'Datenschutzerklärung',
   'cookies.accept': 'Alle akzeptieren',
   'cookies.reject': 'Alle ablehnen',
   'cookies.customize': 'Anpassen',
+  'cookies.preferences': 'Einstellungen',
+  'cookies.analyticsTitle': 'Reichweitenmessung',
+  'cookies.analyticsBody':
+    '— Google Analytics: Besuchs- und Nutzungsstatistiken, anonymisiert oder aggregiert je nach Diensteinstellungen.',
+  'cookies.save': 'Meine Auswahl speichern',
 
   // — Page introuvable
   'notFound.title': 'Seite nicht gefunden',
