@@ -22,6 +22,7 @@ import PickupLocationCard from './PickupLocationCard.vue'
 import LegalPageLinks from '@/components/legal/LegalPageLinks.vue'
 import { CHECKOUT_FIELD_CLASS } from './checkoutFieldClasses.js'
 import { formatPrice as formatAmount } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const COUNTRY_LABELS = {
   FR: 'France',
@@ -888,7 +889,7 @@ onUnmounted(() => {
 <template>
   <section class="min-h-screen bg-cream py-8 px-4 sm:py-10">
     <div class="max-w-6xl mx-auto">
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Finaliser la commande</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{{ t('checkout.finalise') }}</h1>
       <p class="text-gray-600 mb-6 text-sm sm:text-base">
         Paiement sécurisé par carte bancaire.
       </p>
@@ -899,7 +900,7 @@ onUnmounted(() => {
         v-if="loading"
         class="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8 lg:gap-10 items-start animate-pulse"
         aria-busy="true"
-        aria-label="Préparation de la commande"
+        :aria-label="t('checkout.preparingOrder')"
       >
         <div class="order-1 lg:order-2">
           <aside class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-6">
@@ -1003,42 +1004,42 @@ onUnmounted(() => {
         <div class="order-2 lg:order-1 space-y-6">
           <form class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-8">
             <section ref="contactSectionRef" class="space-y-4">
-              <h2 class="font-semibold text-lg text-gray-900">Contact</h2>
+              <h2 class="font-semibold text-lg text-gray-900">{{ t('checkout.contactDetails') }}</h2>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('form.email') }} *</label>
                 <input
                   v-model="email"
                   type="email"
                   required
                   autocomplete="email"
-                  placeholder="Adresse e-mail"
+                  :placeholder="t('form.emailPlaceholder')"
                   :class="CHECKOUT_FIELD_CLASS"
                 />
               </div>
               <div class="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('form.firstName') }} *</label>
                   <input
                     v-model="billing.firstName"
                     required
                     autocomplete="given-name"
-                    placeholder="Jean"
+                    :placeholder="t('form.firstNamePlaceholder')"
                     :class="CHECKOUT_FIELD_CLASS"
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('form.lastName') }} *</label>
                   <input
                     v-model="billing.lastName"
                     required
                     autocomplete="family-name"
-                    placeholder="Dupont"
+                    :placeholder="t('form.lastNamePlaceholder')"
                     :class="CHECKOUT_FIELD_CLASS"
                   />
                 </div>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('form.phone') }}</label>
                 <input
                   v-model="phone"
                   type="tel"
@@ -1099,7 +1100,7 @@ onUnmounted(() => {
 
               <template v-if="isHomeDelivery">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('form.country') }} *</label>
                   <select
                     v-model="shippingAddress.country"
                     :class="CHECKOUT_FIELD_CLASS"
@@ -1114,30 +1115,30 @@ onUnmounted(() => {
                   </select>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('form.address') }} *</label>
                   <AddressAutocompleteInput
                     v-model="shippingAddress.line1"
                     :countries="allowedShippingCountries"
                     :enabled="isHomeDelivery"
-                    placeholder="12 rue de la Paix"
+                    :placeholder="t('form.addressPlaceholder')"
                     @place-selected="onShippingPlaceSelected"
                   />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1"
-                    >Complément d’adresse</label
+                    >{{ t('checkout.addressComplement') }}</label
                   >
                   <input
                     v-model="shippingAddress.line2"
                     autocomplete="address-line2"
-                    placeholder="Appartement, bâtiment…"
+                    :placeholder="t('form.complementPlaceholder')"
                     :class="CHECKOUT_FIELD_CLASS"
                   />
                 </div>
                 <div class="grid sm:grid-cols-3 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1"
-                      >Code postal *</label
+                      >{{ t('form.postalCode') }} *</label
                     >
                     <input
                       v-model="shippingAddress.postalCode"
@@ -1148,12 +1149,12 @@ onUnmounted(() => {
                     />
                   </div>
                   <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('form.city') }} *</label>
                     <input
                       v-model="shippingAddress.city"
                       required
                       autocomplete="address-level2"
-                      placeholder="Paris"
+                      :placeholder="t('form.cityPlaceholder')"
                       :class="CHECKOUT_FIELD_CLASS"
                     />
                   </div>
@@ -1169,9 +1170,9 @@ onUnmounted(() => {
                 />
 
                 <div class="space-y-4 pt-2">
-                  <h3 class="font-medium text-gray-900">Adresse de facturation</h3>
+                  <h3 class="font-medium text-gray-900">{{ t('checkout.billingAddress') }}</h3>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('form.country') }} *</label>
                     <select v-model="billingAddress.country" :class="CHECKOUT_FIELD_CLASS">
                       <option
                         v-for="code in allowedShippingCountries"
@@ -1183,30 +1184,30 @@ onUnmounted(() => {
                     </select>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('form.address') }} *</label>
                     <AddressAutocompleteInput
                       v-model="billingAddress.line1"
                       :countries="allowedShippingCountries"
                       :enabled="isPickup"
-                      placeholder="12 rue de la Paix"
+                      :placeholder="t('form.addressPlaceholder')"
                       @place-selected="onBillingPlaceSelected"
                     />
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1"
-                      >Complément d’adresse</label
+                      >{{ t('checkout.addressComplement') }}</label
                     >
                     <input
                       v-model="billingAddress.line2"
                       autocomplete="address-line2"
-                      placeholder="Appartement, bâtiment…"
+                      :placeholder="t('form.complementPlaceholder')"
                       :class="CHECKOUT_FIELD_CLASS"
                     />
                   </div>
                   <div class="grid sm:grid-cols-3 gap-4">
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-1"
-                        >Code postal *</label
+                        >{{ t('form.postalCode') }} *</label
                       >
                       <input
                         v-model="billingAddress.postalCode"
@@ -1217,12 +1218,12 @@ onUnmounted(() => {
                       />
                     </div>
                     <div class="sm:col-span-2">
-                      <label class="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('form.city') }} *</label>
                       <input
                         v-model="billingAddress.city"
                         required
                         autocomplete="address-level2"
-                        placeholder="Paris"
+                        :placeholder="t('form.cityPlaceholder')"
                         :class="CHECKOUT_FIELD_CLASS"
                       />
                     </div>
@@ -1232,7 +1233,7 @@ onUnmounted(() => {
             </section>
 
             <section v-if="showShippingMethodSection" class="space-y-4">
-              <h2 class="font-semibold text-lg text-gray-900">Mode d’expédition</h2>
+              <h2 class="font-semibold text-lg text-gray-900">{{ t('checkout.shippingMethod') }}</h2>
 
               <p
                 v-if="isHomeDelivery && !shippingAddressComplete"
@@ -1321,7 +1322,7 @@ onUnmounted(() => {
             class="bg-white rounded-lg shadow-sm border border-gray-200/80 p-6 space-y-4"
           >
             <div>
-              <h2 class="font-semibold text-lg text-gray-900">Paiement</h2>
+              <h2 class="font-semibold text-lg text-gray-900">{{ t('checkout.payment') }}</h2>
               <p class="text-sm text-gray-500 mt-1">
                 Toutes les transactions sont sécurisées et chiffrées.
               </p>
@@ -1364,7 +1365,7 @@ onUnmounted(() => {
                     :to="checkoutConfig.legal?.cgvUrl || '/conditions-generales-utilisation'"
                     class="text-primary underline"
                     target="_blank"
-                    >conditions générales</router-link
+                    >{{ t('checkout.termsLink') }}</router-link
                   >.
                 </span>
               </label>
@@ -1401,7 +1402,7 @@ onUnmounted(() => {
               class="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
               @click="onConfirmPayment"
             >
-              <span v-if="paymentLoading">Traitement…</span>
+              <span v-if="paymentLoading">{{ t('checkout.processing') }}</span>
               <span v-else>Payer {{ quote ? formatPrice(quote.totalCents) : '' }}</span>
             </button>
 

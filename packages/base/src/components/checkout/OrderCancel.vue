@@ -5,6 +5,7 @@ import { cancelOrder } from '@/services/orderService.js'
 import { WHATSAPP_NUMBER } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
+import { t } from '@/i18n'
 
 const route = useRoute()
 const browsePath = getBrowsePath(getSiteConfig().features)
@@ -45,9 +46,9 @@ onMounted(async () => {
           </svg>
         </div>
       </div>
-      <h1 class="text-3xl font-bold text-gray-900 mb-4">Commande annulée</h1>
-      <p class="text-lg text-gray-600 mb-4">Aucun montant n'a été débité.</p>
-      <p v-if="released" class="text-sm text-green-700 mb-4">Votre réservation a été libérée.</p>
+      <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ t('checkout.orderCancelledTitle') }}</h1>
+      <p class="text-lg text-gray-600 mb-4">{{ t('checkout.noAmountCharged') }}</p>
+      <p v-if="released" class="text-sm text-green-700 mb-4">{{ t('checkout.reservationReleased') }}</p>
       <p v-if="error" class="text-sm text-red-600 mb-4">{{ error }}</p>
       <a
         :href="whatsappUrl"
