@@ -12,7 +12,7 @@ Ce dossier **n’est pas** un site buildable : il sert de référence pour crée
    - **Page d’accueil** : sans `home.sections` (ou tableau vide), la route `/` n’affiche aucun bloc ; renseigner explicitement les ids dans `home.sections` pour composer l’accueil (voir [documentation/multi-client.md](../../documentation/multi-client.md) section « Page d’accueil » et `packages/base/src/site/homeSections.js`).
 
 3. **Langues** (facultatif)
-   Pour un site multilingue, ajouter le bloc `i18n` au manifest et envelopper les textes dans `t({ fr, en, de })` — voir [documentation/i18n.md](../../documentation/i18n.md). Sans ce bloc, le site reste monolingue et se comporte comme avant.
+   Pour un site multilingue, ajouter le bloc `i18n` au manifest et envelopper les textes dans `t({ fr, en, de })` — voir [documentation/i18n/README.md](../../documentation/i18n/README.md). Sans ce bloc, le site reste monolingue et se comporte comme avant.
 
    ```js
    i18n: { enabled: true, defaultLocale: 'fr', locales: ['fr', 'en', 'de'] },
