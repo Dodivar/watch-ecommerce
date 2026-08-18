@@ -1,6 +1,13 @@
 {
     "buildCommand": "npm run build:vercel",
     "outputDirectory": "dist",
+    "redirects": [
+        {
+            "source": "/fr/:path*",
+            "destination": "/:path*",
+            "permanent": true
+        }
+    ],
     "rewrites": [
         {
             "source": "/sitemap.xml",

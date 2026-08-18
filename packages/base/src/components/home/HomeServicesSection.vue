@@ -50,9 +50,11 @@ const features = getSiteConfig().features
           <p class="text-gray-600 mb-3">
             Découvrez notre sélection de montres disponibles en stock.
           </p>
-          <a href="/collection" class="text-primary font-semibold hover:underline">
+          <!-- RouterLink et non <a> : le préfixe de langue est porté par la base d'historique,
+               qu'une ancre brute contournerait (retour silencieux au français). -->
+          <RouterLink to="/collection" class="text-primary font-semibold hover:underline">
             Voir nos montres en stock
-          </a>
+          </RouterLink>
         </div>
 
         <div

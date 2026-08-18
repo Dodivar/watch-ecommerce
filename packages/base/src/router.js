@@ -7,14 +7,24 @@ import { getBrowsePath } from './site/siteFeatures.js'
 import { getSiteConfig } from './site/getSiteConfig.js'
 import { buildAppRoutes } from './site/buildAppRoutes.js'
 import { resolveSeoRouteRedirect } from './site/seoRouteGuards.js'
+import { getActiveLocale, getI18nConfig } from './i18n/activeLocale.js'
+import { isExcludedPath, localeHistoryBase } from './i18n/localePaths.js'
 
 const { features } = getSiteConfig()
 const browseFallback = getBrowsePath(features)
 
 const routes = buildAppRoutes(features)
 
+const i18n = getI18nConfig()
+
+/**
+ * La langue est portée par la base de l'historique, pas par la table de routes :
+ * vue-router retire `/en` des URLs entrantes et le remet sur chaque lien résolu.
+ * Les routes et les `RouterLink` existants fonctionnent donc à l'identique dans les
+ * trois langues (contrat vérifié par `i18n/routerLocaleBase.test.js`).
+ */
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(localeHistoryBase(getActiveLocale(), i18n, import.meta.env.BASE_URL)),
   routes,
   // eslint-disable-next-line no-unused-vars
   async scrollBehavior(to, from, savedPosition) {
@@ -50,6 +60,13 @@ const router = createRouter({
 
 // Guard de maintenance - bloque toutes les routes sauf /maintenance si non authentifié
 router.beforeEach(async (to, from, next) => {
+  // Le back-office reste en français : une URL `/en/admin/...` est ramenée sur `/admin/...`.
+  // Navigation dure, car la base d'historique est figée à la création du routeur.
+  if (getActiveLocale() !== i18n.defaultLocale && isExcludedPath(to.path, i18n)) {
+    window.location.assign(`${import.meta.env.BASE_URL.replace(/\/$/, '')}${to.fullPath}`)
+    return
+  }
+
   const seoRedirect = resolveSeoRouteRedirect(to)
   if (seoRedirect) {
     next(seoRedirect)

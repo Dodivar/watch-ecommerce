@@ -49,6 +49,8 @@
 import { computed, ref, onMounted, nextTick } from 'vue'
 import { ChevronDown } from '@lucide/vue'
 import { useRouter } from 'vue-router'
+import { getI18nConfig } from '@/i18n/activeLocale.js'
+import { stripLocalePrefix } from '@/i18n/localePaths.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 
 defineProps({
@@ -116,6 +118,11 @@ function onFaqAnswerClick(event) {
   } else if (!hrefAttr.startsWith('/')) {
     return
   }
+
+  // Le contenu FAQ est saisi à la main : un lien peut déjà porter un préfixe de langue
+  // (`/en/collection`). `router.push` le reposerait par-dessus la base d'historique
+  // (`/en/en/collection`) — on le retire donc avant de pousser.
+  target = stripLocalePrefix(target, getI18nConfig()).rest
 
   event.preventDefault()
   router.push(target)

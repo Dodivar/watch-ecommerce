@@ -12,6 +12,7 @@ import MainNavDesktop from '@/components/layout/MainNavDesktop.vue'
 import MainNavMobile from '@/components/layout/MainNavMobile.vue'
 import AdminPublicModeBar from '@/components/layout/AdminPublicModeBar.vue'
 import HeaderQuickSearch from '@/components/layout/HeaderQuickSearch.vue'
+import LanguageSwitcher from '@/components/layout/LanguageSwitcher.vue'
 import logoMobileMenuVerticalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB vertical/Logo SW blanc vertical RVB.png'
 import logoHeaderIconGreen from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW verte RVB.png'
 import logoHeaderIconWhite from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW blanche RVB.png'
@@ -139,6 +140,7 @@ function displayMobileMenu() {
         </div>
         <MainNavDesktop :nav-items="mainNavItems" />
         <div class="flex items-center gap-1 shrink-0">
+          <LanguageSwitcher class="hidden md:block" />
           <HeaderQuickSearch
             v-if="features.collection"
             v-model:open="catalogSearchOpen"

@@ -1,3 +1,4 @@
+import { getActiveLocalePrefix, localizedPath } from './i18n/activeLocale.js'
 import { getSiteConfig } from './site/getSiteConfig.js'
 
 const site = getSiteConfig()
@@ -69,5 +70,30 @@ function getBaseUrl() {
 }
 
 export const BASE_URL = getBaseUrl()
+
+/**
+ * Origine de la page **dans la langue active** : `https://…` ou `https://…/en`.
+ *
+ * À utiliser pour tout ce qui désigne la page courante — `canonical`, `og:url`, fil d'Ariane,
+ * `url` d'un produit en JSON-LD — car `route.fullPath` est dépréfixé par la base d'historique
+ * vue-router et perdrait la langue.
+ *
+ * `BASE_URL` reste l'origine nue : les ressources (logo, images) et l'URL de l'organisation
+ * ne doivent surtout pas être préfixées.
+ */
+export const CANONICAL_BASE_URL = `${BASE_URL}${getActiveLocalePrefix()}`
+
+/**
+ * URL absolue d'un chemin applicatif, dans une langue donnée (langue active par défaut).
+ * Sert aux alternates `hreflang` et au sélecteur de langue.
+ *
+ * @param {string} path Chemin dépréfixé, tel que le rend `route.fullPath`.
+ * @param {string} [locale]
+ * @returns {string}
+ */
+export function localizedUrl(path, locale) {
+  const localized = localizedPath(path || '/', locale)
+  return `${BASE_URL}${localized === '/' ? '' : localized}`
+}
 
 export { getSiteConfig } from './site/getSiteConfig.js'

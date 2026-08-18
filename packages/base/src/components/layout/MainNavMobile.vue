@@ -8,6 +8,7 @@ import { useCatalogBrands, prefetchCatalogBrands } from '@/composables/useCatalo
 import { useMenuCampaigns, prefetchMenuCampaigns } from '@/composables/useMenuCampaigns.js'
 import { navigationUsesCatalogBrands, navigationUsesMenuCampaigns } from '@/site/mainNavigation.js'
 import { parseSearchQuery } from '@/utils/watchSearch.js'
+import LanguageSwitcher from '@/components/layout/LanguageSwitcher.vue'
 
 const props = defineProps({
   features: { type: Object, required: true },
@@ -340,6 +341,14 @@ function brandRoute(brandName) {
 
               <!-- Espace flexible pour pousser le CTA téléphone en bas -->
               <div class="flex-1" aria-hidden="true"></div>
+
+              <!-- Sélecteur de langue (ne rend rien si le site est monolingue) -->
+              <LanguageSwitcher
+                variant="menu"
+                class="mnav-reveal-item mt-6 shrink-0 text-white"
+                :style="{ animationDelay: 120 + navItems.length * 60 + 'ms' }"
+                @navigate="close"
+              />
 
               <!-- Appel direct (affiché si le site a un téléphone configuré) -->
               <a
