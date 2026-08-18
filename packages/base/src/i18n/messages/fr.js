@@ -71,6 +71,8 @@ export default {
   'home.carouselLoading': 'Chargement du carrousel',
   'home.carouselChooseImage': 'Choisir une image du carrousel',
 
+  'legal.pagesAriaLabel': 'Pages légales',
+
   // — Catalogue
   'collection.title': 'Nos montres',
   'collection.filters': 'Filtres',
@@ -185,7 +187,7 @@ export default {
   'watch.unknownBrand': 'Marque inconnue',
 
   // — Panier
-  'cart.title': 'Votre panier',
+  'cart.title': 'Mon panier',
   'cart.empty': 'Votre panier est vide.',
   'cart.continueShopping': 'Poursuivre mes achats',
   'cart.checkout': 'Commander',
@@ -204,14 +206,14 @@ export default {
 
   // — Tunnel de commande
   'checkout.title': 'Commande',
-  'checkout.contactDetails': 'Vos coordonnées',
+  'checkout.contactDetails': 'Contact',
   'checkout.shippingAddress': 'Adresse de livraison',
-  'checkout.shippingMethod': 'Mode de livraison',
+  'checkout.shippingMethod': 'Mode d’expédition',
   'checkout.payment': 'Paiement',
   'checkout.orderSummary': 'Récapitulatif',
   'checkout.total': 'Total',
   'checkout.shipping': 'Livraison',
-  'checkout.freeShipping': 'Offerte',
+  'checkout.freeShipping': 'Gratuite',
   'checkout.vatIncluded': 'TVA incluse',
   'checkout.payNow': 'Payer maintenant',
   'checkout.acceptTerms': "J'accepte les conditions générales de vente",
@@ -277,7 +279,7 @@ export default {
   // — Formulaires
   'form.firstName': 'Prénom',
   'form.lastName': 'Nom',
-  'form.email': 'Adresse e-mail',
+  'form.email': 'E-mail',
   'form.phone': 'Téléphone',
   'form.message': 'Message',
   'form.address': 'Adresse',

@@ -62,6 +62,8 @@ export default {
   'home.carouselLoading': 'Loading carousel',
   'home.carouselChooseImage': 'Choose a carousel image',
 
+  'legal.pagesAriaLabel': 'Legal pages',
+
   // — Catalogue
   'collection.title': 'Our watches',
   'collection.filters': 'Filters',

@@ -62,6 +62,8 @@ export default {
   'home.carouselLoading': 'Karussell wird geladen',
   'home.carouselChooseImage': 'Bild im Karussell wählen',
 
+  'legal.pagesAriaLabel': 'Rechtliche Seiten',
+
   // — Catalogue
   'collection.title': 'Unsere Uhren',
   'collection.filters': 'Filter',

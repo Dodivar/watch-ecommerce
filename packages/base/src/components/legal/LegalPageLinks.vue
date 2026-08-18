@@ -22,7 +22,7 @@ const isCheckout = computed(() => props.variant === 'checkout')
   <nav
     v-if="show"
     :class="isCheckout ? 'pt-3 mt-1 border-t border-gray-100' : 'contents'"
-    :aria-label="t('footer.legalLinks')"
+    :aria-label="t('legal.pagesAriaLabel')"
   >
     <ul
       :class="

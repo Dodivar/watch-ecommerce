@@ -3,8 +3,11 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { Clock, X } from '@lucide/vue'
 import { useCart } from '@/composables/useCart.js'
 import { useRouter } from 'vue-router'
-import { formatPrice } from '@/utils/formatters.js'
+import { formatPrice as formatAmount } from '@/utils/formatters.js'
 import { t } from '@/i18n'
+
+/** Le tiroir a toujours affiché les centimes (« 8 690,00 € ») : on conserve ce rendu. */
+const formatPrice = (value) => formatAmount(value, { decimals: true })
 
 const {
   items,
