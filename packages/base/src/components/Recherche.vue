@@ -7,6 +7,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import BudgetSlider from './BudgetSlider.vue'
 import ContactCTA from './ContactCTA.vue'
 import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
+import { t } from '@/i18n'
 
 defineOptions({ name: 'RechercheMontre' })
 
@@ -65,8 +66,8 @@ onMounted(() => {
   <section class="py-10" name="RechercheMontre">
     <div class="max-w-4xl mx-auto px-4">
       <div class="mb-8 text-center">
-        <h1 class="text-3xl font-bold text-text-main">Recherche personnalisée de montre</h1>
-        <h2 class="text-2xl font-bold text-text-main mb-4">Trouvez la montre de vos rêves</h2>
+        <h1 class="text-3xl font-bold text-text-main">{{ t('crossSell.sourcing') }}</h1>
+        <h2 class="text-2xl font-bold text-text-main mb-4">{{ t('sourcing.lead') }}</h2>
         <p class="text-lg text-gray-600">
           Notre équipe spécialisée vous aide à trouver des montres rares, discontinuées ou très
           demandées. Grâce à notre réseau de confiance, nous sécurisons pour vous l'achat d'une
@@ -79,7 +80,7 @@ onMounted(() => {
           <div class="grid md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-medium text-text-main mb-2" for="nickname"
-                >Prénom *</label
+                >{{ t('form.firstName') }} *</label
               >
               <input
                 type="text"
@@ -102,7 +103,7 @@ onMounted(() => {
           <div class="grid md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-medium text-text-main mb-2" for="email"
-                >Email *</label
+                >{{ t('form.email') }} *</label
               >
               <input
                 name="email"
@@ -113,7 +114,7 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-sm font-medium text-text-main mb-2" for="tel"
-                >Téléphone</label
+                >{{ t('contactPreference.phone') }}</label
               >
               <input
                 name="tel"
@@ -125,7 +126,7 @@ onMounted(() => {
           <!-- Choix du mode de recontact -->
           <div class="w-full">
             <label class="block text-sm font-medium text-text-main mb-2"
-              >Comment souhaitez-vous être recontacté ?</label
+              >{{ t('contactPreference.question') }}</label
             >
             <div class="flex flex-col md:flex-row gap-4 w-full">
               <label class="inline-flex items-center w-full">
@@ -135,7 +136,7 @@ onMounted(() => {
                   name="contact_mode[]"
                   value="pas de préférence"
                 />
-                <span class="ml-2">Pas de préférence</span>
+                <span class="ml-2">{{ t('contactPreference.none') }}</span>
               </label>
               <label class="inline-flex items-center w-full">
                 <input
@@ -144,7 +145,7 @@ onMounted(() => {
                   name="contact_mode[]"
                   value="email"
                 />
-                <span class="ml-2">Email</span>
+                <span class="ml-2">{{ t('contactPreference.email') }}</span>
               </label>
               <label class="inline-flex items-center w-full">
                 <input
@@ -153,7 +154,7 @@ onMounted(() => {
                   name="contact_mode[]"
                   value="whatsapp"
                 />
-                <span class="ml-2">WhatsApp</span>
+                <span class="ml-2">{{ t('contactPreference.whatsapp') }}</span>
               </label>
               <label class="inline-flex items-center w-full">
                 <input
@@ -170,24 +171,24 @@ onMounted(() => {
           <div class="grid md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-medium text-text-main mb-2" for="brand"
-                >Marque souhaitée *</label
+                >{{ t('sourcing.brandWanted') }} *</label
               >
               <input
                 type="text"
                 name="brand"
                 required
-                placeholder="Ex : Rolex, Patek Philippe..."
+                :placeholder="t('sourcing.brandPlaceholder')"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
             <div>
               <label class="block text-sm font-medium text-text-main mb-2" for="model"
-                >Modèle spécifique (si connu)</label
+                >{{ t('sourcing.specificModel') }}</label
               >
               <input
                 type="text"
                 name="model"
-                placeholder="Ex : Daytona, Nautilus..."
+                :placeholder="t('sourcing.modelPlaceholder')"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -195,7 +196,7 @@ onMounted(() => {
 
           <div>
             <label class="block text-sm font-medium text-text-main mb-10"
-              >Budget approximatif (€)</label
+              >{{ t('sourcing.budget') }}</label
             >
             <BudgetSlider v-model="budgetRange" />
 
@@ -206,27 +207,27 @@ onMounted(() => {
           <div class="grid md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-medium text-text-main mb-2" for="condition"
-                >État souhaité *</label
+                >{{ t('sourcing.conditionWanted') }} *</label
               >
               <select
                 name="condition"
                 required
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
               >
-                <option value="Neuf">Neuf</option>
-                <option value="Très bon état">Très bon état</option>
-                <option value="Bon état">Bon état</option>
-                <option value="Peu importe">Peu importe</option>
+                <option value="Neuf">{{ t('condition.new') }}</option>
+                <option value="Très bon état">{{ t('condition.veryGood') }}</option>
+                <option value="Bon état">{{ t('condition.good') }}</option>
+                <option value="Peu importe">{{ t('condition.noPreference') }}</option>
               </select>
             </div>
             <div>
               <label class="block text-sm font-medium text-text-main mb-2"
-                >Délai souhaité pour l'acquisition</label
+                >{{ t('sourcing.timeframe') }}</label
               >
               <input
                 type="text"
                 name="delai"
-                placeholder="Ex : 1 mois, dès que possible..."
+                :placeholder="t('sourcing.timeframePlaceholder')"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -234,12 +235,12 @@ onMounted(() => {
 
           <div>
             <label class="block text-sm font-medium text-text-main mb-2" for="message"
-              >Commentaires ou précisions supplémentaires</label
+              >{{ t('sourcing.comments') }}</label
             >
             <textarea
               name="message"
               rows="4"
-              placeholder="Boîte et papiers souhaités ? Préférence pour un vendeur local ?..."
+              :placeholder="t('sourcing.commentsPlaceholder')"
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
             ></textarea>
           </div>
@@ -270,7 +271,7 @@ onMounted(() => {
   <section v-if="features.collection || features.estimation" class="py-10 bg-cream">
     <div class="max-w-6xl mx-auto px-4">
       <div class="text-center mb-8">
-        <h2 class="text-3xl font-bold text-text-main mb-3">Nos autres services</h2>
+        <h2 class="text-3xl font-bold text-text-main mb-3">{{ t('crossSell.otherServices') }}</h2>
         <p class="text-lg text-gray-600">
           Découvrez nos autres services spécialisés dans l'univers des montres
         </p>
@@ -292,7 +293,7 @@ onMounted(() => {
               <path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             </div>
-            <h3 class="text-2xl font-bold text-text-main mb-3">Notre collection de montres</h3>
+            <h3 class="text-2xl font-bold text-text-main mb-3">{{ t('crossSell.ourCollection') }}</h3>
             <p class="text-gray-600 mb-4">
               Parcourez notre sélection de montres de prestige actuellement disponibles.
             </p>
@@ -319,7 +320,7 @@ onMounted(() => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 class="text-2xl font-bold text-text-main mb-3">Estimation de montre</h3>
+            <h3 class="text-2xl font-bold text-text-main mb-3">{{ t('crossSell.valuation') }}</h3>
             <p class="text-gray-600 mb-4">
               Obtenez une estimation précise et gratuite de votre montre. Notre expertise vous garantit une évaluation juste de la valeur de votre pièce.
             </p>

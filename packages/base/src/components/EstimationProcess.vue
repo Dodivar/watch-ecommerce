@@ -36,7 +36,7 @@
 
           <!-- Process Steps -->
           <div class="space-y-6">
-            <h2 class="text-2xl font-bold text-text-main mb-6">Notre processus en 5 étapes</h2>
+            <h2 class="text-2xl font-bold text-text-main mb-6">{{ t('process.fiveSteps') }}</h2>
 
             <!-- Step 1 -->
             <div class="flex gap-6">
@@ -146,43 +146,43 @@
               <div class="flex items-start gap-3">
                 <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
-                  <h4 class="font-semibold text-text-main mb-1">Marque et modèle</h4>
-                  <p class="text-sm text-gray-600">Certaines marques et modèles emblématiques conservent mieux leur valeur.</p>
+                  <h4 class="font-semibold text-text-main mb-1">{{ t('process.brandModel') }}</h4>
+                  <p class="text-sm text-gray-600">{{ t('process.brandModelText') }}</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
                 <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
-                  <h4 class="font-semibold text-text-main mb-1">Année et rareté</h4>
-                  <p class="text-sm text-gray-600">Les éditions limitées et les modèles anciens peuvent avoir une valeur supérieure.</p>
+                  <h4 class="font-semibold text-text-main mb-1">{{ t('process.yearRarity') }}</h4>
+                  <p class="text-sm text-gray-600">{{ t('process.yearRarityText') }}</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
                 <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
                   <h4 class="font-semibold text-text-main mb-1">État général</h4>
-                  <p class="text-sm text-gray-600">L'usure, les rayures et l'entretien régulier impactent la valeur.</p>
+                  <p class="text-sm text-gray-600">{{ t('process.conditionText') }}</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
                 <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
-                  <h4 class="font-semibold text-text-main mb-1">Accessoires d'origine</h4>
-                  <p class="text-sm text-gray-600">Boîte, papiers, étiquettes et certificats augmentent significativement la valeur.</p>
+                  <h4 class="font-semibold text-text-main mb-1">{{ t('process.accessories') }}</h4>
+                  <p class="text-sm text-gray-600">{{ t('process.accessoriesText') }}</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
                 <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
-                  <h4 class="font-semibold text-text-main mb-1">Historique de propriété</h4>
+                  <h4 class="font-semibold text-text-main mb-1">{{ t('process.ownershipHistory') }}</h4>
                   <p class="text-sm text-gray-600">Un historique documenté peut ajouter de la valeur à certaines pièces.</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
                 <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
-                  <h4 class="font-semibold text-text-main mb-1">Conjoncture du marché</h4>
-                  <p class="text-sm text-gray-600">Les tendances actuelles et la demande influencent les prix.</p>
+                  <h4 class="font-semibold text-text-main mb-1">{{ t('process.marketConditions') }}</h4>
+                  <p class="text-sm text-gray-600">{{ t('process.marketConditionsText') }}</p>
                 </div>
               </div>
             </div>
@@ -196,7 +196,7 @@
             <ul class="space-y-3 text-gray-700">
 <!--               <li class="flex items-start gap-3">
                 <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
-                <span><strong>Expertise reconnue</strong> : Notre équipe possède des années d'expérience dans l'horlogerie de luxe.</span>
+                <span><strong>{{ t('process.recognisedExpertise') }}</strong> : Notre équipe possède des années d'expérience dans l'horlogerie de luxe.</span>
               </li> -->
               <li class="flex items-start gap-3">
                 <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
@@ -204,15 +204,15 @@
               </li>
               <li class="flex items-start gap-3">
                 <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
-                <span><strong>Estimation gratuite</strong> : Aucun engagement de votre part, l'estimation est 100% gratuite.</span>
+                <span><strong>{{ t('process.freeValuation') }}</strong> : Aucun engagement de votre part, l'estimation est 100% gratuite.</span>
               </li>
               <li class="flex items-start gap-3">
                 <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
-                <span><strong>Prix du marché</strong> : Nos estimations sont basées sur les prix réels du marché, pas sur des prix gonflés.</span>
+                <span><strong>{{ t('process.marketPrices') }}</strong> : Nos estimations sont basées sur les prix réels du marché, pas sur des prix gonflés.</span>
               </li>
               <li class="flex items-start gap-3">
                 <CircleCheck class="w-5 h-5 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
-                <span><strong>Accompagnement personnalisé</strong> : Nous restons à votre disposition pour répondre à toutes vos questions.</span>
+                <span><strong>{{ t('process.personalSupport') }}</strong> : Nous restons à votre disposition pour répondre à toutes vos questions.</span>
               </li>
             </ul>
           </div>
@@ -242,6 +242,7 @@ import { RouterLink, useRouter } from 'vue-router'
 import { ArrowLeft, CheckCircle2, ChevronRight, CircleCheck } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { t } from '@/i18n'
 
 const estimationProcessLead = getSiteConfig().copy.estimationProcessLead
 
