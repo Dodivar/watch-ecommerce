@@ -11,7 +11,7 @@
           <div class="text-gray-400 mb-3">
             <CircleX class="w-24 h-24 mx-auto mb-3" :stroke-width="1.5" />
           </div>
-            <h3 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">Montre non disponible</h3>
+            <h3 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">{{ t('watch.unavailable') }}</h3>
             <p class="text-base lg:text-lg text-gray-600 mb-6">
             Cette pièce n'est plus en stock ou n'est plus disponible dans notre sélection.
           </p>
@@ -35,7 +35,7 @@
           <div class="text-red-500 mb-3">
             <AlertCircle class="w-16 h-16 mx-auto mb-3" :stroke-width="2" />
           </div>
-          <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
+          <h3 class="text-xl text-gray-900 mb-2">{{ t('watch.loadError') }}</h3>
           <p class="text-gray-600 mb-3">{{ error }}</p>
           <button
             @click="loadWatch({ force: true })"
@@ -122,16 +122,16 @@
                     <button
                       @click.stop="openLightbox"
                       class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1.5 lg:p-3 transition-all duration-200"
-                      title="Agrandir l'image"
-                      aria-label="Agrandir l'image"
+                      :title="t('watch.enlargeImage')"
+                      :aria-label="t('watch.enlargeImage')"
                     >
                       <Maximize2 class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
                     </button>
                     <button
                       @click.stop="openShareLightbox"
                       class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full p-1.5 lg:p-3 transition-all duration-200"
-                      title="Partager"
-                      aria-label="Partager cette montre"
+                      :title="t('watch.share')"
+                      :aria-label="t('watch.shareThisWatch')"
                     >
                       <Share2 class="w-4 h-4 lg:w-6 lg:h-6" :stroke-width="2" />
                     </button>
@@ -159,7 +159,7 @@
               v-if="canScrollThumbnailsPrev"
               type="button"
               class="absolute left-0 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md bg-black/50 text-white opacity-0 transition-opacity duration-200 hover:bg-black/70 group-hover/thumbnails:opacity-100"
-              aria-label="Vignettes précédentes"
+              :aria-label="t('watch.previousThumbnails')"
               @click="scrollThumbnails(-1)"
             >
               <ChevronLeft class="h-4 w-4" :stroke-width="2" />
@@ -195,7 +195,7 @@
               v-if="canScrollThumbnailsNext"
               type="button"
               class="absolute right-0 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md bg-black/50 text-white opacity-0 transition-opacity duration-200 hover:bg-black/70 group-hover/thumbnails:opacity-100"
-              aria-label="Vignettes suivantes"
+              :aria-label="t('watch.nextThumbnails')"
               @click="scrollThumbnails(1)"
             >
               <ChevronRight class="h-4 w-4" :stroke-width="2" />
@@ -250,22 +250,22 @@
 
           <!-- Key Features (resale) -->
           <div v-if="isResaleCatalog">
-            <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-3">Caractéristiques principales</h3>
+            <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-3">{{ t('watch.mainFeatures') }}</h3>
             <div class="space-y-3">
               <div v-if="hasValue(watchItem.year)" class="flex gap-4 py-2 border-b border-gray-100">
-                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">Année</span>
+                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">{{ t('watch.year') }}</span>
                 <span class="font-medium text-left flex-1">{{ watchItem.year }}</span>
               </div>
               <div v-if="hasValue(watchItem.condition)" class="flex gap-4 py-2 border-b border-gray-100">
-                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">État</span>
+                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">{{ t('watch.condition') }}</span>
                 <span class="font-medium text-left flex-1">{{ watchItem.condition }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.content)" class="flex gap-4 py-2 border-b border-gray-100">
-                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">Contenu</span>
+                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">{{ t('watch.content') }}</span>
                 <span class="font-medium text-left flex-1">{{ watchItem.details.content }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.guarantee)" class="flex gap-4 py-2 border-b border-gray-100">
-                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">Garantie</span>
+                <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">{{ t('watch.warranty') }}</span>
                 <span class="font-medium text-left flex-1">{{ watchItem.details.guarantee }}</span>
               </div>
             </div>
@@ -366,7 +366,7 @@
 
       <!-- En savoir plus sur l'annonce - Tabs Section -->
       <div class="bg-white rounded-md shadow-lg p-8 mb-8">
-        <h2 class="text-xl lg:text-2xl font-semibold text-gray-900 mb-6">En savoir plus sur l'annonce</h2>
+        <h2 class="text-xl lg:text-2xl font-semibold text-gray-900 mb-6">{{ t('watch.moreAboutListing') }}</h2>
         
         <!-- Tabs -->
         <div class="border-b border-gray-200 mb-6">
@@ -401,34 +401,34 @@
         <div v-if="activeTab === 'details'" class="grid lg:grid-cols-2 gap-8">
           <!-- Left Column: Données de base -->
           <div>
-            <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">Données de base</h3>
+            <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">{{ t('watch.baseData') }}</h3>
             <div class="space-y-0">
               <div v-if="catalogDisplay.showAdCode && hasValue(watchItem.adCode)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Code annonce</span>
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.listingCode') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.adCode }}</span>
               </div>
               <div v-if="hasValue(watchItem.brand)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Marque</span>
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.brand') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.brand }}</span>
               </div>
               <div v-if="hasValue(watchItem.model)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Modèle</span>
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.model') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.model }}</span>
               </div>
               <div v-if="catalogDisplay.showReference && hasValue(watchItem.reference)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Numéro de référence</span>
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.referenceNumber') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.reference }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.movement)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Mouvement</span>
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.movement') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.movement }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.caseMaterial)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Boîtier</span>
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.case') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.caseMaterial }}</span>
               </div>
               <div v-if="watchItem.details?.braceletMaterials?.length" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Matière du bracelet</span>
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.strapMaterial') }}</span>
                 <div class="flex flex-wrap items-center gap-3 flex-1">
                   <span
                     v-for="slug in watchItem.details.braceletMaterials"
@@ -440,7 +440,7 @@
                 </div>
               </div>
               <div v-if="watchItem.details?.braceletColors?.length" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Couleur du bracelet</span>
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.strapColor') }}</span>
                 <div class="flex flex-wrap items-center gap-3 flex-1">
                   <span
                     v-for="slug in watchItem.details.braceletColors"
@@ -456,11 +456,11 @@
                 </div>
               </div>
               <div v-if="catalogDisplay.showYearInDetails && hasValue(watchItem.year)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">Année de fabrication</span>
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.manufactureYear') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.year }}</span>
               </div>
               <div v-if="catalogDisplay.showConditionInDetails && hasValue(watchItem.condition)" class="flex gap-4 py-3 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[160px] flex-shrink-0">État</span>
+                <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.condition') }}</span>
                 <div class="font-medium text-gray-900 flex-1">
                   <div>{{ watchItem.condition }}</div>
                 </div>
@@ -470,38 +470,38 @@
 
           <!-- Right Column: Spécifications techniques -->
           <div>
-            <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">Spécifications techniques</h3>
+            <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">{{ t('watch.specifications') }}</h3>
             <div class="space-y-3">
               <div v-if="hasValue(watchItem.details?.caseSize)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Diamètre du boîtier</span>
+                <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.caseDiameter') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ formatCaseSizeDisplay(watchItem.details.caseSize) }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.thickness)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Épaisseur</span>
+                <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.thickness') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.thickness }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.dialColor)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Couleur du cadran</span>
+                <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.dialColor') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.dialColor }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.crystal)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Matière de la glace</span>
+                <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.crystal') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.crystal }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.waterResistance)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Étanchéité</span>
+                <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.waterResistance') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.waterResistance }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.functions)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Fonctions</span>
+                <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.functions') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.functions }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.powerReserve)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Réserve de marche</span>
+                <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.powerReserve') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.powerReserve }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.frequency)" class="flex gap-4 py-2 border-b border-gray-200">
-                <span class="text-gray-600 min-w-[140px] flex-shrink-0">Fréquence</span>
+                <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.frequency') }}</span>
                 <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.frequency }}</span>
               </div>
             </div>
@@ -534,7 +534,7 @@
       <!-- Accessories (resale only) -->
       <div v-if="catalogDisplay.showDeliveryContent" class="grid lg:grid-cols-2 gap-8 mb-12">
         <div class="bg-white rounded-md shadow-lg p-6">
-          <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-4">Contenu de la livraison</h3>
+          <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-4">{{ t('watch.deliveryContent') }}</h3>
           <div class="space-y-3">
             <div
               v-for="(item, index) in watchItem.details.accessories"
@@ -561,7 +561,7 @@
 
       <!-- Related Articles Section -->
       <div v-if="watchItem && watchItem.articles && watchItem.articles.length > 0" class="bg-white rounded-md shadow-lg p-8 mb-12">
-        <h2 class="text-xl lg:text-2xl font-semibold text-gray-900 mb-6">Articles liés</h2>
+        <h2 class="text-xl lg:text-2xl font-semibold text-gray-900 mb-6">{{ t('watch.relatedArticles') }}</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <article
             v-for="article in watchItem.articles"
@@ -598,7 +598,7 @@
       
       <!-- Description Section (preview + expand) -->
       <div class="bg-white rounded-md shadow-lg mb-8 overflow-hidden p-8">
-        <h2 class="text-lg lg:text-xl font-semibold text-gray-900 mb-4">Description</h2>
+        <h2 class="text-lg lg:text-xl font-semibold text-gray-900 mb-4">{{ t('watch.description') }}</h2>
         <div class="prose max-w-none text-gray-700 leading-relaxed">
           <div v-if="hasValue(watchItem.description)">
             <p class="whitespace-pre-line">{{ displayedDescription }}</p>
@@ -609,7 +609,7 @@
               class="mt-3 text-sm font-medium text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1"
               :aria-expanded="isDescriptionExpanded"
             >
-              {{ isDescriptionExpanded ? 'Réduire' : 'Lire la suite' }}
+              {{ isDescriptionExpanded ? t('watch.readLess') : t('watch.readMore') }}
               <ChevronDown
                 :class="[
                   'w-4 h-4 transition-transform duration-200',
@@ -628,7 +628,7 @@
       <!-- Contact Reminder Section -->
       <div class="bg-white rounded-md shadow-lg p-8">
         <div class="text-center mb-6">
-          <h2 class="text-xl lg:text-3xl font-bold mb-3 text-gray-900">Une question sur cette montre ?</h2>
+          <h2 class="text-xl lg:text-3xl font-bold mb-3 text-gray-900">{{ t('watch.questionAbout') }}</h2>
           <p class="text-base lg:text-lg text-gray-600">
             Contactez-nous par WhatsApp ou email pour plus d'informations
           </p>
@@ -732,14 +732,14 @@
           <button
             @click="closeShareLightbox"
             class="absolute top-4 right-4 bg-cream-100 hover:bg-cream-200 text-gray-600 rounded-full p-2 transition-all duration-200"
-            title="Fermer"
-            aria-label="Fermer"
+            :title="t('common.close')"
+            :aria-label="t('common.close')"
           >
             <X class="w-5 h-5" :stroke-width="2" />
           </button>
 
           <!-- Title -->
-          <h2 class="text-xl lg:text-2xl font-bold text-gray-900 mb-6 text-center">Partager cette montre</h2>
+          <h2 class="text-xl lg:text-2xl font-bold text-gray-900 mb-6 text-center">{{ t('watch.shareThisWatch') }}</h2>
 
           <!-- Share buttons -->
           <div class="flex flex-col gap-4">
@@ -751,7 +751,7 @@
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
               </svg>
-              <span>Partager sur Facebook</span>
+              <span>{{ t('watch.shareOnFacebook') }}</span>
             </button>
 
             <!-- X (Twitter) -->
@@ -762,7 +762,7 @@
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
               </svg>
-              <span>Partager sur X</span>
+              <span>{{ t('watch.shareOnX') }}</span>
             </button>
 
             <!-- Email -->
@@ -771,7 +771,7 @@
               class="flex items-center justify-center gap-3 px-6 py-4 rounded-lg bg-gray-600 text-white hover:bg-gray-700 transition-colors font-medium"
             >
               <Mail class="w-6 h-6" :stroke-width="2" />
-              <span>Partager par email</span>
+              <span>{{ t('watch.shareByEmail') }}</span>
             </button>
 
             <!-- Copy URL -->
@@ -781,7 +781,7 @@
             >
               <Copy v-if="!urlCopied" class="w-6 h-6" :stroke-width="2" />
               <Check v-else class="w-6 h-6" :stroke-width="2" />
-              <span>{{ urlCopied ? 'URL copiée !' : 'Copier l\'URL' }}</span>
+              <span>{{ urlCopied ? t('watch.urlCopied') : t('watch.copyUrl') }}</span>
             </button>
           </div>
         </div>
@@ -851,6 +851,8 @@ import WatchAppointmentModal from '@/components/watch/WatchAppointmentModal.vue'
 import { watchLightboxImageUrl } from '@/utils/watchImageUrl.js'
 import PaymentIcons from '@/components/payment/PaymentIcons.vue'
 import TrustHighlightIcon from '@/components/watch/TrustHighlightIcon.vue'
+import { formatDate, formatPrice } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const route = useRoute()
 const router = useRouter()
@@ -1238,15 +1240,6 @@ const zoomImageStyle = computed(() => {
   }
 })
 
-// Price formatting
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-  }).format(price)
-}
-
 const displayPrice = computed(() => {
   if (!watchItem.value) return 0
   return getEffectiveWatchPrice(watchItem.value)
@@ -1267,15 +1260,7 @@ const getArticleExcerpt = (text) => {
 }
 
 // Helper function to format article date
-const formatArticleDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
+const formatArticleDate = (dateString) => formatDate(dateString)
 
 // Navigate to article
 const goToArticle = (articleId) => {
@@ -1326,6 +1311,14 @@ const ogImage = computed(() => {
   return watchItem.value.images[0]
 })
 
+/**
+ * Canonique volontairement **sans préfixe de langue**.
+ *
+ * Le contenu de cette page vient de la base et n'est pas traduit : `/en/…` et `/de/…` ne font
+ * qu'habiller un texte resté français. Pointer la canonique vers la langue par défaut évite de
+ * mettre en concurrence des quasi-doublons ; `useLocaleHead()` n'émet pas non plus d'alternates
+ * `hreflang` sur ces routes (voir `i18n.untranslatedRoutes`).
+ */
 const canonicalUrl = computed(() => {
   if (watchItem.value) {
     return `${BASE_URL}${buildWatchPath(watchItem.value)}`
@@ -1337,7 +1330,7 @@ const canonicalUrl = computed(() => {
 const breadcrumbStructuredData = computed(() => {
   if (!watchItem.value) return null
   const brand = watchItem.value.brand
-  const crumbs = [{ name: 'Accueil', path: '/' }]
+  const crumbs = [{ name: t('common.home'), path: '/' }]
   if (brand) {
     crumbs.push({ name: brand, path: buildBrandCollectionPath(brand) })
   }
@@ -1357,7 +1350,7 @@ const structuredData = computed(() => {
     image: watchItem.value.images || [],
     brand: {
       '@type': 'Brand',
-      name: watchItem.value.brand || 'Marque inconnue',
+      name: watchItem.value.brand || t('watch.unknownBrand'),
     },
     sku: watchItem.value.reference || watchItem.value.id,
     offers: {

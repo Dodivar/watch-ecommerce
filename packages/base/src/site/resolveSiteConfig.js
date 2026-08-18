@@ -5,12 +5,24 @@ import { resolveHomeSelectionsConfig } from './homeSelections.js'
 import { mergeSiteFeatures } from './siteFeatures.js'
 import { resolveCheckoutShipping } from './checkoutShipping.js'
 import { resolveWatchCatalogConfig } from './watchCatalogDisplay.js'
+import { localizeTree } from './i18nValue.js'
+import { resolveI18nConfig } from './resolveI18nConfig.js'
 
 /**
  * Résout le manifest client (features, home, checkout, watchCatalog) sans cache ni import build.
- * @param {Record<string, unknown>} siteConfig
+ *
+ * Les textes déclarés via `t({ fr, en, de })` sont aplatis **en premier**, pour `locale`, afin que
+ * les résolveurs en aval (et les ~60 composants qui lisent le manifest) ne manipulent que des
+ * chaînes ordinaires. `locale` est facultatif : sans lui, la langue par défaut du site est utilisée.
+ *
+ * @param {Record<string, unknown>} rawSiteConfig
+ * @param {string} [locale]
  */
-export function resolveSiteConfig(siteConfig) {
+export function resolveSiteConfig(rawSiteConfig, locale) {
+  const i18n = resolveI18nConfig(rawSiteConfig)
+  const activeLocale = i18n.locales.includes(locale) ? locale : i18n.defaultLocale
+  const siteConfig = localizeTree(rawSiteConfig, activeLocale, i18n.defaultLocale)
+
   const mergedFeatures = mergeSiteFeatures(siteConfig.features)
   let features = mergedFeatures
   if (siteConfig.faq != null) {
@@ -54,6 +66,8 @@ export function resolveSiteConfig(siteConfig) {
   const shippingResolved = resolveCheckoutShipping(checkoutRaw)
   return {
     ...siteConfig,
+    i18n: { ...i18n, activeLocale },
+    locale: activeLocale,
     features,
     watchCatalog,
     checkout: {

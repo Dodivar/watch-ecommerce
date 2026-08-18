@@ -51,12 +51,16 @@ export default defineConfig({
     {
       name: 'sauvage-watches',
       testIgnore: '**/place-des-montres/**',
-      use: { ...devices['Desktop Chrome'], baseURL: BASE_URL },
+      // `locale` explicite : les sites sont multilingues et la langue rendue suit
+      // `navigator.languages` sur une URL sans préfixe. Sans cette ligne, Chromium annonce
+      // « en-US » et la vitrine s'afficherait en anglais, faisant échouer des assertions
+      // écrites en français. Le multilingue lui-même est couvert par `locale.spec.js`.
+      use: { ...devices['Desktop Chrome'], baseURL: BASE_URL, locale: 'fr-FR' },
     },
     {
       name: 'place-des-montres',
       testMatch: '**/place-des-montres/**/*.spec.js',
-      use: { ...devices['Desktop Chrome'], baseURL: BASE_URL_PLACE },
+      use: { ...devices['Desktop Chrome'], baseURL: BASE_URL_PLACE, locale: 'fr-FR' },
     },
   ],
 

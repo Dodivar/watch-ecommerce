@@ -3,7 +3,7 @@
     <div class="max-w-7xl mx-auto px-4">
       <!-- Header -->
       <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold text-text-main mb-3">Blog</h1>
+        <h1 class="text-4xl font-bold text-text-main mb-3">{{ t('blog.title') }}</h1>
         <p class="text-xl text-gray-600 font-light max-w-3xl mx-auto">
           Découvrez nos articles sur les montres et l'horlogerie
         </p>
@@ -48,7 +48,7 @@
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-10">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-3"></div>
-        <p class="text-gray-600">Chargement des articles...</p>
+        <p class="text-gray-600">{{ t('blog.loadingArticles') }}</p>
       </div>
 
       <!-- Error State -->
@@ -63,7 +63,7 @@
             />
           </svg>
         </div>
-        <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
+        <h3 class="text-xl text-gray-900 mb-2">{{ t('watch.loadError') }}</h3>
         <p class="text-gray-600 mb-3">{{ error }}</p>
         <button
           @click="loadArticles"
@@ -108,7 +108,7 @@
                     {{ article.view_count || 0 }}
                   </span> -->
                 </div>
-                <span class="text-primary font-medium">Lire la suite →</span>
+                <span class="text-primary font-medium">{{ t('blog.readMore') }}</span>
               </div>
             </div>
           </article>
@@ -126,8 +126,8 @@
             />
           </svg>
         </div>
-        <h3 class="text-xl text-gray-600 mb-2">Aucun article trouvé</h3>
-        <p class="text-gray-500">Essayez de modifier vos critères de recherche</p>
+        <h3 class="text-xl text-gray-600 mb-2">{{ t('blog.noArticles') }}</h3>
+        <p class="text-gray-500">{{ t('blog.adjustSearch') }}</p>
       </div>
 
       <!-- Pagination -->
@@ -184,8 +184,10 @@ import { useRouter, useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { getAllArticles, getAllCategories } from '@/services/articleService'
 import { scrollAnimation } from '@/animation'
-import { BASE_URL } from '@/config'
+import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { formatDate } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const seo = getSiteConfig().seo.blog
 
@@ -207,7 +209,7 @@ useHead({
     },
     {
       property: 'og:url',
-        content: `${BASE_URL}/blog`,
+        content: `${CANONICAL_BASE_URL}/blog`,
     },
     {
       property: 'og:type',
@@ -229,7 +231,7 @@ useHead({
   link: [
     {
       rel: 'canonical',
-        href: `${BASE_URL}/blog`,
+        href: `${CANONICAL_BASE_URL}/blog`,
     },
   ],
 })
@@ -266,23 +268,12 @@ const visiblePages = computed(() => {
   return pages
 })
 
-
 // Methods
 const getExcerpt = (text) => {
   if (!text) return ''
   // Supprimer le markdown basique pour l'extrait
   const plainText = text.replace(/[#*\[\]()]/g, '').replace(/\n/g, ' ')
   return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
 }
 
 const handleViewArticle = (articleId) => {

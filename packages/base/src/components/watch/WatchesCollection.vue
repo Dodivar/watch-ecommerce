@@ -38,8 +38,8 @@
         v-if="!listing.isLoading && !listing.error && unknownBrand"
         class="text-center py-16"
       >
-        <h2 class="text-xl font-semibold text-text-main mb-3">Marque introuvable</h2>
-        <p class="text-gray-600 mb-6">Cette marque ne correspond à aucune montre en stock.</p>
+        <h2 class="text-xl font-semibold text-text-main mb-3">{{ t('collection.brandNotFound') }}</h2>
+        <p class="text-gray-600 mb-6">{{ t('collection.brandNoWatches') }}</p>
         <RouterLink
           to="/collection"
           class="inline-flex px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
@@ -74,7 +74,7 @@
                 @click="listing.openFilterDrawer"
               >
                 <SlidersHorizontal class="h-5 w-5 shrink-0" :stroke-width="2" />
-                <span class="text-sm font-semibold uppercase tracking-wide">Filtrer</span>
+                <span class="text-sm font-semibold uppercase tracking-wide">{{ t('collection.filter') }}</span>
                 <span
                   v-if="listing.activeFilterCount > 0"
                   class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-bold leading-none text-text-main shadow-sm ring-1 ring-primary/10"
@@ -92,7 +92,7 @@
                 <button
                   type="button"
                   class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary sm:w-auto sm:gap-2 sm:px-4 sm:py-2.5"
-                  :aria-label="`Trier les montres : ${currentSortLabel}`"
+                  :aria-label="t('collection.sortWatches', { label: currentSortLabel })"
                   aria-haspopup="listbox"
                   :aria-expanded="listing.isSortMenuOpen"
                   @click.stop="listing.toggleSortMenu"
@@ -111,7 +111,7 @@
                   ref="sortMenuRef"
                   class="absolute top-full right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 min-w-[180px]"
                   role="listbox"
-                  :aria-label="`Trier les montres : ${currentSortLabel}`"
+                  :aria-label="t('collection.sortWatches', { label: currentSortLabel })"
                   @click.stop
                 >
                   <button
@@ -141,14 +141,14 @@
           <div
             v-if="activeFilterChips.length > 0"
             class="collection-active-filters mt-3 flex flex-wrap items-center gap-2 lg:mt-4"
-            aria-label="Filtres actifs"
+            :aria-label="t('collection.activeFilters')"
           >
             <button
               v-for="chip in activeFilterChips"
               :key="chip.id"
               type="button"
               class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-text-main transition-colors hover:border-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
-              :aria-label="`Retirer le filtre ${chip.label}`"
+              :aria-label="t('collection.removeFilter', { label: chip.label })"
               @click="removeActiveFilter(chip)"
             >
               <span class="whitespace-nowrap">{{ chip.label }}</span>
@@ -176,7 +176,7 @@
           <div class="text-red-500 mb-3">
             <AlertCircle class="w-16 h-16 mx-auto mb-3" :stroke-width="2" />
           </div>
-          <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
+          <h3 class="text-xl text-gray-900 mb-2">{{ t('watch.loadError') }}</h3>
           <p class="text-gray-600 mb-3">{{ listing.error }}</p>
           <button
             type="button"
@@ -229,7 +229,7 @@
           <nav
             v-if="totalPages > 1"
             class="order-1 flex w-full max-w-full justify-center overflow-x-auto overflow-y-hidden py-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:order-2 sm:overflow-visible sm:py-0 [&::-webkit-scrollbar]:hidden"
-            aria-label="Pagination de la collection"
+            :aria-label="t('pagination.label')"
           >
             <div
               class="flex max-w-full shrink-0 items-center gap-0 sm:gap-1.5"
@@ -243,14 +243,14 @@
                     : ''
                 "
                 :disabled="currentPage === 1"
-                aria-label="Page précédente"
+                :aria-label="t('pagination.previous')"
                 @click="goToPage(currentPage - 1)"
               >
                 <ChevronLeft class="h-5 w-5 shrink-0 sm:h-5 sm:w-5" :stroke-width="2" />
               </button>
               <ul
                 class="m-0 flex shrink-0 list-none flex-wrap items-center justify-center gap-0 p-0 sm:gap-1"
-                aria-label="Sélection de page"
+                :aria-label="t('pagination.pageSelect')"
               >
                 <li
                   v-for="(item, itemIdx) in collectionPaginationItems"
@@ -275,7 +275,7 @@
                     v-else-if="item.type === 'page'"
                     type="button"
                     class="box-border inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10 sm:text-sm"
-                    :aria-label="`Page ${item.n}`"
+                    :aria-label="t('pagination.page', { n: item.n })"
                     @click="goToPage(item.n)"
                   >
                     {{ item.n }}
@@ -291,7 +291,7 @@
                     : ''
                 "
                 :disabled="currentPage === totalPages"
-                aria-label="Page suivante"
+                :aria-label="t('pagination.next')"
                 @click="goToPage(currentPage + 1)"
               >
                 <ChevronRight class="h-5 w-5 shrink-0 sm:h-5 sm:w-5" :stroke-width="2" />
@@ -330,7 +330,7 @@
           v-if="showContactSection"
           class="bg-white rounded-md shadow-lg p-8 text-center"
         >
-          <h2 class="text-2xl font-semibold text-text-main mb-4">Une pièce vous intéresse ?</h2>
+          <h2 class="text-2xl font-semibold text-text-main mb-4">{{ t('collection.interestedInPiece') }}</h2>
           <p class="text-lg text-gray-600 mb-6 font-light">
             Contactez-nous pour plus d'informations ou pour organiser une visite en main propre
           </p>
@@ -391,7 +391,7 @@ import WatchCard from './WatchCard.vue'
 import WatchCardSkeleton from './WatchCardSkeleton.vue'
 import WatchCollectionFiltersDrawer from './WatchCollectionFiltersDrawer.vue'
 import { scrollAnimation } from '@/animation'
-import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL } from '@/config'
+import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getMergedCollectionFilters, getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
@@ -412,6 +412,8 @@ import {
 } from '@/utils/collectionPagination.js'
 import { getActiveCampaignBySlugPublic } from '@/services/watchPromotionCampaignService.js'
 import { isValidCampaignSlug } from '@/utils/campaignSlug.js'
+import { formatNumber } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const props = defineProps({
   showFilters: { type: Boolean, default: true },
@@ -773,7 +775,7 @@ const activeFilterChips = computed(() => {
     chips.push({
       id: 'price',
       type: 'price',
-      label: `${min.toLocaleString('fr-FR')} € – ${max.toLocaleString('fr-FR')} €`,
+      label: `${formatNumber(min)} € – ${formatNumber(max)} €`,
     })
   }
 
@@ -857,13 +859,13 @@ const collectionHead = computed(() => {
         { name: 'description', content: seoCollection.metaDescription },
         { property: 'og:title', content: seoCollection.ogTitle },
         { property: 'og:description', content: seoCollection.ogDescription },
-        { property: 'og:url', content: `${BASE_URL}/collection` },
+        { property: 'og:url', content: `${CANONICAL_BASE_URL}/collection` },
         { property: 'og:type', content: 'website' },
         { name: 'twitter:card', content: 'summary' },
         { name: 'twitter:title', content: seoCollection.twitterTitle },
         { name: 'twitter:description', content: seoCollection.twitterDescription },
       ],
-      link: [{ rel: 'canonical', href: `${BASE_URL}/collection` }],
+      link: [{ rel: 'canonical', href: `${CANONICAL_BASE_URL}/collection` }],
     }
   }
 
@@ -901,13 +903,13 @@ const collectionHead = computed(() => {
       { name: 'twitter:title', content: title },
       { name: 'twitter:description', content: desc },
     ],
-    link: [{ rel: 'canonical', href: buildBrandCollectionUrl(BASE_URL, brand) }],
+    link: [{ rel: 'canonical', href: buildBrandCollectionUrl(CANONICAL_BASE_URL, brand) }],
   }
 })
 
 const collectionBreadcrumbSchema = computed(() => {
   if (!singleBrandLabel.value || listing.selectedBrands.length !== 1) return null
-  return buildBreadcrumbStructuredData(BASE_URL, [
+  return buildBreadcrumbStructuredData(CANONICAL_BASE_URL, [
     { name: 'Accueil', path: '/' },
     { name: 'Collection', path: '/collection' },
     { name: singleBrandLabel.value, path: buildBrandCollectionPath(singleBrandLabel.value) },

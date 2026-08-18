@@ -1,4 +1,5 @@
 import { computed, ref, watch } from 'vue'
+import { formatWeekdayDate } from '@/utils/formatters.js'
 
 export const HALF_DAY_HOUR = 12
 export const SLOT_LABELS = {
@@ -84,12 +85,7 @@ export function getAvailableAppointmentSlots(dateStr, now = new Date()) {
 export function formatAppointmentDateLabel(dateStr) {
   const date = parseDateISO(dateStr)
   if (Number.isNaN(date.getTime())) return dateStr
-  return date.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  return formatWeekdayDate(date)
 }
 
 export function useRetailAppointmentSlots(initialDate = '') {

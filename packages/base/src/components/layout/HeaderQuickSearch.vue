@@ -3,6 +3,7 @@ import { ref, watch, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { Search, X } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { parseSearchQuery } from '@/utils/watchSearch.js'
+import { t } from '@/i18n'
 
 const props = defineProps({
   variant: {
@@ -97,7 +98,7 @@ const inputClasses =
     v-if="isHeaderTrigger"
     type="button"
     class="p-2 rounded-lg text-text-main hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
-    :aria-label="open ? 'Fermer la recherche' : 'Ouvrir la recherche'"
+    :aria-label="open ? t('nav.closeSearch') : t('nav.openSearch')"
     :aria-expanded="open ? 'true' : 'false'"
     aria-controls="header-catalog-search-panel"
     @click="togglePanel"
@@ -122,7 +123,7 @@ const inputClasses =
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <form class="flex items-center gap-2" role="search" @submit.prevent="submitSearch">
-          <label for="catalog-search-header-panel" class="sr-only">Rechercher une montre</label>
+          <label for="catalog-search-header-panel" class="sr-only">{{ t('nav.searchWatchLabel') }}</label>
           <input
             id="catalog-search-header-panel"
             ref="panelInputRef"
@@ -130,7 +131,7 @@ const inputClasses =
             type="search"
             name="q"
             autocomplete="off"
-            placeholder="Rechercher marque, modèle, référence…"
+            :placeholder="t('nav.searchPlaceholder')"
             :class="[inputClasses, isInvalid ? 'border-red-400' : 'border-gray-300']"
             :aria-invalid="isInvalid ? 'true' : 'false'"
             @input="isInvalid = false"
@@ -138,7 +139,7 @@ const inputClasses =
           <button
             type="button"
             class="shrink-0 p-2 rounded-lg text-text-main hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Fermer la recherche"
+            :aria-label="t('nav.closeSearch')"
             @click="closePanel"
           >
             <X class="h-5 w-5" :stroke-width="2" />
@@ -154,14 +155,14 @@ const inputClasses =
     role="search"
     @submit.prevent="submitSearch"
   >
-    <label for="catalog-search-page" class="sr-only">Rechercher une montre</label>
+    <label for="catalog-search-page" class="sr-only">{{ t('nav.searchWatchLabel') }}</label>
     <input
       id="catalog-search-page"
       v-model="inputValue"
       type="search"
       name="q"
       autocomplete="off"
-      placeholder="Rechercher marque, modèle, référence…"
+      :placeholder="t('nav.searchPlaceholder')"
       :class="[
         inputClasses,
         isInvalid ? 'border-red-400' : 'border-gray-300',

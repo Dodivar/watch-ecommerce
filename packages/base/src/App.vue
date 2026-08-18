@@ -7,11 +7,14 @@ import { BASE_URL, WHATSAPP_NUMBER, EMAIL_CONTACT, PURCHASE_ENABLED } from '@/co
 import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
 import { buildGlobalStructuredData } from '@/site/buildGlobalStructuredData.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { t } from '@/i18n'
+import { useLocaleHead } from '@/composables/useLocaleHead.js'
 import { resolveMainNavigation, resolveFooterNavigation } from '@/site/mainNavigation.js'
 import MainNavDesktop from '@/components/layout/MainNavDesktop.vue'
 import MainNavMobile from '@/components/layout/MainNavMobile.vue'
 import AdminPublicModeBar from '@/components/layout/AdminPublicModeBar.vue'
 import HeaderQuickSearch from '@/components/layout/HeaderQuickSearch.vue'
+import LanguageSwitcher from '@/components/layout/LanguageSwitcher.vue'
 import logoMobileMenuVerticalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB vertical/Logo SW blanc vertical RVB.png'
 import logoHeaderIconGreen from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW verte RVB.png'
 import logoHeaderIconWhite from '@site/assets/logos/Logos RVB (web)/Icône RVB/Icône SW blanche RVB.png'
@@ -28,6 +31,9 @@ const site = getSiteConfig()
 const features = site.features
 const usesDarkTheme = site.theme?.colorScheme === 'dark'
 const headerLogoSrc = usesDarkTheme ? logoHeaderIconWhite : logoHeaderIconGreen
+
+// `<html lang>`, alternates hreflang et og:locale, une fois pour toutes les pages.
+useLocaleHead()
 
 const globalStructuredData = buildGlobalStructuredData(site, BASE_URL)
 const mainNavItems = resolveMainNavigation(site)
@@ -139,6 +145,7 @@ function displayMobileMenu() {
         </div>
         <MainNavDesktop :nav-items="mainNavItems" />
         <div class="flex items-center gap-1 shrink-0">
+          <LanguageSwitcher class="hidden md:block" />
           <HeaderQuickSearch
             v-if="features.collection"
             v-model:open="catalogSearchOpen"
@@ -148,7 +155,7 @@ function displayMobileMenu() {
             v-if="cartAccessible"
             type="button"
             class="relative p-2 rounded-lg text-text-main hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Ouvrir le panier"
+            :aria-label="t('nav.openCart')"
             @click="toggleDrawer"
           >
             <ShoppingBag class="h-6 w-6" :stroke-width="2" />
@@ -159,7 +166,7 @@ function displayMobileMenu() {
               {{ badgeLabel }}
             </span>
           </button>
-          <button type="button" class="md:hidden p-2" @click="displayMobileMenu" aria-label="Ouvrir le menu">
+          <button type="button" class="md:hidden p-2" @click="displayMobileMenu" :aria-label="t('nav.openMenu')">
             <Menu class="h-6 w-6 text-black" :stroke-width="2" />
           </button>
         </div>
@@ -253,7 +260,7 @@ function displayMobileMenu() {
           </div>
         </div>
         <div>
-          <h3 class="text-lg font-semibold mb-4">Navigation</h3>
+          <h3 class="text-lg font-semibold mb-4">{{ t('footer.navigation') }}</h3>
           <ul class="space-y-2">
             <li v-for="(nav, fi) in footerNavItems" :key="'foot-nav-' + fi + '-' + nav.to">
               <RouterLink
@@ -265,7 +272,7 @@ function displayMobileMenu() {
           </ul>
         </div>
         <div>
-          <h3 class="text-lg font-semibold mb-4">Contact</h3>
+          <h3 class="text-lg font-semibold mb-4">{{ t('footer.contact') }}</h3>
           <div class="space-y-2 text-white/90">
             <a
               v-if="WHATSAPP_NUMBER"
@@ -301,7 +308,8 @@ function displayMobileMenu() {
             </p>
           </div>
         </div>
-        <!-- Admin Debug Links -->
+        <!-- Admin Debug Links — outil interne réservé aux admins, volontairement non traduit
+             (le back-office reste en français, cf. bloc i18n de site.config.js). -->
         <div v-if="isAdmin && features.admin" class="border-l border-white/20 pl-4">
           <h3 class="text-lg font-semibold mb-4 text-white">🔧 Debug Admin</h3>
           <ul class="space-y-2 text-sm">

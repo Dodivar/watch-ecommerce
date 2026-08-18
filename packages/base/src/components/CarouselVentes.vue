@@ -5,7 +5,7 @@
         <h2 class="text-3xl lg:text-4xl font-bold text-text-main">
           Dernières transactions
         </h2>
-        <p class="text-xl text-gray-600">Voici quelques montres récemment vendues</p>
+        <p class="text-xl text-gray-600">{{ t('carousel.recentlySold') }}</p>
       </div>
       <div class="relative group">
         <!-- Flèche gauche -->
@@ -13,7 +13,7 @@
           v-if="canScrollLeft"
           @click="scrollLeft"
           class="carousel-arrow carousel-arrow-left absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 sm:p-3 hover:bg-cream transition-all duration-200"
-          aria-label="Défiler vers la gauche"
+          :aria-label="t('carousel.scrollLeft')"
         >
           <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -30,7 +30,7 @@
           v-if="canScrollRight"
           @click="scrollRight"
           class="carousel-arrow carousel-arrow-right absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 sm:p-3 hover:bg-cream transition-all duration-200"
-          aria-label="Défiler vers la droite"
+          :aria-label="t('carousel.scrollRight')"
         >
           <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -90,6 +90,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { getSoldWatches } from '@/services/watchService'
 import WatchCard from '@/components/watch/WatchCard.vue'
 import WatchCardSkeleton from '@/components/watch/WatchCardSkeleton.vue'
+import { t } from '@/i18n'
 const salesWatches = ref([])
 const isLoading = ref(true)
 const carouselContainer = ref(null)

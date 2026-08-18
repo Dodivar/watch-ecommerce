@@ -5,7 +5,7 @@ import { useHead } from '@vueuse/head'
 
 import WatchCard from './WatchCard.vue'
 import WatchCardSkeleton from './WatchCardSkeleton.vue'
-import { BASE_URL } from '@/config'
+import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getSoldWatchesForListing } from '@/services/watchService'
 import { navigateToWatch } from '@/utils/watchSlug.js'
@@ -42,11 +42,11 @@ useHead({
     { name: 'description', content: metaDescription },
     { property: 'og:title', content: pageTitle },
     { property: 'og:description', content: metaDescription },
-    { property: 'og:url', content: `${BASE_URL}/ventes` },
+    { property: 'og:url', content: `${CANONICAL_BASE_URL}/ventes` },
     { property: 'og:type', content: 'website' },
     { name: 'twitter:card', content: 'summary' },
   ],
-  link: [{ rel: 'canonical', href: `${BASE_URL}/ventes` }],
+  link: [{ rel: 'canonical', href: `${CANONICAL_BASE_URL}/ventes` }],
 })
 
 const handleViewDetails = (watch) => {

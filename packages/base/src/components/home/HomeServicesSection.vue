@@ -2,6 +2,7 @@
 import { Calculator, Search, Watch } from '@lucide/vue'
 
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { t } from '@/i18n'
 
 const features = getSiteConfig().features
 </script>
@@ -14,7 +15,7 @@ const features = getSiteConfig().features
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Nos services exclusifs</h2>
+        <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">{{ t('home.servicesTitle') }}</h2>
         <p class="text-xl text-gray-600">
           Une expertise complète pour répondre à tous vos besoins horlogers
         </p>
@@ -28,14 +29,13 @@ const features = getSiteConfig().features
           <div class="text-primary text-4xl mb-3 flex justify-center">
             <Search class="h-10 w-10 text-primary mx-auto" :stroke-width="2" />
           </div>
-          <h3 class="text-xl font-semibold mb-2">Recherche personnalisée</h3>
+          <h3 class="text-xl font-semibold mb-2">{{ t('home.sourcingTitle') }}</h3>
           <p class="text-gray-600 mb-3">
-            Dites-nous ce que vous cherchez, nous le trouvons pour vous. Rareté, budget, état : on
-            s'occupe de tout.
+            {{ t('home.sourcingText') }}
           </p>
 
           <RouterLink to="/recherche" class="text-primary font-semibold hover:underline">
-            Demander une recherche</RouterLink
+            {{ t('home.sourcingCta') }}</RouterLink
           >
         </div>
 
@@ -46,13 +46,15 @@ const features = getSiteConfig().features
           <div class="text-primary text-4xl mb-3 flex justify-center">
             <Watch class="h-10 w-10 text-primary mx-auto" :stroke-width="2" />
           </div>
-          <h3 class="text-xl font-semibold mb-2">Collection de montres</h3>
+          <h3 class="text-xl font-semibold mb-2">{{ t('home.collectionTitle') }}</h3>
           <p class="text-gray-600 mb-3">
-            Découvrez notre sélection de montres disponibles en stock.
+            {{ t('home.collectionText') }}
           </p>
-          <a href="/collection" class="text-primary font-semibold hover:underline">
-            Voir nos montres en stock
-          </a>
+          <!-- RouterLink et non <a> : le préfixe de langue est porté par la base d'historique,
+               qu'une ancre brute contournerait (retour silencieux au français). -->
+          <RouterLink to="/collection" class="text-primary font-semibold hover:underline">
+            {{ t('home.collectionCta') }}
+          </RouterLink>
         </div>
 
         <div
@@ -62,12 +64,12 @@ const features = getSiteConfig().features
           <div class="text-primary text-4xl mb-3 flex justify-center">
             <Calculator class="h-10 w-10 text-primary mx-auto" :stroke-width="2" />
           </div>
-          <h3 class="text-xl font-semibold mb-2">Estimation gratuite</h3>
+          <h3 class="text-xl font-semibold mb-2">{{ t('home.valuationTitle') }}</h3>
           <p class="text-gray-600 mb-3">
-            Obtenez une évaluation fiable de votre montre en moins de 24h, sans engagement.
+            {{ t('home.valuationText') }}
           </p>
           <RouterLink to="/estimation" class="text-primary font-semibold hover:underline">
-            Faire estimer ma montre
+            {{ t('home.valuationCta') }}
           </RouterLink>
         </div>
       </div>

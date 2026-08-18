@@ -3,6 +3,7 @@
  * Template extraction — all brand-specific defaults for `sites/sauvage-watches` live here.
  */
 import faq from './faq.config.js'
+import { t } from '../../packages/base/src/site/i18nValue.js'
 
 export default {
   siteId: 'sauvage-watches',
@@ -10,6 +11,23 @@ export default {
   faq,
 
   locale: 'fr',
+
+  /**
+   * Langues du site. Le client ne déclare que des codes : libellés, formats de nombre/date
+   * et `og:locale` viennent du socle (`packages/base/src/i18n/locales.js`).
+   *
+   * `defaultLocale` sert quand le navigateur du visiteur ne dit rien d'exploitable, et
+   * garde les URLs sans préfixe (`/collection`) ; les autres langues sont servies sous
+   * `/en/...` et `/de/...`.
+   *
+   * Un texte se traduit sur place avec `t({ fr, en, de })` ; une chaîne simple reste
+   * valide et sert pour les trois langues.
+   */
+  i18n: {
+    enabled: true,
+    defaultLocale: 'fr',
+    locales: ['fr', 'en', 'de'],
+  },
 
   /** Design tokens → CSS variables via vite/site-from-config.mjs + Tailwind theme.extend */
   theme: {
@@ -119,16 +137,32 @@ export default {
   },
 
   copy: {
-    footerTagline:
-      "Votre partenaire pour l'achat et la mise à disposition de montres de luxe authentifiées. Recherche personnalisée, estimation rapide, transparence garantie.",
+    footerTagline: t({
+      fr: "Votre partenaire pour l'achat et la mise à disposition de montres de luxe authentifiées. Recherche personnalisée, estimation rapide, transparence garantie.",
+      en: 'Your partner for buying and sourcing authenticated luxury watches. Personalised sourcing, fast valuation, guaranteed transparency.',
+      de: 'Ihr Partner für den Kauf und die Beschaffung authentifizierter Luxusuhren. Persönliche Suche, schnelle Schätzung, garantierte Transparenz.',
+    }),
     /** Footer legal line (verbatim for template parity). */
-    copyrightLine: '© 2026 Sauvage Watches. Tous droits réservés.',
-    estimationProcessLead:
-      'Chez Sauvage, nous croyons que la transparence est la clé de la confiance.',
-    watchSecurityAuthentic:
-      "Toutes les montres vendues sur Sauvage sont authentiques. Chaque montre est vérifiée avant la mise en vente. Si vous avez le moindre doute sur l'authenticité de votre montre, contactez-nous dans les 14 jours suivant la réception pour un remboursement complet.",
-    watchSecurityInsurance:
-      "Chaque montre vendue est assurée pour sa valeur totale par Sauvage. Cela garantit qu'il n'y a aucun risque pour l'acheteur, même en cas de résidence à l'étranger. Votre montre est protégée de bout en bout.",
+    copyrightLine: t({
+      fr: '© 2026 Sauvage Watches. Tous droits réservés.',
+      en: '© 2026 Sauvage Watches. All rights reserved.',
+      de: '© 2026 Sauvage Watches. Alle Rechte vorbehalten.',
+    }),
+    estimationProcessLead: t({
+      fr: 'Chez Sauvage, nous croyons que la transparence est la clé de la confiance.',
+      en: 'At Sauvage, we believe transparency is the key to trust.',
+      de: 'Bei Sauvage sind wir überzeugt: Transparenz schafft Vertrauen.',
+    }),
+    watchSecurityAuthentic: t({
+      fr: "Toutes les montres vendues sur Sauvage sont authentiques. Chaque montre est vérifiée avant la mise en vente. Si vous avez le moindre doute sur l'authenticité de votre montre, contactez-nous dans les 14 jours suivant la réception pour un remboursement complet.",
+      en: 'Every watch sold by Sauvage is authentic. Each one is checked before going on sale. Should you have the slightest doubt about your watch’s authenticity, contact us within 14 days of delivery for a full refund.',
+      de: 'Alle bei Sauvage verkauften Uhren sind authentisch. Jede Uhr wird vor dem Verkauf geprüft. Sollten Sie den geringsten Zweifel an der Echtheit Ihrer Uhr haben, kontaktieren Sie uns innerhalb von 14 Tagen nach Erhalt für eine vollständige Rückerstattung.',
+    }),
+    watchSecurityInsurance: t({
+      fr: "Chaque montre vendue est assurée pour sa valeur totale par Sauvage. Cela garantit qu'il n'y a aucun risque pour l'acheteur, même en cas de résidence à l'étranger. Votre montre est protégée de bout en bout.",
+      en: 'Every watch sold is insured by Sauvage for its full value. There is therefore no risk for the buyer, including from abroad. Your watch is protected end to end.',
+      de: 'Jede verkaufte Uhr ist von Sauvage zum vollen Wert versichert. Für den Käufer besteht damit kein Risiko, auch nicht aus dem Ausland. Ihre Uhr ist von Anfang bis Ende geschützt.',
+    }),
   },
 
   /** Mot de passe page « site en construction » (voir `MaintenancePage.vue`). */
@@ -243,15 +277,7 @@ export default {
       title: 'Nouvelles arrivées',
       // subtitle: 'Découvrez nos dernières pièces ajoutées à notre sélection',
     },
-    sections: [
-      'hero',
-      'nouvelles',
-      'trust',
-      'ventes',
-      'suivezNous',
-      'services',
-      'faq',
-    ],
+    sections: ['hero', 'nouvelles', 'trust', 'ventes', 'suivezNous', 'services', 'faq'],
   },
 
   /** Filtres collection — passer une clé à `false` pour masquer la section dans le tiroir. */
@@ -272,29 +298,75 @@ export default {
    */
   navigation: {
     main: [
-      { type: 'link', label: 'Nos montres', to: '/collection', feature: 'collection' },
-      { type: 'link', label: 'Nos ventes', to: '/ventes', feature: 'soldArchive' },
+      {
+        type: 'link',
+        label: t({ fr: 'Nos montres', en: 'Our watches', de: 'Unsere Uhren' }),
+        to: '/collection',
+        feature: 'collection',
+      },
+      {
+        type: 'link',
+        label: t({ fr: 'Nos ventes', en: 'Past sales', de: 'Verkaufte Uhren' }),
+        to: '/ventes',
+        feature: 'soldArchive',
+      },
       {
         type: 'group',
-        label: 'Nos services',
+        label: t({ fr: 'Nos services', en: 'Our services', de: 'Unsere Leistungen' }),
         items: [
-          { label: 'Recherche personnalisée', to: '/recherche', feature: 'recherche' },
-          { label: 'Estimation', to: '/estimation', feature: 'estimation' },
+          {
+            label: t({ fr: 'Recherche personnalisée', en: 'Watch sourcing', de: 'Uhrensuche' }),
+            to: '/recherche',
+            feature: 'recherche',
+          },
+          {
+            label: t({ fr: 'Estimation', en: 'Valuation', de: 'Schätzung' }),
+            to: '/estimation',
+            feature: 'estimation',
+          },
         ],
       },
       { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
-      { type: 'link', label: 'À propos', to: '/a-propos', feature: 'about' },
+      {
+        type: 'link',
+        label: t({ fr: 'À propos', en: 'About', de: 'Über uns' }),
+        to: '/a-propos',
+        feature: 'about',
+      },
       { type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' },
       { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
     ],
     footer: [
-      { label: 'Accueil', to: '/#accueil' },
-      { label: 'Nos montres', to: '/collection', feature: 'collection' },
-      { label: 'Nos ventes', to: '/ventes', feature: 'soldArchive' },
-      { label: 'Recherche personnalisée', to: '/recherche', feature: 'recherche' },
-      { label: 'Estimation', to: '/estimation', feature: 'estimation' },
+      {
+        label: t({ fr: 'Accueil', en: 'Home', de: 'Startseite' }),
+        to: '/#accueil',
+      },
+      {
+        label: t({ fr: 'Nos montres', en: 'Our watches', de: 'Unsere Uhren' }),
+        to: '/collection',
+        feature: 'collection',
+      },
+      {
+        label: t({ fr: 'Nos ventes', en: 'Past sales', de: 'Verkaufte Uhren' }),
+        to: '/ventes',
+        feature: 'soldArchive',
+      },
+      {
+        label: t({ fr: 'Recherche personnalisée', en: 'Watch sourcing', de: 'Uhrensuche' }),
+        to: '/recherche',
+        feature: 'recherche',
+      },
+      {
+        label: t({ fr: 'Estimation', en: 'Valuation', de: 'Schätzung' }),
+        to: '/estimation',
+        feature: 'estimation',
+      },
       { label: 'Blog', to: '/blog', feature: 'blog' },
-      { label: 'À propos', to: '/a-propos', feature: 'about' },
+      {
+        label: t({ fr: 'À propos', en: 'About', de: 'Über uns' }),
+        to: '/a-propos',
+        feature: 'about',
+      },
       { label: 'Contact', to: '/contact', feature: 'contact' },
     ],
   },
@@ -337,7 +409,10 @@ export default {
 
   /** Bandeaux hero — une seule marque sélectionnée sur /collection ; clés = libellé exact du champ `brand` en base. */
   brandHero: {
-    'Oméga': { image: '/brands/omega/omega-brand.jpg', alt: 'Bracelet à maillons d’argent Montre analogique ronde' } 
+    Oméga: {
+      image: '/brands/omega/omega-brand.jpg',
+      alt: 'Bracelet à maillons d’argent Montre analogique ronde',
+    },
   },
 
   /**
@@ -349,136 +424,388 @@ export default {
   seo: {
     /** Static shell before Vue hydrates @vueuse/head (fallback / crawlers). */
     indexHtml: {
-      title: 'Sauvage - Montres de luxe',
-      metaDescription:
-        'Sauvage - Expert en services de montres de luxe. Collection de montres garanties 1 an, estimation gratuite. Rolex, Breitling, Tag Heuer, Cartier et plus.',
-      keywords:
-        'recherche personnalisée de montre, rachat montre, montre de luxe, montre occasion, Rolex, Breitling, Tag Heuer, Cartier, montre garantie',
+      title: t({
+        fr: 'Sauvage - Montres de luxe',
+        en: 'Sauvage - Luxury watches',
+        de: 'Sauvage - Luxusuhren',
+      }),
+      metaDescription: t({
+        fr: 'Sauvage - Expert en services de montres de luxe. Collection de montres garanties 1 an, estimation gratuite. Rolex, Breitling, Tag Heuer, Cartier et plus.',
+        en: 'Sauvage - Luxury watch specialists. A collection of watches with a 1-year warranty, free valuation. Rolex, Breitling, Tag Heuer, Cartier and more.',
+        de: 'Sauvage - Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, kostenlose Schätzung. Rolex, Breitling, Tag Heuer, Cartier und mehr.',
+      }),
+      keywords: t({
+        fr: 'recherche personnalisée de montre, rachat montre, montre de luxe, montre occasion, Rolex, Breitling, Tag Heuer, Cartier, montre garantie',
+        en: 'watch sourcing, watch buy-back, luxury watch, pre-owned watch, Rolex, Breitling, Tag Heuer, Cartier, warranted watch',
+        de: 'Uhrensuche, Uhrenankauf, Luxusuhr, gebrauchte Uhr, Rolex, Breitling, Tag Heuer, Cartier, Uhr mit Garantie',
+      }),
       author: 'Sauvage',
-      ogTitle: 'Sauvage - Montres de luxe',
-      ogDescription:
-        'Expert en services de montres de luxe. Collection de montres garanties 1 an, estimation gratuite.',
+      ogTitle: t({
+        fr: 'Sauvage - Montres de luxe',
+        en: 'Sauvage - Luxury watches',
+        de: 'Sauvage - Luxusuhren',
+      }),
+      ogDescription: t({
+        fr: 'Expert en services de montres de luxe. Collection de montres garanties 1 an, estimation gratuite.',
+        en: 'Luxury watch specialists. A collection of watches with a 1-year warranty, free valuation.',
+        de: 'Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, kostenlose Schätzung.',
+      }),
       twitterCard: 'summary_large_image',
-      twitterTitle: 'Sauvage - Montres de luxe',
-      twitterDescription:
-        'Expert en services de montres de luxe. Collection de montres garanties 1 an, estimation gratuite.',
+      twitterTitle: t({
+        fr: 'Sauvage - Montres de luxe',
+        en: 'Sauvage - Luxury watches',
+        de: 'Sauvage - Luxusuhren',
+      }),
+      twitterDescription: t({
+        fr: 'Expert en services de montres de luxe. Collection de montres garanties 1 an, estimation gratuite.',
+        en: 'Luxury watch specialists. A collection of watches with a 1-year warranty, free valuation.',
+        de: 'Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, kostenlose Schätzung.',
+      }),
+      /** Repli : `og:locale` réel est dérivé de la langue active (voir `i18n/locales.js`). */
       ogLocale: 'fr_FR',
       ogSiteName: 'Sauvage',
       appleMobileWebAppTitle: 'Sauvage Watches',
       ogImagePath: '/logo500x500.png',
     },
     home: {
-      title: 'Sauvage - Rachat de Montres de Luxe | Collection Garantie',
-      metaDescription:
-        'Découvrez notre collection de montres de luxe garanties 1 an. Rolex, Breitling, Tag Heuer, Cartier et plus. Estimation gratuite, recherche personnalisée et accompagnement expert.',
-      ogTitle: 'Sauvage - Rachat de Montres de Luxe | Collection Garantie',
-      ogDescription:
-        'Découvrez notre collection de montres de luxe garanties 1 an. Estimation gratuite, recherche personnalisée et accompagnement expert.',
-      twitterTitle: 'Sauvage - Rachat de Montres de Luxe',
-      twitterDescription:
-        'Découvrez notre collection de montres de luxe garanties 1 an. Estimation gratuite, recherche personnalisée.',
+      title: t({
+        fr: 'Sauvage - Rachat de Montres de Luxe | Collection Garantie',
+        en: 'Sauvage - Luxury Watch Buy-Back | Warranted Collection',
+        de: 'Sauvage - Ankauf von Luxusuhren | Kollektion mit Garantie',
+      }),
+      metaDescription: t({
+        fr: 'Découvrez notre collection de montres de luxe garanties 1 an. Rolex, Breitling, Tag Heuer, Cartier et plus. Estimation gratuite, recherche personnalisée et accompagnement expert.',
+        en: 'Discover our collection of luxury watches with a 1-year warranty. Rolex, Breitling, Tag Heuer, Cartier and more. Free valuation, personalised sourcing and expert guidance.',
+        de: 'Entdecken Sie unsere Kollektion von Luxusuhren mit 1 Jahr Garantie. Rolex, Breitling, Tag Heuer, Cartier und mehr. Kostenlose Schätzung, persönliche Suche und fachkundige Beratung.',
+      }),
+      ogTitle: t({
+        fr: 'Sauvage - Rachat de Montres de Luxe | Collection Garantie',
+        en: 'Sauvage - Luxury Watch Buy-Back | Warranted Collection',
+        de: 'Sauvage - Ankauf von Luxusuhren | Kollektion mit Garantie',
+      }),
+      ogDescription: t({
+        fr: 'Découvrez notre collection de montres de luxe garanties 1 an. Estimation gratuite, recherche personnalisée et accompagnement expert.',
+        en: 'Discover our collection of luxury watches with a 1-year warranty. Free valuation, personalised sourcing and expert guidance.',
+        de: 'Entdecken Sie unsere Kollektion von Luxusuhren mit 1 Jahr Garantie. Kostenlose Schätzung, persönliche Suche und fachkundige Beratung.',
+      }),
+      twitterTitle: t({
+        fr: 'Sauvage - Rachat de Montres de Luxe',
+        en: 'Sauvage - Luxury Watch Buy-Back',
+        de: 'Sauvage - Ankauf von Luxusuhren',
+      }),
+      twitterDescription: t({
+        fr: 'Découvrez notre collection de montres de luxe garanties 1 an. Estimation gratuite, recherche personnalisée.',
+        en: 'Discover our collection of luxury watches with a 1-year warranty. Free valuation, personalised sourcing.',
+        de: 'Entdecken Sie unsere Kollektion von Luxusuhren mit 1 Jahr Garantie. Kostenlose Schätzung, persönliche Suche.',
+      }),
     },
     blog: {
-      title: 'Blog Horlogerie | Articles sur les Montres | Sauvage',
-      metaDescription:
-        "Découvrez nos articles sur les montres et l'horlogerie. Guides, actualités, conseils d'achat et expertise sur les montres de luxe.",
-      ogTitle: 'Blog Horlogerie | Articles sur les Montres | Sauvage',
-      ogDescription:
-        "Découvrez nos articles sur les montres et l'horlogerie. Guides, actualités et conseils d'achat.",
-      twitterTitle: 'Blog Horlogerie | Sauvage',
-      twitterDescription: "Découvrez nos articles sur les montres et l'horlogerie.",
-      articleFallbackTitle: 'Article - Sauvage',
-      articleTitleBlogSuffix: '| Blog Sauvage',
+      title: t({
+        fr: 'Blog Horlogerie | Articles sur les Montres | Sauvage',
+        en: 'Watchmaking Blog | Articles on Watches | Sauvage',
+        de: 'Uhrmacher-Blog | Artikel über Uhren | Sauvage',
+      }),
+      metaDescription: t({
+        fr: "Découvrez nos articles sur les montres et l'horlogerie. Guides, actualités, conseils d'achat et expertise sur les montres de luxe.",
+        en: 'Read our articles on watches and watchmaking: guides, news, buying advice and luxury watch expertise.',
+        de: 'Lesen Sie unsere Artikel über Uhren und Uhrmacherkunst: Ratgeber, Neuigkeiten, Kauftipps und Expertise zu Luxusuhren.',
+      }),
+      ogTitle: t({
+        fr: 'Blog Horlogerie | Articles sur les Montres | Sauvage',
+        en: 'Watchmaking Blog | Articles on Watches | Sauvage',
+        de: 'Uhrmacher-Blog | Artikel über Uhren | Sauvage',
+      }),
+      ogDescription: t({
+        fr: "Découvrez nos articles sur les montres et l'horlogerie. Guides, actualités et conseils d'achat.",
+        en: 'Read our articles on watches and watchmaking: guides, news and buying advice.',
+        de: 'Lesen Sie unsere Artikel über Uhren und Uhrmacherkunst: Ratgeber, Neuigkeiten und Kauftipps.',
+      }),
+      twitterTitle: t({
+        fr: 'Blog Horlogerie | Sauvage',
+        en: 'Watchmaking Blog | Sauvage',
+        de: 'Uhrmacher-Blog | Sauvage',
+      }),
+      twitterDescription: t({
+        fr: "Découvrez nos articles sur les montres et l'horlogerie.",
+        en: 'Read our articles on watches and watchmaking.',
+        de: 'Lesen Sie unsere Artikel über Uhren und Uhrmacherkunst.',
+      }),
+      articleFallbackTitle: t({
+        fr: 'Article - Sauvage',
+        en: 'Article - Sauvage',
+        de: 'Artikel - Sauvage',
+      }),
+      articleTitleBlogSuffix: t({
+        fr: '| Blog Sauvage',
+        en: '| Sauvage Blog',
+        de: '| Sauvage Blog',
+      }),
       structuredDataPublisherName: 'Sauvage',
     },
     collection: {
-      title: 'Collection de Montres de Luxe | Sauvage',
-      metaDescription:
-        'Découvrez notre collection complète de montres de luxe. Rolex, Breitling, Tag Heuer, Cartier et plus. Toutes nos montres sont garanties 1 an et authentifiées.',
-      ogTitle: 'Collection de Montres de Luxe | Sauvage',
-      ogDescription:
-        'Découvrez notre collection complète de montres de luxe garanties 1 an et authentifiées.',
-      twitterTitle: 'Collection de Montres de Luxe | Sauvage',
-      twitterDescription:
-        'Découvrez notre collection complète de montres de luxe garanties 1 an.',
+      title: t({
+        fr: 'Collection de Montres de Luxe | Sauvage',
+        en: 'Luxury Watch Collection | Sauvage',
+        de: 'Luxusuhren-Kollektion | Sauvage',
+      }),
+      metaDescription: t({
+        fr: 'Découvrez notre collection complète de montres de luxe. Rolex, Breitling, Tag Heuer, Cartier et plus. Toutes nos montres sont garanties 1 an et authentifiées.',
+        en: 'Browse our full collection of luxury watches. Rolex, Breitling, Tag Heuer, Cartier and more. Every watch is authenticated and carries a 1-year warranty.',
+        de: 'Entdecken Sie unsere gesamte Luxusuhren-Kollektion. Rolex, Breitling, Tag Heuer, Cartier und mehr. Alle Uhren sind authentifiziert und haben 1 Jahr Garantie.',
+      }),
+      ogTitle: t({
+        fr: 'Collection de Montres de Luxe | Sauvage',
+        en: 'Luxury Watch Collection | Sauvage',
+        de: 'Luxusuhren-Kollektion | Sauvage',
+      }),
+      ogDescription: t({
+        fr: 'Découvrez notre collection complète de montres de luxe garanties 1 an et authentifiées.',
+        en: 'Browse our full collection of authenticated luxury watches with a 1-year warranty.',
+        de: 'Entdecken Sie unsere gesamte Kollektion authentifizierter Luxusuhren mit 1 Jahr Garantie.',
+      }),
+      twitterTitle: t({
+        fr: 'Collection de Montres de Luxe | Sauvage',
+        en: 'Luxury Watch Collection | Sauvage',
+        de: 'Luxusuhren-Kollektion | Sauvage',
+      }),
+      twitterDescription: t({
+        fr: 'Découvrez notre collection complète de montres de luxe garanties 1 an.',
+        en: 'Browse our full collection of luxury watches with a 1-year warranty.',
+        de: 'Entdecken Sie unsere gesamte Luxusuhren-Kollektion mit 1 Jahr Garantie.',
+      }),
     },
     brandsIndex: {
-      h1: 'Toutes les marques',
-      title: 'Marques de montres de luxe | Sauvage',
-      metaDescription:
-        'Explorez les maisons horlogères présentes dans notre sélection et accédez à chaque collection : pièces authentifiées, garantie un an, expertise Sauvage.',
-      ogTitle: 'Marques | Sauvage',
-      ogDescription:
-        'Une sélection exigeante par marque : parcourez les collections et trouvez votre montre.',
-      twitterTitle: 'Marques | Sauvage',
-      twitterDescription:
-        'Les grandes maisons et nos collections — montres de luxe authentifiées.',
+      h1: t({
+        fr: 'Toutes les marques',
+        en: 'All brands',
+        de: 'Alle Marken',
+      }),
+      title: t({
+        fr: 'Marques de montres de luxe | Sauvage',
+        en: 'Luxury watch brands | Sauvage',
+        de: 'Luxusuhren-Marken | Sauvage',
+      }),
+      metaDescription: t({
+        fr: 'Explorez les maisons horlogères présentes dans notre sélection et accédez à chaque collection : pièces authentifiées, garantie un an, expertise Sauvage.',
+        en: 'Explore the watchmaking houses in our selection and browse each collection: authenticated pieces, one-year warranty, Sauvage expertise.',
+        de: 'Entdecken Sie die Uhrenmanufakturen unserer Auswahl und stöbern Sie in jeder Kollektion: authentifizierte Stücke, ein Jahr Garantie, Sauvage-Expertise.',
+      }),
+      ogTitle: t({
+        fr: 'Marques | Sauvage',
+        en: 'Brands | Sauvage',
+        de: 'Marken | Sauvage',
+      }),
+      ogDescription: t({
+        fr: 'Une sélection exigeante par marque : parcourez les collections et trouvez votre montre.',
+        en: 'A carefully curated selection by brand: browse the collections and find your watch.',
+        de: 'Eine sorgfältige Auswahl nach Marke: Durchstöbern Sie die Kollektionen und finden Sie Ihre Uhr.',
+      }),
+      twitterTitle: t({
+        fr: 'Marques | Sauvage',
+        en: 'Brands | Sauvage',
+        de: 'Marken | Sauvage',
+      }),
+      twitterDescription: t({
+        fr: 'Les grandes maisons et nos collections — montres de luxe authentifiées.',
+        en: 'The great houses and our collections — authenticated luxury watches.',
+        de: 'Die großen Manufakturen und unsere Kollektionen — authentifizierte Luxusuhren.',
+      }),
     },
     brandCollection: {
-      title: '{brand} | Collection | Sauvage',
-      metaDescription:
-        'Montres {brand} sélectionnées : filtres par public et budget. Pièces authentifiées et garanties.',
-      titleFallback: 'Collection par marque | Sauvage',
-      metaDescriptionFallback: 'Montres de luxe par marque — filtres par public et prix.',
+      title: t({
+        fr: '{brand} | Collection | Sauvage',
+        en: '{brand} | Collection | Sauvage',
+        de: '{brand} | Kollektion | Sauvage',
+      }),
+      metaDescription: t({
+        fr: 'Montres {brand} sélectionnées : filtres par public et budget. Pièces authentifiées et garanties.',
+        en: 'Selected {brand} watches: filter by audience and budget. Authenticated pieces under warranty.',
+        de: 'Ausgewählte {brand}-Uhren: Filter nach Zielgruppe und Budget. Authentifizierte Stücke mit Garantie.',
+      }),
+      titleFallback: t({
+        fr: 'Collection par marque | Sauvage',
+        en: 'Collection by brand | Sauvage',
+        de: 'Kollektion nach Marke | Sauvage',
+      }),
+      metaDescriptionFallback: t({
+        fr: 'Montres de luxe par marque — filtres par public et prix.',
+        en: 'Luxury watches by brand — filter by audience and price.',
+        de: 'Luxusuhren nach Marke — Filter nach Zielgruppe und Preis.',
+      }),
     },
     watchDetail: {
-      titleFallback: 'Montre - Sauvage',
+      titleFallback: t({
+        fr: 'Montre - Sauvage',
+        en: 'Watch - Sauvage',
+        de: 'Uhr - Sauvage',
+      }),
       titlePriceSuffix: ' | Sauvage',
-      descriptionFallback: 'Découvrez cette montre de luxe sur Sauvage',
+      descriptionFallback: t({
+        fr: 'Découvrez cette montre de luxe sur Sauvage',
+        en: 'Discover this luxury watch at Sauvage',
+        de: 'Entdecken Sie diese Luxusuhr bei Sauvage',
+      }),
       structuredDataSellerName: 'Sauvage',
     },
     faq: {
-      title: 'FAQ | Questions fréquentes | Sauvage',
-      metaDescription:
-        'Réponses aux questions les plus fréquentes sur Sauvage : recherche personnalisée, estimation gratuite, collection, garanties et services horlogers.',
-      ogTitle: 'FAQ | Sauvage Watches',
-      ogDescription:
-        'Estimation, recherche personnalisée, collection et garanties — retrouvez toutes les réponses à vos questions.',
-      twitterTitle: 'FAQ — Sauvage Watches',
-      twitterDescription:
-        'Questions fréquentes sur nos services de montres de luxe, estimation et collection garantie.',
+      title: t({
+        fr: 'FAQ | Questions fréquentes | Sauvage',
+        en: 'FAQ | Frequently asked questions | Sauvage',
+        de: 'FAQ | Häufige Fragen | Sauvage',
+      }),
+      metaDescription: t({
+        fr: 'Réponses aux questions les plus fréquentes sur Sauvage : recherche personnalisée, estimation gratuite, collection, garanties et services horlogers.',
+        en: 'Answers to the most common questions about Sauvage: personalised sourcing, free valuation, collection, warranties and watchmaking services.',
+        de: 'Antworten auf die häufigsten Fragen zu Sauvage: persönliche Suche, kostenlose Schätzung, Kollektion, Garantien und Uhrmacherleistungen.',
+      }),
+      ogTitle: t({
+        fr: 'FAQ | Sauvage Watches',
+        en: 'FAQ | Sauvage Watches',
+        de: 'FAQ | Sauvage Watches',
+      }),
+      ogDescription: t({
+        fr: 'Estimation, recherche personnalisée, collection et garanties — retrouvez toutes les réponses à vos questions.',
+        en: 'Valuation, personalised sourcing, collection and warranties — find all the answers here.',
+        de: 'Schätzung, persönliche Suche, Kollektion und Garantien — hier finden Sie alle Antworten.',
+      }),
+      twitterTitle: t({
+        fr: 'FAQ — Sauvage Watches',
+        en: 'FAQ — Sauvage Watches',
+        de: 'FAQ — Sauvage Watches',
+      }),
+      twitterDescription: t({
+        fr: 'Questions fréquentes sur nos services de montres de luxe, estimation et collection garantie.',
+        en: 'Frequently asked questions about our luxury watch services, valuation and warranted collection.',
+        de: 'Häufige Fragen zu unseren Luxusuhren-Leistungen, zur Schätzung und zur Kollektion mit Garantie.',
+      }),
     },
     aPropos: {
-      title: 'À propos de Sauvage - Votre partenaire de confiance pour les montres de luxe',
-      metaDescription:
-        'Découvrez Sauvage, une entreprise spécialisée dans le rachat et la vente de montres de luxe. Nous possédons directement notre stock, garantissant authenticité, qualité et disponibilité immédiate.',
-      ogTitle: 'À propos de Sauvage - Votre partenaire de confiance',
-      ogDescription:
-        'Découvrez Sauvage, une entreprise spécialisée dans le rachat et la vente de montres de luxe. Stock direct, authenticité garantie.',
-      twitterTitle: 'À propos de Sauvage',
-      twitterDescription:
-        'Découvrez Sauvage, votre partenaire de confiance pour les montres de luxe.',
+      title: t({
+        fr: 'À propos de Sauvage - Votre partenaire de confiance pour les montres de luxe',
+        en: 'About Sauvage - Your trusted partner for luxury watches',
+        de: 'Über Sauvage - Ihr vertrauensvoller Partner für Luxusuhren',
+      }),
+      metaDescription: t({
+        fr: 'Découvrez Sauvage, une entreprise spécialisée dans le rachat et la vente de montres de luxe. Nous possédons directement notre stock, garantissant authenticité, qualité et disponibilité immédiate.',
+        en: 'Discover Sauvage, a company specialising in buying and selling luxury watches. We own our stock outright, which guarantees authenticity, quality and immediate availability.',
+        de: 'Lernen Sie Sauvage kennen, ein Unternehmen für An- und Verkauf von Luxusuhren. Unser Bestand gehört uns selbst — das sichert Echtheit, Qualität und sofortige Verfügbarkeit.',
+      }),
+      ogTitle: t({
+        fr: 'À propos de Sauvage - Votre partenaire de confiance',
+        en: 'About Sauvage - Your trusted partner',
+        de: 'Über Sauvage - Ihr vertrauensvoller Partner',
+      }),
+      ogDescription: t({
+        fr: 'Découvrez Sauvage, une entreprise spécialisée dans le rachat et la vente de montres de luxe. Stock direct, authenticité garantie.',
+        en: 'Discover Sauvage, a company specialising in buying and selling luxury watches. Own stock, guaranteed authenticity.',
+        de: 'Lernen Sie Sauvage kennen, ein Unternehmen für An- und Verkauf von Luxusuhren. Eigener Bestand, garantierte Echtheit.',
+      }),
+      twitterTitle: t({
+        fr: 'À propos de Sauvage',
+        en: 'About Sauvage',
+        de: 'Über Sauvage',
+      }),
+      twitterDescription: t({
+        fr: 'Découvrez Sauvage, votre partenaire de confiance pour les montres de luxe.',
+        en: 'Discover Sauvage, your trusted partner for luxury watches.',
+        de: 'Lernen Sie Sauvage kennen, Ihren vertrauensvollen Partner für Luxusuhren.',
+      }),
     },
     politique: {
-      title: 'Politique de confidentialité | Sauvage Watches',
-      metaDescription:
-        'Politique de confidentialité de Sauvage Watches : traitements des données, cookies et analytics, formulaires, paiements Stripe, vos droits RGPD.',
-      ogTitle: 'Politique de confidentialité | Sauvage Watches',
-      ogDescription:
-        'Transparence sur le traitement des données : audience (Google Analytics), formulaires, paiement Stripe, exercice de vos droits.',
-      twitterTitle: 'Politique de confidentialité | Sauvage Watches',
-      twitterDescription:
-        'Traitement des données personnelles, cookies, vos droits et contact RGPD.',
+      title: t({
+        fr: 'Politique de confidentialité | Sauvage Watches',
+        en: 'Privacy policy | Sauvage Watches',
+        de: 'Datenschutzerklärung | Sauvage Watches',
+      }),
+      metaDescription: t({
+        fr: 'Politique de confidentialité de Sauvage Watches : traitements des données, cookies et analytics, formulaires, paiements Stripe, vos droits RGPD.',
+        en: 'Sauvage Watches privacy policy: data processing, cookies and analytics, forms, Stripe payments, your GDPR rights.',
+        de: 'Datenschutzerklärung von Sauvage Watches: Datenverarbeitung, Cookies und Analytics, Formulare, Stripe-Zahlungen, Ihre DSGVO-Rechte.',
+      }),
+      ogTitle: t({
+        fr: 'Politique de confidentialité | Sauvage Watches',
+        en: 'Privacy policy | Sauvage Watches',
+        de: 'Datenschutzerklärung | Sauvage Watches',
+      }),
+      ogDescription: t({
+        fr: 'Transparence sur le traitement des données : audience (Google Analytics), formulaires, paiement Stripe, exercice de vos droits.',
+        en: 'Transparency on data processing: audience measurement (Google Analytics), forms, Stripe payments, exercising your rights.',
+        de: 'Transparenz bei der Datenverarbeitung: Reichweitenmessung (Google Analytics), Formulare, Stripe-Zahlungen, Wahrnehmung Ihrer Rechte.',
+      }),
+      twitterTitle: t({
+        fr: 'Politique de confidentialité | Sauvage Watches',
+        en: 'Privacy policy | Sauvage Watches',
+        de: 'Datenschutzerklärung | Sauvage Watches',
+      }),
+      twitterDescription: t({
+        fr: 'Traitement des données personnelles, cookies, vos droits et contact RGPD.',
+        en: 'Personal data processing, cookies, your rights and GDPR contact.',
+        de: 'Verarbeitung personenbezogener Daten, Cookies, Ihre Rechte und DSGVO-Kontakt.',
+      }),
     },
     mentions: {
-      title: 'Mentions légales | Sauvage Watches',
-      metaDescription:
-        'Mentions légales du site Sauvage Watches : éditeur, hébergement, propriété intellectuelle, données personnelles.',
-      ogTitle: 'Mentions légales | Sauvage Watches',
-      ogDescription:
-        'Informations sur l’éditeur du site, l’hébergeur Vercel et le cadre applicable.',
-      twitterTitle: 'Mentions légales | Sauvage Watches',
-      twitterDescription: 'Éditeur, publication, hébergement et propriété intellectuelle.',
+      title: t({
+        fr: 'Mentions légales | Sauvage Watches',
+        en: 'Legal notice | Sauvage Watches',
+        de: 'Impressum | Sauvage Watches',
+      }),
+      metaDescription: t({
+        fr: 'Mentions légales du site Sauvage Watches : éditeur, hébergement, propriété intellectuelle, données personnelles.',
+        en: 'Legal notice for the Sauvage Watches site: publisher, hosting, intellectual property, personal data.',
+        de: 'Impressum der Website Sauvage Watches: Herausgeber, Hosting, geistiges Eigentum, personenbezogene Daten.',
+      }),
+      ogTitle: t({
+        fr: 'Mentions légales | Sauvage Watches',
+        en: 'Legal notice | Sauvage Watches',
+        de: 'Impressum | Sauvage Watches',
+      }),
+      ogDescription: t({
+        fr: 'Informations sur l’éditeur du site, l’hébergeur Vercel et le cadre applicable.',
+        en: 'Information about the site publisher, the host Vercel and the applicable framework.',
+        de: 'Angaben zum Herausgeber der Website, zum Hoster Vercel und zum geltenden Rahmen.',
+      }),
+      twitterTitle: t({
+        fr: 'Mentions légales | Sauvage Watches',
+        en: 'Legal notice | Sauvage Watches',
+        de: 'Impressum | Sauvage Watches',
+      }),
+      twitterDescription: t({
+        fr: 'Éditeur, publication, hébergement et propriété intellectuelle.',
+        en: 'Publisher, publication, hosting and intellectual property.',
+        de: 'Herausgeber, Veröffentlichung, Hosting und geistiges Eigentum.',
+      }),
     },
     cgu: {
-      title: 'Conditions générales d’utilisation | Sauvage Watches',
-      metaDescription:
-        'CGU du site Sauvage Watches : accès, services, commande et paiement, responsabilité, droit applicable.',
-      ogTitle: 'Conditions générales d’utilisation | Sauvage Watches',
-      ogDescription:
-        'Modalités d’utilisation du site, services proposés, propriété intellectuelle et contact.',
-      twitterTitle: 'Conditions générales d’utilisation | Sauvage Watches',
-      twitterDescription: 'Règles d’accès et d’usage du site Sauvage Watches.',
+      title: t({
+        fr: 'Conditions générales d’utilisation | Sauvage Watches',
+        en: 'Terms of use | Sauvage Watches',
+        de: 'Nutzungsbedingungen | Sauvage Watches',
+      }),
+      metaDescription: t({
+        fr: 'CGU du site Sauvage Watches : accès, services, commande et paiement, responsabilité, droit applicable.',
+        en: 'Sauvage Watches terms of use: access, services, ordering and payment, liability, governing law.',
+        de: 'Nutzungsbedingungen von Sauvage Watches: Zugang, Leistungen, Bestellung und Zahlung, Haftung, anwendbares Recht.',
+      }),
+      ogTitle: t({
+        fr: 'Conditions générales d’utilisation | Sauvage Watches',
+        en: 'Terms of use | Sauvage Watches',
+        de: 'Nutzungsbedingungen | Sauvage Watches',
+      }),
+      ogDescription: t({
+        fr: 'Modalités d’utilisation du site, services proposés, propriété intellectuelle et contact.',
+        en: 'Site usage terms, services offered, intellectual property and contact.',
+        de: 'Nutzungsmodalitäten der Website, angebotene Leistungen, geistiges Eigentum und Kontakt.',
+      }),
+      twitterTitle: t({
+        fr: 'Conditions générales d’utilisation | Sauvage Watches',
+        en: 'Terms of use | Sauvage Watches',
+        de: 'Nutzungsbedingungen | Sauvage Watches',
+      }),
+      twitterDescription: t({
+        fr: 'Règles d’accès et d’usage du site Sauvage Watches.',
+        en: 'Rules for accessing and using the Sauvage Watches site.',
+        de: 'Regeln für Zugang und Nutzung der Website Sauvage Watches.',
+      }),
     },
   },
 }

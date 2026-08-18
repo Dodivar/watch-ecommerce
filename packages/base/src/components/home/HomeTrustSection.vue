@@ -1,5 +1,6 @@
 <script setup>
 import { BadgeCheck, Globe, ShieldCheck, UserRound } from '@lucide/vue'
+import { t } from '@/i18n'
 </script>
 
 <template>
@@ -20,9 +21,9 @@ import { BadgeCheck, Globe, ShieldCheck, UserRound } from '@lucide/vue'
           >
             <UserRound class="h-8 w-8 text-white" :stroke-width="2" />
           </div>
-          <h3 class="text-lg font-semibold mb-2">Accompagnement personnalisé</h3>
+          <h3 class="text-lg font-semibold mb-2">{{ t('home.trustSupportTitle') }}</h3>
           <p class="text-gray-600">
-            Conseils, sourcing sur-mesure et suivi tout au long de votre projet d'achat ou de recherche de montre.
+            {{ t('home.trustSupportText') }}
           </p>
         </div>
         <div class="text-center p-6 rounded-md bg-white shadow-lg transition-colors">
@@ -31,9 +32,9 @@ import { BadgeCheck, Globe, ShieldCheck, UserRound } from '@lucide/vue'
           >
             <ShieldCheck class="h-8 w-8 text-white" :stroke-width="2" />
           </div>
-          <h3 class="text-lg font-semibold mb-2">Authenticité & sécurité</h3>
+          <h3 class="text-lg font-semibold mb-2">{{ t('home.trustAuthenticityTitle') }}</h3>
           <p class="text-gray-600">
-            Chaque montre est minutieusement vérifiée : authenticité certifiée, paiement sécurisé, transaction protégée.
+            {{ t('home.trustAuthenticityText') }}
           </p>
         </div>
         <div class="text-center p-6 rounded-md bg-white shadow-lg transition-colors">
@@ -42,9 +43,9 @@ import { BadgeCheck, Globe, ShieldCheck, UserRound } from '@lucide/vue'
           >
             <Globe class="h-8 w-8 text-white" :stroke-width="2" />
           </div>
-          <h3 class="text-lg font-semibold mb-2">Sourcing & réseau international</h3>
+          <h3 class="text-lg font-semibold mb-2">{{ t('home.trustNetworkTitle') }}</h3>
           <p class="text-gray-600">
-            Profitez de notre réseau français et européen pour accéder à des modèles rares, exclusifs ou au meilleur rapport qualité/prix.
+            {{ t('home.trustNetworkText') }}
           </p>
         </div>
         <div class="text-center p-6 rounded-md bg-white shadow-lg transition-colors">
@@ -53,9 +54,9 @@ import { BadgeCheck, Globe, ShieldCheck, UserRound } from '@lucide/vue'
           >
             <BadgeCheck class="h-8 w-8 text-white" :stroke-width="2" />
           </div>
-          <h3 class="text-lg font-semibold mb-2">Transparence & satisfaction</h3>
+          <h3 class="text-lg font-semibold mb-2">{{ t('home.trustTransparencyTitle') }}</h3>
           <p class="text-gray-600">
-            Processus limpide, aucune commission cachée, votre tranquillité est notre priorité.
+            {{ t('home.trustTransparencyText') }}
           </p>
         </div>
       </div>

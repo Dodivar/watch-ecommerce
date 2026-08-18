@@ -37,6 +37,27 @@ function listSiteIds() {
     .map((entry) => entry.name)
 }
 
+/**
+ * Helpers i18n du socle (ESM) chargés à la demande depuis ce module CommonJS.
+ * Mémoïsé : le registre charge tous les sites d'affilée.
+ * @type {Promise<{ localizeTree: Function, resolveI18nConfig: Function }> | null}
+ */
+let i18nHelpersPromise = null
+
+function loadI18nHelpers() {
+  if (!i18nHelpersPromise) {
+    const base = path.join(__dirname, '..', '..', 'packages', 'base', 'src', 'site')
+    i18nHelpersPromise = Promise.all([
+      import(pathToFileURL(path.join(base, 'i18nValue.js')).href),
+      import(pathToFileURL(path.join(base, 'resolveI18nConfig.js')).href),
+    ]).then(([i18nValue, i18nConfig]) => ({
+      localizeTree: i18nValue.localizeTree,
+      resolveI18nConfig: i18nConfig.resolveI18nConfig,
+    }))
+  }
+  return i18nHelpersPromise
+}
+
 async function loadSiteConfig(siteId) {
   const cfgPath = path.join(SITES_DIR, siteId, 'site.config.js')
   if (!fs.existsSync(cfgPath)) return null
@@ -44,7 +65,14 @@ async function loadSiteConfig(siteId) {
   if (!mod || !mod.default) {
     throw new Error(`sites/${siteId}/site.config.js doit exporter un objet par défaut`)
   }
-  return normalizeSiteConfig(mod.default)
+
+  // Le backend est monolingue : il travaille sur la langue par défaut du site. Sans cet
+  // aplatissement, un texte `t({ fr, en, de })` traverserait `normalizeSiteConfig` en objet
+  // (les libellés de livraison sont filtrés sur leur seule véracité) et finirait dans un
+  // e-mail ou un PDF. Le multilingue par commande viendra avec `orders.locale`.
+  const { localizeTree, resolveI18nConfig } = await loadI18nHelpers()
+  const { defaultLocale } = resolveI18nConfig(mod.default)
+  return normalizeSiteConfig(localizeTree(mod.default, defaultLocale, defaultLocale))
 }
 
 /**

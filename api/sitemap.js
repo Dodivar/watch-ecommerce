@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createClient } from '@supabase/supabase-js'
 
 import { buildSitemapStaticRoutes } from '../packages/base/src/site/buildSitemapStaticRoutes.js'
+import { withLocalePrefix } from '../packages/base/src/i18n/localePaths.js'
 import { slugifyBrand } from '../packages/base/src/utils/brandSlug.js'
 import { buildWatchSlug } from '../packages/base/src/utils/watchSlug.js'
 import { resolveSiteConfig } from '../packages/base/src/site/resolveSiteConfig.js'
@@ -138,20 +139,44 @@ export default async function handler(req, res) {
     }
 
     const staticRoutes = buildSitemapStaticRoutes(features, resolved)
+    // `resolveSiteConfig` expose déjà le bloc i18n normalisé.
+    const i18n = resolved.i18n
 
     // Générer le XML
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 `
 
-    // Ajouter les routes statiques
+    /**
+     * Les pages statiques existent dans chaque langue activée : une entrée par langue, chacune
+     * déclarant ses équivalents. Les fiches montre et les articles n'apparaissent qu'en langue
+     * par défaut — leur contenu vient de la base et n'est pas traduit (`i18n.untranslatedRoutes`).
+     */
+    const alternatesFor = (routePath) => {
+      if (!i18n.enabled) return ''
+      const links = i18n.locales
+        .map(
+          (code) =>
+            `    <xhtml:link rel="alternate" hreflang="${code}" href="${baseUrl}${withLocalePrefix(routePath || '/', code, i18n)}"/>`,
+        )
+        .join('\n')
+      const xDefault = `    <xhtml:link rel="alternate" hreflang="x-default" href="${baseUrl}${withLocalePrefix(routePath || '/', i18n.defaultLocale, i18n)}"/>`
+      return `\n${links}\n${xDefault}`
+    }
+
+    // Ajouter les routes statiques, dans chaque langue activée
     staticRoutes.forEach((route) => {
-      xml += `  <url>
-    <loc>${baseUrl}${route.path}</loc>
+      i18n.locales.forEach((code) => {
+        const localizedPath = withLocalePrefix(route.path || '/', code, i18n)
+        // `withLocalePrefix` rend « / » pour la racine ; le sitemap la veut sans slash final.
+        const loc = `${baseUrl}${localizedPath === '/' ? '' : localizedPath}`
+        xml += `  <url>
+    <loc>${loc}</loc>${alternatesFor(route.path)}
     <changefreq>${route.changefreq}</changefreq>
     <priority>${route.priority}</priority>
   </url>
 `
+      })
     })
 
     if (watches.length > 0) {

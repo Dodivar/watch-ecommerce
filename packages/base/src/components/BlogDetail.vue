@@ -4,7 +4,7 @@
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-10">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-        <p class="text-gray-600">Chargement de l'article...</p>
+        <p class="text-gray-600">{{ t('blog.loadingArticle') }}</p>
       </div>
 
       <!-- Error State -->
@@ -19,7 +19,7 @@
             />
           </svg>
         </div>
-        <h3 class="text-xl text-gray-900 mb-2">Erreur de chargement</h3>
+        <h3 class="text-xl text-gray-900 mb-2">{{ t('watch.loadError') }}</h3>
         <p class="text-gray-600 mb-4">{{ error }}</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <button
@@ -63,7 +63,7 @@
                 @click="shareOnFacebook"
                 class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-[#1877F2] hover:text-white transition-colors"
                 title="Partager sur Facebook"
-                aria-label="Partager sur Facebook"
+                :aria-label="t('watch.shareOnFacebook')"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -73,7 +73,7 @@
                 @click="shareOnTwitter"
                 class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-black hover:text-white transition-colors"
                 title="Partager sur X"
-                aria-label="Partager sur X"
+                :aria-label="t('watch.shareOnX')"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -83,7 +83,7 @@
                 @click="shareByEmail"
                 class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-gray-600 hover:text-white transition-colors"
                 title="Partager par email"
-                aria-label="Partager par email"
+                :aria-label="t('watch.shareByEmail')"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -93,7 +93,7 @@
                 @click="copyUrl"
                 class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-primary hover:text-white transition-colors relative"
                 :title="urlCopied ? 'URL copiée !' : 'Copier l\'URL'"
-                :aria-label="urlCopied ? 'URL copiée' : 'Copier l\'URL'"
+                :aria-label="urlCopied ? t('watch.urlCopied') : t('watch.copyUrl')"
               >
                 <svg v-if="!urlCopied" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -166,7 +166,7 @@
                   @click="shareOnFacebook"
                   class="flex items-center justify-center w-9 h-9 rounded-full bg-[#1877F2] text-white hover:bg-[#166FE5] transition-colors"
                   title="Partager sur Facebook"
-                  aria-label="Partager sur Facebook"
+                  :aria-label="t('watch.shareOnFacebook')"
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -176,7 +176,7 @@
                   @click="shareOnTwitter"
                   class="flex items-center justify-center w-9 h-9 rounded-full bg-black text-white hover:bg-gray-800 transition-colors"
                   title="Partager sur X"
-                  aria-label="Partager sur X"
+                  :aria-label="t('watch.shareOnX')"
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -186,7 +186,7 @@
                   @click="shareByEmail"
                   class="flex items-center justify-center w-9 h-9 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors"
                   title="Partager par email"
-                  aria-label="Partager par email"
+                  :aria-label="t('watch.shareByEmail')"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -196,7 +196,7 @@
                   @click="copyUrl"
                   class="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-primary-hover transition-colors relative"
                   :title="urlCopied ? 'URL copiée !' : 'Copier l\'URL'"
-                  :aria-label="urlCopied ? 'URL copiée' : 'Copier l\'URL'"
+                  :aria-label="urlCopied ? t('watch.urlCopied') : t('watch.copyUrl')"
                 >
                   <svg v-if="!urlCopied" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -208,7 +208,7 @@
               </div>
 
               <div v-if="article.categories && article.categories.length > 0" class="flex items-center gap-2 flex-wrap justify-end">
-                <span class="text-sm text-gray-600">Catégories :</span>
+                <span class="text-sm text-gray-600">{{ t('blog.categories') }}</span>
                 <span
                   v-for="cat in article.categories"
                   :key="cat"
@@ -236,6 +236,8 @@ import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { scrollAnimation } from '@/animation'
 import { BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { formatDate } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const route = useRoute()
 const seoBlog = getSiteConfig().seo.blog
@@ -268,17 +270,6 @@ const backText = computed(() => {
   }
   return 'Retour au blog'
 })
-
-// Methods
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
 
 // Share methods
 const shareOnFacebook = () => {
@@ -383,6 +374,14 @@ const pageDescription = computed(() => {
   return firstParagraph.substring(0, 160) || 'Article sur les montres et l\'horlogerie'
 })
 
+/**
+ * Canonique volontairement **sans préfixe de langue**.
+ *
+ * Le contenu de cette page vient de la base et n'est pas traduit : `/en/…` et `/de/…` ne font
+ * qu'habiller un texte resté français. Pointer la canonique vers la langue par défaut évite de
+ * mettre en concurrence des quasi-doublons ; `useLocaleHead()` n'émet pas non plus d'alternates
+ * `hreflang` sur ces routes (voir `i18n.untranslatedRoutes`).
+ */
 const canonicalUrl = computed(() => {
   return `${BASE_URL}/blog/${route.params.id}`
 })

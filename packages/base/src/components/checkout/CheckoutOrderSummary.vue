@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { Clock } from '@lucide/vue'
 import { CHECKOUT_FIELD_CLASS } from './checkoutFieldClasses.js'
+import { formatPrice as formatAmount } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const props = defineProps({
   orderLines: { type: Array, default: () => [] },
@@ -22,10 +24,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:promoInput', 'apply-promo', 'remove-promo'])
 
+/** Les montants du tunnel sont en centimes. */
 function formatPrice(cents) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
-    (cents || 0) / 100,
-  )
+  return formatAmount((cents || 0) / 100, { decimals: true })
 }
 
 const taxCents = computed(() => {
@@ -91,7 +92,7 @@ const shippingLabel = computed(() => {
       <input
         :value="promoInput"
         type="text"
-        placeholder="Code promo"
+        :placeholder="t('checkout.promoCode')"
         :class="[CHECKOUT_FIELD_CLASS, 'flex-1 min-w-0 text-sm uppercase']"
         @input="emit('update:promoInput', $event.target.value)"
       />
@@ -126,7 +127,7 @@ const shippingLabel = computed(() => {
 
     <div v-if="quote" class="border-t border-gray-200 pt-4 space-y-2 text-sm">
       <div class="flex justify-between text-gray-700">
-        <span>Sous-total</span>
+        <span>{{ t('cart.subtotal') }}</span>
         <span>{{ formatPrice(quote.subtotalCents) }}</span>
       </div>
       <div class="flex justify-between text-gray-700 gap-4">
@@ -142,11 +143,11 @@ const shippingLabel = computed(() => {
         v-if="quote.discountCents > 0"
         class="flex justify-between text-green-700"
       >
-        <span>Remise</span>
+        <span>{{ t('checkout.discount') }}</span>
         <span>-{{ formatPrice(quote.discountCents) }}</span>
       </div>
       <div class="flex justify-between items-baseline pt-2">
-        <span class="text-lg font-semibold text-gray-900">Total</span>
+        <span class="text-lg font-semibold text-gray-900">{{ t('checkout.total') }}</span>
         <span class="text-lg font-semibold text-gray-900">
           EUR {{ formatPrice(quote.totalCents) }}
         </span>

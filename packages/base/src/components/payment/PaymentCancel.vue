@@ -76,7 +76,7 @@
             <input
               v-model="adminWatchId"
               type="text"
-              placeholder="Entrez l'ID d'une montre (ex: uuid)"
+              :placeholder="t('payment.watchIdPlaceholder')"
               class="w-full px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
             />
           </div>
@@ -85,8 +85,8 @@
             :disabled="!adminWatchId || isLoadingWatch"
             class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
           >
-            <span v-if="isLoadingWatch">Chargement...</span>
-            <span v-else>Charger la montre</span>
+            <span v-if="isLoadingWatch">{{ t('common.loading') }}</span>
+            <span v-else>{{ t('payment.loadWatch') }}</span>
           </button>
           <button
             v-if="watch"
@@ -102,7 +102,7 @@
       </div>
 
       <!-- Cancel Message -->
-      <h1 class="text-3xl font-bold text-gray-900 mb-4">Paiement annulé</h1>
+      <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ t('payment.cancelTitle') }}</h1>
       <p class="text-lg text-gray-600 mb-6">
         Votre paiement a été annulé. Aucun montant n'a été débité.
       </p>
@@ -125,7 +125,7 @@
       <!-- Watch Image - Display -->
       <div v-else-if="watch && watch.images && watch.images.length > 0" class="mb-6">
         <div class="bg-white rounded-xl p-6 shadow-lg">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4 text-center">Votre montre</h2>
+          <h2 class="text-xl font-semibold text-gray-900 mb-4 text-center">{{ t('payment.yourWatch') }}</h2>
           <div class="flex flex-col sm:flex-row items-center gap-6">
             <!-- Image Container -->
             <div class="w-full sm:w-64 h-64 bg-white rounded-xl overflow-hidden shadow-xl flex-shrink-0">
@@ -144,13 +144,13 @@
               </p>
               <div class="space-y-2">
                 <p v-if="watch.brand" class="text-gray-700">
-                  <span class="font-semibold text-gray-900">Marque :</span> {{ watch.brand }}
+                  <span class="font-semibold text-gray-900">{{ t('payment.brandLabel') }}</span> {{ watch.brand }}
                 </p>
                 <p v-if="watch.model" class="text-gray-700">
-                  <span class="font-semibold text-gray-900">Modèle :</span> {{ watch.model }}
+                  <span class="font-semibold text-gray-900">{{ t('payment.modelLabel') }}</span> {{ watch.model }}
                 </p>
                 <p v-if="watch.price" class="text-lg font-bold text-primary mt-3">
-                  {{ new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(watch.price) }}
+                  {{ formatPrice(watch.price, { decimals: true }) }}
                 </p>
               </div>
             </div>
@@ -162,7 +162,7 @@
       <div v-else-if="watchError" class="mb-6">
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p class="text-sm text-yellow-800">
-            <strong>Note :</strong> Impossible de charger les détails de la montre. {{ watchError }}
+            <strong>{{ t('payment.noteLabel') }}</strong> Impossible de charger les détails de la montre. {{ watchError }}
           </p>
         </div>
       </div>
@@ -241,6 +241,8 @@ import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
 import { getWatchById } from '@/services/watchService'
+import { formatPrice } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const features = getSiteConfig().features
 const browsePath = getBrowsePath(features)

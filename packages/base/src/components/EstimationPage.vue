@@ -30,7 +30,7 @@
             <div class="grid md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-text-main mb-2" for="nickname"
-                  >Prénom *</label
+                  >{{ t('form.firstName') }} *</label
                 >
                 <input
                   name="nickname"
@@ -52,7 +52,7 @@
             <div class="grid md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-text-main mb-2" for="email"
-                  >Email *</label
+                  >{{ t('form.email') }} *</label
                 >
                 <input
                   name="email"
@@ -63,7 +63,7 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-text-main mb-2" for="tel"
-                  >Téléphone</label
+                  >{{ t('contactPreference.phone') }}</label
                 >
                 <input
                   name="tel"
@@ -74,7 +74,7 @@
             </div>
             <div class="w-full">
               <label class="block text-sm font-medium text-text-main mb-2"
-                >Comment souhaitez-vous être recontacté ?</label
+                >{{ t('contactPreference.question') }}</label
               >
               <div class="flex flex-col md:flex-row gap-4 w-full">
                 <label class="inline-flex items-center w-full">
@@ -84,7 +84,7 @@
                     name="contact_mode[]"
                     value="pas de préférence"
                   />
-                  <span class="ml-2">Pas de préférence</span>
+                  <span class="ml-2">{{ t('contactPreference.none') }}</span>
                 </label>
                 <label class="inline-flex items-center w-full">
                   <input
@@ -93,7 +93,7 @@
                     name="contact_mode[]"
                     value="email"
                   />
-                  <span class="ml-2">Email</span>
+                  <span class="ml-2">{{ t('contactPreference.email') }}</span>
                 </label>
                 <label class="inline-flex items-center w-full">
                   <input
@@ -102,7 +102,7 @@
                     name="contact_mode[]"
                     value="whatsapp"
                   />
-                  <span class="ml-2">WhatsApp</span>
+                  <span class="ml-2">{{ t('contactPreference.whatsapp') }}</span>
                 </label>
                 <label class="inline-flex items-center w-full">
                   <input
@@ -118,29 +118,29 @@
             <div class="grid md:grid-cols-3 gap-4">
               <div>
                 <label class="block text-sm font-medium text-text-main mb-2" for="brand"
-                  >Marque *</label
+                  >{{ t('valuation.brand') }} *</label
                 >
                 <input
                   name="brand"
                   type="text"
-                  placeholder="Ex: Rolex, Patek Philippe..."
+                  :placeholder="t('valuation.brandPlaceholder')"
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   required
                 />
               </div>
               <div>
                 <label class="block text-sm font-medium text-text-main mb-2" for="model"
-                  >Modèle</label
+                  >{{ t('valuation.model') }}</label
                 >
                 <input
                   name="model"
                   type="text"
-                  placeholder="Ex: Submariner, Nautilus..."
+                  :placeholder="t('valuation.modelPlaceholder')"
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-text-main mb-2" for="year">Année</label>
+                <label class="block text-sm font-medium text-text-main mb-2" for="year">{{ t('valuation.year') }}</label>
                 <input
                   name="year"
                   type="number"
@@ -158,7 +158,7 @@
                   class="block text-sm font-medium text-text-main mb-2"
                   title="Le numéro de série sera examiné pour garantir l'authenticité de la montre"
                   for="serienumber"
-                  >Numéro de série</label
+                  >{{ t('valuation.serialNumber') }}</label
                 >
                 <TooltipInfo
                   tooltip-text="Le numéro de série permet de garantir l'authenticité de la montre. Il se trouve généralement sur le boîtier ou les papiers d'origine."
@@ -172,38 +172,38 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-text-main mb-2" for="possession"
-                >État de possession *</label
+                >{{ t('valuation.ownershipStatus') }} *</label
               >
               <select
                 name="possession"
                 required
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
               >
-                <option value="Full set (boîte + papiers)">Full set (boîte + papiers)</option>
-                <option value="Papiers d'origine">Papiers d'origine</option>
-                <option value="Boîte d'origine">Boîte d'origine</option>
-                <option value="Montre seule">Montre seule</option>
+                <option value="Full set (boîte + papiers)">{{ t('valuation.fullSet') }}</option>
+                <option value="Papiers d'origine">{{ t('valuation.originalPapers') }}</option>
+                <option value="Boîte d'origine">{{ t('valuation.originalBox') }}</option>
+                <option value="Montre seule">{{ t('valuation.watchOnly') }}</option>
               </select>
             </div>
             <div>
               <label class="block text-sm font-medium text-text-main mb-2" for="etat"
-                >État général *</label
+                >{{ t('valuation.generalCondition') }} *</label
               >
               <select
                 name="etat"
                 required
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
               >
-                <option value="Neuf/jamais portée">Neuf/jamais portée</option>
-                <option value="Très bon état">Très bon état</option>
-                <option value="Bon état">Bon état</option>
-                <option value="Usage courant">Usage courant</option>
+                <option value="Neuf/jamais portée">{{ t('condition.newUnworn') }}</option>
+                <option value="Très bon état">{{ t('condition.veryGood') }}</option>
+                <option value="Bon état">{{ t('condition.good') }}</option>
+                <option value="Usage courant">{{ t('condition.everyday') }}</option>
               </select>
             </div>
             <div>
               <div class="flex items-center gap-2">
                 <label class="block text-sm font-medium text-text-main mb-2"
-                  >Photos de votre montre</label
+                  >{{ t('valuation.photos') }}</label
                 >
                 <TooltipInfo
                   tooltip-text="Ajoutez des photos nettes de la montre (face, dos, bracelet, papiers, boîte, etc.). Cela aide à une estimation plus précise."
@@ -234,26 +234,26 @@
                       stroke-linejoin="round"
                     />
                   </svg>
-                  <span class="text-primary font-medium">Cliquez pour ajouter des photos</span>
-                  <p class="text-gray-500 text-sm mt-1">PNG, JPG, PDF jusqu'à 10MB</p>
+                  <span class="text-primary font-medium">{{ t('valuation.addPhotos') }}</span>
+                  <p class="text-gray-500 text-sm mt-1">{{ t('valuation.fileHint') }}</p>
                 </label>
               </div>
               <div
                 class="w-full bg-green-50 border-l-4 border-primary text-primary font-semibold rounded-lg p-4 mt-4 text-center shadow-sm"
               >
-                Merci d'ajouter <span class="underline">une photo de la preuve d'achat</span> de la
+                Merci d'ajouter <span class="underline">{{ t('valuation.proofOfPurchase') }}</span> de la
                 montre (facture, reçu, etc.).
               </div>
               <div id="preview-attachments-container"></div>
             </div>
             <div>
               <label class="block text-sm font-medium text-text-main mb-2" for="message"
-                >Message (optionnel)</label
+                >{{ t('valuation.optionalMessage') }}</label
               >
               <textarea
                 name="message"
                 rows="4"
-                placeholder="Précisez si vous êtes le premier propriétaire de la montre, son histoire..."
+                :placeholder="t('valuation.messagePlaceholder')"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               ></textarea>
             </div>
@@ -281,7 +281,7 @@
   <section v-if="features.collection || features.recherche" class="py-10 bg-cream">
     <div class="max-w-6xl mx-auto px-4">
       <div class="text-center mb-8">
-        <h2 class="text-3xl font-bold text-text-main mb-3">Nos autres services</h2>
+        <h2 class="text-3xl font-bold text-text-main mb-3">{{ t('crossSell.otherServices') }}</h2>
         <p class="text-lg text-gray-600">
           Découvrez nos autres services spécialisés dans l'univers des montres
         </p>
@@ -303,7 +303,7 @@
               <path d="M12 8v4l2.5 2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             </div>
-            <h3 class="text-2xl font-bold text-text-main mb-3">Notre collection de montres</h3>
+            <h3 class="text-2xl font-bold text-text-main mb-3">{{ t('crossSell.ourCollection') }}</h3>
             <p class="text-gray-600 mb-4">
               Parcourez notre sélection de montres de prestige actuellement disponibles.
             </p>
@@ -330,7 +330,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <h3 class="text-2xl font-bold text-text-main mb-3">Recherche personnalisée de montre</h3>
+            <h3 class="text-2xl font-bold text-text-main mb-3">{{ t('crossSell.sourcing') }}</h3>
             <p class="text-gray-600 mb-4">
               Trouvez la montre de vos rêves grâce à notre service de recherche personnalisée. Notre équipe spécialisée vous aidera à trouver votre montre de rêve.
             </p>
@@ -363,6 +363,7 @@ import { createPreviewElement } from '@/services/imagePreviewService'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import TooltipInfo from './TooltipInfo.vue'
 import ContactCTA from './ContactCTA.vue'
+import { t } from '@/i18n'
 const router = useRouter()
 const features = getSiteConfig().features
 

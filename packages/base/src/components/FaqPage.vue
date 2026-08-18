@@ -8,7 +8,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useHead } from '@vueuse/head'
-import { BASE_URL } from '@/config'
+import { CANONICAL_BASE_URL } from '@/config'
 import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
 import { buildFaqStructuredData } from '@/site/buildFaqStructuredData.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -28,7 +28,7 @@ const fallbackDescription = computed(
     `Retrouvez les réponses aux questions les plus fréquentes sur ${brandDisplayName}.`,
 )
 
-const faqStructuredData = computed(() => buildFaqStructuredData(site, BASE_URL))
+const faqStructuredData = computed(() => buildFaqStructuredData(site, CANONICAL_BASE_URL))
 
 const pageTitle = computed(() => seo?.title ?? fallbackTitle.value)
 const pageDescription = computed(() => seo?.metaDescription ?? fallbackDescription.value)
@@ -43,13 +43,13 @@ useHead({
     { name: 'description', content: pageDescription },
     { property: 'og:title', content: ogTitle },
     { property: 'og:description', content: ogDescription },
-    { property: 'og:url', content: `${BASE_URL}/faq` },
+    { property: 'og:url', content: `${CANONICAL_BASE_URL}/faq` },
     { property: 'og:type', content: 'website' },
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:title', content: twitterTitle },
     { name: 'twitter:description', content: twitterDescription },
   ],
-  link: [{ rel: 'canonical', href: `${BASE_URL}/faq` }],
+  link: [{ rel: 'canonical', href: `${CANONICAL_BASE_URL}/faq` }],
 })
 </script>
 

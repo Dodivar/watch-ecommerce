@@ -151,7 +151,7 @@
 
 <script setup>
 import { useHead } from '@vueuse/head'
-import { BASE_URL, EMAIL_CONTACT, LEGAL_COMPANY_NAME, PURCHASE_ENABLED } from '@/config'
+import { EMAIL_CONTACT, LEGAL_COMPANY_NAME, PURCHASE_ENABLED, CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 
 const seo = getSiteConfig().seo.cgu
@@ -173,7 +173,7 @@ useHead({
     },
     {
       property: 'og:url',
-      content: `${BASE_URL}/conditions-generales-utilisation`,
+      content: `${CANONICAL_BASE_URL}/conditions-generales-utilisation`,
     },
     {
       property: 'og:type',
@@ -195,7 +195,7 @@ useHead({
   link: [
     {
       rel: 'canonical',
-      href: `${BASE_URL}/conditions-generales-utilisation`,
+      href: `${CANONICAL_BASE_URL}/conditions-generales-utilisation`,
     },
   ],
 })

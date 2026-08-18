@@ -12,6 +12,8 @@ import {
   buildWatchCardSrcSet,
   WATCH_CARD_IMAGE_SIZES,
 } from '@/utils/watchImageUrl.js'
+import { formatPrice as formatAmount } from '@/utils/formatters.js'
+import { t } from '@/i18n'
 
 const route = useRoute()
 const site = getSiteConfig()
@@ -42,10 +44,9 @@ const DISCOUNT_TYPE_LABELS = {
   free_shipping: 'Livraison offerte',
 }
 
+/** Les montants du tunnel sont en centimes. */
 function formatPrice(cents) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
-    (cents || 0) / 100,
-  )
+  return formatAmount((cents || 0) / 100, { decimals: true })
 }
 
 const hasDiscount = computed(() => !!discountInfo.value || discountCents.value > 0)
@@ -233,9 +234,9 @@ onMounted(async () => {
         v-else-if="error"
         class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8 text-center"
       >
-        <h1 class="text-2xl font-bold text-gray-900 mb-4">Confirmation indisponible</h1>
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ t('checkout.confirmationUnavailable') }}</h1>
         <p class="text-gray-600 mb-6">{{ error }}</p>
-        <router-link :to="browsePath" class="text-primary underline">Retour à la boutique</router-link>
+        <router-link :to="browsePath" class="text-primary underline">{{ t('checkout.backToShop') }}</router-link>
       </div>
 
       <template v-else>
@@ -243,7 +244,7 @@ onMounted(async () => {
           v-if="isPreview"
           class="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-left text-sm text-amber-800"
         >
-          <span class="font-semibold">Aperçu admin</span> — confirmation de commande
+          <span class="font-semibold">{{ t('checkout.adminPreview') }}</span> — confirmation de commande
           fictive avec une montre d'exemple. Aucune commande réelle n'a été passée.
         </div>
 
@@ -263,8 +264,8 @@ onMounted(async () => {
                 </svg>
               </div>
             </div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-3">Paiement réussi</h1>
-            <p class="text-lg text-gray-600 mb-1">Merci pour votre commande.</p>
+            <h1 class="text-3xl font-bold text-gray-900 mb-3">{{ t('checkout.paymentSuccessful') }}</h1>
+            <p class="text-lg text-gray-600 mb-1">{{ t('checkout.thankYou') }}</p>
             <p v-if="orderId" class="text-sm text-gray-400 mb-4">
               Commande <span class="font-medium text-gray-500">{{ orderId }}</span>
             </p>
@@ -299,7 +300,7 @@ onMounted(async () => {
 
           <!-- Colonne droite : reçu -->
           <div class="bg-white rounded-2xl shadow-lg p-6 lg:p-8">
-            <h2 class="text-lg font-semibold text-gray-900 mb-5">Votre commande</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-5">{{ t('checkout.yourOrder') }}</h2>
 
             <ul v-if="lines.length" class="space-y-4 mb-6">
               <li v-for="line in lines" :key="line.id" class="flex items-center gap-4">
@@ -347,7 +348,7 @@ onMounted(async () => {
 
             <div class="border-t border-gray-100 pt-4 space-y-2 text-sm">
               <div class="flex justify-between text-gray-600">
-                <span>Sous-total</span>
+                <span>{{ t('cart.subtotal') }}</span>
                 <span>{{ formatPrice(subtotalCents) }}</span>
               </div>
               <div class="flex justify-between text-gray-600">
@@ -366,7 +367,7 @@ onMounted(async () => {
               <div
                 class="flex justify-between items-center pt-3 mt-1 border-t border-gray-100 text-base font-semibold text-gray-900"
               >
-                <span>Total</span>
+                <span>{{ t('checkout.total') }}</span>
                 <span class="text-primary text-lg">{{ formatPrice(totalCents) }}</span>
               </div>
             </div>

@@ -1,5 +1,12 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { resolveTypography } from '../packages/base/src/site/resolveTypography.js'
 import { resolveVisual, getRadiusPreset } from '../packages/base/src/site/resolveVisual.js'
+import { localizeTree } from '../packages/base/src/site/i18nValue.js'
+import { resolveI18nConfig } from '../packages/base/src/site/resolveI18nConfig.js'
+import { OG_LOCALES } from '../packages/base/src/i18n/locales.js'
+import { localePrefix } from '../packages/base/src/i18n/localePaths.js'
 
 function escapeHtmlAttr(value) {
   return String(value)
@@ -75,6 +82,9 @@ function buildThemeCss(siteConfig) {
  * @param {Record<string, unknown>} siteConfig
  */
 export function siteFromConfigPlugin(siteConfig) {
+  /** Coquilles `index.html` par langue, calculées au transform et émises au bundle. */
+  let localizedShells = []
+
   const virtualId = '\0virtual:site-theme.css'
 
   return {
@@ -88,52 +98,103 @@ export function siteFromConfigPlugin(siteConfig) {
       }
     },
     transformIndexHtml(html) {
-      const ix = siteConfig.seo.indexHtml
-      const base = siteConfig.urls.production.replace(/\/$/, '')
-      const ogImagePath = ix.ogImagePath.startsWith('/') ? ix.ogImagePath : `/${ix.ogImagePath}`
-      const ogImageAbsolute = `${base}${ogImagePath}`
+      const i18n = resolveI18nConfig(siteConfig)
 
-      /** Match legacy index.html: canonical / og:url without trailing slash on bare domain */
-      const canonical = base
+      // Les coquilles des autres langues sont dérivées du même HTML — celui-ci porte déjà les
+      // balises <script>/<link> hachées injectées par Vite, et leurs URLs sont absolues.
+      localizedShells = i18n.enabled
+        ? i18n.locales
+            .filter((locale) => locale !== i18n.defaultLocale)
+            .map((locale) => ({
+              fileName: `${locale}/index.html`,
+              source: buildIndexHtml(html, siteConfig, locale),
+            }))
+        : []
 
-      const themeColor = siteConfig.theme?.colors?.browserChrome ?? '#ffffff'
-
-      const map = {
-        __SITE_LANG__: siteConfig.locale,
-        __THEME_COLOR__: escapeHtmlAttr(themeColor),
-        __APPLE_MOBILE_TITLE__: escapeHtmlAttr(ix.appleMobileWebAppTitle),
-        __INDEX_HTML_TITLE__: escapeHtmlAttr(ix.title),
-        __META_DESCRIPTION__: escapeHtmlAttr(ix.metaDescription),
-        __META_KEYWORDS__: escapeHtmlAttr(ix.keywords),
-        __META_AUTHOR__: escapeHtmlAttr(ix.author),
-        __CANONICAL_URL__: escapeHtmlAttr(canonical),
-        __OG_URL__: escapeHtmlAttr(canonical),
-        __OG_TITLE__: escapeHtmlAttr(ix.ogTitle),
-        __OG_DESCRIPTION__: escapeHtmlAttr(ix.ogDescription),
-        __OG_IMAGE__: escapeHtmlAttr(ogImageAbsolute),
-        __OG_LOCALE__: escapeHtmlAttr(ix.ogLocale),
-        __OG_SITE_NAME__: escapeHtmlAttr(ix.ogSiteName),
-        __TWITTER_CARD__: escapeHtmlAttr(ix.twitterCard),
-        __TWITTER_URL__: escapeHtmlAttr(canonical),
-        __TWITTER_TITLE__: escapeHtmlAttr(ix.twitterTitle ?? ix.ogTitle),
-        __TWITTER_DESCRIPTION__: escapeHtmlAttr(ix.twitterDescription ?? ix.ogDescription),
-        __TWITTER_IMAGE__: escapeHtmlAttr(ogImageAbsolute),
+      return buildIndexHtml(html, siteConfig, i18n.defaultLocale)
+    },
+    /**
+     * `writeBundle` et non `generateBundle` : `transformIndexHtml` est lui-même exécuté pendant
+     * la phase `generateBundle` de Vite, si bien que les coquilles ne sont pas encore calculées
+     * à ce moment-là.
+     */
+    writeBundle(options) {
+      const outDir = options.dir
+      if (!outDir) return
+      for (const shell of localizedShells) {
+        const target = path.join(outDir, shell.fileName)
+        fs.mkdirSync(path.dirname(target), { recursive: true })
+        fs.writeFileSync(target, shell.source, 'utf8')
       }
-
-      let out = html
-      for (const [token, value] of Object.entries(map)) {
-        out = out.split(token).join(value)
+      if (localizedShells.length > 0) {
+        console.log(`[site-from-config] ${localizedShells.length} coquille(s) de langue écrite(s).`)
       }
-
-      const radiusPreset = getRadiusPreset(siteConfig)
-      if (radiusPreset !== 'rounded') {
-        out = out.replace('<html', `<html data-ui-radius="${escapeHtmlAttr(radiusPreset)}"`)
-      }
-      if (siteConfig.theme?.colorScheme === 'dark') {
-        out = out.replace('<html', '<html data-ui-color-scheme="dark"')
-      }
-
-      return out
     },
   }
+}
+
+/**
+ * Applique le manifest — aplati dans `locale` — aux marqueurs `__…__` de `index.html`.
+ *
+ * @param {string} html
+ * @param {Record<string, unknown>} rawSiteConfig
+ * @param {string} locale
+ * @returns {string}
+ */
+export function buildIndexHtml(html, rawSiteConfig, locale) {
+  const i18n = resolveI18nConfig(rawSiteConfig)
+  // Sans cet aplatissement, un `t({ fr, en, de })` dans `seo.indexHtml` finirait en
+  // « [object Object] » dans la balise <title>.
+  const siteConfig = localizeTree(rawSiteConfig, locale, i18n.defaultLocale)
+
+  const ix = siteConfig.seo.indexHtml
+  const base = siteConfig.urls.production.replace(/\/$/, '')
+  const ogImagePath = ix.ogImagePath.startsWith('/') ? ix.ogImagePath : `/${ix.ogImagePath}`
+  const ogImageAbsolute = `${base}${ogImagePath}`
+
+  /**
+   * Match legacy index.html: canonical / og:url without trailing slash on bare domain.
+   * Les langues non par défaut sont servies sous `/en`, `/de` : la coquille doit pointer
+   * sur sa propre URL, pas sur celle de la version française.
+   */
+  const canonical = `${base}${localePrefix(locale, i18n)}`
+
+  const themeColor = siteConfig.theme?.colors?.browserChrome ?? '#ffffff'
+
+  const map = {
+    __SITE_LANG__: locale,
+    __THEME_COLOR__: escapeHtmlAttr(themeColor),
+    __APPLE_MOBILE_TITLE__: escapeHtmlAttr(ix.appleMobileWebAppTitle),
+    __INDEX_HTML_TITLE__: escapeHtmlAttr(ix.title),
+    __META_DESCRIPTION__: escapeHtmlAttr(ix.metaDescription),
+    __META_KEYWORDS__: escapeHtmlAttr(ix.keywords),
+    __META_AUTHOR__: escapeHtmlAttr(ix.author),
+    __CANONICAL_URL__: escapeHtmlAttr(canonical),
+    __OG_URL__: escapeHtmlAttr(canonical),
+    __OG_TITLE__: escapeHtmlAttr(ix.ogTitle),
+    __OG_DESCRIPTION__: escapeHtmlAttr(ix.ogDescription),
+    __OG_IMAGE__: escapeHtmlAttr(ogImageAbsolute),
+    __OG_LOCALE__: escapeHtmlAttr(OG_LOCALES[locale] ?? ix.ogLocale),
+    __OG_SITE_NAME__: escapeHtmlAttr(ix.ogSiteName),
+    __TWITTER_CARD__: escapeHtmlAttr(ix.twitterCard),
+    __TWITTER_URL__: escapeHtmlAttr(canonical),
+    __TWITTER_TITLE__: escapeHtmlAttr(ix.twitterTitle ?? ix.ogTitle),
+    __TWITTER_DESCRIPTION__: escapeHtmlAttr(ix.twitterDescription ?? ix.ogDescription),
+    __TWITTER_IMAGE__: escapeHtmlAttr(ogImageAbsolute),
+  }
+
+  let out = html
+  for (const [token, value] of Object.entries(map)) {
+    out = out.split(token).join(value)
+  }
+
+  const radiusPreset = getRadiusPreset(siteConfig)
+  if (radiusPreset !== 'rounded') {
+    out = out.replace('<html', `<html data-ui-radius="${escapeHtmlAttr(radiusPreset)}"`)
+  }
+  if (siteConfig.theme?.colorScheme === 'dark') {
+    out = out.replace('<html', '<html data-ui-color-scheme="dark"')
+  }
+
+  return out
 }

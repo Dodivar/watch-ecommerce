@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { scrollAnimation } from '@/animation'
-import { BASE_URL } from '@/config'
+import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { filterHomeSectionsByFeatures } from '@/site/homeSections.js'
 
@@ -61,7 +61,7 @@ useHead({
     },
     {
       property: 'og:url',
-      content: BASE_URL,
+      content: CANONICAL_BASE_URL,
     },
     {
       property: 'og:type',
@@ -83,7 +83,7 @@ useHead({
   link: [
     {
       rel: 'canonical',
-      href: BASE_URL,
+      href: CANONICAL_BASE_URL,
     },
   ],
 })
