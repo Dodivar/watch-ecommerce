@@ -1,4 +1,5 @@
 <script setup>
+import { t } from '@/i18n'
 import L from 'leaflet'
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
@@ -87,7 +88,7 @@ const resolvedAttribution = computed(
         class="text-primary underline"
         >OpenStreetMap</a
       >
-      — fond de carte selon la configuration du site.
+      {{ t('about.mapAttribution') }}
     </p>
   </div>
 </template>

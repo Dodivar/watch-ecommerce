@@ -1,4 +1,5 @@
 <script setup>
+import { t } from '@/i18n'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { checkMaintenancePassword, authenticate } from '@/services/maintenanceService'
@@ -51,25 +52,25 @@ const handleSubmit = async () => {
 
         <!-- Titre -->
         <h1 class="text-3xl md:text-4xl font-bold text-text-main mb-4">
-          Site en construction
+          {{ t('maintenance.title') }}
         </h1>
         <p class="text-xl text-gray-600 mb-8">
-          Nous travaillons actuellement sur notre site web.
+          {{ t('maintenance.workingOnIt') }}
           <br />
-          Revenez bientôt pour le découvrir !
+          {{ t('maintenance.comeBackSoon') }}
         </p>
 
         <!-- Formulaire de mot de passe -->
         <div class="bg-white rounded-md p-6 mb-6 shadow-lg">
           <h2 class="text-lg font-semibold text-text-main mb-4">
-            Accès réservé
+            {{ t('maintenance.restrictedAccess') }}
           </h2>
           <form @submit.prevent="handleSubmit" class="space-y-4">
             <div>
               <input
                 v-model="password"
                 type="password"
-                placeholder="Entrez le mot de passe"
+                :placeholder="t('maintenance.passwordPlaceholder')"
                 class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-primary focus:outline-none transition-colors text-text-main"
                 :disabled="isLoading"
                 required
@@ -84,7 +85,7 @@ const handleSubmit = async () => {
                 :disabled="isLoading"
               />
               <label for="remember" class="ml-2 text-sm text-gray-600">
-                Se souvenir de moi (rester connecté)
+                {{ t('maintenance.rememberMe') }}
               </label>
             </div>
             <div v-if="error" class="text-red-600 text-sm">
@@ -95,7 +96,7 @@ const handleSubmit = async () => {
               :disabled="isLoading"
               class="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span v-if="!isLoading">Accéder au site</span>
+              <span v-if="!isLoading">{{ t('maintenance.enterSite') }}</span>
               <span v-else class="flex items-center justify-center">
                 <svg
                   class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -117,7 +118,7 @@ const handleSubmit = async () => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Vérification...
+                {{ t('maintenance.checking') }}
               </span>
             </button>
           </form>
@@ -126,7 +127,7 @@ const handleSubmit = async () => {
         <!-- Informations de contact -->
         <div class="text-gray-600 text-sm">
           <p class="mb-2">
-            Pour toute question, contactez-nous :
+            {{ t('maintenance.anyQuestion') }}
           </p>
           <div class="flex justify-center items-center space-x-4">
             <a

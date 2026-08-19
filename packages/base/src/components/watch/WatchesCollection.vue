@@ -314,7 +314,7 @@
             <Clock class="w-16 h-16 mx-auto mb-3" :stroke-width="1" />
           </div>
           <h3 class="text-xl text-gray-600 mb-2">
-            {{ campaignLoadError ? 'Événement promotionnel indisponible' : 'Aucune montre trouvée' }}
+            {{ campaignLoadError ? t('collection.campaignUnavailable') : t('collection.noWatchFound') }}
           </h3>
           <p class="text-gray-500">
             {{
@@ -332,7 +332,7 @@
         >
           <h2 class="text-2xl font-semibold text-text-main mb-4">{{ t('collection.interestedInPiece') }}</h2>
           <p class="text-lg text-gray-600 mb-6 font-light">
-            Contactez-nous pour plus d'informations ou pour organiser une visite en main propre
+            {{ t('watch.contactInPerson') }}
           </p>
 
           <div class="flex flex-col sm:flex-row justify-center gap-4">
@@ -692,7 +692,7 @@ const singleBrandLabel = computed(() => {
   return null
 })
 
-const resolvedTitle = computed(() => singleBrandLabel.value || 'Marque')
+const resolvedTitle = computed(() => singleBrandLabel.value || t('collection.brandFallback'))
 
 const pageHeadingTitle = computed(() => {
   if (listing.campaignFilterLabel) return listing.campaignFilterLabel
@@ -882,7 +882,7 @@ const collectionHead = computed(() => {
   const shareUrl = shareQuery ? `${BASE_URL}${brandPath}?${shareQuery}` : `${BASE_URL}${brandPath}`
   const title = brand
     ? fillBrand(seoBrand.value.title || '{brand} | Collection', brand)
-    : seoBrand.value.titleFallback || 'Collection par marque'
+    : seoBrand.value.titleFallback || t('collection.brandCollectionFallback')
   const desc = brand
     ? fillBrand(
         seoBrand.value.metaDescription ||

@@ -1,4 +1,5 @@
 <script setup>
+import { t } from '@/i18n'
 /**
  * Hero « vitrine » : le discours à gauche, une pièce du catalogue posée dans un
  * panneau blanc à droite, comme une devanture.
@@ -103,13 +104,13 @@ onMounted(async () => {
         >
           <div class="flex items-baseline justify-between gap-4 border-b border-gray-200 pb-5">
             <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
-              Pièce en vitrine
+              {{ t('home.vitrineShowcase') }}
             </p>
             <p
               v-if="showPiece"
               class="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary"
             >
-              En stock
+              {{ t('home.vitrineInStock') }}
             </p>
           </div>
 

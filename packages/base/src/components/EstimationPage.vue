@@ -257,7 +257,7 @@
               ></textarea>
             </div>
             <p class="text-sm text-gray-600 mb-3 italic">
-              * Les champs marqués d'un astérisque sont obligatoires
+              {{ t('common.requiredFields') }}
             </p>
             <NewsletterOptInField class="mb-3" />
             <div v-if="errorMessage" class="text-red-500 text-sm mb-3">

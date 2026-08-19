@@ -6,6 +6,7 @@
 </template>
 
 <script setup>
+import { t } from '@/i18n'
 import { computed } from 'vue'
 import { useHead } from '@vueuse/head'
 import { CANONICAL_BASE_URL } from '@/config'
@@ -20,7 +21,7 @@ const faqConfig = site.faq || {}
 const seo = site.seo?.faq
 
 const fallbackTitle = computed(
-  () => `${faqConfig.heading || 'Questions fréquentes'} — ${brandDisplayName}`,
+  () => `${faqConfig.heading || t('faq.headingFallback')} — ${brandDisplayName}`,
 )
 const fallbackDescription = computed(
   () =>

@@ -17,7 +17,7 @@
           class="text-gray-600"
           aria-live="polite"
         >
-          {{ totalFiltered }} montre{{ totalFiltered > 1 ? 's' : '' }} trouvée{{ totalFiltered > 1 ? 's' : '' }}
+          {{ tc('collection.resultFoundCount', totalFiltered) }}
         </p>
       </div>
 
@@ -52,7 +52,7 @@
           class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
           @click="listing.loadWatches"
         >
-          Réessayer
+          {{ t('common.retry') }}
         </button>
       </div>
 
@@ -79,14 +79,14 @@
             to="/collection"
             class="inline-block px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
           >
-            Voir toute la collection
+            {{ t('collection.seeAll') }}
           </RouterLink>
           <RouterLink
             v-if="features.recherche"
             to="/recherche"
             class="inline-block px-6 py-2 border border-gray-300 text-text-main rounded-lg hover:bg-cream-100 transition-colors"
           >
-            Recherche personnalisée
+            {{ t('home.heroSourcingCta') }}
           </RouterLink>
         </div>
       </div>
@@ -234,7 +234,7 @@ import {
 } from '@/utils/collectionPagination.js'
 import { compareWatchesByRecent } from '@/utils/watchSort.js'
 import { navigateToWatch } from '@/utils/watchSlug.js'
-import { t } from '@/i18n'
+import { t, tc } from '@/i18n'
 
 defineOptions({ name: 'WatchSearchResultsPage' })
 

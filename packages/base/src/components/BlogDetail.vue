@@ -26,7 +26,7 @@
             @click="loadArticle"
             class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
           >
-            Réessayer
+            {{ t('common.retry') }}
           </button>
           <router-link
             :to="backLink"
@@ -62,7 +62,7 @@
               <button
                 @click="shareOnFacebook"
                 class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-[#1877F2] hover:text-white transition-colors"
-                title="Partager sur Facebook"
+                :title="t('blog.shareFacebook')"
                 :aria-label="t('watch.shareOnFacebook')"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -72,7 +72,7 @@
               <button
                 @click="shareOnTwitter"
                 class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-black hover:text-white transition-colors"
-                title="Partager sur X"
+                :title="t('blog.shareX')"
                 :aria-label="t('watch.shareOnX')"
               >
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,7 @@
               <button
                 @click="shareByEmail"
                 class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-gray-600 hover:text-white transition-colors"
-                title="Partager par email"
+                :title="t('blog.shareEmail')"
                 :aria-label="t('watch.shareByEmail')"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,7 +92,7 @@
               <button
                 @click="copyUrl"
                 class="flex items-center justify-center w-8 h-8 rounded-full bg-cream-100 text-gray-600 hover:bg-primary hover:text-white transition-colors relative"
-                :title="urlCopied ? 'URL copiée !' : 'Copier l\'URL'"
+                :title="urlCopied ? t('watch.urlCopied') : t('watch.copyUrl')"
                 :aria-label="urlCopied ? t('watch.urlCopied') : t('watch.copyUrl')"
               >
                 <svg v-if="!urlCopied" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -165,7 +165,7 @@
                 <button
                   @click="shareOnFacebook"
                   class="flex items-center justify-center w-9 h-9 rounded-full bg-[#1877F2] text-white hover:bg-[#166FE5] transition-colors"
-                  title="Partager sur Facebook"
+                  :title="t('blog.shareFacebook')"
                   :aria-label="t('watch.shareOnFacebook')"
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -175,7 +175,7 @@
                 <button
                   @click="shareOnTwitter"
                   class="flex items-center justify-center w-9 h-9 rounded-full bg-black text-white hover:bg-gray-800 transition-colors"
-                  title="Partager sur X"
+                  :title="t('blog.shareX')"
                   :aria-label="t('watch.shareOnX')"
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -185,7 +185,7 @@
                 <button
                   @click="shareByEmail"
                   class="flex items-center justify-center w-9 h-9 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors"
-                  title="Partager par email"
+                  :title="t('blog.shareEmail')"
                   :aria-label="t('watch.shareByEmail')"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -195,7 +195,7 @@
                 <button
                   @click="copyUrl"
                   class="flex items-center justify-center w-9 h-9 rounded-full bg-primary text-white hover:bg-primary-hover transition-colors relative"
-                  :title="urlCopied ? 'URL copiée !' : 'Copier l\'URL'"
+                  :title="urlCopied ? t('watch.urlCopied') : t('watch.copyUrl')"
                   :aria-label="urlCopied ? t('watch.urlCopied') : t('watch.copyUrl')"
                 >
                   <svg v-if="!urlCopied" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -289,7 +289,7 @@ const shareOnTwitter = () => {
 }
 
 const shareByEmail = () => {
-  const subject = encodeURIComponent(article.value?.title || 'Article intéressant')
+  const subject = encodeURIComponent(article.value?.title || t('blog.defaultShareSubject'))
   const body = encodeURIComponent(`Je vous partage cet article : ${article.value?.title || ''}\n\n${canonicalUrl.value}`)
   window.location.href = `mailto:?subject=${subject}&body=${body}`
 }
@@ -354,7 +354,7 @@ const loadArticle = async () => {
     }
   } catch (err) {
     console.error('Erreur lors du chargement de l\'article:', err)
-    error.value = err.message || 'Une erreur est survenue lors du chargement de l\'article'
+    error.value = err.message || t('blog.articleLoadError')
   } finally {
     isLoading.value = false
   }
@@ -367,11 +367,11 @@ const pageTitle = computed(() => {
 })
 
 const pageDescription = computed(() => {
-  if (!article.value) return 'Découvrez cet article sur les montres et l\'horlogerie'
+  if (!article.value) return t('blog.defaultDescription')
   // Extract first paragraph from markdown or use a default description
   const text = article.value.text || ''
   const firstParagraph = text.split('\n\n')[0]?.replace(/[#*]/g, '').trim() || ''
-  return firstParagraph.substring(0, 160) || 'Article sur les montres et l\'horlogerie'
+  return firstParagraph.substring(0, 160) || t('blog.defaultDescription')
 })
 
 /**

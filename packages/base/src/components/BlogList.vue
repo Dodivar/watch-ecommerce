@@ -5,7 +5,7 @@
       <div class="text-center mb-8">
         <h1 class="text-4xl font-bold text-text-main mb-3">{{ t('blog.title') }}</h1>
         <p class="text-xl text-gray-600 font-light max-w-3xl mx-auto">
-          Découvrez nos articles sur les montres et l'horlogerie
+          {{ t('blog.intro') }}
         </p>
       </div>
 
@@ -22,7 +22,7 @@
                   : 'bg-cream-100 text-gray-700 hover:bg-cream-200',
               ]"
             >
-              Toutes les catégories
+              {{ t('blog.allCategories') }}
             </button>
             <button
               v-for="category in categories"
@@ -69,7 +69,7 @@
           @click="loadArticles"
           class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
         >
-          Réessayer
+          {{ t('common.retry') }}
         </button>
       </div>
 
@@ -142,7 +142,7 @@
               : 'bg-white text-gray-700 hover:bg-cream-100 border border-gray-300',
           ]"
         >
-          Précédent
+          {{ t('blog.previous') }}
         </button>
 
         <div class="flex gap-2">
@@ -314,7 +314,7 @@ const loadArticles = async () => {
     totalPages.value = result.totalPages
   } catch (err) {
     console.error('Erreur lors du chargement des articles:', err)
-    error.value = err.message || 'Une erreur est survenue lors du chargement des articles'
+    error.value = err.message || t('blog.articlesLoadError')
   } finally {
     isLoading.value = false
   }

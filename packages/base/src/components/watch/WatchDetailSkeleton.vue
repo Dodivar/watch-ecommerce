@@ -40,7 +40,7 @@
       <!-- Key Features Skeleton (resale only) -->
       <div v-if="isResaleCatalog">
         <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-3">
-          Caractéristiques principales
+          {{ t('watch.mainFeatures') }}
         </h3>
         <div class="space-y-3">
           <div v-for="n in 4" :key="n" class="flex gap-4 py-2 border-b border-gray-100">
@@ -192,6 +192,7 @@
 </template>
 
 <script setup>
+import { t } from '@/i18n'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import {
   resolveWatchCatalogConfig,

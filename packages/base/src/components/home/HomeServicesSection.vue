@@ -17,7 +17,7 @@ const features = getSiteConfig().features
       <div class="text-center mb-10">
         <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">{{ t('home.servicesTitle') }}</h2>
         <p class="text-xl text-gray-600">
-          Une expertise complète pour répondre à tous vos besoins horlogers
+          {{ t('home.servicesSubtitle') }}
         </p>
       </div>
 

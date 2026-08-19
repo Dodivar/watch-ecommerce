@@ -444,7 +444,7 @@ onUnmounted(() => {
                 :disabled="isSubmitting || slotOptions.length === 0"
                 class="w-full inline-flex justify-center items-center px-6 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {{ isSubmitting ? 'Envoi en cours…' : 'Confirmer le rendez-vous' }}
+                {{ isSubmitting ? t('common.sending') : t('appointment.confirm') }}
               </button>
             </form>
           </template>

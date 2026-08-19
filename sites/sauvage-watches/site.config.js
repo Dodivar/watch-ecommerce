@@ -106,8 +106,12 @@ export default {
     directionsAddress: '32 Allée de la Robertsau, 67000 Strasbourg, France',
     /** Horaires boutique — affichés dans la popup prise de rendez-vous */
     openingHours: {
-      daysLabel: 'Lundi – samedi',
-      hoursLabel: 'Sur rendez-vous',
+      daysLabel: t({ fr: 'Lundi – samedi', en: 'Monday – Saturday', de: 'Montag – Samstag' }),
+      hoursLabel: t({
+        fr: 'Sur rendez-vous',
+        en: 'By appointment',
+        de: 'Nach Vereinbarung',
+      }),
     },
     /** Logo bulle carte — remplacer par un PNG horizontal dans `public/` si besoin */
     popupLogoSrc: '/web-app-manifest-512x512.png',
@@ -212,17 +216,33 @@ export default {
         {
           id: 'colissimo_insured',
           type: 'home',
-          label: 'Livraison assurée à domicile',
+          label: t({
+            fr: 'Livraison assurée à domicile',
+            en: 'Insured home delivery',
+            de: 'Versicherte Lieferung nach Hause',
+          }),
           countries: ['FR', 'MC', 'BE', 'CH', 'LU'],
           fee: { type: 'flat', amount: 0 },
-          estimatedDays: 'Sous 5 à 10 jours ouvrés après validation du paiement',
+          estimatedDays: t({
+            fr: 'Sous 5 à 10 jours ouvrés après validation du paiement',
+            en: 'Within 5 to 10 business days of payment confirmation',
+            de: 'Innerhalb von 5 bis 10 Werktagen nach Zahlungsbestätigung',
+          }),
         },
         {
           id: 'pickup_robertsau',
           type: 'pickup',
-          label: 'Retrait en boutique — Robertsau',
+          label: t({
+            fr: 'Retrait sur rendez-vous',
+            en: 'Collection by appointment',
+            de: 'Abholung nach Vereinbarung',
+          }),
           fee: { type: 'flat', amount: 0 },
-          estimatedDays: 'Prêt en boutique sous 48 h après validation du paiement',
+          estimatedDays: t({
+            fr: 'Disponible sous 48 h après validation du paiement, sur rendez-vous',
+            en: 'Ready within 48 h of payment confirmation, by appointment',
+            de: 'Innerhalb von 48 Std. nach Zahlungsbestätigung verfügbar, nach Vereinbarung',
+          }),
           pickupLocation: {
             name: 'Sauvage Watches',
             address: '32 Allée de la Robertsau, 67000 Strasbourg',
@@ -260,22 +280,50 @@ export default {
      */
     hero: {
       variant: 'vitrine',
-      eyebrow: 'Revendeur horloger — Strasbourg',
-      title: 'Des montres authentifiées, choisies une par une.',
-      subtitle:
-        'Nous achetons, vérifions et détenons nos montres. Chaque pièce est contrôlée, garantie un an et disponible immédiatement.',
-      primaryCta: { label: 'Voir les montres en stock', to: '/collection' },
-      secondaryCta: { label: 'Recherche personnalisée', to: '/recherche' },
+      eyebrow: t({
+        fr: 'Revendeur horloger — Strasbourg',
+        en: 'Watch dealer — Strasbourg',
+        de: 'Uhrenhändler — Straßburg',
+      }),
+      title: t({
+        fr: 'Des montres authentifiées, choisies une par une.',
+        en: 'Authenticated watches, chosen one by one.',
+        de: 'Authentifizierte Uhren, Stück für Stück ausgewählt.',
+      }),
+      subtitle: t({
+        fr: 'Nous achetons, vérifions et détenons nos montres. Chaque pièce est contrôlée, garantie un an et disponible immédiatement.',
+        en: 'We buy, check and hold our watches ourselves. Every piece is inspected, comes with a one-year warranty and is available immediately.',
+        de: 'Wir kaufen, prüfen und besitzen unsere Uhren selbst. Jedes Stück wird kontrolliert, hat ein Jahr Garantie und ist sofort verfügbar.',
+      }),
+      primaryCta: {
+        label: t({
+          fr: 'Voir les montres en stock',
+          en: 'See watches in stock',
+          de: 'Uhren auf Lager ansehen',
+        }),
+        to: '/collection',
+      },
+      secondaryCta: {
+        label: t({ fr: 'Recherche personnalisée', en: 'Watch sourcing', de: 'Uhrensuche' }),
+        to: '/recherche',
+      },
       /** Trois points de réassurance maximum : le variant `vitrine` leur associe une icône. */
       highlights: [
-        'Montre certifiée',
-        'Garantie un an sur chaque montre',
-        'Boutique à Strasbourg, sur rendez-vous',
+        t({ fr: 'Montre certifiée', en: 'Certified watch', de: 'Zertifizierte Uhr' }),
+        t({
+          fr: 'Garantie un an sur chaque montre',
+          en: 'One-year warranty on every watch',
+          de: 'Ein Jahr Garantie auf jede Uhr',
+        }),
+        t({
+          fr: 'Visite sur rendez-vous',
+          en: 'Viewings by appointment',
+          de: 'Besichtigung nach Vereinbarung',
+        }),
       ],
     },
     nouvelles: {
-      title: 'Nouvelles arrivées',
-      // subtitle: 'Découvrez nos dernières pièces ajoutées à notre sélection',
+      title: t({ fr: 'Nouvelles arrivées', en: 'New arrivals', de: 'Neuzugänge' }),
     },
     sections: ['hero', 'nouvelles', 'trust', 'ventes', 'suivezNous', 'services', 'faq'],
   },
@@ -334,7 +382,12 @@ export default {
         feature: 'about',
       },
       { type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' },
-      { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
+      {
+        type: 'link',
+        label: t({ fr: 'Contact', en: 'Contact', de: 'Kontakt' }),
+        to: '/contact',
+        feature: 'contact',
+      },
     ],
     footer: [
       {
@@ -367,7 +420,11 @@ export default {
         to: '/a-propos',
         feature: 'about',
       },
-      { label: 'Contact', to: '/contact', feature: 'contact' },
+      {
+        label: t({ fr: 'Contact', en: 'Contact', de: 'Kontakt' }),
+        to: '/contact',
+        feature: 'contact',
+      },
     ],
   },
 
@@ -411,7 +468,11 @@ export default {
   brandHero: {
     Oméga: {
       image: '/brands/omega/omega-brand.jpg',
-      alt: 'Bracelet à maillons d’argent Montre analogique ronde',
+      alt: t({
+      fr: 'Bracelet à maillons d’argent, montre analogique ronde',
+      en: 'Silver link bracelet, round analogue watch',
+      de: 'Silbernes Gliederarmband, runde Analoguhr',
+    }),
     },
   },
 

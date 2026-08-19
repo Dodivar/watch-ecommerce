@@ -128,7 +128,7 @@ const gridClass = computed(() => {
               </p>
 
               <p v-else-if="brands.length === 0" class="text-sm text-gray-500">
-                Aucune marque disponible pour le moment.
+                {{ t('watch.noBrandsAvailable') }}
               </p>
 
               <div

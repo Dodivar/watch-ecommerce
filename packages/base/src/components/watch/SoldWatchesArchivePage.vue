@@ -1,4 +1,5 @@
 <script setup>
+import { t } from '@/i18n'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
@@ -23,7 +24,7 @@ const watches = ref([])
 const isLoading = ref(true)
 const error = ref(null)
 
-const heading = computed(() => seoSoldArchive.value.h1 || 'Nos dernières ventes')
+const heading = computed(() => seoSoldArchive.value.h1 || t('watch.soldArchiveHeading'))
 
 const defaultTitle = computed(() => {
   const site = siteConfig.brand?.displayName || 'Montres'
@@ -71,16 +72,14 @@ onMounted(async () => {
       <header class="mb-8 max-w-3xl">
         <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">{{ heading }}</h1>
         <p class="text-gray-600 text-base sm:text-lg">
-          Ces montres ont trouvé preneur. Chaque fiche reste consultable à titre
-          d'archive — et si un modèle vous fait de l'œil, nous pouvons rechercher le
-          même pour vous.
+          {{ t('watch.soldArchiveIntro') }}
         </p>
         <router-link
           v-if="rechercheEnabled"
           to="/recherche"
           class="mt-5 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
         >
-          Lancer une recherche personnalisée
+          {{ t('watch.startSourcing') }}
         </router-link>
       </header>
 
@@ -90,13 +89,13 @@ onMounted(async () => {
         v-if="isLoading"
         class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6"
         aria-busy="true"
-        aria-label="Chargement des montres vendues"
+        :aria-label="t('watch.soldArchiveLoading')"
       >
         <WatchCardSkeleton v-for="n in 8" :key="n" />
       </div>
 
       <p v-else-if="!error && watches.length === 0" class="text-gray-600">
-        Aucune vente à afficher pour le moment.
+        {{ t('watch.soldArchiveEmpty') }}
       </p>
 
       <div

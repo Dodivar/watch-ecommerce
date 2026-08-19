@@ -1,4 +1,5 @@
 <script setup>
+import { t } from '@/i18n'
 import { computed } from 'vue'
 
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -36,12 +37,12 @@ const variantComponent = computed(
             Horlogerie d'exception
           </p>
           <h1 class="mb-4 text-4xl font-bold leading-tight text-text-main sm:text-5xl lg:text-6xl">
-            Découvrez nos
+            {{ t('home.heroTitleLead') }}
             <span class="text-primary">montres disponibles</span>
-            dès maintenant
+            {{ t('home.heroTitleTail') }}
           </h1>
           <p class="mb-8 text-lg leading-relaxed text-gray-600 sm:text-xl">
-            Consultez notre sélection de montres en stock garanties 1 an.
+            {{ t('home.heroSubtitle') }}
           </p>
           <div class="flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start">
             <RouterLink
@@ -49,14 +50,14 @@ const variantComponent = computed(
               to="/collection"
               class="inline-flex cursor-pointer items-center justify-center rounded-lg bg-primary px-8 py-4 text-lg font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-primary-hover"
             >
-              Voir les montres en stock
+              {{ t('home.heroStockCta') }}
             </RouterLink>
             <RouterLink
               v-if="features.recherche"
               to="/recherche"
               class="inline-flex cursor-pointer items-center justify-center rounded-lg border-2 border-primary px-8 py-4 text-lg font-semibold text-primary shadow transition-colors duration-200 hover:bg-cream-100"
             >
-              Recherche personnalisée
+              {{ t('home.heroSourcingCta') }}
             </RouterLink>
           </div>
         </div>

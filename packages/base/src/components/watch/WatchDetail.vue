@@ -13,7 +13,7 @@
           </div>
             <h3 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">{{ t('watch.unavailable') }}</h3>
             <p class="text-base lg:text-lg text-gray-600 mb-6">
-            Cette pièce n'est plus en stock ou n'est plus disponible dans notre sélection.
+            {{ t('watch.unavailableText') }}
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <router-link
@@ -21,13 +21,13 @@
               class="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors inline-flex items-center justify-center"
             >
               <ArrowLeft class="w-5 h-5 mr-2" :stroke-width="2" />
-              Voir notre collection
+              {{ t('watch.seeOurCollection') }}
             </router-link>
             <router-link
               to="/"
               class="px-6 py-3 bg-cream-200 text-gray-700 rounded-lg font-semibold hover:bg-cream-200 transition-colors inline-flex items-center justify-center"
             >
-              Retour à l'accueil
+              {{ t('watch.backHome') }}
             </router-link>
           </div>
         </div>
@@ -41,7 +41,7 @@
             @click="loadWatch({ force: true })"
             class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
           >
-            Réessayer
+            {{ t('common.retry') }}
           </button>
         </div>
       </div>
@@ -216,7 +216,7 @@
                   v-if="isOutOfStock"
                   class="ml-4 px-3 py-1 text-sm font-semibold rounded-full bg-orange-100 text-orange-800 whitespace-nowrap"
                 >
-                  Hors stock
+                  {{ t('watch.outOfStock') }}
                 </span>
                 <span
                   v-if="watchItem.isSold"
@@ -226,7 +226,9 @@
                 </span>
               </div>
             </div>
-            <p v-if="catalogDisplay.showReference && hasValue(watchItem.reference)" class="text-base lg:text-lg text-gray-600 mb-3">Réf. {{ watchItem.reference }}</p>
+            <p v-if="catalogDisplay.showReference && hasValue(watchItem.reference)" class="text-base lg:text-lg text-gray-600 mb-3">
+              {{ t('watch.referenceShort', { reference: watchItem.reference }) }}
+            </p>
             <div class="mb-4">
               <div
                 v-if="watchItem.isOnPromotion"
@@ -288,11 +290,10 @@
               class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
             >
               <p class="text-base font-semibold text-gray-900 mb-1">
-                Cette montre a trouvé preneur
+                {{ t('watch.soldTitle') }}
               </p>
               <p class="text-sm text-gray-600 mb-4">
-                Sa fiche reste consultable à titre d'archive. Vous cherchez un modèle
-                identique ou similaire ? Nous pouvons le trouver pour vous.
+                {{ t('watch.soldText') }}
               </p>
               <div class="flex flex-col sm:flex-row gap-3">
                 <router-link
@@ -300,13 +301,13 @@
                   to="/recherche"
                   class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
                 >
-                  Lancer une recherche personnalisée
+                  {{ t('watch.startSourcing') }}
                 </router-link>
                 <router-link
                   :to="browsePath"
                   class="inline-flex items-center justify-center px-6 py-3 border border-primary/30 text-base font-medium rounded-lg text-primary bg-white hover:bg-primary/5 transition-colors duration-200"
                 >
-                  Voir la collection
+                  {{ t('watch.seeCollection') }}
                 </router-link>
               </div>
             </div>
@@ -318,7 +319,7 @@
                 disabled
                 class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-gray-500 bg-gray-100 cursor-not-allowed mb-3"
               >
-                Hors stock
+                {{ t('watch.outOfStock') }}
               </button>
             </div>
 
@@ -330,7 +331,7 @@
               class="w-full inline-flex items-center justify-center px-6 py-3 border border-primary/30 text-base font-medium rounded-lg text-primary bg-white hover:bg-primary/5 transition-colors duration-200"
             >
               <Calendar class="w-5 h-5 mr-2 shrink-0" :stroke-width="2" />
-              Prendre rendez-vous
+              {{ t('appointment.book') }}
             </button>
           </div>
 
@@ -380,7 +381,7 @@
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               ]"
             >
-              Détails
+              {{ t('watch.detailsTab') }}
             </button>
             <button
               v-if="watchGuarantees.items.length > 0"
@@ -620,7 +621,7 @@
             </button>
           </div>
           <div v-else class="text-gray-500 italic">
-            Aucune description disponible.
+            {{ t('watch.noDescription') }}
           </div>
         </div>
       </div>
@@ -630,7 +631,7 @@
         <div class="text-center mb-6">
           <h2 class="text-xl lg:text-3xl font-bold mb-3 text-gray-900">{{ t('watch.questionAbout') }}</h2>
           <p class="text-base lg:text-lg text-gray-600">
-            Contactez-nous par WhatsApp ou email pour plus d'informations
+            {{ t('watch.contactForInfo') }}
           </p>
         </div>
         <div class="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
@@ -641,7 +642,11 @@
                   WHATSAPP_NUMBER +
                   '?text=' +
                   encodeURIComponent(
-                    `Bonjour, je suis intéressé par la montre ${watchItem.name}${catalogDisplay.showReference && watchItem.reference ? ` (Réf. ${watchItem.reference})` : ''} au prix de ${formatPrice(watchItem.effectivePrice ?? watchItem.price)}`,
+                    t('watch.whatsappInterest', {
+                      name: watchItem.name,
+                      reference: watchReferenceSuffix,
+                      price: formatPrice(watchItem.effectivePrice ?? watchItem.price),
+                    }),
                   )
                 : '#'
             "
@@ -661,10 +666,14 @@
                 ? 'mailto:' +
                   EMAIL_CONTACT +
                   '?subject=' +
-                  encodeURIComponent(`Demande d'information - ${watchItem.name}`) +
+                  encodeURIComponent(t('watch.emailInterestSubject', { name: watchItem.name })) +
                   '&body=' +
                   encodeURIComponent(
-                    `Bonjour,\n\nJe souhaiterais avoir plus d'informations concernant la montre ${watchItem.name}${catalogDisplay.showReference && watchItem.reference ? ` (Réf. ${watchItem.reference})` : ''} proposée au prix de ${formatPrice(watchItem.effectivePrice ?? watchItem.price)}.\n\nCordialement`,
+                    t('watch.emailInterestBody', {
+                      name: watchItem.name,
+                      reference: watchReferenceSuffix,
+                      price: formatPrice(watchItem.effectivePrice ?? watchItem.price),
+                    }),
                   )
                 : '#'
             "
@@ -835,6 +844,16 @@ const siteCopy = site.copy
 const seoWatch = site.seo.watchDetail
 const browsePath = getBrowsePath(site.features)
 const catalogDisplay = site.watchCatalog.display
+
+/**
+ * Suffixe de reference a accoler au nom de la montre dans les messages pre-remplis, ou ''.
+ * Traduit comme le reste : un message parti d'une page `/de` reste en allemand.
+ */
+const watchReferenceSuffix = computed(() =>
+  catalogDisplay.showReference && watchItem.value?.reference
+    ? ` (${t('watch.referenceShort', { reference: watchItem.value.reference })})`
+    : '',
+)
 const isResaleCatalog = site.watchCatalog.isResale
 const appointmentEnabled = site.watchCatalog.appointmentEnabled
 /** Fiches des montres vendues consultables par le public (archive des ventes). */
@@ -1042,7 +1061,7 @@ const loadWatch = async ({ force = false } = {}) => {
       isUnavailable.value = true
       error.value = 'Cette montre n\'est plus disponible'
     } else {
-      error.value = err.message || 'Une erreur est survenue lors du chargement de la montre'
+      error.value = err.message || t('watch.loadErrorFallback')
     }
   } finally {
     isLoading.value = false
@@ -1286,7 +1305,7 @@ const handleAddToCart = () => {
     imageUrl: watchItem.value.images?.[0] ?? null,
   })
   if (!result.ok) {
-    alert(result.reason || 'Impossible d’ajouter au panier')
+    alert(result.reason || t('watch.addToCartFailed'))
     return
   }
   openCartDrawer()
@@ -1336,7 +1355,7 @@ const breadcrumbStructuredData = computed(() => {
   if (brand) {
     crumbs.push({ name: brand, path: buildBrandCollectionPath(brand) })
   }
-  crumbs.push({ name: watchItem.value.name || 'Montre', path: buildWatchPath(watchItem.value) })
+  crumbs.push({ name: watchItem.value.name || t('watch.watchFallback'), path: buildWatchPath(watchItem.value) })
   return buildBreadcrumbStructuredData(BASE_URL, crumbs)
 })
 
@@ -1519,12 +1538,15 @@ const shareOnTwitter = () => {
 
 const shareByEmail = () => {
   if (!watchItem.value) return
-  const subject = encodeURIComponent(`Découvrez cette montre : ${watchItem.value.name}`)
-  const refPart =
-    catalogDisplay.showReference && watchItem.value.reference
-      ? ` (Réf. ${watchItem.value.reference})`
-      : ''
-  const body = encodeURIComponent(`Je vous partage cette montre : ${watchItem.value.name}${refPart}\n\nPrix : ${formatPrice(displayPrice.value)}\n\n${canonicalUrl.value}`)
+  const subject = encodeURIComponent(t('watch.shareEmailSubject', { name: watchItem.value.name }))
+  const body = encodeURIComponent(
+    t('watch.shareEmailBody', {
+      name: watchItem.value.name,
+      reference: watchReferenceSuffix.value,
+      price: formatPrice(displayPrice.value),
+      url: canonicalUrl.value,
+    }),
+  )
   window.location.href = `mailto:?subject=${subject}&body=${body}`
   closeShareLightbox()
 }

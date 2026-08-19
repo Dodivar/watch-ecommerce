@@ -3,7 +3,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-3">
         <h2 class="text-3xl lg:text-4xl font-bold text-text-main">
-          Dernières transactions
+          {{ t('carousel.recentSalesTitle') }}
         </h2>
         <p class="text-xl text-gray-600">{{ t('carousel.recentlySold') }}</p>
       </div>

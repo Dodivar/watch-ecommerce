@@ -26,7 +26,7 @@
         v-else-if="listing.availableBrands.length === 0"
         class="text-center py-16 text-gray-600"
       >
-        Aucune marque disponible pour le moment.
+        {{ t('watch.noBrandsAvailable') }}
       </div>
 
       <div
@@ -79,6 +79,7 @@
 </template>
 
 <script setup>
+import { t } from '@/i18n'
 import { computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useHead } from '@vueuse/head'
@@ -98,7 +99,7 @@ const siteConfig = getSiteConfig()
 const seoBrands = computed(() => siteConfig.seo?.brandsIndex ?? {})
 
 const heading = computed(
-  () => seoBrands.value.h1 || 'Toutes les marques',
+  () => seoBrands.value.h1 || t('watch.allBrands'),
 )
 
 function tileSrc(brandName) {

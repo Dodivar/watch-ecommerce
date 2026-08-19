@@ -104,7 +104,7 @@
       <!-- Success Message -->
       <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ t('payment.successTitle') }}</h1>
       <p class="text-lg text-gray-600 mb-6">
-        Merci pour votre achat. Votre commande a été confirmée avec succès.
+        {{ t('payment.successText') }}
       </p>
 
       <!-- Watch Image - Loading State -->
@@ -125,7 +125,7 @@
       <!-- Watch Image - Display -->
       <div v-else-if="displayWatches.length > 0" class="mb-6 space-y-6">
         <h2 v-if="displayWatches.length > 1" class="text-xl font-semibold text-gray-900 text-center mb-2">
-          Vos montres
+          {{ t('payment.yourWatches') }}
         </h2>
         <div
           v-for="w in displayWatches"
@@ -147,7 +147,7 @@
             <div class="flex-1 text-left w-full">
               <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ w.name }}</h3>
               <p v-if="w.reference" class="text-lg font-semibold text-primary mb-3">
-                Réf. {{ w.reference }}
+                {{ t('watch.referenceShort', { reference: w.reference }) }}
               </p>
               <div class="space-y-2">
                 <p v-if="w.brand" class="text-gray-700">
@@ -169,7 +169,7 @@
       <div v-else-if="watchError" class="mb-6">
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p class="text-sm text-yellow-800">
-            <strong>{{ t('payment.noteLabel') }}</strong> Impossible de charger les détails de la montre. Les informations de commande restent valides.
+            <strong>{{ t('payment.noteLabel') }}</strong> {{ t('payment.watchLoadError') }}
           </p>
         </div>
       </div>
@@ -185,7 +185,9 @@
           >
             <span class="text-gray-600 block mb-1">{{ t('payment.watchLabel') }}</span>
             <span class="font-semibold text-lg text-gray-900">{{ w.name }}</span>
-            <p v-if="w.reference" class="text-sm text-gray-600 mt-1">Réf. {{ w.reference }}</p>
+            <p v-if="w.reference" class="text-sm text-gray-600 mt-1">
+              {{ t('watch.referenceShort', { reference: w.reference }) }}
+            </p>
           </div>
           <div v-if="sessionId" class="flex justify-between pt-2">
             <span class="text-gray-600">{{ t('payment.reference') }}</span>
@@ -197,8 +199,7 @@
       <!-- Information -->
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <p class="text-sm text-blue-800">
-          <strong>{{ t('payment.nextSteps') }}</strong> Vous recevrez un email de confirmation avec tous les
-          détails de votre commande. Notre équipe finalisera sous peu la livraison.
+          <strong>{{ t('payment.nextSteps') }}</strong> {{ t('payment.confirmationEmail') }}
         </p>
       </div>
 
@@ -217,13 +218,13 @@
               d="M12 6v6m0 0v6m0-6h6m-6 0H6"
             />
           </svg>
-          Voir notre collection
+          {{ t('watch.seeOurCollection') }}
         </router-link>
         <router-link
           to="/"
           class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-cream transition-colors duration-200"
         >
-          Retour à l'accueil
+          {{ t('watch.backHome') }}
         </router-link>
       </div>
     </div>
@@ -288,7 +289,7 @@ onMounted(async () => {
     try {
       const v = await verifyPaymentSession(sessionId.value, null, null)
       if (!v.valid || !Array.isArray(v.watchIds) || v.watchIds.length === 0) {
-        watchError.value = v.reason || 'Session invalide'
+        watchError.value = v.reason || t('payment.invalidSession')
         return
       }
       const list = []
@@ -306,7 +307,7 @@ onMounted(async () => {
       }
     } catch (e) {
       console.error(e)
-      watchError.value = e.message || 'Erreur lors du chargement'
+      watchError.value = e.message || t('common.loadError')
     } finally {
       isLoadingWatch.value = false
     }
@@ -325,7 +326,7 @@ async function loadWatch() {
     watch.value = watchData
   } catch (error) {
     console.error('Erreur lors du chargement de la montre:', error)
-    watchError.value = error.message || 'Erreur lors du chargement de la montre'
+    watchError.value = error.message || t('watch.loadErrorFallback')
   } finally {
     isLoadingWatch.value = false
   }
@@ -351,7 +352,7 @@ async function loadWatchForPreview() {
     }
   } catch (error) {
     console.error('Erreur lors du chargement de la montre:', error)
-    watchError.value = error.message || 'Erreur lors du chargement de la montre'
+    watchError.value = error.message || t('watch.loadErrorFallback')
   } finally {
     isLoadingWatch.value = false
   }
