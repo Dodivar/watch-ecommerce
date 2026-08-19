@@ -3,6 +3,9 @@ import guidePage from './guide.config.js'
 import { publicPath } from '../../packages/base/src/utils/publicPath.js'
 import { t } from '../../packages/base/src/site/i18nValue.js'
 
+/** Guide de mesure du poignet — cité par la FAQ (3 langues) et la page « Nos services ». */
+const MEASURE_GUIDE_PDF = publicPath('documents/aide-ajustement-montres.pdf')
+
 /**
  * Manifest client — Place des Montres (placedesmontres.fr), horlogerie e-commerce à Strasbourg.
  * Données publiques issues du site vitrine (PrestaShop) : contact, adresse magasin, livraison, réseaux.
@@ -28,92 +31,198 @@ export default {
     items: [
       {
         id: 1,
-        question: 'Le modèle affiché est-il disponible en stock ?',
-        answer:
-          'Nous mettons en ligne uniquement des modèles <strong>disponibles en stock</strong>. Les stocks sont mis à jour plusieurs fois par jour. Tant que votre commande n’est pas validée, il se peut qu’un article sélectionné soit acheté par un autre client&nbsp;: la vente est alors annulée et vous êtes prévenu par e-mail.',
+        question: t({
+          fr: 'Le modèle affiché est-il disponible en stock ?',
+          en: 'Is the model shown in stock?',
+          de: 'Ist das angezeigte Modell auf Lager?',
+        }),
+        answer: t({
+          fr: 'Nous mettons en ligne uniquement des modèles <strong>disponibles en stock</strong>. Les stocks sont mis à jour plusieurs fois par jour. Tant que votre commande n’est pas validée, il se peut qu’un article sélectionné soit acheté par un autre client&nbsp;: la vente est alors annulée et vous êtes prévenu par e-mail.',
+          en: 'We only list models that are <strong>in stock</strong>. Stock is refreshed several times a day. Until your order is confirmed, an item you have selected may be bought by another customer: the sale is then cancelled and you are notified by email.',
+          de: 'Wir stellen ausschließlich Modelle online, die <strong>auf Lager</strong> sind. Der Bestand wird mehrmals täglich aktualisiert. Solange Ihre Bestellung nicht bestätigt ist, kann ein ausgewählter Artikel von einer anderen Kundin oder einem anderen Kunden gekauft werden: Der Verkauf wird dann storniert und Sie werden per E-Mail benachrichtigt.',
+        }),
       },
       {
         id: 2,
-        question: 'Puis-je modifier ou annuler ma commande ?',
-        answer:
-          'La modification ou la suppression d’une ligne de commande doit intervenir au niveau du <strong>panier</strong>, avant validation du paiement. Au-delà, la vente est ferme et la livraison interviendra. Vous disposez toutefois d’un délai de <strong>30&nbsp;jours</strong> pour retourner votre achat (voir ci-dessous).',
+        question: t({
+          fr: 'Puis-je modifier ou annuler ma commande ?',
+          en: 'Can I change or cancel my order?',
+          de: 'Kann ich meine Bestellung ändern oder stornieren?',
+        }),
+        answer: t({
+          fr: 'La modification ou la suppression d’une ligne de commande doit intervenir au niveau du <strong>panier</strong>, avant validation du paiement. Au-delà, la vente est ferme et la livraison interviendra. Vous disposez toutefois d’un délai de <strong>30&nbsp;jours</strong> pour retourner votre achat (voir ci-dessous).',
+          en: 'A line must be changed or removed in the <strong>basket</strong>, before payment is confirmed. Beyond that point the sale is final and delivery will go ahead. You do, however, have <strong>30&nbsp;days</strong> to return your purchase (see below).',
+          de: 'Das Ändern oder Entfernen einer Bestellposition muss im <strong>Warenkorb</strong> erfolgen, bevor die Zahlung bestätigt wird. Danach ist der Kauf verbindlich und die Lieferung erfolgt. Sie haben jedoch <strong>30&nbsp;Tage</strong> Zeit, Ihren Kauf zurückzusenden (siehe unten).',
+        }),
       },
       {
         id: 3,
-        question: 'Quels moyens de paiement acceptez-vous ?',
-        answer:
-          'Vous pouvez régler vos achats par <strong>carte bancaire</strong> (Visa, Mastercard, Cartes Bleues). Le paiement par <strong>virement</strong> ou par <strong>chèque</strong> n’est pas proposé en ligne, afin de garantir des délais de livraison fiables et une gestion précise des stocks.',
+        question: t({
+          fr: 'Quels moyens de paiement acceptez-vous ?',
+          en: 'Which payment methods do you accept?',
+          de: 'Welche Zahlungsmittel akzeptieren Sie?',
+        }),
+        answer: t({
+          fr: 'Vous pouvez régler vos achats par <strong>carte bancaire</strong> (Visa, Mastercard, Cartes Bleues). Le paiement par <strong>virement</strong> ou par <strong>chèque</strong> n’est pas proposé en ligne, afin de garantir des délais de livraison fiables et une gestion précise des stocks.',
+          en: 'You can pay by <strong>bank card</strong> (Visa, Mastercard, Cartes Bleues). Payment by <strong>bank transfer</strong> or <strong>cheque</strong> is not offered online, so that delivery times stay reliable and stock is tracked accurately.',
+          de: 'Sie können mit <strong>Bankkarte</strong> bezahlen (Visa, Mastercard, Cartes Bleues). Zahlung per <strong>Überweisung</strong> oder <strong>Scheck</strong> bieten wir online nicht an, um zuverlässige Lieferzeiten und eine genaue Bestandsführung zu gewährleisten.',
+        }),
       },
       {
         id: 4,
-        question: 'Le paiement en ligne est-il sécurisé ?',
-        answer:
-          'Le site utilise le <strong>cryptage SSL</strong> pour protéger vos données. Le paiement est traité via un prestataire certifié (<strong>Stripe</strong>), qui applique les standards de sécurité les plus exigeants pour vos coordonnées bancaires.',
+        question: t({
+          fr: 'Le paiement en ligne est-il sécurisé ?',
+          en: 'Is online payment secure?',
+          de: 'Ist die Online-Zahlung sicher?',
+        }),
+        answer: t({
+          fr: 'Le site utilise le <strong>cryptage SSL</strong> pour protéger vos données. Le paiement est traité via un prestataire certifié (<strong>Stripe</strong>), qui applique les standards de sécurité les plus exigeants pour vos coordonnées bancaires.',
+          en: 'The site uses <strong>SSL encryption</strong> to protect your data. Payment is handled by a certified provider (<strong>Stripe</strong>), which applies the most demanding security standards to your card details.',
+          de: 'Die Website nutzt eine <strong>SSL-Verschlüsselung</strong> zum Schutz Ihrer Daten. Die Zahlung wird über einen zertifizierten Anbieter (<strong>Stripe</strong>) abgewickelt, der höchste Sicherheitsstandards für Ihre Bankdaten anwendet.',
+        }),
       },
       {
         id: 5,
-        question: 'Quelles sont les modalités de livraison en France ?',
-        answer:
-          'Pour la France métropolitaine, la livraison en <strong>Colissimo suivi</strong> est <strong>offerte à partir de 80&nbsp;€</strong> d’achat. En dessous de ce seuil, les frais de port s’affichent avant validation du panier. Expédition sous environ <strong>48&nbsp;h</strong> après réception du paiement (délai indicatif, jours ouvrés). Vous pouvez vous faire livrer à domicile, sur votre lieu de travail ou dans un <strong>point relais</strong>. Lors de l’envoi, vous recevez un numéro de colisage par e-mail ou SMS&nbsp;; le suivi est disponible sur <strong>colissimo.fr</strong>. En cas de retard, consultez d’abord le site du transporteur, puis contactez notre service client. Si le colis n’est pas livré, une enquête sera menée auprès du transporteur&nbsp;: réexpédition ou remboursement selon le résultat. Si vous ne pouvez pas être présent, choisissez la livraison en point de dépôt.',
+        question: t({
+          fr: 'Quelles sont les modalités de livraison en France ?',
+          en: 'What are the delivery terms within France?',
+          de: 'Wie sind die Lieferbedingungen innerhalb Frankreichs?',
+        }),
+        answer: t({
+          fr: 'Pour la France métropolitaine, la livraison en <strong>Colissimo suivi</strong> est <strong>offerte à partir de 80&nbsp;€</strong> d’achat. En dessous de ce seuil, les frais de port s’affichent avant validation du panier. Expédition sous environ <strong>48&nbsp;h</strong> après réception du paiement (délai indicatif, jours ouvrés). Vous pouvez vous faire livrer à domicile, sur votre lieu de travail ou dans un <strong>point relais</strong>. Lors de l’envoi, vous recevez un numéro de colisage par e-mail ou SMS&nbsp;; le suivi est disponible sur <strong>colissimo.fr</strong>. En cas de retard, consultez d’abord le site du transporteur, puis contactez notre service client. Si le colis n’est pas livré, une enquête sera menée auprès du transporteur&nbsp;: réexpédition ou remboursement selon le résultat. Si vous ne pouvez pas être présent, choisissez la livraison en point de dépôt.',
+          en: 'For mainland France, tracked <strong>Colissimo</strong> delivery is <strong>free from €80</strong>. Below that threshold, shipping costs are shown before you confirm your basket. Dispatch takes around <strong>48&nbsp;hours</strong> after payment is received (indicative, working days). You can be delivered at home, at your workplace or to a <strong>pick-up point</strong>. When the parcel is sent you receive a tracking number by email or SMS; tracking is available on <strong>colissimo.fr</strong>. If it is late, check the carrier’s website first, then contact our customer service. If the parcel is not delivered, an enquiry is opened with the carrier: reshipment or refund depending on the outcome. If you cannot be there to receive it, choose delivery to a drop-off point.',
+          de: 'Für das französische Mutterland ist die Lieferung per <strong>Colissimo mit Sendungsverfolgung</strong> <strong>ab 80&nbsp;€ Einkaufswert kostenlos</strong>. Darunter werden die Versandkosten vor der Bestätigung des Warenkorbs angezeigt. Versand etwa <strong>48&nbsp;Stunden</strong> nach Zahlungseingang (Richtwert, Werktage). Sie können sich nach Hause, an Ihren Arbeitsplatz oder an einen <strong>Paketshop</strong> liefern lassen. Beim Versand erhalten Sie eine Sendungsnummer per E-Mail oder SMS; die Sendungsverfolgung finden Sie auf <strong>colissimo.fr</strong>. Bei Verzögerungen prüfen Sie zuerst die Website des Transportunternehmens und wenden sich dann an unseren Kundenservice. Wird das Paket nicht zugestellt, wird beim Transportunternehmen nachgeforscht: je nach Ergebnis erfolgt ein erneuter Versand oder eine Rückerstattung. Wenn Sie nicht anwesend sein können, wählen Sie die Lieferung an einen Paketshop.',
+        }),
       },
       {
         id: 6,
-        question: 'Puis-je retirer ma commande au magasin à Strasbourg ?',
-        answer:
-          'Oui&nbsp;: c’est le meilleur moyen de «&nbsp;réserver&nbsp;» une montre. Commandez en ligne sur placedesmontres.fr, puis retirez votre commande au <strong>Centre commercial Place des Halles</strong>, 67000 Strasbourg, du <strong>lundi au samedi de 9h à 20h</strong>, quand vous le souhaitez. Il n’est pas possible de réserver un modèle sans l’acheter en ligne, pour garantir la fiabilité du stock.',
+        question: t({
+          fr: 'Puis-je retirer ma commande au magasin à Strasbourg ?',
+          en: 'Can I collect my order from the Strasbourg store?',
+          de: 'Kann ich meine Bestellung im Geschäft in Straßburg abholen?',
+        }),
+        answer: t({
+          fr: 'Oui&nbsp;: c’est le meilleur moyen de «&nbsp;réserver&nbsp;» une montre. Commandez en ligne sur placedesmontres.fr, puis retirez votre commande au <strong>Centre commercial Place des Halles</strong>, 67000 Strasbourg, du <strong>lundi au samedi de 9h à 20h</strong>, quand vous le souhaitez. Il n’est pas possible de réserver un modèle sans l’acheter en ligne, pour garantir la fiabilité du stock.',
+          en: 'Yes — it is the best way to “reserve” a watch. Order online at placedesmontres.fr, then collect your order at the <strong>Place des Halles shopping centre</strong>, 67000 Strasbourg, <strong>Monday to Saturday from 9am to 8pm</strong>, whenever suits you. A model cannot be reserved without buying it online, so that stock figures stay reliable.',
+          de: 'Ja — das ist der beste Weg, eine Uhr zu „reservieren“. Bestellen Sie online auf placedesmontres.fr und holen Sie Ihre Bestellung im <strong>Einkaufszentrum Place des Halles</strong>, 67000 Straßburg, <strong>Montag bis Samstag von 9 bis 20 Uhr</strong> ab, wann es Ihnen passt. Eine Reservierung ohne Online-Kauf ist nicht möglich, damit der Bestand verlässlich bleibt.',
+        }),
       },
       {
         id: 7,
-        question: 'Comment réceptionner mon colis ?',
-        answer:
-          'À réception de votre commande, nous vous recommandons vivement de vérifier la conformité en présence du livreur, surtout si le colis est abîmé. Pour qu’une réclamation soit recevable, elle doit être mentionnée par écrit au moment de la réception. En cas de doute, il est conseillé de refuser le colis et d’en informer notre service client via votre compte client.',
+        question: t({
+          fr: 'Comment réceptionner mon colis ?',
+          en: 'How should I take delivery of my parcel?',
+          de: 'Wie nehme ich mein Paket entgegen?',
+        }),
+        answer: t({
+          fr: 'À réception de votre commande, nous vous recommandons vivement de vérifier la conformité en présence du livreur, surtout si le colis est abîmé. Pour qu’une réclamation soit recevable, elle doit être mentionnée par écrit au moment de la réception. En cas de doute, il est conseillé de refuser le colis et d’en informer notre service client via votre compte client.',
+          en: 'When your order arrives, we strongly recommend checking it in the presence of the delivery driver, especially if the parcel is damaged. For a claim to be admissible it must be noted in writing at the time of delivery. If in doubt, refuse the parcel and inform our customer service through your customer account.',
+          de: 'Wir empfehlen dringend, die Lieferung bei Erhalt in Anwesenheit der Zustellperson zu prüfen, insbesondere wenn das Paket beschädigt ist. Damit eine Reklamation zulässig ist, muss sie bei der Entgegennahme schriftlich vermerkt werden. Im Zweifelsfall nehmen Sie das Paket nicht an und informieren unseren Kundenservice über Ihr Kundenkonto.',
+        }),
       },
       {
         id: 8,
-        question: 'Puis-je retourner ou échanger une montre ?',
-        answer:
-          'Oui&nbsp;: vous disposez d’un délai de <strong>30&nbsp;jours</strong> à compter de la réception pour nous notifier votre souhait de retour ou d’échange. La procédure est la même pour un échange&nbsp;: indiquez le produit souhaité en remplacement. Si celui-ci n’est pas disponible immédiatement, nous pouvons vous émettre un avoir.',
+        question: t({
+          fr: 'Puis-je retourner ou échanger une montre ?',
+          en: 'Can I return or exchange a watch?',
+          de: 'Kann ich eine Uhr zurückgeben oder umtauschen?',
+        }),
+        answer: t({
+          fr: 'Oui&nbsp;: vous disposez d’un délai de <strong>30&nbsp;jours</strong> à compter de la réception pour nous notifier votre souhait de retour ou d’échange. La procédure est la même pour un échange&nbsp;: indiquez le produit souhaité en remplacement. Si celui-ci n’est pas disponible immédiatement, nous pouvons vous émettre un avoir.',
+          en: 'Yes — you have <strong>30&nbsp;days</strong> from delivery to tell us you wish to return or exchange it. The procedure is the same for an exchange: tell us which product you would like instead. If it is not immediately available, we can issue you a credit note.',
+          de: 'Ja — Sie haben ab Erhalt <strong>30&nbsp;Tage</strong> Zeit, uns Ihren Rückgabe- oder Umtauschwunsch mitzuteilen. Beim Umtausch ist das Vorgehen identisch: Nennen Sie uns das gewünschte Ersatzprodukt. Ist es nicht sofort verfügbar, können wir Ihnen eine Gutschrift ausstellen.',
+        }),
       },
       {
         id: 9,
-        question: 'Comment effectuer un retour ?',
-        answer:
-          'Envoyez un e-mail à <strong>service.client@placedesmontres.fr</strong> avec votre numéro de facture, vos coordonnées et votre numéro de client. Attendez un <strong>numéro de retour</strong> en réponse. Les articles doivent être dans leur emballage d’origine, complets (garantie, accessoires, notice). Mentionnez le numéro de retour sur le colis et joignez une copie du mail de retour à l’intérieur. Adresse de retour&nbsp;: <strong>Place des Montres — Retour N°&nbsp;… — Centre commercial Place des Halles — 67000 Strasbourg</strong>.',
+        question: t({
+          fr: 'Comment effectuer un retour ?',
+          en: 'How do I make a return?',
+          de: 'Wie sende ich einen Artikel zurück?',
+        }),
+        answer: t({
+          fr: 'Envoyez un e-mail à <strong>service.client@placedesmontres.fr</strong> avec votre numéro de facture, vos coordonnées et votre numéro de client. Attendez un <strong>numéro de retour</strong> en réponse. Les articles doivent être dans leur emballage d’origine, complets (garantie, accessoires, notice). Mentionnez le numéro de retour sur le colis et joignez une copie du mail de retour à l’intérieur. Adresse de retour&nbsp;: <strong>Place des Montres — Retour N°&nbsp;… — Centre commercial Place des Halles — 67000 Strasbourg</strong>.',
+          en: 'Send an email to <strong>service.client@placedesmontres.fr</strong> with your invoice number, your contact details and your customer number. Wait for a <strong>return number</strong> in reply. Items must be in their original packaging and complete (warranty, accessories, instructions). Write the return number on the parcel and enclose a copy of the return email inside. Return address: <strong>Place des Montres — Retour N°&nbsp;… — Centre commercial Place des Halles — 67000 Strasbourg</strong>.',
+          de: 'Senden Sie eine E-Mail an <strong>service.client@placedesmontres.fr</strong> mit Ihrer Rechnungsnummer, Ihren Kontaktdaten und Ihrer Kundennummer. Warten Sie die <strong>Rücksendenummer</strong> in der Antwort ab. Die Artikel müssen sich in der Originalverpackung befinden und vollständig sein (Garantie, Zubehör, Anleitung). Vermerken Sie die Rücksendenummer auf dem Paket und legen Sie eine Kopie der Rücksende-E-Mail bei. Rücksendeadresse: <strong>Place des Montres — Retour N°&nbsp;… — Centre commercial Place des Halles — 67000 Strasbourg</strong>.',
+        }),
       },
       {
         id: 10,
-        question: 'Les montres sont-elles neuves et couvertes par une garantie ?',
-        answer:
-          'Place des Montres est un <strong>spécialiste de la montre depuis 1995</strong>. Toutes nos montres bénéficient d’une <strong>garantie constructeur minimum de 2&nbsp;ans</strong> à partir de la date d’achat. Elle couvre les défauts de fabrication et les pannes d’origine interne. Ne sont pas couverts&nbsp;: les consommables (piles, verres, bracelets, joints…), l’usage anormal, une réparation par un intervenant non agréé, ou les dommages dus à un choc, une chute ou une immersion inappropriée. Votre montre est livrée avec une garantie constructeur tamponnée, datée et référencée&nbsp;: conservez-la dans l’écrin. Pour toute prise en charge, consultez notre page <a href="/services" class="text-primary underline">Nos services</a>.',
+        question: t({
+          fr: 'Les montres sont-elles neuves et couvertes par une garantie ?',
+          en: 'Are the watches new and covered by a warranty?',
+          de: 'Sind die Uhren neu und durch eine Garantie gedeckt?',
+        }),
+        answer: t({
+          fr: 'Place des Montres est un <strong>spécialiste de la montre depuis 1995</strong>. Toutes nos montres bénéficient d’une <strong>garantie constructeur minimum de 2&nbsp;ans</strong> à partir de la date d’achat. Elle couvre les défauts de fabrication et les pannes d’origine interne. Ne sont pas couverts&nbsp;: les consommables (piles, verres, bracelets, joints…), l’usage anormal, une réparation par un intervenant non agréé, ou les dommages dus à un choc, une chute ou une immersion inappropriée. Votre montre est livrée avec une garantie constructeur tamponnée, datée et référencée&nbsp;: conservez-la dans l’écrin. Pour toute prise en charge, consultez notre page <a href="/services" class="text-primary underline">Nos services</a>.',
+          en: 'Place des Montres has been a <strong>watch specialist since 1995</strong>. All our watches come with a <strong>manufacturer’s warranty of at least 2&nbsp;years</strong> from the date of purchase. It covers manufacturing defects and internal failures. Not covered: consumables (batteries, crystals, straps, seals…), abnormal use, repair by a non-approved party, or damage caused by an impact, a fall or inappropriate immersion. Your watch is delivered with a stamped, dated and referenced manufacturer’s warranty: keep it in its case. For any claim, see our <a href="/services" class="text-primary underline">Our services</a> page.',
+          de: 'Place des Montres ist <strong>seit 1995 Uhrenspezialist</strong>. Alle unsere Uhren haben eine <strong>Herstellergarantie von mindestens 2&nbsp;Jahren</strong> ab Kaufdatum. Sie deckt Herstellungsfehler und Defekte interner Ursache ab. Nicht abgedeckt sind: Verschleißteile (Batterien, Gläser, Armbänder, Dichtungen …), unsachgemäßer Gebrauch, Reparaturen durch eine nicht autorisierte Stelle sowie Schäden durch Stoß, Sturz oder unsachgemäßes Eintauchen. Ihre Uhr wird mit gestempelter, datierter und referenzierter Herstellergarantie geliefert: Bewahren Sie sie im Etui auf. Für jede Inanspruchnahme besuchen Sie unsere Seite <a href="/services" class="text-primary underline">Unsere Leistungen</a>.',
+        }),
       },
       {
         id: 11,
-        question: 'Que faire si ma montre ne fonctionne plus ?',
-        answer:
-          'Si vous habitez près de Strasbourg, passez nous voir aux Place des Halles. Sinon, rendez-vous chez un <strong>dépositaire agréé</strong> de la marque dans votre ville&nbsp;: nos montres ont une bonne couverture réseau en France. L’horloger identifiera la panne. Pour les premiers réflexes (notamment la pile), consultez notre <a href="/guide-horloger" class="text-primary underline">Guide de l’horloger</a>.',
+        question: t({
+          fr: 'Que faire si ma montre ne fonctionne plus ?',
+          en: 'What should I do if my watch stops working?',
+          de: 'Was tun, wenn meine Uhr nicht mehr funktioniert?',
+        }),
+        answer: t({
+          fr: 'Si vous habitez près de Strasbourg, passez nous voir aux Place des Halles. Sinon, rendez-vous chez un <strong>dépositaire agréé</strong> de la marque dans votre ville&nbsp;: nos montres ont une bonne couverture réseau en France. L’horloger identifiera la panne. Pour les premiers réflexes (notamment la pile), consultez notre <a href="/guide-horloger" class="text-primary underline">Guide de l’horloger</a>.',
+          en: 'If you live near Strasbourg, come and see us at Place des Halles. Otherwise, visit an <strong>approved dealer</strong> for the brand in your town: our watches have good network coverage across France. The watchmaker will identify the fault. For the first things to check (the battery in particular), see our <a href="/guide-horloger" class="text-primary underline">Watchmaker’s guide</a>.',
+          de: 'Wenn Sie in der Nähe von Straßburg wohnen, besuchen Sie uns in der Place des Halles. Andernfalls wenden Sie sich an einen <strong>autorisierten Fachhändler</strong> der Marke in Ihrer Stadt: Unsere Uhren sind in Frankreich gut vertreten. Der Uhrmacher stellt den Defekt fest. Erste Schritte (insbesondere zur Batterie) finden Sie in unserem <a href="/guide-horloger" class="text-primary underline">Uhrmacher-Ratgeber</a>.',
+        }),
       },
       {
         id: 12,
-        question: 'Proposez-vous la réparation de montres ?',
-        answer:
-          'Oui&nbsp;: <strong>réparation et entretien toutes marques</strong>, changement de pile, étanchéité, verres et bracelets — avec un <strong>horloger sur place</strong> aux Place des Halles. Consultez notre page <a href="/services" class="text-primary underline">Nos services</a> pour les tarifs et prestations.',
+        question: t({
+          fr: 'Proposez-vous la réparation de montres ?',
+          en: 'Do you repair watches?',
+          de: 'Bieten Sie Uhrenreparaturen an?',
+        }),
+        answer: t({
+          fr: 'Oui&nbsp;: <strong>réparation et entretien toutes marques</strong>, changement de pile, étanchéité, verres et bracelets — avec un <strong>horloger sur place</strong> aux Place des Halles. Consultez notre page <a href="/services" class="text-primary underline">Nos services</a> pour les tarifs et prestations.',
+          en: 'Yes — <strong>repairs and servicing for all brands</strong>, battery replacement, water-resistance testing, crystals and straps, with a <strong>watchmaker on site</strong> at Place des Halles. See our <a href="/services" class="text-primary underline">Our services</a> page for prices and services.',
+          de: 'Ja — <strong>Reparatur und Wartung aller Marken</strong>, Batteriewechsel, Dichtheitsprüfung, Gläser und Armbänder — mit einem <strong>Uhrmacher vor Ort</strong> in der Place des Halles. Preise und Leistungen finden Sie auf unserer Seite <a href="/services" class="text-primary underline">Unsere Leistungen</a>.',
+        }),
       },
       {
         id: 13,
-        question: 'Où trouver des conseils d’entretien (pile, étanchéité…) ?',
-        answer:
-          'Les conseils techniques sur la pile, l’étanchéité, les mouvements, les verres et les fonctions de montre sont regroupés dans notre <a href="/guide-horloger" class="text-primary underline">Guide de l’horloger</a>, rédigé par l’équipe Place des Montres.',
+        question: t({
+          fr: 'Où trouver des conseils d’entretien (pile, étanchéité…) ?',
+          en: 'Where can I find care advice (battery, water resistance…)?',
+          de: 'Wo finde ich Pflegetipps (Batterie, Dichtheit …)?',
+        }),
+        answer: t({
+          fr: 'Les conseils techniques sur la pile, l’étanchéité, les mouvements, les verres et les fonctions de montre sont regroupés dans notre <a href="/guide-horloger" class="text-primary underline">Guide de l’horloger</a>, rédigé par l’équipe Place des Montres.',
+          en: 'Technical advice on the battery, water resistance, movements, crystals and watch functions is gathered in our <a href="/guide-horloger" class="text-primary underline">Watchmaker’s guide</a>, written by the Place des Montres team.',
+          de: 'Technische Hinweise zu Batterie, Dichtheit, Uhrwerken, Gläsern und Uhrenfunktionen sind in unserem <a href="/guide-horloger" class="text-primary underline">Uhrmacher-Ratgeber</a> gebündelt, verfasst vom Team von Place des Montres.',
+        }),
       },
       {
         id: 14,
-        question: 'Comment contacter le service client ?',
-        answer:
-          'Par e-mail&nbsp;: <strong>service.client@placedesmontres.fr</strong> (moyen le plus rapide). Par téléphone&nbsp;: <strong>03&nbsp;88&nbsp;22&nbsp;40&nbsp;40</strong>, du lundi au samedi de 9h à 20h (prix d’un appel local). Par courrier&nbsp;: Place des Montres — Centre commercial Place des Halles — 67000 Strasbourg.',
+        question: t({
+          fr: 'Comment contacter le service client ?',
+          en: 'How do I contact customer service?',
+          de: 'Wie erreiche ich den Kundenservice?',
+        }),
+        answer: t({
+          fr: 'Par e-mail&nbsp;: <strong>service.client@placedesmontres.fr</strong> (moyen le plus rapide). Par téléphone&nbsp;: <strong>03&nbsp;88&nbsp;22&nbsp;40&nbsp;40</strong>, du lundi au samedi de 9h à 20h (prix d’un appel local). Par courrier&nbsp;: Place des Montres — Centre commercial Place des Halles — 67000 Strasbourg.',
+          en: 'By email: <strong>service.client@placedesmontres.fr</strong> (the fastest route). By phone: <strong>03&nbsp;88&nbsp;22&nbsp;40&nbsp;40</strong>, Monday to Saturday from 9am to 8pm (local call rate). By post: Place des Montres — Centre commercial Place des Halles — 67000 Strasbourg.',
+          de: 'Per E-Mail: <strong>service.client@placedesmontres.fr</strong> (am schnellsten). Telefonisch: <strong>03&nbsp;88&nbsp;22&nbsp;40&nbsp;40</strong>, Montag bis Samstag von 9 bis 20 Uhr (Ortstarif). Per Post: Place des Montres — Centre commercial Place des Halles — 67000 Straßburg.',
+        }),
       },
       {
         id: 15,
-        question: 'Ajustez-vous le bracelet métal avant la livraison ?',
-        answer: `Oui. Pour toute commande de montre avec <strong>bracelet métal</strong>, nous proposons un <strong>ajustement gratuit</strong> à votre tour de poignet avant expédition. Imprimez notre <a href="${publicPath('documents/aide-ajustement-montres.pdf')}" class="text-primary underline" target="_blank" rel="noopener">guide de mesure (PDF)</a> à l’échelle 100&nbsp;%, mesurez votre poignet puis communiquez le résultat par e-mail à <strong>service.client@placedesmontres.fr</strong>.`,
+        question: t({
+          fr: 'Ajustez-vous le bracelet métal avant la livraison ?',
+          en: 'Do you adjust metal bracelets before delivery?',
+          de: 'Passen Sie Metallarmbänder vor der Lieferung an?',
+        }),
+        answer: t({
+          fr: `Oui. Pour toute commande de montre avec <strong>bracelet métal</strong>, nous proposons un <strong>ajustement gratuit</strong> à votre tour de poignet avant expédition. Imprimez notre <a href="${MEASURE_GUIDE_PDF}" class="text-primary underline" target="_blank" rel="noopener">guide de mesure (PDF)</a> à l’échelle 100&nbsp;%, mesurez votre poignet puis communiquez le résultat par e-mail à <strong>service.client@placedesmontres.fr</strong>.`,
+          en: `Yes. For any watch ordered with a <strong>metal bracelet</strong>, we adjust it <strong>free of charge</strong> to your wrist size before dispatch. Print our <a href="${MEASURE_GUIDE_PDF}" class="text-primary underline" target="_blank" rel="noopener">measuring guide (PDF)</a> at 100&nbsp;% scale, measure your wrist, then send us the result by email at <strong>service.client@placedesmontres.fr</strong>.`,
+          de: `Ja. Für jede bestellte Uhr mit <strong>Metallarmband</strong> passen wir das Armband vor dem Versand <strong>kostenlos</strong> an Ihren Handgelenkumfang an. Drucken Sie unsere <a href="${MEASURE_GUIDE_PDF}" class="text-primary underline" target="_blank" rel="noopener">Maßanleitung (PDF)</a> im Maßstab 100&nbsp;% aus, messen Sie Ihr Handgelenk und teilen Sie uns das Ergebnis per E-Mail an <strong>service.client@placedesmontres.fr</strong> mit.`,
+        }),
       },
     ],
   },
@@ -175,7 +284,11 @@ export default {
     legalName: 'Place des Montres',
     displayName: 'Place des Montres',
     schemaOrgName: 'PlaceDesMontres',
-    logoAlt: 'Place des Montres — horlogerie à Strasbourg',
+    logoAlt: t({
+      fr: 'Place des Montres — horlogerie à Strasbourg',
+      en: 'Place des Montres — watch shop in Strasbourg',
+      de: 'Place des Montres — Uhrengeschäft in Straßburg',
+    }),
     loginLogoAlt: 'Place des Montres',
   },
 
@@ -204,8 +317,16 @@ export default {
     directionsAddress: '24 Place des Halles, Centre Commercial, 67000 Strasbourg, France',
     /** Horaires boutique — affichés dans la popup prise de rendez-vous */
     openingHours: {
-      daysLabel: 'Lundi – samedi',
-      hoursLabel: '9h – 20h',
+      daysLabel: t({
+        fr: 'Lundi – samedi',
+        en: 'Monday – Saturday',
+        de: 'Montag – Samstag',
+      }),
+      hoursLabel: t({
+        fr: '9h – 20h',
+        en: '9am – 8pm',
+        de: '9 – 20 Uhr',
+      }),
     },
   },
 
@@ -232,20 +353,58 @@ export default {
   about: {
     variant: 'retail',
     hero: {
-      eyebrow: 'Qui sommes-nous ?',
+      eyebrow: t({
+        fr: 'Qui sommes-nous ?',
+        en: 'Who we are',
+        de: 'Wer wir sind',
+      }),
       title: 'Place des Montres',
-      lead: "Depuis 1995, au cœur de Strasbourg, nous cultivons l'art de bien choisir sa montre : un conseil de spécialiste, un large choix de marques et l'envie de vous voir repartir avec la pièce qu'il vous faut.",
+      lead: t({
+        fr: "Depuis 1995, au cœur de Strasbourg, nous cultivons l'art de bien choisir sa montre : un conseil de spécialiste, un large choix de marques et l'envie de vous voir repartir avec la pièce qu'il vous faut.",
+        en: 'Since 1995, in the heart of Strasbourg, we have cultivated the art of choosing the right watch: specialist advice, a wide choice of brands and the wish to see you leave with the piece that suits you.',
+        de: 'Seit 1995 pflegen wir im Herzen von Straßburg die Kunst, die richtige Uhr zu finden: fachkundige Beratung, eine große Markenauswahl und der Wunsch, dass Sie mit dem passenden Stück nach Hause gehen.',
+      }),
       sinceYear: 1995,
       image: publicPath('places/place-des-montres-strasbourg_1.jpg'),
       imageLayout: 'landscape',
+      imageAlt: t({
+        fr: 'Place des Montres — horlogerie au centre commercial Place des Halles à Strasbourg',
+        en: 'Place des Montres — watch shop at the Place des Halles shopping centre in Strasbourg',
+        de: 'Place des Montres — Uhrengeschäft im Einkaufszentrum Place des Halles in Straßburg',
+      }),
+      imageCaption: t({
+        fr: 'Centre commercial Place des Halles — Strasbourg',
+        en: 'Place des Halles shopping centre — Strasbourg',
+        de: 'Einkaufszentrum Place des Halles — Straßburg',
+      }),
     },
     stats: [
       {
         value: '30+',
-        label: "Années d'expérience",
-        detail: 'Spécialiste de la montre depuis 1995',
+        label: t({
+          fr: "Années d'expérience",
+          en: 'Years of experience',
+          de: 'Jahre Erfahrung',
+        }),
+        detail: t({
+          fr: 'Spécialiste de la montre depuis 1995',
+          en: 'Watch specialists since 1995',
+          de: 'Uhrenspezialist seit 1995',
+        }),
       },
-      { value: '3 000', label: 'Montres en stock', detail: 'Un choix immédiat' },
+      {
+        value: '3 000',
+        label: t({
+          fr: 'Montres en stock',
+          en: 'Watches in stock',
+          de: 'Uhren am Lager',
+        }),
+        detail: t({
+          fr: 'Un choix immédiat',
+          en: 'Available straight away',
+          de: 'Sofort verfügbar',
+        }),
+      },
       {
         value: '30',
         label: t({
@@ -253,44 +412,103 @@ export default {
           en: 'Brands',
           de: 'Marken',
         }),
-        detail: 'Des plus prestigieuses',
+        detail: t({
+          fr: 'Des plus prestigieuses',
+          en: 'Including the most prestigious',
+          de: 'Darunter die renommiertesten',
+        }),
       },
-      { value: '1', label: 'Adresse à Strasbourg', detail: 'Place des Halles' },
+      {
+        value: '1',
+        label: t({
+          fr: 'Adresse à Strasbourg',
+          en: 'Address in Strasbourg',
+          de: 'Adresse in Straßburg',
+        }),
+        detail: 'Place des Halles',
+      },
     ],
     story: {
-      title: 'Une adresse de référence à Strasbourg',
-      paragraphs: [
-        "Installée au centre commercial Place des Halles, Place des Montres est bien plus qu'une boutique : c'est un lieu de rencontre entre les amateurs de belles montres et une équipe qui connaît chaque univers, chaque mécanisme, chaque nuance de cadran.",
-        "Notre force, c'est le savoir-faire d'une enseigne installée de longue date à Strasbourg, que notre équipe d'aujourd'hui fait vivre au quotidien. Derrière le comptoir comme en ligne, nous guidons chaque client — du premier garde-temps au cadeau qui marquera une occasion — avec la même attention et le même plaisir de conseiller.",
-        'Des montres de tous styles et à tous les prix : sport, élégance, mécanique automatique à fond transparent… nous vous aidons à trouver la pièce qui vous ressemble, pour vous faire plaisir ou faire plaisir à votre entourage.',
-      ],
-      pullQuote:
-        "Franchir la porte de notre magasin, c'est profiter d'un vrai conseil horloger — et repartir avec une montre choisie pour vous.",
+      title: t({
+        fr: 'Une adresse de référence à Strasbourg',
+        en: 'A landmark address in Strasbourg',
+        de: 'Eine feste Adresse in Straßburg',
+      }),
+      paragraphs: t({
+        fr: [
+          "Installée au centre commercial Place des Halles, Place des Montres est bien plus qu'une boutique : c'est un lieu de rencontre entre les amateurs de belles montres et une équipe qui connaît chaque univers, chaque mécanisme, chaque nuance de cadran.",
+          "Notre force, c'est le savoir-faire d'une enseigne installée de longue date à Strasbourg, que notre équipe d'aujourd'hui fait vivre au quotidien. Derrière le comptoir comme en ligne, nous guidons chaque client — du premier garde-temps au cadeau qui marquera une occasion — avec la même attention et le même plaisir de conseiller.",
+          'Des montres de tous styles et à tous les prix : sport, élégance, mécanique automatique à fond transparent… nous vous aidons à trouver la pièce qui vous ressemble, pour vous faire plaisir ou faire plaisir à votre entourage.',
+        ],
+        en: [
+          'Located in the Place des Halles shopping centre, Place des Montres is far more than a shop: it is a meeting point between lovers of fine watches and a team that knows every world, every mechanism, every shade of dial.',
+          'Our strength is the know-how of a name long established in Strasbourg, kept alive day after day by today’s team. Behind the counter as well as online, we guide every customer — from a first timepiece to the gift that will mark an occasion — with the same care and the same pleasure in advising.',
+          'Watches in every style and at every price: sporty, elegant, automatic movements behind a display back… we help you find the piece that looks like you, for yourself or for someone close to you.',
+        ],
+        de: [
+          'Im Einkaufszentrum Place des Halles gelegen, ist Place des Montres weit mehr als ein Geschäft: ein Treffpunkt für Liebhaberinnen und Liebhaber schöner Uhren und ein Team, das jede Welt, jedes Uhrwerk und jede Zifferblattnuance kennt.',
+          'Unsere Stärke ist das Können eines seit Langem in Straßburg verwurzelten Hauses, das unser heutiges Team Tag für Tag weiterträgt. Hinter dem Tresen wie online begleiten wir jede Kundin und jeden Kunden — von der ersten Uhr bis zum Geschenk für einen besonderen Anlass — mit derselben Aufmerksamkeit und Freude an der Beratung.',
+          'Uhren in allen Stilrichtungen und Preisklassen: sportlich, elegant, Automatikwerke mit Sichtboden … Wir helfen Ihnen, das Stück zu finden, das zu Ihnen passt — für sich selbst oder als Geschenk.',
+        ],
+      }),
+      pullQuote: t({
+        fr: "Franchir la porte de notre magasin, c'est profiter d'un vrai conseil horloger — et repartir avec une montre choisie pour vous.",
+        en: 'Stepping through our door means genuine watchmaking advice — and leaving with a watch chosen for you.',
+        de: 'Wer unser Geschäft betritt, erhält echte Uhrmacherberatung — und geht mit einer Uhr, die für ihn ausgesucht wurde.',
+      }),
     },
     styles: [
       {
-        title: 'Sport & quotidien',
-        description:
-          "Chronographes, montres résistantes, modèles connectés ou classiques au poignet : pour le bureau, le week-end ou l'aventure.",
+        title: t({
+          fr: 'Sport & quotidien',
+          en: 'Sport & everyday',
+          de: 'Sport & Alltag',
+        }),
+        description: t({
+          fr: "Chronographes, montres résistantes, modèles connectés ou classiques au poignet : pour le bureau, le week-end ou l'aventure.",
+          en: 'Chronographs, rugged watches, connected or classic models on the wrist: for the office, the weekend or the great outdoors.',
+          de: 'Chronographen, robuste Uhren, vernetzte oder klassische Modelle am Handgelenk: fürs Büro, das Wochenende oder das Abenteuer.',
+        }),
         icon: 'sport',
       },
       {
-        title: 'Élégance intemporelle',
-        description:
-          'Cadrans sobres, finitions raffinées, bracelets cuir ou acier : la montre qui sublime une tenue et traverse les saisons.',
+        title: t({
+          fr: 'Élégance intemporelle',
+          en: 'Timeless elegance',
+          de: 'Zeitlose Eleganz',
+        }),
+        description: t({
+          fr: 'Cadrans sobres, finitions raffinées, bracelets cuir ou acier : la montre qui sublime une tenue et traverse les saisons.',
+          en: 'Understated dials, refined finishes, leather or steel bracelets: the watch that lifts an outfit and outlasts the seasons.',
+          de: 'Zurückhaltende Zifferblätter, feine Verarbeitung, Leder- oder Stahlbänder: die Uhr, die ein Outfit veredelt und jede Saison überdauert.',
+        }),
         icon: 'elegance',
       },
       {
-        title: 'Mécanique vivante',
-        description:
-          'Pour les amoureux de belles mécaniques : montres automatiques à fond transparent pour admirer les rouages en mouvement.',
+        title: t({
+          fr: 'Mécanique vivante',
+          en: 'Living mechanics',
+          de: 'Lebendige Mechanik',
+        }),
+        description: t({
+          fr: 'Pour les amoureux de belles mécaniques : montres automatiques à fond transparent pour admirer les rouages en mouvement.',
+          en: 'For lovers of fine mechanics: automatic watches with a display back, to watch the gears in motion.',
+          de: 'Für Freunde schöner Mechanik: Automatikuhren mit Sichtboden, um das Räderwerk in Bewegung zu bestaunen.',
+        }),
         icon: 'mechanics',
       },
     ],
     brands: {
-      title: 'Une trentaine de marques, un seul standard',
-      intro:
-        "Tissot, Swatch, Cluse, Seiko, Hugo Boss, Tommy Hilfiger, Diesel, Fossil, Festina, Pierre Lannier, Casio, G-Shock… et bien d'autres : nous sélectionnons des maisons reconnues pour leur qualité et leur diversité.",
+      title: t({
+        fr: 'Une trentaine de marques, un seul standard',
+        en: 'Some thirty brands, a single standard',
+        de: 'Rund dreißig Marken, ein einziger Anspruch',
+      }),
+      intro: t({
+        fr: "Tissot, Swatch, Cluse, Seiko, Hugo Boss, Tommy Hilfiger, Diesel, Fossil, Festina, Pierre Lannier, Casio, G-Shock… et bien d'autres : nous sélectionnons des maisons reconnues pour leur qualité et leur diversité.",
+        en: 'Tissot, Swatch, Cluse, Seiko, Hugo Boss, Tommy Hilfiger, Diesel, Fossil, Festina, Pierre Lannier, Casio, G-Shock… and many more: we select houses recognised for their quality and their range.',
+        de: 'Tissot, Swatch, Cluse, Seiko, Hugo Boss, Tommy Hilfiger, Diesel, Fossil, Festina, Pierre Lannier, Casio, G-Shock … und viele mehr: Wir wählen Häuser aus, die für Qualität und Vielfalt stehen.',
+      }),
       names: [
         'Tissot',
         'Swatch',
@@ -307,31 +525,71 @@ export default {
       ],
     },
     experience: {
-      title: "L'expérience Place des Montres",
+      title: t({
+        fr: "L'expérience Place des Montres",
+        en: 'The Place des Montres experience',
+        de: 'Das Erlebnis Place des Montres',
+      }),
       items: [
         {
-          title: 'Conseil de proximité',
-          description:
-            'Essayer au poignet, comparer les modèles, poser toutes vos questions : notre équipe vous accueille avec plaisir du lundi au samedi.',
+          title: t({
+            fr: 'Conseil de proximité',
+            en: 'Advice close at hand',
+            de: 'Beratung vor Ort',
+          }),
+          description: t({
+            fr: 'Essayer au poignet, comparer les modèles, poser toutes vos questions : notre équipe vous accueille avec plaisir du lundi au samedi.',
+            en: 'Try watches on, compare models, ask us anything: our team is happy to welcome you Monday to Saturday.',
+            de: 'Uhren anprobieren, Modelle vergleichen, alle Fragen stellen: Unser Team empfängt Sie gern von Montag bis Samstag.',
+          }),
         },
         {
-          title: 'Boutique & e-commerce',
-          description:
-            'Commandez en ligne ou passez nous voir aux Halles : retrait magasin, livraison Colissimo offerte dès 80 € en France métropolitaine.',
+          title: t({
+            fr: 'Boutique & e-commerce',
+            en: 'Store & online shop',
+            de: 'Geschäft & Onlineshop',
+          }),
+          description: t({
+            fr: 'Commandez en ligne ou passez nous voir aux Halles : retrait magasin, livraison Colissimo offerte dès 80 € en France métropolitaine.',
+            en: 'Order online or drop by Les Halles: in-store collection, free Colissimo delivery from €80 in mainland France.',
+            de: 'Bestellen Sie online oder besuchen Sie uns in Les Halles: Abholung im Geschäft, kostenlose Colissimo-Lieferung ab 80 € im französischen Mutterland.',
+          }),
         },
         {
-          title: 'Pour toutes les envies',
-          description:
-            'Anniversaire, fête des pères, première montre ou pièce de collection accessible : nous trouvons le cadeau idéal à chaque budget.',
+          title: t({
+            fr: 'Pour toutes les envies',
+            en: 'For every occasion',
+            de: 'Für jeden Anlass',
+          }),
+          description: t({
+            fr: 'Anniversaire, fête des pères, première montre ou pièce de collection accessible : nous trouvons le cadeau idéal à chaque budget.',
+            en: 'A birthday, Father’s Day, a first watch or an affordable collector’s piece: we find the right gift for every budget.',
+            de: 'Geburtstag, Vatertag, erste Uhr oder erschwingliches Sammlerstück: Wir finden das passende Geschenk für jedes Budget.',
+          }),
         },
       ],
     },
     cta: {
-      title: 'Prêt à trouver votre montre ?',
-      subtitle:
-        "Parcourez notre catalogue en ligne ou venez nous rencontrer au centre commercial Place des Halles — c'est avec plaisir que nous vous accueillerons.",
-      collectionLabel: 'Découvrir nos montres',
-      contactLabel: 'Nous contacter',
+      title: t({
+        fr: 'Prêt à trouver votre montre ?',
+        en: 'Ready to find your watch?',
+        de: 'Bereit, Ihre Uhr zu finden?',
+      }),
+      subtitle: t({
+        fr: "Parcourez notre catalogue en ligne ou venez nous rencontrer au centre commercial Place des Halles — c'est avec plaisir que nous vous accueillerons.",
+        en: 'Browse our online catalogue or come and meet us at the Place des Halles shopping centre — we will be delighted to welcome you.',
+        de: 'Stöbern Sie in unserem Online-Katalog oder besuchen Sie uns im Einkaufszentrum Place des Halles — wir freuen uns auf Sie.',
+      }),
+      collectionLabel: t({
+        fr: 'Découvrir nos montres',
+        en: 'Discover our watches',
+        de: 'Unsere Uhren entdecken',
+      }),
+      contactLabel: t({
+        fr: 'Nous contacter',
+        en: 'Contact us',
+        de: 'Kontakt aufnehmen',
+      }),
     },
     guidePromo: {
       title: t({
@@ -339,126 +597,302 @@ export default {
         en: "The watchmaker's guide",
         de: 'Der Uhrmacher-Ratgeber',
       }),
-      description:
-        "Pile, étanchéité, mouvements, verres et fonctions — tout ce qu'il faut savoir pour entretenir votre montre.",
-      linkLabel: 'Consulter le guide',
+      description: t({
+        fr: "Pile, étanchéité, mouvements, verres et fonctions — tout ce qu'il faut savoir pour entretenir votre montre.",
+        en: 'Battery, water resistance, movements, crystals and functions — everything you need to look after your watch.',
+        de: 'Batterie, Dichtheit, Uhrwerke, Gläser und Funktionen — alles, was Sie zur Pflege Ihrer Uhr wissen müssen.',
+      }),
+      linkLabel: t({
+        fr: 'Consulter le guide',
+        en: 'Read the guide',
+        de: 'Zum Ratgeber',
+      }),
       to: '/guide-horloger',
     },
   },
 
   servicesPage: {
     hero: {
-      eyebrow: 'Atelier & service rapide',
-      title: 'Tout pour votre montre, sur place',
-      lead: 'Aux Place des Halles, notre horloger intervient sur toutes marques — du changement de pile express à la réparation complète, sans longs délais.',
+      eyebrow: t({
+        fr: 'Atelier & service rapide',
+        en: 'Workshop & fast service',
+        de: 'Werkstatt & schneller Service',
+      }),
+      title: t({
+        fr: 'Tout pour votre montre, sur place',
+        en: 'Everything for your watch, on site',
+        de: 'Alles für Ihre Uhr, direkt vor Ort',
+      }),
+      lead: t({
+        fr: 'Aux Place des Halles, notre horloger intervient sur toutes marques — du changement de pile express à la réparation complète, sans longs délais.',
+        en: 'At Place des Halles, our watchmaker works on every brand — from an express battery change to a full repair, without long waits.',
+        de: 'In der Place des Halles arbeitet unser Uhrmacher an allen Marken — vom Express-Batteriewechsel bis zur Komplettreparatur, ohne lange Wartezeiten.',
+      }),
     },
     workshop: {
-      title: 'Horloger & atelier sur place',
-      description:
-        "Un atelier équipé et un horloger qualifié vous accueillent en boutique. L'essentiel se fait devant vous — pas de renvoi externe pour les interventions courantes.",
+      title: t({
+        fr: 'Horloger & atelier sur place',
+        en: 'Watchmaker & workshop on site',
+        de: 'Uhrmacher & Werkstatt vor Ort',
+      }),
+      description: t({
+        fr: "Un atelier équipé et un horloger qualifié vous accueillent en boutique. L'essentiel se fait devant vous — pas de renvoi externe pour les interventions courantes.",
+        en: 'A fully equipped workshop and a qualified watchmaker welcome you in store. Most work is done in front of you — routine jobs are never sent away.',
+        de: 'Eine ausgestattete Werkstatt und ein qualifizierter Uhrmacher empfangen Sie im Geschäft. Das Wesentliche geschieht vor Ihren Augen — Routinearbeiten werden nicht ausgelagert.',
+      }),
     },
     sections: [
       {
         id: 'atelier',
         icon: 'atelier',
-        title: 'Réparation & entretien',
-        intro: 'Toutes marques, diagnostic et remise en état.',
+        title: t({
+          fr: 'Réparation & entretien',
+          en: 'Repairs & servicing',
+          de: 'Reparatur & Wartung',
+        }),
+        intro: t({
+          fr: 'Toutes marques, diagnostic et remise en état.',
+          en: 'All brands, diagnosis and restoration.',
+          de: 'Alle Marken, Diagnose und Instandsetzung.',
+        }),
         items: [
           {
-            title: 'Réparation complète',
-            description:
-              'Montres quartz, automatiques ou mécaniques — prise en charge par notre atelier.',
+            title: t({
+              fr: 'Réparation complète',
+              en: 'Full repair',
+              de: 'Komplettreparatur',
+            }),
+            description: t({
+              fr: 'Montres quartz, automatiques ou mécaniques — prise en charge par notre atelier.',
+              en: 'Quartz, automatic or mechanical watches — handled by our own workshop.',
+              de: 'Quarz-, Automatik- oder Handaufzugsuhren — bearbeitet in unserer eigenen Werkstatt.',
+            }),
           },
           {
-            title: 'Entretien régulier',
-            description: 'Révision, nettoyage et contrôle pour prolonger la vie de votre montre.',
+            title: t({
+              fr: 'Entretien régulier',
+              en: 'Regular servicing',
+              de: 'Regelmäßige Wartung',
+            }),
+            description: t({
+              fr: 'Révision, nettoyage et contrôle pour prolonger la vie de votre montre.',
+              en: 'Overhaul, cleaning and checks to extend the life of your watch.',
+              de: 'Revision, Reinigung und Kontrolle, um die Lebensdauer Ihrer Uhr zu verlängern.',
+            }),
           },
           {
-            title: 'Changement de verre',
-            description: 'Remplacement du vitrage selon modèle et disponibilité des pièces.',
+            title: t({
+              fr: 'Changement de verre',
+              en: 'Crystal replacement',
+              de: 'Glaswechsel',
+            }),
+            description: t({
+              fr: 'Remplacement du vitrage selon modèle et disponibilité des pièces.',
+              en: 'Crystal replaced depending on the model and parts availability.',
+              de: 'Glasersatz je nach Modell und Verfügbarkeit der Teile.',
+            }),
           },
           {
-            title: 'Étanchéité express',
-            description: "Test et contrôle réalisés sur place — résultat en moins d'une heure.",
+            title: t({
+              fr: 'Étanchéité express',
+              en: 'Express water-resistance test',
+              de: 'Express-Dichtheitsprüfung',
+            }),
+            description: t({
+              fr: "Test et contrôle réalisés sur place — résultat en moins d'une heure.",
+              en: 'Testing and inspection carried out on site — result in under an hour.',
+              de: 'Prüfung und Kontrolle vor Ort — Ergebnis in weniger als einer Stunde.',
+            }),
             price: '21 €',
-            badge: '< 1 h',
+            badge: t({
+              fr: '< 1 h',
+              en: '< 1 hr',
+              de: '< 1 Std.',
+            }),
           },
         ],
       },
       {
         id: 'piles',
         icon: 'piles',
-        title: 'Piles & petits objets',
-        intro: 'Montres, clés de voiture, télécommandes, calculatrices…',
+        title: t({
+          fr: 'Piles & petits objets',
+          en: 'Batteries & small devices',
+          de: 'Batterien & Kleingeräte',
+        }),
+        intro: t({
+          fr: 'Montres, clés de voiture, télécommandes, calculatrices…',
+          en: 'Watches, car keys, remote controls, calculators…',
+          de: 'Uhren, Autoschlüssel, Fernbedienungen, Taschenrechner …',
+        }),
         items: [
           {
-            title: 'Pile RENATA SWISS MADE',
-            description: 'Pose incluse pour la plupart des montres — qualité suisse reconnue.',
+            title: t({
+              fr: 'Pile RENATA SWISS MADE',
+              en: 'RENATA SWISS MADE battery',
+              de: 'Batterie RENATA SWISS MADE',
+            }),
+            description: t({
+              fr: 'Pose incluse pour la plupart des montres — qualité suisse reconnue.',
+              en: 'Fitting included for most watches — recognised Swiss quality.',
+              de: 'Einsetzen bei den meisten Uhren inbegriffen — anerkannte Schweizer Qualität.',
+            }),
             price: '9 €',
-            badge: 'Express',
+            badge: t({
+              fr: 'Express',
+              en: 'Express',
+              de: 'Express',
+            }),
           },
           {
-            title: 'Toutes marques de montres',
-            description:
-              'Quartz, digitale, connectée ou classique : nous changeons la pile sur place.',
+            title: t({
+              fr: 'Toutes marques de montres',
+              en: 'Every watch brand',
+              de: 'Alle Uhrenmarken',
+            }),
+            description: t({
+              fr: 'Quartz, digitale, connectée ou classique : nous changeons la pile sur place.',
+              en: 'Quartz, digital, connected or classic: we change the battery on the spot.',
+              de: 'Quarz, digital, vernetzt oder klassisch: Wir wechseln die Batterie vor Ort.',
+            }),
           },
           {
-            title: 'Au-delà de la montre',
-            description:
-              'Clés de voiture, télécommandes, calculatrices et autres objets à pile — même service rapide.',
+            title: t({
+              fr: 'Au-delà de la montre',
+              en: 'Beyond watches',
+              de: 'Mehr als nur Uhren',
+            }),
+            description: t({
+              fr: 'Clés de voiture, télécommandes, calculatrices et autres objets à pile — même service rapide.',
+              en: 'Car keys, remote controls, calculators and other battery-powered items — the same fast service.',
+              de: 'Autoschlüssel, Fernbedienungen, Taschenrechner und andere batteriebetriebene Geräte — derselbe schnelle Service.',
+            }),
           },
         ],
       },
       {
         id: 'bracelets',
         icon: 'bracelets',
-        title: 'Bracelets',
-        intro:
-          'Le plus grand choix de bracelets de montres sur Strasbourg — en magasin et pour vos commandes en ligne.',
+        title: t({
+          fr: 'Bracelets',
+          en: 'Straps & bracelets',
+          de: 'Armbänder',
+        }),
+        intro: t({
+          fr: 'Le plus grand choix de bracelets de montres sur Strasbourg — en magasin et pour vos commandes en ligne.',
+          en: 'The largest choice of watch straps in Strasbourg — in store and for your online orders.',
+          de: 'Die größte Auswahl an Uhrenarmbändern in Straßburg — im Geschäft und für Ihre Online-Bestellungen.',
+        }),
         items: [
           {
-            title: 'Ajustement avant expédition',
-            description:
-              'Pour toute montre avec bracelet métal commandée en ligne, nous ajustons gratuitement le bracelet à votre tour de poignet avant l’envoi.',
+            title: t({
+              fr: 'Ajustement avant expédition',
+              en: 'Adjusted before dispatch',
+              de: 'Anpassung vor dem Versand',
+            }),
+            description: t({
+              fr: 'Pour toute montre avec bracelet métal commandée en ligne, nous ajustons gratuitement le bracelet à votre tour de poignet avant l’envoi.',
+              en: 'For any watch with a metal bracelet ordered online, we adjust the bracelet to your wrist size free of charge before shipping.',
+              de: 'Bei jeder online bestellten Uhr mit Metallarmband passen wir das Armband vor dem Versand kostenlos an Ihren Handgelenkumfang an.',
+            }),
             link: {
-              href: publicPath('documents/aide-ajustement-montres.pdf'),
-              label: 'Guide de mesure (PDF)',
+              href: MEASURE_GUIDE_PDF,
+              label: t({
+                fr: 'Guide de mesure (PDF)',
+                en: 'Measuring guide (PDF)',
+                de: 'Maßanleitung (PDF)',
+              }),
             },
           },
           {
-            title: 'Remplacement sur place',
-            description: 'Pose, ajustement et conseil taille directement en magasin.',
+            title: t({
+              fr: 'Remplacement sur place',
+              en: 'Replaced on site',
+              de: 'Wechsel vor Ort',
+            }),
+            description: t({
+              fr: 'Pose, ajustement et conseil taille directement en magasin.',
+              en: 'Fitting, adjustment and sizing advice directly in store.',
+              de: 'Montage, Anpassung und Größenberatung direkt im Geschäft.',
+            }),
           },
           {
-            title: 'Large choix',
-            description:
-              'Cuir, acier, caoutchouc, NATO… pour personnaliser ou renouveler votre bracelet.',
-            badge: 'N°1 Strasbourg',
+            title: t({
+              fr: 'Large choix',
+              en: 'A wide choice',
+              de: 'Große Auswahl',
+            }),
+            description: t({
+              fr: 'Cuir, acier, caoutchouc, NATO… pour personnaliser ou renouveler votre bracelet.',
+              en: 'Leather, steel, rubber, NATO… to personalise or renew your strap.',
+              de: 'Leder, Stahl, Kautschuk, NATO … zum Personalisieren oder Erneuern Ihres Armbands.',
+            }),
+            badge: t({
+              fr: 'N°1 Strasbourg',
+              en: 'No. 1 in Strasbourg',
+              de: 'Nr. 1 in Straßburg',
+            }),
           },
         ],
       },
       {
         id: 'avantages',
         icon: 'avantages',
-        title: 'Facilités',
+        title: t({
+          fr: 'Facilités',
+          en: 'Made easier',
+          de: 'Erleichterungen',
+        }),
         items: [
           {
-            title: 'Paiement en 3 ou 4x',
-            description: 'Sans frais par carte bancaire, directement en magasin.',
-            badge: 'Sans frais',
+            title: t({
+              fr: 'Paiement en 3 ou 4x',
+              en: 'Payment in 3 or 4 instalments',
+              de: 'Zahlung in 3 oder 4 Raten',
+            }),
+            description: t({
+              fr: 'Sans frais par carte bancaire, directement en magasin.',
+              en: 'Interest-free by bank card, directly in store.',
+              de: 'Zinsfrei per Bankkarte, direkt im Geschäft.',
+            }),
+            badge: t({
+              fr: 'Sans frais',
+              en: 'Interest-free',
+              de: 'Zinsfrei',
+            }),
           },
           {
-            title: 'Extension de garantie',
-            description: 'Un an de tranquillité supplémentaire pour votre montre.',
+            title: t({
+              fr: 'Extension de garantie',
+              en: 'Extended warranty',
+              de: 'Garantieverlängerung',
+            }),
+            description: t({
+              fr: 'Un an de tranquillité supplémentaire pour votre montre.',
+              en: 'One extra year of peace of mind for your watch.',
+              de: 'Ein zusätzliches Jahr Sorgenfreiheit für Ihre Uhr.',
+            }),
             price: '2 €',
           },
         ],
       },
     ],
     cta: {
-      title: 'Passez nous voir aux Halles',
-      subtitle: 'Du lundi au samedi, 9h–20h — Centre commercial Place des Halles, Strasbourg.',
-      contactLabel: 'Nous contacter',
+      title: t({
+        fr: 'Passez nous voir aux Halles',
+        en: 'Come and see us at Les Halles',
+        de: 'Besuchen Sie uns in Les Halles',
+      }),
+      subtitle: t({
+        fr: 'Du lundi au samedi, 9h–20h — Centre commercial Place des Halles, Strasbourg.',
+        en: 'Monday to Saturday, 9am–8pm — Place des Halles shopping centre, Strasbourg.',
+        de: 'Montag bis Samstag, 9–20 Uhr — Einkaufszentrum Place des Halles, Straßburg.',
+      }),
+      contactLabel: t({
+        fr: 'Nous contacter',
+        en: 'Contact us',
+        de: 'Kontakt aufnehmen',
+      }),
       phoneLabel: '03 88 22 40 40',
       guideLabel: t({
         fr: "Le Guide de l'horloger",
@@ -466,8 +900,12 @@ export default {
         de: 'Der Uhrmacher-Ratgeber',
       }),
       guideTo: '/guide-horloger',
-      documentLabel: 'Guide ajustement bracelet (PDF)',
-      documentHref: publicPath('documents/aide-ajustement-montres.pdf'),
+      documentLabel: t({
+        fr: 'Guide ajustement bracelet (PDF)',
+        en: 'Bracelet adjustment guide (PDF)',
+        de: 'Anleitung zur Armbandanpassung (PDF)',
+      }),
+      documentHref: MEASURE_GUIDE_PDF,
     },
   },
 
@@ -543,57 +981,121 @@ export default {
       {
         id: 'envoi',
         icon: 'shipping',
-        text: 'Envoi gratuit en 48 h',
+        text: t({
+          fr: 'Envoi gratuit en 48 h',
+          en: 'Free shipping within 48 hours',
+          de: 'Kostenloser Versand in 48 Stunden',
+        }),
       },
       {
         id: 'guarantee',
         icon: 'guarantee',
-        text: 'Toutes nos montres sont garanties 2 ans',
+        text: t({
+          fr: 'Toutes nos montres sont garanties 2 ans',
+          en: 'Every watch comes with a 2-year warranty',
+          de: 'Auf alle Uhren 2 Jahre Garantie',
+        }),
       },
       {
         id: 'return',
         icon: 'return',
-        text: 'Retour possible sous 30 jours',
+        text: t({
+          fr: 'Retour possible sous 30 jours',
+          en: 'Returns accepted within 30 days',
+          de: 'Rückgabe innerhalb von 30 Tagen möglich',
+        }),
       },
     ],
     guarantees: {
-      heading: 'Nos garanties et services',
+      heading: t({
+        fr: 'Nos garanties et services',
+        en: 'Our warranties and services',
+        de: 'Unsere Garantien und Leistungen',
+      }),
       items: [
         {
           id: 'guarantee',
           icon: 'guarantee',
-          title: 'Garantie 2 ans',
-          text: 'Toutes nos montres sont couvertes par une garantie de 2 ans. Les modalités précises (constructeur ou vendeur) figurent sur chaque fiche produit.',
+          title: t({
+            fr: 'Garantie 2 ans',
+            en: '2-year warranty',
+            de: '2 Jahre Garantie',
+          }),
+          text: t({
+            fr: 'Toutes nos montres sont couvertes par une garantie de 2 ans. Les modalités précises (constructeur ou vendeur) figurent sur chaque fiche produit.',
+            en: 'All our watches are covered by a 2-year warranty. The exact terms (manufacturer or retailer) are stated on each product page.',
+            de: 'Alle unsere Uhren sind durch eine 2-Jahres-Garantie gedeckt. Die genauen Bedingungen (Hersteller oder Verkäufer) stehen auf jeder Produktseite.',
+          }),
         },
         {
           id: 'return',
           icon: 'return',
-          title: 'Retour sous 30 jours',
-          text: 'Vous disposez de 30 jours pour retourner votre montre si elle ne vous convient pas, dans le respect de nos conditions générales de vente.',
+          title: t({
+            fr: 'Retour sous 30 jours',
+            en: '30-day returns',
+            de: 'Rückgabe binnen 30 Tagen',
+          }),
+          text: t({
+            fr: 'Vous disposez de 30 jours pour retourner votre montre si elle ne vous convient pas, dans le respect de nos conditions générales de vente.',
+            en: 'You have 30 days to return your watch if it does not suit you, in line with our terms and conditions of sale.',
+            de: 'Sie haben 30 Tage Zeit, Ihre Uhr zurückzusenden, wenn sie Ihnen nicht zusagt — im Rahmen unserer Allgemeinen Geschäftsbedingungen.',
+          }),
         },
         {
           id: 'shipping',
           icon: 'shipping',
-          title: 'Envoi Colissimo suivi',
-          text: 'Expédition sous environ 48 h après réception du paiement. Livraison offerte dès 80 € en France métropolitaine. Pour les bracelets métal, ajustement gratuit avant envoi — voir le guide PDF sur la page Nos services.',
+          title: t({
+            fr: 'Envoi Colissimo suivi',
+            en: 'Tracked Colissimo shipping',
+            de: 'Colissimo-Versand mit Sendungsverfolgung',
+          }),
+          text: t({
+            fr: 'Expédition sous environ 48 h après réception du paiement. Livraison offerte dès 80 € en France métropolitaine. Pour les bracelets métal, ajustement gratuit avant envoi — voir le guide PDF sur la page Nos services.',
+            en: 'Dispatch around 48 hours after payment is received. Free delivery from €80 in mainland France. Metal bracelets are adjusted free of charge before shipping — see the PDF guide on the Our services page.',
+            de: 'Versand etwa 48 Stunden nach Zahlungseingang. Kostenlose Lieferung ab 80 € im französischen Mutterland. Metallarmbänder werden vor dem Versand kostenlos angepasst — siehe die PDF-Anleitung auf der Seite „Unsere Leistungen“.',
+          }),
         },
         {
           id: 'pickup',
           icon: 'pickup',
-          title: 'Retrait au magasin',
-          text: 'Commandez en ligne et retirez votre montre au centre commercial Place des Halles, du lundi au samedi de 9h à 20h.',
+          title: t({
+            fr: 'Retrait au magasin',
+            en: 'Collection in store',
+            de: 'Abholung im Geschäft',
+          }),
+          text: t({
+            fr: 'Commandez en ligne et retirez votre montre au centre commercial Place des Halles, du lundi au samedi de 9h à 20h.',
+            en: 'Order online and collect your watch at the Place des Halles shopping centre, Monday to Saturday from 9am to 8pm.',
+            de: 'Bestellen Sie online und holen Sie Ihre Uhr im Einkaufszentrum Place des Halles ab, Montag bis Samstag von 9 bis 20 Uhr.',
+          }),
         },
         {
           id: 'payment',
           icon: 'payment',
-          title: 'Paiement sécurisé',
-          text: "Règlement en ligne protégé via Stripe. Aucune information bancaire n'est stockée sur nos serveurs.",
+          title: t({
+            fr: 'Paiement sécurisé',
+            en: 'Secure payment',
+            de: 'Sichere Zahlung',
+          }),
+          text: t({
+            fr: "Règlement en ligne protégé via Stripe. Aucune information bancaire n'est stockée sur nos serveurs.",
+            en: 'Online payment protected by Stripe. No card details are stored on our servers.',
+            de: 'Online-Zahlung geschützt über Stripe. Es werden keine Bankdaten auf unseren Servern gespeichert.',
+          }),
         },
         {
           id: 'experience',
           icon: 'experience',
-          title: 'Expertise depuis 1995',
-          text: 'Spécialiste de la montre à Strasbourg depuis près de 30 ans : conseils, atelier sur place et service client du lundi au samedi.',
+          title: t({
+            fr: 'Expertise depuis 1995',
+            en: 'Expertise since 1995',
+            de: 'Kompetenz seit 1995',
+          }),
+          text: t({
+            fr: 'Spécialiste de la montre à Strasbourg depuis près de 30 ans : conseils, atelier sur place et service client du lundi au samedi.',
+            en: 'Watch specialists in Strasbourg for almost 30 years: advice, an on-site workshop and customer service Monday to Saturday.',
+            de: 'Seit fast 30 Jahren Uhrenspezialist in Straßburg: Beratung, Werkstatt vor Ort und Kundenservice von Montag bis Samstag.',
+          }),
         },
       ],
     },
@@ -611,19 +1113,35 @@ export default {
         {
           id: 'colissimo_fr',
           type: 'home',
-          label: 'Colissimo suivi — France métropolitaine',
+          label: t({
+            fr: 'Colissimo suivi — France métropolitaine',
+            en: 'Tracked Colissimo — mainland France',
+            de: 'Colissimo mit Sendungsverfolgung — französisches Mutterland',
+          }),
           countries: ['FR', 'MC'],
           fee: { type: 'free_above', amount: 6.9, freeAbove: 80 },
-          estimatedDays: 'Expédition sous environ 48 h après réception du paiement',
+          estimatedDays: t({
+            fr: 'Expédition sous environ 48 h après réception du paiement',
+            en: 'Dispatched around 48 hours after payment is received',
+            de: 'Versand etwa 48 Stunden nach Zahlungseingang',
+          }),
         },
         {
           id: 'pickup_halles',
           type: 'pickup',
-          label: 'Retrait au magasin — Place des Halles',
+          label: t({
+            fr: 'Retrait au magasin — Place des Halles',
+            en: 'Collection in store — Place des Halles',
+            de: 'Abholung im Geschäft — Place des Halles',
+          }),
           fee: { type: 'flat', amount: 0 },
           pickupLocation: {
             name: 'Place des Montres',
-            address: 'Centre commercial Place des Halles, 67000 Strasbourg',
+            address: t({
+              fr: 'Centre commercial Place des Halles, 67000 Strasbourg',
+              en: 'Place des Halles shopping centre, 67000 Strasbourg',
+              de: 'Einkaufszentrum Place des Halles, 67000 Straßburg',
+            }),
           },
         },
       ],
@@ -637,8 +1155,16 @@ export default {
 
   receipt: {
     enabled: true,
-    documentTitle: 'Reçu de paiement',
-    footerNote: 'Merci pour votre confiance — Place des Montres.',
+    documentTitle: t({
+      fr: 'Reçu de paiement',
+      en: 'Payment receipt',
+      de: 'Zahlungsbeleg',
+    }),
+    footerNote: t({
+      fr: 'Merci pour votre confiance — Place des Montres.',
+      en: 'Thank you for your trust — Place des Montres.',
+      de: 'Vielen Dank für Ihr Vertrauen — Place des Montres.',
+    }),
     showWatchImages: true,
     logoPath: publicPath('brand-logo.jpg'),
   },
@@ -659,13 +1185,39 @@ export default {
   home: {
     hero: {
       variant: 'compact',
-      title: "Votre montre de marque, aujourd'hui.",
-      subtitle: "30 ans d'expérience basée à Strasbourg.",
-      primaryCta: { label: 'Découvrir nos montres', to: '/collection' },
-      secondaryCta: { label: 'Nous contacter', to: '/contact' },
+      title: t({
+        fr: "Votre montre de marque, aujourd'hui.",
+        en: 'Your branded watch, today.',
+        de: 'Ihre Markenuhr — noch heute.',
+      }),
+      subtitle: t({
+        fr: "30 ans d'expérience basée à Strasbourg.",
+        en: '30 years of experience, based in Strasbourg.',
+        de: '30 Jahre Erfahrung, ansässig in Straßburg.',
+      }),
+      primaryCta: {
+        label: t({
+          fr: 'Découvrir nos montres',
+          en: 'Discover our watches',
+          de: 'Unsere Uhren entdecken',
+        }),
+        to: '/collection',
+      },
+      secondaryCta: {
+        label: t({
+          fr: 'Nous contacter',
+          en: 'Contact us',
+          de: 'Kontakt aufnehmen',
+        }),
+        to: '/contact',
+      },
     },
     nouvelles: {
-      title: 'Nouvelles arrivées',
+      title: t({
+        fr: 'Nouvelles arrivées',
+        en: 'New arrivals',
+        de: 'Neuzugänge',
+      }),
       // subtitle: 'Découvrez nos dernières pièces ajoutées à notre sélection',
     },
     stats: {
@@ -673,14 +1225,34 @@ export default {
         {
           icon: 'stock',
           value: '3 000',
-          label: 'Montres en stock',
-          detail: 'Disponibles en ligne ou en boutique',
+          label: t({
+            fr: 'Montres en stock',
+            en: 'Watches in stock',
+            de: 'Uhren am Lager',
+          }),
+          detail: t({
+            fr: 'Disponibles en ligne ou en boutique',
+            en: 'Available online or in store',
+            de: 'Online oder im Geschäft verfügbar',
+          }),
         },
         {
           icon: 'experience',
-          value: '30 ans',
-          label: 'D’expérience',
-          detail: 'Spécialiste montre depuis 1995',
+          value: t({
+            fr: '30 ans',
+            en: '30 years',
+            de: '30 Jahre',
+          }),
+          label: t({
+            fr: 'D’expérience',
+            en: 'Of experience',
+            de: 'Erfahrung',
+          }),
+          detail: t({
+            fr: 'Spécialiste montre depuis 1995',
+            en: 'Watch specialists since 1995',
+            de: 'Uhrenspezialist seit 1995',
+          }),
         },
         {
           icon: 'sparkles',
@@ -690,35 +1262,82 @@ export default {
             en: 'Brands',
             de: 'Marken',
           }),
-          detail: 'Des maisons accessibles aux références Swiss Made',
+          detail: t({
+            fr: 'Des maisons accessibles aux références Swiss Made',
+            en: 'From affordable houses to Swiss Made references',
+            de: 'Von erschwinglichen Häusern bis zu Swiss-Made-Referenzen',
+          }),
         },
       ],
       highlights: [
         {
           icon: 'shipping',
-          label: 'Envoi gratuit en 48 h',
-          detail: 'Offert dès 80 € d’achat en France métropolitaine',
+          label: t({
+            fr: 'Envoi gratuit en 48 h',
+            en: 'Free shipping within 48 hours',
+            de: 'Kostenloser Versand in 48 Stunden',
+          }),
+          detail: t({
+            fr: 'Offert dès 80 € d’achat en France métropolitaine',
+            en: 'Free from €80 in mainland France',
+            de: 'Ab 80 € Einkaufswert im französischen Mutterland kostenlos',
+          }),
         },
         {
           icon: 'guarantee',
-          label: 'Toutes nos montres sont garanties 2 ans',
-          detail: 'Extension de garantie disponible en boutique',
+          label: t({
+            fr: 'Toutes nos montres sont garanties 2 ans',
+            en: 'Every watch comes with a 2-year warranty',
+            de: 'Auf alle Uhren 2 Jahre Garantie',
+          }),
+          detail: t({
+            fr: 'Extension de garantie disponible en boutique',
+            en: 'Extended warranty available in store',
+            de: 'Garantieverlängerung im Geschäft erhältlich',
+          }),
         },
         {
           icon: 'return',
-          label: 'Retour possible sous 30 jours',
-          detail: 'À compter de la réception, montre complète dans son emballage d’origine',
+          label: t({
+            fr: 'Retour possible sous 30 jours',
+            en: 'Returns accepted within 30 days',
+            de: 'Rückgabe innerhalb von 30 Tagen möglich',
+          }),
+          detail: t({
+            fr: 'À compter de la réception, montre complète dans son emballage d’origine',
+            en: 'From delivery, with the watch complete in its original packaging',
+            de: 'Ab Erhalt, Uhr vollständig in der Originalverpackung',
+          }),
         },
       ],
     },
     aboutPreview: {
-      eyebrow: 'Qui sommes-nous ?',
-      title: 'Une adresse horlogère au cœur des Place des Halles',
-      description:
-        'Installée à Strasbourg depuis 1995, notre équipe conseille chaque client avec la même attention : choisir le bon style, comparer les marques, trouver le cadeau idéal ou entretenir sa montre au quotidien.',
+      eyebrow: t({
+        fr: 'Qui sommes-nous ?',
+        en: 'Who we are',
+        de: 'Wer wir sind',
+      }),
+      title: t({
+        fr: 'Une adresse horlogère au cœur des Place des Halles',
+        en: 'A watchmaking address at the heart of Place des Halles',
+        de: 'Eine Uhrenadresse im Herzen der Place des Halles',
+      }),
+      description: t({
+        fr: 'Installée à Strasbourg depuis 1995, notre équipe conseille chaque client avec la même attention : choisir le bon style, comparer les marques, trouver le cadeau idéal ou entretenir sa montre au quotidien.',
+        en: 'Established in Strasbourg since 1995, our team advises every customer with the same care: choosing the right style, comparing brands, finding the perfect gift or looking after a watch day to day.',
+        de: 'Seit 1995 in Straßburg ansässig, berät unser Team jede Kundin und jeden Kunden mit derselben Sorgfalt: den richtigen Stil wählen, Marken vergleichen, das passende Geschenk finden oder die Uhr im Alltag pflegen.',
+      }),
       image: publicPath('places/place-des-montres-strasbourg_1.jpg'),
-      imageAlt: 'Boutique Place des Montres au centre commercial Place des Halles à Strasbourg',
-      ctaLabel: 'Découvrir notre histoire',
+      imageAlt: t({
+        fr: 'Boutique Place des Montres au centre commercial Place des Halles à Strasbourg',
+        en: 'The Place des Montres store at the Place des Halles shopping centre in Strasbourg',
+        de: 'Das Geschäft Place des Montres im Einkaufszentrum Place des Halles in Straßburg',
+      }),
+      ctaLabel: t({
+        fr: 'Découvrir notre histoire',
+        en: 'Discover our story',
+        de: 'Unsere Geschichte entdecken',
+      }),
       to: '/a-propos',
     },
     sections: [
@@ -736,7 +1355,11 @@ export default {
       // 'faq',
     ],
     selections: {
-      title: 'Notre sélection du moment',
+      title: t({
+        fr: 'Notre sélection du moment',
+        en: 'Our current selection',
+        de: 'Unsere aktuelle Auswahl',
+      }),
       /** Visuels : voir `public/home-selections/README.md` et `homeSelections.config.js`. */
       cards: homeSelectionCards,
     },
@@ -746,10 +1369,24 @@ export default {
      * sur les dernières montres disponibles. Voir `HomeCollectionHighlightSection.vue`.
      */
     collectionHighlight: {
-      title: 'Un aperçu de notre collection',
-      subtitle:
-        'Quelques pièces choisies parmi nos 3 000 montres en stock — découvrez l’ensemble en boutique ou en ligne.',
-      cta: { label: 'Voir toute la collection', to: '/collection' },
+      title: t({
+        fr: 'Un aperçu de notre collection',
+        en: 'A glimpse of our collection',
+        de: 'Ein Einblick in unsere Kollektion',
+      }),
+      subtitle: t({
+        fr: 'Quelques pièces choisies parmi nos 3 000 montres en stock — découvrez l’ensemble en boutique ou en ligne.',
+        en: 'A few pieces chosen from the 3,000 watches we hold in stock — see them all in store or online.',
+        de: 'Einige ausgewählte Stücke aus unseren 3.000 Uhren am Lager — entdecken Sie alle im Geschäft oder online.',
+      }),
+      cta: {
+        label: t({
+          fr: 'Voir toute la collection',
+          en: 'See the whole collection',
+          de: 'Ganze Kollektion ansehen',
+        }),
+        to: '/collection',
+      },
     },
   },
 
@@ -870,7 +1507,16 @@ export default {
         feature: 'servicesPage',
       },
       { type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' },
-      { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
+      {
+        type: 'link',
+        label: t({
+          fr: 'Contact',
+          en: 'Contact',
+          de: 'Kontakt',
+        }),
+        to: '/contact',
+        feature: 'contact',
+      },
     ],
     footer: [
       {
@@ -918,7 +1564,15 @@ export default {
         feature: 'guidePage',
       },
       { label: 'FAQ', to: '/faq', feature: 'faq' },
-      { label: 'Contact', to: '/contact', feature: 'contact' },
+      {
+        label: t({
+          fr: 'Contact',
+          en: 'Contact',
+          de: 'Kontakt',
+        }),
+        to: '/contact',
+        feature: 'contact',
+      },
     ],
   },
 

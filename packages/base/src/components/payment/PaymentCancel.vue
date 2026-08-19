@@ -162,7 +162,8 @@
       <div v-else-if="watchError" class="mb-6">
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p class="text-sm text-yellow-800">
-            <strong>{{ t('payment.noteLabel') }}</strong> Impossible de charger les détails de la montre. {{ watchError }}
+            <strong>{{ t('payment.noteLabel') }}</strong> {{ t('payment.watchLoadFailed') }}
+            {{ watchError }}
           </p>
         </div>
       </div>

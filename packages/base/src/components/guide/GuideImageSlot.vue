@@ -34,7 +34,7 @@
         />
       </svg>
       <p class="text-sm font-medium text-gray-500 max-w-xs">
-        {{ image.placeholderLabel || 'Illustration à venir' }}
+        {{ image.placeholderLabel || t('guide.imagePlaceholder') }}
       </p>
     </div>
   </div>
@@ -42,6 +42,8 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+
+import { t } from '@/i18n'
 
 const props = defineProps({
   image: {
