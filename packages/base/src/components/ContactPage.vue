@@ -183,7 +183,7 @@
               </div>
 
               <p class="text-sm text-gray-600 italic">
-                * Les champs marqués d'un astérisque sont obligatoires
+                {{ t('common.requiredFields') }}
               </p>
 
               <NewsletterOptInField />

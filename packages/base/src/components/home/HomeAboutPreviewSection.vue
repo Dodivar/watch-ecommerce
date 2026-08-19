@@ -1,4 +1,5 @@
 <script setup>
+import { t } from '@/i18n'
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
@@ -34,7 +35,7 @@ const hasContent = computed(() =>
             :to="aboutPreview.to || '/a-propos'"
             class="inline-flex items-center bg-primary text-white px-6 py-3 font-semibold hover:bg-primary-hover transition-colors"
           >
-            {{ aboutPreview.ctaLabel || 'Découvrir notre histoire' }}
+            {{ aboutPreview.ctaLabel || t('home.discoverOurStory') }}
           </RouterLink>
         </div>
 

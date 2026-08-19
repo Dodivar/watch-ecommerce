@@ -289,7 +289,7 @@ watch(
       </div>
 
       <p v-if="prefersReducedMotion && hasMultipleSlides" class="sr-only">
-        Défilement automatique désactivé car vous avez demandé moins d'animations.
+        {{ t('home.carouselAutoplayOff') }}
       </p>
     </template>
   </section>

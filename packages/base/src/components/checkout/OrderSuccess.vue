@@ -101,7 +101,7 @@ async function downloadReceipt() {
   try {
     await downloadOrderReceipt(orderId.value, accessToken.value)
   } catch (err) {
-    receiptError.value = err.message || 'Impossible de télécharger le reçu'
+    receiptError.value = err.message || t('checkout.receiptError')
   } finally {
     receiptDownloading.value = false
   }
@@ -213,7 +213,7 @@ onMounted(async () => {
     }
     watches.value = loaded
   } catch (e) {
-    error.value = e.message || 'Erreur de vérification'
+    error.value = e.message || t('checkout.verificationError')
   } finally {
     loading.value = false
   }
@@ -227,7 +227,7 @@ onMounted(async () => {
         v-if="loading"
         class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8 text-center text-gray-600"
       >
-        Vérification du paiement…
+        {{ t('checkout.verifyingPayment') }}
       </div>
 
       <div
@@ -270,7 +270,7 @@ onMounted(async () => {
               Commande <span class="font-medium text-gray-500">{{ orderId }}</span>
             </p>
             <p v-if="customerEmail" class="text-sm text-gray-500 mb-6">
-              Un email de confirmation a été envoyé à
+              {{ t('checkout.confirmationEmailSentTo') }}
               <span class="font-medium text-gray-700">{{ customerEmail }}</span>.
             </p>
 
@@ -283,7 +283,7 @@ onMounted(async () => {
                 :to="browsePath"
                 class="px-6 py-3 bg-primary text-white rounded-lg font-medium text-center transition-opacity hover:opacity-90"
               >
-                Retourner à la boutique
+                {{ t('checkout.backToShop') }}
               </router-link>
               <button
                 v-if="!isPreview"
@@ -292,7 +292,7 @@ onMounted(async () => {
                 :disabled="receiptDownloading"
                 @click="downloadReceipt"
               >
-                {{ receiptDownloading ? 'Téléchargement…' : 'Télécharger le reçu PDF' }}
+                {{ receiptDownloading ? t('common.loading') : t('checkout.downloadReceipt') }}
               </button>
             </div>
             <p v-if="receiptError" class="mt-3 text-sm text-red-600">{{ receiptError }}</p>
@@ -336,7 +336,7 @@ onMounted(async () => {
                 <div class="min-w-0 flex-1">
                   <p class="font-medium text-gray-900 truncate">{{ line.name }}</p>
                   <p v-if="line.reference" class="text-xs text-gray-400 truncate">
-                    Réf. {{ line.reference }}
+                    {{ t('watch.referenceShort', { reference: line.reference }) }}
                   </p>
                   <p class="text-sm text-gray-500">{{ t('cart.quantity') }} : {{ line.quantity }}</p>
                 </div>
@@ -352,7 +352,7 @@ onMounted(async () => {
                 <span>{{ formatPrice(subtotalCents) }}</span>
               </div>
               <div class="flex justify-between text-gray-600">
-                <span>{{ shippingMethodLabel || 'Livraison' }}</span>
+                <span>{{ shippingMethodLabel || t('checkout.shippingFallback') }}</span>
                 <span>{{ shippingCents > 0 ? formatPrice(shippingCents) : 'Offerte' }}</span>
               </div>
               <div v-if="hasDiscount" class="flex justify-between text-green-700">

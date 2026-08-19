@@ -1,4 +1,5 @@
 <script setup>
+import { t } from '@/i18n'
 import { Mail } from '@lucide/vue'
 import { WHATSAPP_NUMBER, EMAIL_CONTACT } from '@/config'
 
@@ -10,7 +11,7 @@ defineOptions({ name: 'ContactCTA' })
     <div class="bg-white rounded-md p-8 text-black">
       <h3 class="text-2xl font-bold mb-3">Besoin d'aide&nbsp;?</h3>
       <p class="text-lg mb-4">
-        Notre équipe est là pour vous accompagner dans tous vos projets de montres.
+        {{ t('contact.ctaText') }}
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a

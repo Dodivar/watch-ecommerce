@@ -155,7 +155,7 @@ function onCheckout() {
                     <X class="h-5 w-5" :stroke-width="2" />                  </button>
                 </div>
                 <p v-if="line.reference" class="text-xs text-gray-500 mt-0.5">
-                  Réf. {{ line.reference }}
+                  {{ t('watch.referenceShort', { reference: line.reference }) }}
                 </p>
                 <div
                   v-if="cartMultiQuantity"

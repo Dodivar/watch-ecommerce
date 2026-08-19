@@ -56,11 +56,11 @@ onMounted(async () => {
         rel="noopener noreferrer"
         class="inline-flex items-center justify-center px-6 py-3 mb-4 bg-green-600 text-white rounded-lg font-medium"
       >
-        Nous contacter sur WhatsApp
+        {{ t('payment.contactWhatsApp') }}
       </a>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <router-link :to="browsePath" class="px-6 py-3 bg-primary text-white rounded-lg font-medium">
-          Voir la collection
+          {{ t('watch.seeCollection') }}
         </router-link>
         <router-link to="/" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700">
           Accueil

@@ -558,7 +558,7 @@ async function syncOrder() {
       }
     }
   } catch (e) {
-    pageError.value = e.message || 'Erreur lors de la mise à jour de la commande'
+    pageError.value = e.message || t('checkout.orderUpdateError')
   } finally {
     syncInFlight = false
     syncLoading.value = false
@@ -611,7 +611,7 @@ async function onApplyPromo() {
       await maybeInitPayment()
     }
   } catch (e) {
-    promoMessage.value = e.message || 'Code promo invalide'
+    promoMessage.value = e.message || t('checkout.invalidPromoCode')
     promoMessageType.value = 'error'
   } finally {
     promoLoading.value = false
@@ -683,7 +683,7 @@ async function initPayment() {
 
     stripeReady.value = true
   } catch (e) {
-    paymentError.value = e.message || 'Impossible de préparer le paiement'
+    paymentError.value = e.message || t('checkout.paymentPrepareError')
     stripeReady.value = false
     await scrollToPaymentSection()
   } finally {
@@ -718,11 +718,11 @@ async function onConfirmPayment() {
       confirmParams: { return_url: returnUrl },
     })
     if (stripeError) {
-      paymentError.value = stripeError.message || 'Paiement refusé'
+      paymentError.value = stripeError.message || t('checkout.paymentDeclined')
       await scrollToPaymentSection()
     }
   } catch (e) {
-    paymentError.value = e.message || 'Erreur lors du paiement'
+    paymentError.value = e.message || t('checkout.paymentError')
     await scrollToPaymentSection()
   } finally {
     paymentLoading.value = false

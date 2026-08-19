@@ -147,7 +147,7 @@
       </div>
 
       <p v-if="effectiveShowReference" class="text-[10px] md:text-sm text-gray-600 md:mb-2 font-light">
-        Réf. {{ watchItem.reference }}
+        {{ t('watch.referenceShort', { reference: watchItem.reference }) }}
       </p>
 
       <div

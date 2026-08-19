@@ -1,4 +1,5 @@
 <script setup>
+import { t } from '@/i18n'
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -50,7 +51,7 @@ function handleViewDetails(watch) {
           id="collection-highlight-title"
           class="text-3xl lg:text-4xl font-bold text-text-main mb-3"
         >
-          {{ config.title || 'Un aperçu de la collection' }}
+          {{ config.title || t('home.collectionGlimpse') }}
         </h2>
         <p v-if="config.subtitle" class="text-xl text-gray-600">
           {{ config.subtitle }}

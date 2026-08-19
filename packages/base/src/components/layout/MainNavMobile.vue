@@ -422,7 +422,7 @@ function brandRoute(brandName) {
                 @click="close"
                 class="block py-3 text-base font-medium text-white/90 hover:text-cream-100 border-b border-white/10 transition-colors"
               >
-                Voir toute la collection
+                {{ t('collection.seeAll') }}
               </RouterLink>
 
               <template
@@ -515,10 +515,10 @@ function brandRoute(brandName) {
                   <p v-if="isLoading" class="py-3 text-white/70 text-sm">{{ t('common.loading') }}</p>
                   <p v-else-if="error" class="py-3 text-white/70 text-sm">{{ error }}</p>
                   <p v-else-if="brands.length === 0" class="py-3 text-white/70 text-sm">
-                    Aucune marque disponible pour le moment.
+                    {{ t('watch.noBrandsAvailable') }}
                   </p>
                   <p v-else-if="filteredBrands.length === 0" class="py-3 text-white/70 text-sm">
-                    Aucune marque ne correspond à « {{ brandQuery }} ».
+                    {{ t('collection.brandNoMatch', { query: brandQuery }) }}
                   </p>
 
                   <template v-else-if="showGroupedBrands">

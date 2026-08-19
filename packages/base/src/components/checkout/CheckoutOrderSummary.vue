@@ -78,7 +78,7 @@ const shippingLabel = computed(() => {
               {{ line.name }}
             </p>
             <p v-if="line.reference" class="text-xs text-gray-500 mt-0.5">
-              Réf. {{ line.reference }}
+              {{ t('watch.referenceShort', { reference: line.reference }) }}
             </p>
           </div>
           <p class="text-sm font-medium text-gray-900 whitespace-nowrap shrink-0">
@@ -122,7 +122,7 @@ const shippingLabel = computed(() => {
       class="text-sm text-gray-600 underline -mt-4"
       @click="emit('remove-promo')"
     >
-      Retirer le code
+      {{ t('checkout.removePromoCode') }}
     </button>
 
     <div v-if="quote" class="border-t border-gray-200 pt-4 space-y-2 text-sm">

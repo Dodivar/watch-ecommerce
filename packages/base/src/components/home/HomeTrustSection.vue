@@ -8,10 +8,10 @@ import { t } from '@/i18n'
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
         <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
-          Achetez ou recherchez votre montre en toute confiance
+          {{ t('home.trustTitle') }}
         </h2>
         <p class="text-xl text-gray-600">
-          Profitez d'un accompagnement personnalisé, d'une sécurité totale et de tous les avantages de notre réseau d'experts pour un achat serein ou la quête du modèle qui vous fait rêver.
+          {{ t('home.trustSubtitle') }}
         </p>
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">

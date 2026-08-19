@@ -244,7 +244,7 @@ onMounted(() => {
           </div>
 
           <p class="text-sm text-gray-600 mb-4 italic">
-            * Les champs marqués d'un astérisque sont obligatoires
+            {{ t('common.requiredFields') }}
           </p>
 
           <NewsletterOptInField class="mb-4" />

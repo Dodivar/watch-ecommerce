@@ -5,10 +5,10 @@
         <!-- Header -->
         <div class="text-center mb-8">
           <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">
-            Comment estimons-nous votre montre ?
+            {{ t('process.pageTitle') }}
           </h1>
           <p class="text-xl text-gray-600">
-            Transparence et expertise au service de votre confiance
+            {{ t('process.pageSubtitle') }}
           </p>
         </div>
 
@@ -29,8 +29,7 @@
           <div class="prose prose-lg max-w-none">
             <p class="text-lg text-gray-700 leading-relaxed">
               {{ estimationProcessLead }}
-              C'est pourquoi nous vous expliquons en détail comment nous procédons pour 
-              estimer votre montre de manière précise et équitable.
+              {{ t('process.introTail') }}
             </p>
           </div>
 
@@ -47,12 +46,10 @@
               </div>
               <div class="flex-1">
                 <h3 class="text-xl font-semibold text-text-main mb-3">
-                  Analyse de votre demande
+                  {{ t('process.step1Title') }}
                 </h3>
                 <p class="text-gray-700 leading-relaxed">
-                  Dès réception de votre formulaire, notre équipe d'experts examine toutes les 
-                  informations fournies : marque, modèle, année, numéro de série, état général 
-                  et accessoires (boîte, papiers). Chaque détail compte pour une estimation précise.
+                  {{ t('process.step1Text') }}
                 </p>
               </div>
             </div>
@@ -66,12 +63,10 @@
               </div>
               <div class="flex-1">
                 <h3 class="text-xl font-semibold text-text-main mb-3">
-                  Vérification d'authenticité
+                  {{ t('process.step2Title') }}
                 </h3>
                 <p class="text-gray-700 leading-relaxed">
-                  Le numéro de série que vous nous communiquez est vérifié dans nos bases de 
-                  données et comparé avec les références officielles des marques. Cette étape 
-                  cruciale garantit l'authenticité de votre montre et protège votre investissement.
+                  {{ t('process.step2Text') }}
                 </p>
               </div>
             </div>
@@ -85,13 +80,10 @@
               </div>
               <div class="flex-1">
                 <h3 class="text-xl font-semibold text-text-main mb-3">
-                  Évaluation du marché
+                  {{ t('process.step3Title') }}
                 </h3>
                 <p class="text-gray-700 leading-relaxed">
-                  Nous analysons les prix du marché en temps réel en consultant plusieurs sources 
-                  fiables : ventes aux enchères récentes, plateformes spécialisées, et notre 
-                  propre expérience de transaction. Nous prenons en compte la rareté, la demande 
-                  actuelle et les tendances du marché horloger.
+                  {{ t('process.step3Text') }}
                 </p>
               </div>
             </div>
@@ -105,13 +97,10 @@
               </div>
               <div class="flex-1">
                 <h3 class="text-xl font-semibold text-text-main mb-3">
-                  Ajustement selon l'état et les accessoires
+                  {{ t('process.step4Title') }}
                 </h3>
                 <p class="text-gray-700 leading-relaxed">
-                  L'état de votre montre et la présence d'accessoires d'origine (boîte, papiers, 
-                  étiquettes) influencent significativement la valeur. Une montre en excellent 
-                  état avec tous ses accessoires peut valoir jusqu'à 30% de plus qu'une montre 
-                  seule en état moyen.
+                  {{ t('process.step4Text') }}
                 </p>
               </div>
             </div>
@@ -125,13 +114,10 @@
               </div>
               <div class="flex-1">
                 <h3 class="text-xl font-semibold text-text-main mb-3">
-                  Estimation finale et proposition
+                  {{ t('process.step5Title') }}
                 </h3>
                 <p class="text-gray-700 leading-relaxed">
-                  Après avoir croisé toutes ces informations, nous vous proposons une estimation 
-                  détaillée et transparente. Cette estimation est valable pendant 30 jours et 
-                  peut être ajustée après un examen physique de la montre si vous souhaitez 
-                  procéder à une transaction.
+                  {{ t('process.step5Text') }}
                 </p>
               </div>
             </div>
@@ -140,7 +126,7 @@
           <!-- Factors Section -->
           <div class="bg-white rounded-md p-8 shadow-lg">
             <h2 class="text-2xl font-bold text-text-main mb-6">
-              Les facteurs qui influencent l'estimation
+              {{ t('process.factorsTitle') }}
             </h2>
             <div class="grid md:grid-cols-2 gap-6">
               <div class="flex items-start gap-3">
@@ -175,7 +161,7 @@
                 <CheckCircle2 class="w-6 h-6 text-primary flex-shrink-0 mt-1" :stroke-width="2" />
                 <div>
                   <h4 class="font-semibold text-text-main mb-1">{{ t('process.ownershipHistory') }}</h4>
-                  <p class="text-sm text-gray-600">Un historique documenté peut ajouter de la valeur à certaines pièces.</p>
+                  <p class="text-sm text-gray-600">{{ t('process.ownershipHistoryText') }}</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
@@ -191,7 +177,7 @@
           <!-- Trust Section -->
           <div class="border-l-4 border-primary pl-6 py-4">
             <h2 class="text-2xl font-bold text-text-main mb-4">
-              Pourquoi nous faire confiance ?
+              {{ t('process.whyTrustUs') }}
             </h2>
             <ul class="space-y-3 text-gray-700">
 <!--               <li class="flex items-start gap-3">
@@ -219,15 +205,15 @@
 
           <!-- CTA Section -->
           <div class="bg-primary rounded-md p-8 text-white text-center">
-            <h2 class="text-2xl font-bold mb-4">Prêt à faire estimer votre montre ?</h2>
+            <h2 class="text-2xl font-bold mb-4">{{ t('process.ctaTitle') }}</h2>
             <p class="text-lg mb-6 opacity-90">
-              Remplissez notre formulaire gratuit et recevez une estimation détaillée sous 24-48h.
+              {{ t('process.ctaText') }}
             </p>
             <RouterLink
               to="/estimation"
               class="inline-flex items-center bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-cream-100 transition-all"
             >
-              Faire une estimation gratuite
+              {{ t('process.ctaButton') }}
               <ChevronRight class="w-5 h-5 ml-2" :stroke-width="2" />
             </RouterLink>
           </div>
