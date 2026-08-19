@@ -157,7 +157,7 @@ async function submitForm(event) {
 
   validateDateInput()
   if (!form.time_slot) {
-    errorMessage.value = 'Veuillez sélectionner un créneau.'
+    errorMessage.value = t('appointment.selectSlot')
     return
   }
 
@@ -180,8 +180,7 @@ async function submitForm(event) {
         modalState.value = 'success'
       },
       (error) => {
-        errorMessage.value =
-          error.message || "Une erreur s'est produite lors de l'envoi de votre demande."
+        errorMessage.value = error.message || t('appointment.submitError')
         modalState.value = 'error'
       },
     )
@@ -246,7 +245,7 @@ onUnmounted(() => {
               <Check class="h-7 w-7" :stroke-width="2" />
             </div>
             <p class="text-text-main font-medium">
-              Votre demande de rendez-vous a bien été envoyée.
+              {{ t('appointment.successMessage') }}
             </p>
             <div v-if="submittedSummary" class="rounded-lg bg-cream p-4 text-left text-sm text-gray-700 space-y-1">
               <p><span class="font-semibold">{{ t('appointment.dateLabel') }}</span> {{ submittedSummary.dateLabel }}</p>
@@ -263,14 +262,14 @@ onUnmounted(() => {
               </p>
             </div>
             <p class="text-sm text-gray-600">
-              Un email de confirmation vous a été envoyé. Notre équipe vous recontactera si nécessaire.
+              {{ t('appointment.confirmationSent') }}
             </p>
             <button
               type="button"
               class="w-full inline-flex justify-center items-center px-6 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-hover transition-colors"
               @click="closeModal"
             >
-              Fermer
+              {{ t('common.close') }}
             </button>
           </div>
 
@@ -287,14 +286,14 @@ onUnmounted(() => {
                 class="flex-1 inline-flex justify-center items-center px-6 py-3 rounded-lg border border-primary text-primary font-semibold hover:bg-primary/5 transition-colors"
                 @click="retrySubmit"
               >
-                Réessayer
+                {{ t('common.retry') }}
               </button>
               <button
                 type="button"
                 class="flex-1 inline-flex justify-center items-center px-6 py-3 rounded-lg bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors"
                 @click="closeModal"
               >
-                Fermer
+                {{ t('common.close') }}
               </button>
             </div>
           </div>
@@ -329,7 +328,7 @@ onUnmounted(() => {
                 class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary-hover transition-colors"
               >
                 <Map class="w-4 h-4" :stroke-width="2" />
-                Itinéraire GPS
+                {{ t('appointment.directions') }}
               </a>
             </div>
 
@@ -368,7 +367,7 @@ onUnmounted(() => {
 
               <div>
                 <label for="appointment-tel" class="block text-sm font-medium text-text-main mb-1">
-                  Téléphone
+                  {{ t('form.phone') }}
                 </label>
                 <input
                   id="appointment-tel"
@@ -383,7 +382,7 @@ onUnmounted(() => {
 
               <div>
                 <label for="appointment-date" class="block text-sm font-medium text-text-main mb-1">
-                  Date souhaitée *
+                  {{ t('appointment.preferredDate') }} *
                 </label>
                 <div class="appointment-date-picker">
                   <VueDatePicker

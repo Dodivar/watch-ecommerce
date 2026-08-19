@@ -120,7 +120,7 @@ export default {
   },
 
   urls: {
-    production: 'https://sauvage-watches.fr',
+    production: 'https://www.sauvage-watches.fr',
     staging: 'https://recette.sauvage-watches.fr',
     development: 'http://localhost:5173',
     previewFallbackHost: 'recette.sauvage-watches.fr',

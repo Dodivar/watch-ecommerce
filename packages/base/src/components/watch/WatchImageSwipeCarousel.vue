@@ -70,6 +70,7 @@
 import { ref, watch, computed } from 'vue'
 import { ChevronLeft, ChevronRight } from '@lucide/vue'
 import { useWatchImageSwipe } from '@/composables/useWatchImageSwipe.js'
+import { t } from '@/i18n'
 
 const props = defineProps({
   images: {
@@ -106,11 +107,11 @@ const props = defineProps({
   },
   previousLabel: {
     type: String,
-    default: 'Image précédente',
+    default: () => t('watch.previousImage'),
   },
   nextLabel: {
     type: String,
-    default: 'Image suivante',
+    default: () => t('watch.nextImage'),
   },
   swipeDisabled: {
     type: Boolean,

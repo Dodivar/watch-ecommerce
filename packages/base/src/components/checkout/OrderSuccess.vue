@@ -338,7 +338,7 @@ onMounted(async () => {
                   <p v-if="line.reference" class="text-xs text-gray-400 truncate">
                     Réf. {{ line.reference }}
                   </p>
-                  <p class="text-sm text-gray-500">Quantité : {{ line.quantity }}</p>
+                  <p class="text-sm text-gray-500">{{ t('cart.quantity') }} : {{ line.quantity }}</p>
                 </div>
                 <span class="shrink-0 font-medium text-gray-900">
                   {{ formatPrice(line.unit_price_cents * line.quantity) }}

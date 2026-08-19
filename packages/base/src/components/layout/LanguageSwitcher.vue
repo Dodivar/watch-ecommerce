@@ -14,9 +14,8 @@ import { computed, onBeforeUnmount, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Check, Globe } from '@lucide/vue'
 
-import { getActiveLocale, getI18nConfig, setStoredLocale } from '@/i18n/activeLocale.js'
+import { getActiveLocale, getI18nConfig, localizedPath, setStoredLocale } from '@/i18n/activeLocale.js'
 import { LOCALE_LABELS, LOCALE_SHORT_LABELS } from '@/i18n/locales.js'
-import { localizedUrl } from '@/config'
 import { t } from '@/i18n'
 
 defineProps({
@@ -60,12 +59,18 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
 
 /**
  * URL de la page courante dans une autre langue. `route.fullPath` est déjà dépréfixé par la
- * base d'historique : `localizedUrl` repose le bon préfixe.
+ * base d'historique : `localizedPath` repose le bon préfixe.
+ *
+ * Le lien est **relatif à l'hôte servi**, jamais construit sur `BASE_URL` : une origine
+ * canonique mal configurée (apex sans certificat, URL de production héritée sur un
+ * déploiement de recette) enverrait sinon le visiteur sur un autre domaine au simple
+ * changement de langue. Seuls `canonical` et `hreflang` ont besoin d'une URL absolue.
  *
  * @param {string} locale
  */
 function urlFor(locale) {
-  return localizedUrl(route.fullPath, locale)
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+  return `${base}${localizedPath(route.fullPath, locale)}`
 }
 
 /**
