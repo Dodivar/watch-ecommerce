@@ -732,6 +732,7 @@ export default {
   'watchSpec.material.ceramic': 'Ceramic',
   'watchSpec.material.bronze': 'Bronze',
   'watchSpec.material.leather': 'Leather',
+  'watchSpec.material.crocodileLeather': 'Crocodile leather',
   'watchSpec.material.rubber': 'Rubber',
   'watchSpec.material.fabric': 'Fabric / NATO',
   'watchSpec.color.black': 'Black',

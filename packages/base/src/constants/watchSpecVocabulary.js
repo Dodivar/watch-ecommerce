@@ -62,6 +62,10 @@ export const WATCH_SPEC_VOCABULARY = {
     { key: 'watchSpec.material.bronze', aliases: ['bronze'] },
     { key: 'watchSpec.material.leather', aliases: ['cuir', 'cuir veritable'] },
     {
+      key: 'watchSpec.material.crocodileLeather',
+      aliases: ['cuir de crocodile', 'cuir crocodile', 'crocodile'],
+    },
+    {
       key: 'watchSpec.material.rubber',
       aliases: ['caoutchouc', 'silicone', 'caoutchouc silicone'],
     },

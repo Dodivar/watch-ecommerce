@@ -46,6 +46,8 @@ const PRESTASHOP_MATERIAL_ALIASES = {
   'or blanc': 'gold',
   cuir: 'leather',
   'cuir veritable': 'leather',
+  'cuir de crocodile': 'leather',
+  'cuir crocodile': 'leather',
   'cuir véritable': 'leather',
   caoutchouc: 'rubber',
   silicone: 'rubber',
@@ -145,7 +147,11 @@ export function normalizeBraceletMaterials(value) {
   if (!Array.isArray(value)) return []
   const seen = new Set()
   for (const raw of value) {
-    if (typeof raw === 'string' && isValidBraceletMaterialSlug(raw)) seen.add(raw)
+    // Passer par le mappeur d'alias et non par la seule validation de slug : la colonne
+    // accepte du texte libre, et une saisie « Acier » y était jusqu'ici silencieusement
+    // effacée à la lecture — la montre s'affichait sans matière de bracelet.
+    const slug = mapPrestaShopBraceletMaterial(raw)
+    if (slug) seen.add(slug)
   }
   return WATCH_BRACELET_MATERIALS.filter((m) => seen.has(m.slug)).map((m) => m.slug)
 }

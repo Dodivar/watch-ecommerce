@@ -50,6 +50,14 @@ describe('valeurs simples', () => {
     expect(translateSpec(family, raw, de)).toBe(expectedDe)
   })
 
+  it('traduit le cuir de crocodile sans perdre la précision', () => {
+    // Le replier sur « Cuir » traduirait au prix de l'information ; le laisser brut ne le
+    // traduirait pas du tout. D'où son entrée propre.
+    expect(translateSpec('material', 'Cuir de crocodile', fr)).toBe('Cuir de crocodile')
+    expect(translateSpec('material', 'Cuir de crocodile', en)).toBe('Crocodile leather')
+    expect(translateSpec('material', 'Cuir de crocodile', de)).toBe('Krokodilleder')
+  })
+
   it('absorbe les variantes de saisie sur une même notion', () => {
     // « Excellent » et « Excellent état » cohabitent en base, de même que « Très bon ».
     for (const raw of ['Excellent', 'Excellent état', 'excellent  etat']) {
