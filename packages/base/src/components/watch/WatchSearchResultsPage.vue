@@ -10,7 +10,7 @@
 
       <div v-if="searchQuery" class="text-center mb-6 lg:mb-8">
         <h1 class="text-2xl font-bold text-text-main mb-2">
-          Résultats pour « {{ searchQuery }} »
+          {{ t('search.resultsFor', { query: searchQuery }) }}
         </h1>
         <p
           v-if="listingReady && !listing.isLoading && !listing.error"
@@ -72,7 +72,7 @@
         </div>
         <h2 class="text-xl text-gray-900 mb-2">{{ t('collection.noWatchFound') }}</h2>
         <p class="text-gray-600 mb-6">
-          Aucun résultat pour « {{ searchQuery }} ». Essayez un autre terme (marque, modèle ou référence).
+          {{ t('search.noResultFor', { query: searchQuery }) }}
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
           <RouterLink

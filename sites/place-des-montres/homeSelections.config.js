@@ -12,6 +12,7 @@
  *    Décommenter les imports ci-dessous et utiliser la variable à la place du chemin public.
  */
 import { publicPath } from '../../packages/base/src/utils/publicPath.js'
+import { t } from '../../packages/base/src/site/i18nValue.js'
 
 // import omegaImg from '@site/assets/home-selections/omega.jpg'
 // import hommeImg from '@site/assets/home-selections/montres-homme.jpg'
@@ -23,20 +24,40 @@ export default [
     filters: { marque: 'omega' },
     image: publicPath('home-selections/omega.jpg'),
     // image: omegaImg,
-    imageAlt: 'Sélection montres Omega',
+    imageAlt: t({
+      fr: 'Sélection montres Omega',
+      en: 'A selection of Omega watches',
+      de: 'Auswahl an Omega-Uhren',
+    }),
   },
   {
-    label: 'Montres homme',
+    label: t({
+      fr: 'Montres homme',
+      en: "Men's watches",
+      de: 'Herrenuhren',
+    }),
     filters: { public: 'homme' },
     image: publicPath('home-selections/montres-homme.jpg'),
     // image: hommeImg,
-    imageAlt: 'Montres pour homme',
+    imageAlt: t({
+      fr: 'Montres pour homme',
+      en: 'Watches for men',
+      de: 'Uhren für Herren',
+    }),
   },
   {
-    label: 'Montres femme',
+    label: t({
+      fr: 'Montres femme',
+      en: "Women's watches",
+      de: 'Damenuhren',
+    }),
     filters: { public: 'femme' },
     image: publicPath('home-selections/montres-femme.jpg'),
     // image: femmeImg,
-    imageAlt: 'Montres pour femme',
+    imageAlt: t({
+      fr: 'Montres pour femme',
+      en: 'Watches for women',
+      de: 'Uhren für Damen',
+    }),
   },
 ]

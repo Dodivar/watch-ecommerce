@@ -11,7 +11,7 @@ import { resolveLiveCampaignStatus } from '@/utils/watchPromotionCampaign.js'
 import { t } from '@/i18n'
 
 const AUTOPLAY_MS = 6000
-const ALT_FALLBACK = 'Visuel promotionnel du carrousel d\'accueil'
+const ALT_FALLBACK = t('carousel.altFallback')
 
 const site = getSiteConfig()
 const router = useRouter()
@@ -38,7 +38,7 @@ const activeSlideAlt = computed(() => {
 const liveRegionMessage = computed(() => {
   if (!hasSlides.value || !activeSlide.value) return ''
   const position = hasMultipleSlides.value
-    ? `Image ${activeIndex.value + 1} sur ${slideCount.value}. `
+    ? `${t('carousel.imagePosition', { current: activeIndex.value + 1, total: slideCount.value })}. `
     : ''
   const link = slideLink(activeSlide.value)
   const action = link ? ` ${slideLinkDescription(activeSlide.value)}` : ''
@@ -77,15 +77,16 @@ function slideLink(slide) {
 function slideLinkDescription(slide) {
   if (slide?.watch_id) {
     const watch = slide.watch
-    const label = watch?.brand && watch?.name ? `${watch.brand} ${watch.name}` : 'la fiche montre'
-    return `Lien vers ${label}.`
+    const label =
+      watch?.brand && watch?.name ? `${watch.brand} ${watch.name}` : t('carousel.watchPage')
+    return t('carousel.linkTo', { target: label })
   }
   if (slide?.promotion_campaign?.slug) {
-    const name = slide.promotion_campaign.name || 'l\'événement promotionnel'
-    return `Lien vers la collection ${name}.`
+    const name = slide.promotion_campaign.name || t('carousel.promoEvent')
+    return t('carousel.linkToCollection', { name })
   }
   if (slide?.brand_name?.trim()) {
-    return `Lien vers la collection ${slide.brand_name}.`
+    return t('carousel.linkToCollection', { name: slide.brand_name })
   }
   return ''
 }
@@ -95,13 +96,14 @@ function slideLinkAriaLabel(slide) {
   const alt = slide?.alt_text?.trim() || ALT_FALLBACK
   if (slide?.watch_id) {
     const watch = slide.watch
-    const label = watch?.brand && watch?.name ? `${watch.brand} ${watch.name}` : 'la fiche montre'
-    return `${alt} — Voir ${label}`
+    const label =
+      watch?.brand && watch?.name ? `${watch.brand} ${watch.name}` : t('carousel.watchPage')
+    return `${alt} — ${t('carousel.view', { target: label })}`
   }
   if (slide?.promotion_campaign?.name) {
-    return `${alt} — Voir ${slide.promotion_campaign.name}`
+    return `${alt} — ${t('carousel.view', { target: slide.promotion_campaign.name })}`
   }
-  return `${alt} — Voir la collection ${slide.brand_name}`
+  return `${alt} — ${t('carousel.viewCollection', { name: slide.brand_name })}`
 }
 
 function goToSlide(index) {
@@ -146,7 +148,7 @@ function handleSlideClick(slide) {
 
 function slideControlLabel(index) {
   const alt = slides.value[index]?.alt_text?.trim()
-  const position = `Image ${index + 1} sur ${slideCount.value}`
+  const position = t('carousel.imagePosition', { current: index + 1, total: slideCount.value })
   return alt ? `${position} — ${alt}` : position
 }
 

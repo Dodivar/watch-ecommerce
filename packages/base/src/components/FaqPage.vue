@@ -24,9 +24,7 @@ const fallbackTitle = computed(
   () => `${faqConfig.heading || t('faq.headingFallback')} — ${brandDisplayName}`,
 )
 const fallbackDescription = computed(
-  () =>
-    faqConfig.subheading ||
-    `Retrouvez les réponses aux questions les plus fréquentes sur ${brandDisplayName}.`,
+  () => faqConfig.subheading || t('faq.descriptionFallback', { brand: brandDisplayName }),
 )
 
 const faqStructuredData = computed(() => buildFaqStructuredData(site, CANONICAL_BASE_URL))

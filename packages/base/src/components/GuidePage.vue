@@ -42,7 +42,7 @@
     <section class="border-b border-cream-300 bg-white py-8 lg:py-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <p class="text-xs font-semibold uppercase tracking-[0.15em] text-gray-400 mb-4">
-          Sommaire
+          {{ t('guide.summary') }}
         </p>
         <nav :aria-label="t('guide.contents')">
           <ol class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -131,10 +131,10 @@
                 <thead>
                   <tr class="border-b border-cream-200 bg-cream/50">
                     <th scope="col" class="px-4 py-3 text-left font-semibold text-text-main w-2/5">
-                      Marquage
+                      {{ t('guide.tableMarking') }}
                     </th>
                     <th scope="col" class="px-4 py-3 text-left font-semibold text-text-main">
-                      Usage recommandé
+                      {{ t('guide.tableUsage') }}
                     </th>
                   </tr>
                 </thead>
@@ -252,13 +252,13 @@
             to="/services"
             class="inline-flex items-center justify-center bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primaryHover transition-all shadow-lg"
           >
-            {{ content.cta.servicesLabel || 'Nos services' }}
+            {{ content.cta.servicesLabel || t('services.ourServices') }}
           </RouterLink>
           <RouterLink
             to="/contact"
             class="inline-flex items-center justify-center border-2 border-primary text-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary/5 transition-all"
           >
-            {{ content.cta.contactLabel || 'Nous contacter' }}
+            {{ content.cta.contactLabel || t('common.contactUs') }}
           </RouterLink>
         </div>
       </div>

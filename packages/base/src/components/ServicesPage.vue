@@ -74,7 +74,7 @@
                     :rel="item.link.external === false ? undefined : 'noopener noreferrer'"
                     class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primaryHover transition-colors"
                   >
-                    {{ item.link.label || 'En savoir plus' }}
+                    {{ item.link.label || t('common.learnMore') }}
                     <span aria-hidden="true">→</span>
                   </a>
                 </div>
@@ -145,7 +145,7 @@
             to="/contact"
             class="inline-flex items-center justify-center bg-primary text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primaryHover transition-all shadow-lg"
           >
-            {{ content.cta.contactLabel || 'Nous contacter' }}
+            {{ content.cta.contactLabel || t('common.contactUs') }}
           </RouterLink>
           <a
             v-if="site.contact?.phoneDisplay"
@@ -174,7 +174,7 @@
             rel="noopener noreferrer"
             class="inline-flex items-center gap-1 text-primary font-semibold hover:text-primaryHover transition-colors"
           >
-            {{ content.cta.documentLabel || 'Télécharger le guide (PDF)' }}
+            {{ content.cta.documentLabel || t('services.downloadGuide') }}
             <span aria-hidden="true">→</span>
           </a>
         </div>
@@ -188,6 +188,7 @@ import { useHead } from '@vueuse/head'
 import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import ServiceIcon from '@/components/services/ServiceIcon.vue'
+import { t } from '@/i18n'
 
 const site = getSiteConfig()
 const content = site.servicesPage

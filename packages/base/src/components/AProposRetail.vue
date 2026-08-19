@@ -30,9 +30,9 @@
               </span>
               <div>
                 <p class="text-sm font-semibold uppercase tracking-wide text-primary">
-                  Spécialiste de la montre
+                  {{ t('about.retailSpecialist') }}
                 </p>
-                <p class="text-text-main font-medium">Une expertise forgée au fil des décennies</p>
+                <p class="text-text-main font-medium">{{ t('about.retailSpecialistDetail') }}</p>
               </div>
             </div>
           </div>
@@ -41,15 +41,16 @@
             <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/5" :class="heroImageFrameClass">
               <img
                 :src="heroImageSrc"
-                :alt="`${brandDisplayName} — horlogerie à Strasbourg`"
+                :alt="heroImageAlt"
                 class="h-full w-full object-cover object-center"
                 loading="eager"
               />
               <p
+                v-if="about.hero.imageCaption"
                 class="absolute bottom-5 left-5 right-5 text-sm font-medium text-white"
               >
                 <span class="inline-block rounded-lg bg-text-main/75 px-3 py-1.5 shadow-sm">
-                  Centre commercial Place des Halles — Strasbourg
+                  {{ about.hero.imageCaption }}
                 </span>
               </p>
             </div>
@@ -117,11 +118,10 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12 max-w-3xl mx-auto">
           <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-4">
-            Un style pour chaque moment
+            {{ t('about.retailStylesTitle') }}
           </h2>
           <p class="text-lg text-gray-600">
-            Que vous rêviez d'une montre sport, d'une montre élégante ou d'une mécanique à contempler,
-            nous saurons vous guider.
+            {{ t('about.retailStylesLead') }}
           </p>
         </div>
 
@@ -203,7 +203,7 @@
     >
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10">
-          <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">Venez nous rencontrer</h2>
+          <h2 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">{{ t('about.visitUs') }}</h2>
         </div>
         <StoreLocationMap class="rounded-xl shadow-lg" />
       </div>
@@ -230,7 +230,7 @@
             :to="about.guidePromo.to || '/guide-horloger'"
             class="inline-flex shrink-0 items-center justify-center bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primaryHover transition-colors shadow-md"
           >
-            {{ about.guidePromo.linkLabel || 'Consulter le guide' }}
+            {{ about.guidePromo.linkLabel || t('about.readGuide') }}
           </RouterLink>
         </div>
       </div>
@@ -257,7 +257,7 @@
             to="/contact"
             class="inline-flex items-center justify-center border-2 border-primary text-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary/5 transition-all"
           >
-            {{ about.cta.contactLabel || 'Nous contacter' }}
+            {{ about.cta.contactLabel || t('common.contactUs') }}
           </RouterLink>
         </div>
       </div>
@@ -272,6 +272,7 @@ import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import StoreLocationMap from '@/components/StoreLocationMap.vue'
 import StyleIcon from '@/components/about/StyleIcon.vue'
+import { t } from '@/i18n'
 
 const site = getSiteConfig()
 const about = site.about
@@ -281,6 +282,7 @@ const features = site.features
 const storeMap = site.storeMap
 
 const heroImageSrc = about.hero?.image || '/brand-logo.jpg'
+const heroImageAlt = about.hero?.imageAlt || brandDisplayName
 const isLandscapeHero = about.hero?.imageLayout === 'landscape'
 
 const heroGridClass = computed(() =>

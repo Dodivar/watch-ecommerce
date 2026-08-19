@@ -59,7 +59,7 @@ onMounted(async () => {
     watches.value = await getSoldWatchesForListing()
   } catch (e) {
     console.error('Erreur lors du chargement des montres vendues:', e)
-    error.value = 'Impossible de charger les montres vendues pour le moment.'
+    error.value = t('archive.loadError')
   } finally {
     isLoading.value = false
   }
