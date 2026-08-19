@@ -4,4 +4,4 @@ Disallow: /admin/
 Disallow: /checkout
 Disallow: /commande/
 
-Sitemap: https://sauvage-watches.fr/sitemap.xml
+Sitemap: https://www.sauvage-watches.fr/sitemap.xml
