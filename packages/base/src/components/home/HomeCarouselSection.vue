@@ -217,7 +217,7 @@ watch(
       <div
         class="relative aspect-[14/9] sm:aspect-[21/9] w-full max-h-[min(70vh,520px)]"
         role="group"
-        ::aria-label="t('carousel.slide', { current: activeIndex + 1, total: slideCount })"
+        :aria-label="t('carousel.slide', { current: activeIndex + 1, total: slideCount })"
         :aria-roledescription="hasMultipleSlides ? 'diapositive' : undefined"
       >
         <Transition name="carousel-fade" mode="out-in">
@@ -248,7 +248,7 @@ watch(
           <button
             type="button"
             class="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-md transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:left-5"
-            ::aria-label="t('carousel.previousImage', { label: slideControlLabel((activeIndex - 1 + slideCount) % slideCount) })"
+            :aria-label="t('carousel.previousImage', { label: slideControlLabel((activeIndex - 1 + slideCount) % slideCount) })"
             @click="prevSlide"
           >
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -258,7 +258,7 @@ watch(
           <button
             type="button"
             class="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow-md transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none sm:right-5"
-            ::aria-label="t('carousel.nextImage', { label: slideControlLabel((activeIndex + 1) % slideCount) })"
+            :aria-label="t('carousel.nextImage', { label: slideControlLabel((activeIndex + 1) % slideCount) })"
             @click="nextSlide"
           >
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

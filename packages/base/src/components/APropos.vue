@@ -49,7 +49,7 @@
             <h3 class="text-xl font-semibold mb-3">{{ t('about.ourCommitment') }}</h3>
             <p class="text-gray-600">
               Chaque montre que nous proposons est en notre possession, soigneusement sélectionnée 
-              et vérifiée par nos experts. Cette approche directe nous permet de garantir 
+              et vérifiée avant la mise en vente. Cette approche directe nous permet de garantir
               la qualité, l'authenticité et la disponibilité immédiate de nos pièces.
             </p>
           </div>
@@ -77,7 +77,7 @@
             </div>
             <h3 class="text-lg font-semibold mb-3">{{ t('about.fullQualityControl') }}</h3>
             <p class="text-gray-600">
-              Chaque montre est vérifiée par nos experts avant d'entrer dans notre stock. 
+              Chaque montre est vérifiée avant d'entrer dans notre stock.
               Nous maîtrisons l'ensemble de la chaîne, de la sélection à la vente.
             </p>
           </div>
@@ -124,7 +124,7 @@
             </div>
             <h3 class="text-lg font-semibold mb-2">{{ t('about.authenticity') }}</h3>
             <p class="text-gray-600">
-              Chaque montre est authentifiée et vérifiée par nos experts avant d'être proposée à la vente.
+              Chaque montre est authentifiée et vérifiée avant d'être proposée à la vente.
             </p>
           </div>
           <div class="text-center">
@@ -183,7 +183,7 @@
             </div>
             <h3 class="text-xl font-semibold mb-3">{{ t('about.guaranteedAuthentication') }}</h3>
             <p class="text-gray-600 mb-3">
-              Toutes nos montres sont minutieusement vérifiées par nos experts avant d'être mises en vente. 
+              Toutes nos montres sont minutieusement vérifiées avant d'être mises en vente.
               Nous vérifions l'authenticité, l'état, et l'historique de chaque pièce.
             </p>
             <ul class="space-y-2 text-gray-600">
@@ -419,7 +419,7 @@
             <div class="text-primary text-3xl mb-3">✅</div>
             <h3 class="text-lg font-semibold mb-3">Qualité garantie</h3>
             <p class="text-gray-600">
-              Chaque montre est vérifiée par nos experts avant d'entrer dans notre stock. 
+              Chaque montre est vérifiée avant d'entrer dans notre stock.
               Nous garantissons l'authenticité et la qualité de chaque pièce.
             </p>
           </div>

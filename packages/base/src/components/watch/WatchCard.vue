@@ -109,7 +109,7 @@
               v-for="(_, index) in navigableImages"
               :key="index"
               type="button"
-              ::aria-label="t('watch.imageIndex', { index: index + 1 })"
+              :aria-label="t('watch.imageIndex', { index: index + 1 })"
               :aria-current="currentImageIndex === index ? 'true' : undefined"
               @click.stop="goToImage(index)"
               :class="[

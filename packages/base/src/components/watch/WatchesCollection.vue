@@ -92,7 +92,7 @@
                 <button
                   type="button"
                   class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-text-main transition-colors hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary sm:w-auto sm:gap-2 sm:px-4 sm:py-2.5"
-                  ::aria-label="t('collection.sortWatches', { label: currentSortLabel })"
+                  :aria-label="t('collection.sortWatches', { label: currentSortLabel })"
                   aria-haspopup="listbox"
                   :aria-expanded="listing.isSortMenuOpen"
                   @click.stop="listing.toggleSortMenu"
@@ -111,7 +111,7 @@
                   ref="sortMenuRef"
                   class="absolute top-full right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 min-w-[180px]"
                   role="listbox"
-                  ::aria-label="t('collection.sortWatches', { label: currentSortLabel })"
+                  :aria-label="t('collection.sortWatches', { label: currentSortLabel })"
                   @click.stop
                 >
                   <button
@@ -148,7 +148,7 @@
               :key="chip.id"
               type="button"
               class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-text-main transition-colors hover:border-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary"
-              ::aria-label="t('collection.removeFilter', { label: chip.label })"
+              :aria-label="t('collection.removeFilter', { label: chip.label })"
               @click="removeActiveFilter(chip)"
             >
               <span class="whitespace-nowrap">{{ chip.label }}</span>
@@ -275,7 +275,7 @@
                     v-else-if="item.type === 'page'"
                     type="button"
                     class="box-border inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10 sm:text-sm"
-                    ::aria-label="t('pagination.page', { n: item.n })"
+                    :aria-label="t('pagination.page', { n: item.n })"
                     @click="goToPage(item.n)"
                   >
                     {{ item.n }}

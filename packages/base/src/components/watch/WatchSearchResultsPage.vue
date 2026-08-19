@@ -170,7 +170,7 @@
                     v-else-if="item.type === 'page'"
                     type="button"
                     class="box-border inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 transition-colors hover:bg-cream-100 sm:h-10 sm:w-10"
-                    ::aria-label="t('pagination.page', { n: item.n })"
+                    :aria-label="t('pagination.page', { n: item.n })"
                     @click="goToPage(item.n)"
                   >
                     {{ item.n }}
