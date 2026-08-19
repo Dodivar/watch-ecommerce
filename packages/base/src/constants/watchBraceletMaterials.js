@@ -1,3 +1,5 @@
+import { t } from '@/i18n'
+
 /**
  * Matières de bracelet sélectionnables (filtre collection + formulaire admin).
  *
@@ -8,16 +10,19 @@
  * Pour ajouter une matière : ajouter une ligne ici (slug stable) — aucune migration
  * SQL nécessaire, la colonne est un tableau de texte libre validé par cette liste.
  *
- * @type {Array<{ slug: string, label: string }>}
+ * Le libellé n'est pas stocké ici mais désigné par une clé de catalogue : ces valeurs
+ * s'affichent aussi sur les sites anglais et allemand.
+ *
+ * @type {Array<{ slug: string, labelKey: string }>}
  */
 export const WATCH_BRACELET_MATERIALS = [
-  { slug: 'steel', label: 'Acier' },
-  { slug: 'gold', label: 'Or' },
-  { slug: 'leather', label: 'Cuir' },
-  { slug: 'rubber', label: 'Caoutchouc' },
-  { slug: 'titanium', label: 'Titane' },
-  { slug: 'ceramic', label: 'Céramique' },
-  { slug: 'fabric', label: 'Tissu / NATO' },
+  { slug: 'steel', labelKey: 'watchSpec.material.steel' },
+  { slug: 'gold', labelKey: 'watchSpec.material.gold' },
+  { slug: 'leather', labelKey: 'watchSpec.material.leather' },
+  { slug: 'rubber', labelKey: 'watchSpec.material.rubber' },
+  { slug: 'titanium', labelKey: 'watchSpec.material.titanium' },
+  { slug: 'ceramic', labelKey: 'watchSpec.material.ceramic' },
+  { slug: 'fabric', labelKey: 'watchSpec.material.fabric' },
 ]
 
 const BRACELET_MATERIAL_BY_SLUG = new Map(WATCH_BRACELET_MATERIALS.map((m) => [m.slug, m]))
@@ -41,6 +46,8 @@ const PRESTASHOP_MATERIAL_ALIASES = {
   'or blanc': 'gold',
   cuir: 'leather',
   'cuir veritable': 'leather',
+  'cuir de crocodile': 'leather',
+  'cuir crocodile': 'leather',
   'cuir véritable': 'leather',
   caoutchouc: 'rubber',
   silicone: 'rubber',
@@ -83,19 +90,20 @@ export function isValidBraceletMaterialSlug(slug) {
 
 /**
  * @param {string} slug
- * @returns {{ slug: string, label: string } | null}
+ * @returns {{ slug: string, labelKey: string } | null}
  */
 export function getBraceletMaterialBySlug(slug) {
   return BRACELET_MATERIAL_BY_SLUG.get(slug) || null
 }
 
 /**
- * Libellé lisible d'un slug (repli sur le slug brut si inconnu).
+ * Libellé traduit d'un slug (repli sur le slug brut si inconnu).
  * @param {string} slug
  * @returns {string}
  */
 export function getBraceletMaterialLabel(slug) {
-  return BRACELET_MATERIAL_BY_SLUG.get(slug)?.label || slug
+  const material = BRACELET_MATERIAL_BY_SLUG.get(slug)
+  return material ? t(material.labelKey) : slug
 }
 
 /**
@@ -139,7 +147,11 @@ export function normalizeBraceletMaterials(value) {
   if (!Array.isArray(value)) return []
   const seen = new Set()
   for (const raw of value) {
-    if (typeof raw === 'string' && isValidBraceletMaterialSlug(raw)) seen.add(raw)
+    // Passer par le mappeur d'alias et non par la seule validation de slug : la colonne
+    // accepte du texte libre, et une saisie « Acier » y était jusqu'ici silencieusement
+    // effacée à la lecture — la montre s'affichait sans matière de bracelet.
+    const slug = mapPrestaShopBraceletMaterial(raw)
+    if (slug) seen.add(slug)
   }
   return WATCH_BRACELET_MATERIALS.filter((m) => seen.has(m.slug)).map((m) => m.slug)
 }

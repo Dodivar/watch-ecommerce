@@ -250,7 +250,7 @@
                   type="button"
                   class="flex flex-col items-center gap-1.5 focus:outline-none"
                   :aria-pressed="listing.tempSelectedBraceletColors.includes(color.slug)"
-                  :title="color.label"
+                  :title="getBraceletColorLabel(color.slug)"
                   @click="listing.toggleBraceletColor(color.slug)"
                 >
                   <span
@@ -276,7 +276,7 @@
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </span>
-                  <span class="text-xs text-text-main">{{ color.label }}</span>
+                  <span class="text-xs text-text-main">{{ getBraceletColorLabel(color.slug) }}</span>
                 </button>
               </div>
             </div>
@@ -324,7 +324,7 @@
                   "
                   @click="listing.toggleBraceletMaterial(material.slug)"
                 >
-                  {{ material.label }}
+                  {{ getBraceletMaterialLabel(material.slug) }}
                 </button>
               </div>
             </div>
@@ -439,6 +439,8 @@ import { computed, reactive, ref, watch, onMounted, onUnmounted } from 'vue'
 import { ChevronDown, ChevronLeft } from '@lucide/vue'
 import { getWatchAudiencesForCollectionFilter } from '@/services/watchService'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
+import { getBraceletColorLabel } from '@/constants/watchBraceletColors'
+import { getBraceletMaterialLabel } from '@/constants/watchBraceletMaterials'
 import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
 import { t } from '@/i18n'

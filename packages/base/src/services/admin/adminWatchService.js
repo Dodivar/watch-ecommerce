@@ -3,6 +3,7 @@ import { getWatchArticlesForAdmin } from '../watchArticleService'
 import { normalizeCaseSizeValue } from '@/utils/caseSize'
 import { normalizeBraceletColors } from '@/constants/watchBraceletColors'
 import { normalizeBraceletMaterials } from '@/constants/watchBraceletMaterials'
+import { getI18nConfig } from '@/i18n'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 
 function isRetailCatalog() {
@@ -85,6 +86,57 @@ function transformDetailsToDB(watchId, details) {
 }
 
 /**
+ * Langues à saisir en plus du français, d'après le manifest du site.
+ * Un site monolingue renvoie un tableau vide : le formulaire n'affiche alors aucun onglet.
+ * @returns {string[]}
+ */
+export function getTranslatableLocales() {
+  const i18n = getI18nConfig()
+  if (!i18n.enabled) return []
+  return i18n.locales.filter((locale) => locale !== i18n.defaultLocale)
+}
+
+/**
+ * Enregistre les descriptions traduites d'une montre.
+ *
+ * Une langue vidée voit sa ligne supprimée plutôt que stockée à blanc : la lecture
+ * (`resolveDescription` dans watchService) traite les deux pareil, mais une table sans
+ * lignes vides dit clairement ce qui est réellement traduit.
+ *
+ * @param {string} watchId
+ * @param {Record<string, string>} translations  Texte par code langue.
+ * @returns {Promise<void>}
+ */
+async function saveWatchTranslations(watchId, translations) {
+  const locales = getTranslatableLocales()
+  if (!locales.length) return
+
+  const rows = []
+  const emptied = []
+  for (const locale of locales) {
+    const text = String(translations?.[locale] ?? '').trim()
+    if (text) rows.push({ watch_id: watchId, locale, description: text })
+    else emptied.push(locale)
+  }
+
+  if (rows.length) {
+    const { error } = await supabase
+      .from('watch_translations')
+      .upsert(rows, { onConflict: 'watch_id,locale' })
+    if (error) console.error('Erreur lors de l’enregistrement des traductions:', error)
+  }
+
+  if (emptied.length) {
+    const { error } = await supabase
+      .from('watch_translations')
+      .delete()
+      .eq('watch_id', watchId)
+      .in('locale', emptied)
+    if (error) console.error('Erreur lors de la suppression des traductions:', error)
+  }
+}
+
+/**
  * Crée une nouvelle montre avec tous ses détails
  * @param {Object} watchData - Données de la montre
  * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
@@ -146,7 +198,10 @@ export async function createWatch(watchData) {
       }
     }
 
-    // 5. Les images seront uploadées séparément via uploadWatchImage
+    // 5. Enregistrer les descriptions traduites
+    await saveWatchTranslations(watchId, watchData.descriptionTranslations)
+
+    // 6. Les images seront uploadées séparément via uploadWatchImage
 
     return {
       success: true,
@@ -283,6 +338,11 @@ export async function updateWatch(watchId, watchData) {
           console.error('Erreur lors de la création des accessoires:', accessoriesError)
         }
       }
+    }
+
+    // 4. Mettre à jour les descriptions traduites
+    if (watchData.descriptionTranslations !== undefined) {
+      await saveWatchTranslations(watchId, watchData.descriptionTranslations)
     }
 
     return {
@@ -707,6 +767,19 @@ export async function getWatchByIdForAdmin(watchId) {
     // Récupérer les articles liés (pour l'admin, inclut même les masqués)
     const articles = await getWatchArticlesForAdmin(watchId).catch(() => [])
 
+    // Récupérer les descriptions traduites (une ligne par langue renseignée)
+    const { data: translationRows } = await supabase
+      .from('watch_translations')
+      .select('locale, description')
+      .eq('watch_id', watchId)
+
+    const descriptionTranslations = Object.fromEntries(
+      getTranslatableLocales().map((locale) => [
+        locale,
+        translationRows?.find((row) => row.locale === locale)?.description || '',
+      ]),
+    )
+
     // Transformer les images avec leurs URLs et IDs
     const imagesWithUrls = (images || []).map((img) => {
       let imageUrl = img.image_url
@@ -738,6 +811,7 @@ export async function getWatchByIdForAdmin(watchId) {
       year: watch.year?.toString() || '',
       condition: watch.condition || '',
       description: watch.description || '',
+      descriptionTranslations,
       isAvailable: watch.is_available !== undefined ? watch.is_available : true,
       isSold: watch.is_sold !== undefined ? watch.is_sold : false,
       saleDate: watch.sale_date || null,
