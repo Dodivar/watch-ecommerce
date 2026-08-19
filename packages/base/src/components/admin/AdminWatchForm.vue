@@ -1,12 +1,18 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { createWatch, updateWatch, uploadWatchImage, deleteWatchImage, reorderWatchImages, getWatchByIdForAdmin, duplicateWatch } from '@/services/admin/adminWatchService'
+import { createWatch, updateWatch, uploadWatchImage, deleteWatchImage, reorderWatchImages, getWatchByIdForAdmin, duplicateWatch, getTranslatableLocales } from '@/services/admin/adminWatchService'
+import { getI18nConfig } from '@/i18n'
 import { getWatchAudiencesForAdminForm } from '@/services/watchService'
 import { DEFAULT_WATCH_AUDIENCE_SLUG, getStaticWatchAudienceAdminOptions } from '@/constants/watchAudiences'
-import { WATCH_BRACELET_COLORS, normalizeBraceletColors } from '@/constants/watchBraceletColors'
+import {
+  WATCH_BRACELET_COLORS,
+  getBraceletColorLabel,
+  normalizeBraceletColors,
+} from '@/constants/watchBraceletColors'
 import {
   WATCH_BRACELET_MATERIALS,
+  getBraceletMaterialLabel,
   normalizeBraceletMaterials,
 } from '@/constants/watchBraceletMaterials'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -39,6 +45,7 @@ const formData = ref({
   year: '',
   condition: '',
   description: '',
+  descriptionTranslations: {},
   isAvailable: true,
   isSold: false,
   saleDate: null,
@@ -96,6 +103,42 @@ async function loadWatchAudienceOptions() {
 }
 
 // Methods
+// — Description multilingue
+// Le français reste dans `watches.description` ; les autres langues vivent dans
+// `watch_translations`. Le back-office lui-même reste en français (les onglets ne sont
+// que des codes de langue).
+const defaultDescriptionLocale = getI18nConfig().defaultLocale
+const descriptionLocales = [defaultDescriptionLocale, ...getTranslatableLocales()]
+const activeDescriptionLocale = ref(defaultDescriptionLocale)
+
+const activeDescription = computed({
+  get() {
+    if (activeDescriptionLocale.value === defaultDescriptionLocale) {
+      return formData.value.description
+    }
+    return formData.value.descriptionTranslations?.[activeDescriptionLocale.value] || ''
+  },
+  set(value) {
+    if (activeDescriptionLocale.value === defaultDescriptionLocale) {
+      formData.value.description = value
+      return
+    }
+    formData.value.descriptionTranslations = {
+      ...formData.value.descriptionTranslations,
+      [activeDescriptionLocale.value]: value,
+    }
+  },
+})
+
+/** Signale d'un coup d'œil les langues encore vides. */
+function hasDescriptionFor(locale) {
+  const text =
+    locale === defaultDescriptionLocale
+      ? formData.value.description
+      : formData.value.descriptionTranslations?.[locale]
+  return Boolean(String(text || '').trim())
+}
+
 const loadWatch = async () => {
   if (!isEditMode.value) return
 
@@ -119,6 +162,7 @@ const loadWatch = async () => {
       year: watch.year?.toString() || '',
       condition: watch.condition || '',
       description: watch.description || '',
+      descriptionTranslations: { ...(watch.descriptionTranslations || {}) },
       isAvailable: watch.isAvailable !== undefined ? watch.isAvailable : true,
       isSold: isSoldValue,
       saleDate: watch.saleDate || null,
@@ -720,11 +764,37 @@ onMounted(async () => {
             </template>
             <div class="md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <!-- Onglets de langue : seule la description est rédigée par montre. Les
+                   caractéristiques techniques se traduisent toutes seules à l'affichage. -->
+              <div v-if="descriptionLocales.length > 1" class="flex flex-wrap gap-2 mb-2">
+                <button
+                  v-for="locale in descriptionLocales"
+                  :key="locale"
+                  type="button"
+                  @click="activeDescriptionLocale = locale"
+                  :class="[
+                    'px-3 py-1 text-xs font-medium rounded-full border transition-colors',
+                    activeDescriptionLocale === locale
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400',
+                  ]"
+                >
+                  {{ locale.toUpperCase() }}
+                  <span v-if="!hasDescriptionFor(locale)" class="opacity-60">·</span>
+                </button>
+              </div>
               <textarea
-                v-model="formData.description"
+                v-model="activeDescription"
                 rows="4"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               ></textarea>
+              <p
+                v-if="descriptionLocales.length > 1 && activeDescriptionLocale !== defaultDescriptionLocale"
+                class="mt-1 text-xs text-gray-500"
+              >
+                Laissé vide, le site affichera la description en
+                {{ defaultDescriptionLocale.toUpperCase() }}.
+              </p>
             </div>
           </div>
         </div>
@@ -778,7 +848,7 @@ onMounted(async () => {
                   "
                   @click="toggleBraceletMaterial(material.slug)"
                 >
-                  {{ material.label }}
+                  {{ getBraceletMaterialLabel(material.slug) }}
                 </button>
               </div>
             </div>
@@ -794,7 +864,7 @@ onMounted(async () => {
                   type="button"
                   class="flex flex-col items-center gap-1.5 focus:outline-none"
                   :aria-pressed="formData.details.braceletColors.includes(color.slug)"
-                  :title="color.label"
+                  :title="getBraceletColorLabel(color.slug)"
                   @click="toggleBraceletColor(color.slug)"
                 >
                   <span
@@ -820,7 +890,7 @@ onMounted(async () => {
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </span>
-                  <span class="text-xs text-gray-600">{{ color.label }}</span>
+                  <span class="text-xs text-gray-600">{{ getBraceletColorLabel(color.slug) }}</span>
                 </button>
               </div>
             </div>

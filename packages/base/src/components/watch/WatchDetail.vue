@@ -65,7 +65,7 @@
                 v-if="!watchItem?.images?.length"
                 class="flex h-full w-full items-center justify-center bg-white text-gray-400"
               >
-                Image non disponible
+                {{ t('watch.imageUnavailable') }}
               </div>
 
               <WatchImageSwipeCarousel
@@ -234,7 +234,7 @@
                 v-if="watchItem.isOnPromotion"
                 class="inline-flex items-center px-2.5 py-1 mb-2 text-xs font-semibold rounded-full bg-red-100 text-red-800"
               >
-                Promotion · -{{ watchItem.displayDiscountPercent }} %
+                {{ t('watch.promotionBadge', { percent: watchItem.displayDiscountPercent }) }}
               </div>
               <div class="flex flex-wrap items-baseline gap-3">
                 <span
@@ -260,15 +260,15 @@
               </div>
               <div v-if="hasValue(watchItem.condition)" class="flex gap-4 py-2 border-b border-gray-100">
                 <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">{{ t('watch.condition') }}</span>
-                <span class="font-medium text-left flex-1">{{ watchItem.condition }}</span>
+                <span class="font-medium text-left flex-1">{{ translateSpec('condition', watchItem.condition) }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.content)" class="flex gap-4 py-2 border-b border-gray-100">
                 <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">{{ t('watch.content') }}</span>
-                <span class="font-medium text-left flex-1">{{ watchItem.details.content }}</span>
+                <span class="font-medium text-left flex-1">{{ translateSpec('content', watchItem.details.content) }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.guarantee)" class="flex gap-4 py-2 border-b border-gray-100">
                 <span class="text-gray-600 w-[140px] flex-shrink-0 whitespace-normal">{{ t('watch.warranty') }}</span>
-                <span class="font-medium text-left flex-1">{{ watchItem.details.guarantee }}</span>
+                <span class="font-medium text-left flex-1">{{ translateGuarantee(watchItem.details.guarantee) }}</span>
               </div>
             </div>
           </div>
@@ -422,11 +422,11 @@
               </div>
               <div v-if="hasValue(watchItem.details?.movement)" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.movement') }}</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.movement }}</span>
+                <span class="font-medium text-gray-900 flex-1">{{ translateSpec('movement', watchItem.details.movement) }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.caseMaterial)" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.case') }}</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.caseMaterial }}</span>
+                <span class="font-medium text-gray-900 flex-1">{{ translateSpecList('material', watchItem.details.caseMaterial) }}</span>
               </div>
               <div v-if="watchItem.details?.braceletMaterials?.length" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.strapMaterial') }}</span>
@@ -452,7 +452,7 @@
                       class="h-5 w-5 rounded-full shadow-inner ring-1 ring-gray-300"
                       :style="{ backgroundImage: getBraceletColorBySlug(slug)?.gradient }"
                     />
-                    {{ getBraceletColorBySlug(slug)?.label || slug }}
+                    {{ getBraceletColorLabel(slug) }}
                   </span>
                 </div>
               </div>
@@ -463,7 +463,7 @@
               <div v-if="catalogDisplay.showConditionInDetails && hasValue(watchItem.condition)" class="flex gap-4 py-3 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[160px] flex-shrink-0">{{ t('watch.condition') }}</span>
                 <div class="font-medium text-gray-900 flex-1">
-                  <div>{{ watchItem.condition }}</div>
+                  <div>{{ translateSpec('condition', watchItem.condition) }}</div>
                 </div>
               </div>
             </div>
@@ -483,23 +483,23 @@
               </div>
               <div v-if="hasValue(watchItem.details?.dialColor)" class="flex gap-4 py-2 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.dialColor') }}</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.dialColor }}</span>
+                <span class="font-medium text-gray-900 flex-1">{{ translateSpecList('color', watchItem.details.dialColor) }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.crystal)" class="flex gap-4 py-2 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.crystal') }}</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.crystal }}</span>
+                <span class="font-medium text-gray-900 flex-1">{{ translateSpec('crystal', watchItem.details.crystal) }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.waterResistance)" class="flex gap-4 py-2 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.waterResistance') }}</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.waterResistance }}</span>
+                <span class="font-medium text-gray-900 flex-1">{{ formatWaterResistance(watchItem.details.waterResistance) }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.functions)" class="flex gap-4 py-2 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.functions') }}</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.functions }}</span>
+                <span class="font-medium text-gray-900 flex-1">{{ translateSpecList('fn', watchItem.details.functions) }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.powerReserve)" class="flex gap-4 py-2 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.powerReserve') }}</span>
-                <span class="font-medium text-gray-900 flex-1">{{ watchItem.details.powerReserve }}</span>
+                <span class="font-medium text-gray-900 flex-1">{{ translateDuration(watchItem.details.powerReserve) }}</span>
               </div>
               <div v-if="hasValue(watchItem.details?.frequency)" class="flex gap-4 py-2 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.frequency') }}</span>
@@ -553,7 +553,7 @@
                 :stroke-width="2"
               />
               <span :class="item.included ? 'text-gray-900' : 'text-gray-500'">
-                {{ item.name }}
+                {{ translateAccessory(item.name) }}
               </span>
             </div>
           </div>
@@ -590,7 +590,7 @@
                 {{ formatArticleDate(article.created_at) }}
               </span>
               <span class="text-primary text-sm font-medium hover:underline">
-                Lire l'article →
+                {{ t('watch.readArticle') }}
               </span>
             </div>
           </article>
@@ -836,7 +836,7 @@ import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredD
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { buildWatchPath, isLegacyWatchIdParam } from '@/utils/watchSlug.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
-import { getBraceletColorBySlug } from '@/constants/watchBraceletColors'
+import { getBraceletColorBySlug, getBraceletColorLabel } from '@/constants/watchBraceletColors'
 import { getBraceletMaterialLabel } from '@/constants/watchBraceletMaterials'
 
 const site = getSiteConfig()
@@ -872,6 +872,15 @@ import PaymentIcons from '@/components/payment/PaymentIcons.vue'
 import TrustHighlightIcon from '@/components/watch/TrustHighlightIcon.vue'
 import { formatDate, formatPrice } from '@/utils/formatters.js'
 import { t } from '@/i18n'
+import {
+  formatWaterResistance,
+  resolveConditionSchemaValue,
+  translateAccessory,
+  translateDuration,
+  translateGuarantee,
+  translateSpec,
+  translateSpecList,
+} from '@/i18n/watchSpecs'
 
 const route = useRoute()
 const router = useRouter()
@@ -1390,9 +1399,14 @@ const structuredData = computed(() => {
     },
   }
 
-  // Add condition if available
-  if (watchItem.value.condition) {
-    baseData.itemCondition = `https://schema.org/${watchItem.value.condition === 'Neuf' ? 'NewCondition' : 'UsedCondition'}`
+  // État : passe par le vocabulaire, pour que « neuf » ou « Comme neuf » ne soient pas
+  // silencieusement rangés en occasion par une comparaison de chaîne exacte.
+  const conditionSchema = resolveConditionSchemaValue(watchItem.value.condition)
+  if (conditionSchema) {
+    baseData.itemCondition =
+      conditionSchema === 'new'
+        ? 'https://schema.org/NewCondition'
+        : 'https://schema.org/UsedCondition'
   }
 
   return baseData

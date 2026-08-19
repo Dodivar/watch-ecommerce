@@ -169,7 +169,7 @@
           v-if="catalogDisplay.showResaleFields && (watchItem.contenu || watchItem.details?.content)"
           class="hidden md:inline bg-cream-200 px-1.5 md:px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs text-black"
         >
-          {{ watchItem.contenu || watchItem.details?.content }}
+          {{ translateSpec('content', watchItem.contenu || watchItem.details?.content) }}
         </span>
         <span v-if="showInlineYear" class="font-medium ml-auto">
           {{ watchItem.year }}
@@ -196,6 +196,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
 import { formatPrice } from '@/utils/formatters.js'
 import { t } from '@/i18n'
+import { translateSpec } from '@/i18n/watchSpecs'
 
 const site = getSiteConfig()
 const catalogDisplay = site.watchCatalog.display

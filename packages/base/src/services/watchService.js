@@ -12,7 +12,9 @@ import { WATCH_CARD_MAX_IMAGES } from '@/constants/watchCardDefaults.js'
 import {
   getStaticWatchAudienceAdminOptions,
   getStaticWatchAudienceFilterOptions,
+  getWatchAudienceLabel,
 } from '@/constants/watchAudiences'
+import { getActiveLocale } from '@/i18n'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { buildWatchSlug } from '@/utils/watchSlug.js'
 
@@ -35,7 +37,7 @@ export async function getWatchAudiencesForCollectionFilter() {
     if (error || !data?.length) {
       return getStaticWatchAudienceFilterOptions()
     }
-    return data.map((r) => ({ id: r.slug, label: r.label_fr }))
+    return data.map((r) => ({ id: r.slug, label: getWatchAudienceLabel(r.slug, r.label_fr) }))
   } catch {
     return getStaticWatchAudienceFilterOptions()
   }
@@ -55,22 +57,53 @@ export async function getWatchAudiencesForAdminForm() {
     if (error || !data?.length) {
       return getStaticWatchAudienceAdminOptions()
     }
-    return data.map((r) => ({ value: r.slug, label: r.label_fr }))
+    return data.map((r) => ({ value: r.slug, label: getWatchAudienceLabel(r.slug, r.label_fr) }))
   } catch {
     return getStaticWatchAudienceAdminOptions()
   }
 }
 
 /**
+ * Description dans la langue rendue, avec repli sur le français canonique.
+ *
+ * Les caractéristiques techniques n'ont pas besoin de ce mécanisme : leur vocabulaire est
+ * traduit à l'affichage (`i18n/watchSpecs.js`). Seule la description est rédigée montre par
+ * montre, donc stockée par langue dans `watch_translations`.
+ *
+ * @param {Array<{ locale: string, description?: string | null }>} translations
+ * @param {string} fallback  `watches.description` (français).
+ * @returns {{ description: string, descriptionLocale: string }}
+ */
+function resolveDescription(translations, fallback) {
+  const locale = getActiveLocale()
+  const translated = translations.find((row) => row.locale === locale)?.description
+  if (translated && translated.trim()) {
+    return { description: translated, descriptionLocale: locale }
+  }
+  return { description: fallback || '', descriptionLocale: 'fr' }
+}
+
+/**
  * Transforme les données de la base de données en format attendu par les composants
  */
-function transformWatchData(watchData, details, accessories, images, articles = []) {
+function transformWatchData(
+  watchData,
+  details,
+  accessories,
+  images,
+  articles = [],
+  translations = [],
+) {
   const slug = watchData.slug || buildWatchSlug(watchData)
   const baseWatch = {
     price: watchData.price,
     promotionPrice: watchData.promotion_price,
     discountPercent: watchData.discount_percent,
   }
+  const { description, descriptionLocale } = resolveDescription(
+    translations,
+    watchData.description,
+  )
   return {
     id: watchData.id,
     slug,
@@ -87,7 +120,9 @@ function transformWatchData(watchData, details, accessories, images, articles = 
     displayDiscountPercent: getDisplayDiscountPercent(baseWatch),
     year: watchData.year,
     condition: watchData.condition,
-    description: watchData.description || '',
+    description,
+    // Langue réellement affichée : permet de signaler un repli sur le français.
+    descriptionLocale,
     isAvailable: watchData.is_available !== undefined ? watchData.is_available : true,
     isSold: watchData.is_sold !== undefined ? watchData.is_sold : false,
     stockQuantity: watchData.stock_quantity ?? null,
@@ -506,14 +541,15 @@ export async function getWatchById(id, allowUnavailable = false, allowSold = fal
     }
 
     // Récupérer les détails, accessoires, images et articles liés
-    const [details, accessories, images, articles] = await Promise.all([
+    const [details, accessories, images, articles, translations] = await Promise.all([
       getWatchDetails(id),
       getWatchAccessories(id),
       getWatchImages(id),
       getWatchArticles(id).catch(() => []), // En cas d'erreur, retourner un tableau vide
+      getWatchTranslations(id),
     ])
 
-    return transformWatchData(watch, details, accessories, images, articles)
+    return transformWatchData(watch, details, accessories, images, articles, translations)
   } catch (error) {
     console.error('Erreur dans getWatchById:', error)
     throw error
@@ -537,6 +573,34 @@ async function getWatchDetails(watchId) {
   }
 
   return data || null
+}
+
+/**
+ * Récupère les traductions d'une montre (une ligne par langue renseignée).
+ *
+ * Une table absente ou une erreur réseau ne doit pas faire tomber la fiche : le repli est
+ * la description française de `watches`.
+ *
+ * @param {string} watchId - ID de la montre
+ * @returns {Promise<Array<{ locale: string, description: string | null }>>}
+ */
+async function getWatchTranslations(watchId) {
+  const { data, error } = await supabase
+    .from('watch_translations')
+    .select('locale, description')
+    .eq('watch_id', watchId)
+
+  if (error) {
+    // PGRST205 = table absente : la migration `watch_translations` s'applique tenant par
+    // tenant (voir supabase/migrations/README.md). Tant qu'elle ne l'est pas, la fiche
+    // s'affiche en français — c'est le repli attendu, pas une panne à signaler.
+    if (error.code !== 'PGRST205') {
+      console.error('Erreur lors de la récupération des traductions:', error)
+    }
+    return []
+  }
+
+  return data || []
 }
 
 /**
