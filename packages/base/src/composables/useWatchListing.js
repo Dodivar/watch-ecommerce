@@ -192,6 +192,8 @@ export function useWatchListing() {
 
   const watches = ref([])
   const isLoading = ref(true)
+  /** Vrai tant que des pages de catalogue arrivent après le premier rendu de la grille. */
+  const isLoadingMore = ref(false)
   const error = ref(null)
 
   const roundToTen = (value) => Math.ceil(value / 10) * 10
@@ -594,30 +596,53 @@ export function useWatchListing() {
     tempPromotionOnly.value = false
   }
 
+  /**
+   * Recale le brouillon de prix sur les montres chargées.
+   * Ne fait rien si le visiteur a déjà la main sur le prix (tiroir ouvert ou filtre
+   * appliqué) : les pages suivantes ne doivent pas écraser sa saisie.
+   */
+  const refreshDraftPriceBounds = () => {
+    if (isFilterDrawerOpen.value) return
+    if (priceMin.value !== null || priceMax.value !== null) return
+
+    const pool = watches.value
+    if (pool.length === 0) return
+
+    const roundedMin = roundToTen(Math.min(...pool.map((w) => getCatalogWatchPrice(w))))
+    const roundedMax = roundToTen(Math.max(...pool.map((w) => getCatalogWatchPrice(w))))
+    tempPriceRange.value = [roundedMin, roundedMax]
+    tempPriceMinInput.value = roundedMin
+    tempPriceMaxInput.value = roundedMax
+  }
+
   const loadWatches = async () => {
     try {
       isLoading.value = true
+      isLoadingMore.value = false
       error.value = null
-      const [data, campaignPricing] = await Promise.all([
-        getAllWatchesForListing(),
-        getActiveCampaignWatchPricingPublic(),
-      ])
-      watches.value = enrichWatchesWithActiveCampaignPricing(data, campaignPricing)
-      const pool = watches.value
-      if (pool.length > 0) {
-        const minPrice = Math.min(...pool.map((w) => getCatalogWatchPrice(w)))
-        const maxPrice = Math.max(...pool.map((w) => getCatalogWatchPrice(w)))
-        const roundedMin = roundToTen(minPrice)
-        const roundedMax = roundToTen(maxPrice)
-        tempPriceRange.value = [roundedMin, roundedMax]
-        tempPriceMinInput.value = roundedMin
-        tempPriceMaxInput.value = roundedMax
-      }
+      watches.value = []
+
+      // Les deux requêtes partent ensemble ; chaque page attend le tarif promo avant enrichissement.
+      const campaignPricingPromise = getActiveCampaignWatchPricingPublic()
+
+      await getAllWatchesForListing({
+        onPage: async (page) => {
+          const campaignPricing = await campaignPricingPromise
+          watches.value = watches.value.concat(
+            enrichWatchesWithActiveCampaignPricing(page, campaignPricing),
+          )
+          refreshDraftPriceBounds()
+          // La grille s'affiche dès la première page ; le reste arrive derrière.
+          isLoading.value = false
+          isLoadingMore.value = true
+        },
+      })
     } catch (err) {
       console.error('Erreur lors du chargement des montres:', err)
       error.value = err.message || 'Une erreur est survenue lors du chargement des montres'
     } finally {
       isLoading.value = false
+      isLoadingMore.value = false
     }
   }
 
@@ -650,6 +675,7 @@ export function useWatchListing() {
     tempPromotionOnly,
     watches,
     isLoading,
+    isLoadingMore,
     error,
     priceMinLimit,
     priceMaxLimit,

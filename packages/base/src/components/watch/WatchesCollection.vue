@@ -225,6 +225,9 @@
             <template v-else>
               {{ tc('collection.resultCount', totalFiltered) }}
             </template>
+            <span v-if="listing.isLoadingMore" class="ml-1 text-gray-400">
+              {{ t('collection.loadingMore') }}
+            </span>
           </p>
           <nav
             v-if="totalPages > 1"

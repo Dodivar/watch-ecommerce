@@ -22,6 +22,26 @@ import { buildWatchSlug } from '@/utils/watchSlug.js'
 const LISTING_IMAGES_PER_WATCH = WATCH_CARD_MAX_IMAGES
 
 /**
+ * Nombre d'IDs par requête `.in(...)`.
+ * PostgREST transporte le filtre dans l'URL (un UUID ≈ 37 caractères) : au-delà de
+ * quelques centaines d'IDs, la passerelle rejette la requête pour URL trop longue.
+ */
+const RELATION_ID_CHUNK_SIZE = 100
+
+/**
+ * Lignes par requête sur les tables de relations.
+ * PostgREST plafonne toute réponse non paginée (`max_rows`, 1000 par défaut sur Supabase)
+ * *sans* signaler la troncature : on pagine explicitement pour ne rien perdre.
+ */
+const RELATION_ROWS_PER_REQUEST = 500
+
+/** Montres de la première page de listing : courte, pour un premier rendu rapide. */
+const LISTING_FIRST_PAGE_SIZE = 60
+
+/** Montres des pages suivantes, chargées en arrière-plan. */
+const LISTING_NEXT_PAGE_SIZE = 300
+
+/**
  * Slugs affichés comme filtres sur la page collection (table watch_audiences).
  * Repli sur les constantes si la table est absente ou erreur réseau.
  * @returns {Promise<Array<{ id: string, label: string }>>}
@@ -178,6 +198,55 @@ function resolveImageRecordUrl(record) {
 }
 
 /**
+ * Découpe une liste d'IDs en lots compatibles avec la longueur d'URL de PostgREST.
+ * @param {string[]} ids
+ * @param {number} [size]
+ * @returns {string[][]}
+ */
+function chunkIds(ids, size = RELATION_ID_CHUNK_SIZE) {
+  const chunks = []
+  for (let index = 0; index < ids.length; index += size) {
+    chunks.push(ids.slice(index, index + size))
+  }
+  return chunks
+}
+
+/**
+ * Exécute une requête de relation lot par lot, en paginant chaque lot jusqu'à épuisement.
+ * Contourne les deux plafonds PostgREST : longueur de l'URL (`.in(...)`) et `max_rows`.
+ *
+ * @template T
+ * @param {string[]} ids
+ * @param {(chunk: string[], from: number, to: number) => PromiseLike<{ data: T[] | null, error: unknown }>} runQuery
+ * @param {string} errorLabel Préfixe des logs en cas d'échec d'un lot.
+ * @returns {Promise<T[]>}
+ */
+async function fetchRowsForIds(ids, runQuery, errorLabel) {
+  /** @type {T[]} */
+  const rows = []
+
+  for (const chunk of chunkIds(ids)) {
+    let from = 0
+
+    for (;;) {
+      const { data, error } = await runQuery(chunk, from, from + RELATION_ROWS_PER_REQUEST - 1)
+
+      if (error) {
+        console.error(errorLabel, error)
+        return rows
+      }
+
+      if (!data?.length) break
+      rows.push(...data)
+      if (data.length < RELATION_ROWS_PER_REQUEST) break
+      from += RELATION_ROWS_PER_REQUEST
+    }
+  }
+
+  return rows
+}
+
+/**
  * @param {string[]} watchIds
  * @param {number | null} [maxPerWatch]
  * @returns {Promise<Map<string, Array<{ image_url: string }>>>}
@@ -186,18 +255,21 @@ async function getImagesGroupedByWatchId(watchIds, maxPerWatch = null) {
   const map = new Map()
   if (!watchIds.length) return map
 
-  const { data, error } = await supabase
-    .from('watch_images')
-    .select('watch_id, image_url, image_path, image_order')
-    .in('watch_id', watchIds)
-    .order('image_order', { ascending: true })
+  // `watch_id` d'abord : tri déterministe, indispensable pour paginer sans doublon ni trou.
+  const records = await fetchRowsForIds(
+    watchIds,
+    (chunk, from, to) =>
+      supabase
+        .from('watch_images')
+        .select('watch_id, image_url, image_path, image_order')
+        .in('watch_id', chunk)
+        .order('watch_id', { ascending: true })
+        .order('image_order', { ascending: true })
+        .range(from, to),
+    'Erreur lors de la récupération des images:',
+  )
 
-  if (error || !data) {
-    console.error('Erreur lors de la récupération des images:', error)
-    return map
-  }
-
-  for (const record of data) {
+  for (const record of records) {
     const url = resolveImageRecordUrl(record)
     if (!url) continue
 
@@ -219,17 +291,19 @@ async function getWatchDetailsByWatchIds(watchIds) {
   const map = new Map()
   if (!watchIds.length) return map
 
-  const { data, error } = await supabase
-    .from('watch_details')
-    .select('*')
-    .in('watch_id', watchIds)
+  const rows = await fetchRowsForIds(
+    watchIds,
+    (chunk, from, to) =>
+      supabase
+        .from('watch_details')
+        .select('*')
+        .in('watch_id', chunk)
+        .order('watch_id', { ascending: true })
+        .range(from, to),
+    'Erreur lors de la récupération des détails:',
+  )
 
-  if (error) {
-    console.error('Erreur lors de la récupération des détails:', error)
-    return map
-  }
-
-  for (const row of data ?? []) {
+  for (const row of rows) {
     map.set(row.watch_id, row)
   }
 
@@ -244,18 +318,20 @@ async function getWatchAccessoriesByWatchIds(watchIds) {
   const map = new Map()
   if (!watchIds.length) return map
 
-  const { data, error } = await supabase
-    .from('watch_accessories')
-    .select('*')
-    .in('watch_id', watchIds)
-    .order('name', { ascending: true })
+  const rows = await fetchRowsForIds(
+    watchIds,
+    (chunk, from, to) =>
+      supabase
+        .from('watch_accessories')
+        .select('*')
+        .in('watch_id', chunk)
+        .order('watch_id', { ascending: true })
+        .order('name', { ascending: true })
+        .range(from, to),
+    'Erreur lors de la récupération des accessoires:',
+  )
 
-  if (error) {
-    console.error('Erreur lors de la récupération des accessoires:', error)
-    return map
-  }
-
-  for (const row of data ?? []) {
+  for (const row of rows) {
     const list = map.get(row.watch_id) ?? []
     list.push(row)
     map.set(row.watch_id, list)
@@ -421,25 +497,52 @@ export function invalidateCatalogBrandsCache() {
 
 /**
  * Récupère toutes les montres disponibles pour le listing (collection, filtres, recherche).
- * Une seule image par montre ; requêtes groupées (pas de N+1).
+ * Requêtes groupées (pas de N+1), images limitées par montre.
  *
+ * Le catalogue est chargé page par page : la première est courte pour que la grille
+ * s'affiche vite, les suivantes sont plus larges et arrivent en arrière-plan. Sans cette
+ * pagination explicite, PostgREST tronquerait silencieusement la réponse à `max_rows`.
+ *
+ * @param {{ onPage?: (watches: Array<object>) => void | Promise<void> }} [options]
+ *   `onPage` reçoit chaque page assemblée dès qu'elle est prête (rendu progressif) ;
+ *   la promesse résout avec le catalogue complet.
  * @returns {Promise<Array>}
  */
-export async function getAllWatchesForListing() {
+export async function getAllWatchesForListing({ onPage } = {}) {
   try {
-    const { data: watches, error: watchesError } = await supabase
-      .from('watches')
-      .select('*')
-      .eq('is_available', true)
-      .order('display_order', { ascending: false })
+    /** @type {Array<object>} */
+    const all = []
+    let from = 0
+    let pageSize = LISTING_FIRST_PAGE_SIZE
 
-    if (watchesError) {
-      throw new Error(`Erreur lors de la récupération des montres: ${watchesError.message}`)
+    for (;;) {
+      const { data: watches, error: watchesError } = await supabase
+        .from('watches')
+        .select('*')
+        .eq('is_available', true)
+        .order('display_order', { ascending: false })
+        // Départage les `display_order` égaux (et les NULL) : sans clé stable,
+        // la pagination sauterait ou dupliquerait des montres d'une page à l'autre.
+        .order('id', { ascending: true })
+        .range(from, from + pageSize - 1)
+
+      if (watchesError) {
+        throw new Error(`Erreur lors de la récupération des montres: ${watchesError.message}`)
+      }
+
+      if (!watches?.length) break
+
+      const assembled = await assembleWatchesWithRelations(watches, LISTING_IMAGES_PER_WATCH)
+      all.push(...assembled)
+      await onPage?.(assembled)
+
+      if (watches.length < pageSize) break
+
+      from += pageSize
+      pageSize = LISTING_NEXT_PAGE_SIZE
     }
 
-    if (!watches?.length) return []
-
-    return assembleWatchesWithRelations(watches, LISTING_IMAGES_PER_WATCH)
+    return all
   } catch (error) {
     console.error('Erreur dans getAllWatchesForListing:', error)
     throw error
