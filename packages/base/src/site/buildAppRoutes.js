@@ -45,6 +45,7 @@ import ConditionsGeneralesUtilisation from '@/components/ConditionsGeneralesUtil
 import ContactPage from '@/components/ContactPage.vue'
 import FaqPage from '@/components/FaqPage.vue'
 import ServicesPage from '@/components/ServicesPage.vue'
+import ServiceLandingPage from '@/components/services/ServiceLandingPage.vue'
 import GuidePage from '@/components/GuidePage.vue'
 import NotFound from '@/components/NotFound.vue'
 import CheckoutPage from '@/components/checkout/CheckoutPage.vue'
@@ -74,6 +75,7 @@ const COMPONENTS_BY_PATH = {
   '/blog/:id': BlogDetail,
   '/a-propos': APropos,
   '/services': ServicesPage,
+  '/services/:serviceSlug': ServiceLandingPage,
   '/guide-horloger': GuidePage,
   '/contact': ContactPage,
   '/faq': FaqPage,

@@ -17,6 +17,18 @@ export const DEFAULT_SITE_FEATURES = {
   servicesPage: false,
   /** Page dédiée `/guide-horloger` (contenu `guidePage` dans le manifest client). */
   guidePage: false,
+  /**
+   * Formulaire « demande de prise en charge / devis » de l'atelier, affiché sur `/services`
+   * et sur les pages prestation. Nécessite le bloc `servicesPage.repairRequest` du manifest
+   * (sans lui, `resolveSiteConfig` repasse le drapeau à false : un formulaire sans liste de
+   * prestations n'a rien à proposer).
+   */
+  repairRequest: false,
+  /**
+   * Pages prestation `/services/:slug` (SEO local). Dérivé de `servicesPage.landings`
+   * dans `resolveSiteConfig` — inutile de le poser à la main dans un manifest.
+   */
+  serviceLandings: false,
   legal: true,
   /** Section #faq sur l’accueil, page `/faq` et lien « FAQ » — activé si `site.config` exporte `faq` avec entrées (voir getSiteConfig). */
   faq: false,

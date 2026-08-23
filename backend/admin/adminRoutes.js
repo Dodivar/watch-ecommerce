@@ -12,7 +12,7 @@ const { receiptPdfFilename } = require('../orders/receiptPdf')
  * @param {{ originalname: string }[]} [files]
  */
 async function persistLeadSubmission(supabase, siteId, type, formData, files = []) {
-  const allowed = ['contact', 'appointment', 'estimation', 'search']
+  const allowed = ['contact', 'appointment', 'estimation', 'search', 'repair']
   if (!allowed.includes(type)) return
 
   const customerName = formData.name?.trim() || null

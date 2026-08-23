@@ -14,6 +14,12 @@ const {
   formatAppointmentVendorText,
   formatAppointmentCustomerText,
 } = require('../templates/appointmentEmail')
+const {
+  createRepairVendorEmail,
+  createRepairCustomerEmail,
+  formatRepairVendorText,
+  formatRepairCustomerText,
+} = require('../templates/repairEmail')
 const { validateAppointmentSubmission } = require('../utils/appointmentSlots')
 const { buildGoogleMapsDirectionsUrl } = require('../utils/googleMapsLinks')
 
@@ -88,6 +94,19 @@ router.post('/send-email', sendEmailRateLimiter, uploadAttachments, async (req, 
 
     if (type === 'contact') {
       const missing = ['name', 'email', 'message'].filter((field) => !formData[field]?.trim())
+      if (missing.length > 0) {
+        cleanupFiles(files)
+        return res.status(400).json({
+          success: false,
+          message: `Champs obligatoires manquants : ${missing.join(', ')}`,
+        })
+      }
+    }
+
+    if (type === 'repair') {
+      const missing = ['name', 'email', 'service_type', 'message'].filter(
+        (field) => !formData[field]?.trim(),
+      )
       if (missing.length > 0) {
         cleanupFiles(files)
         return res.status(400).json({
@@ -238,6 +257,58 @@ router.post('/send-email', sendEmailRateLimiter, uploadAttachments, async (req, 
       return res.json({
         success: true,
         message: 'Demande de rendez-vous envoyée avec succès',
+      })
+    }
+
+    if (type === 'repair') {
+      const attachmentNames = files.map((file) => ({ name: file.originalname }))
+      const serviceLabel = String(formData.service_type || '').trim()
+      const vendorSubject = serviceLabel
+        ? `Nouvelle demande de prise en charge — ${serviceLabel}`
+        : 'Nouvelle demande de prise en charge'
+
+      const repairEmailData = {
+        Messages: [
+          {
+            From: { Email: fromAddress, Name: emailCfg.fromName },
+            To: [{ Email: emailCfg.toAddress, Name: emailCfg.fromName }],
+            Subject: vendorSubject,
+            TextPart: formatRepairVendorText(formData, attachmentNames),
+            HTMLPart: createRepairVendorEmail(site, formData, attachmentNames),
+            Attachments: attachments,
+          },
+          {
+            From: { Email: fromAddress, Name: emailCfg.fromName },
+            To: [{ Email: formData.email.trim(), Name: formData.name.trim() }],
+            Subject: `Votre demande de prise en charge — ${emailCfg.fromName}`,
+            TextPart: formatRepairCustomerText(formData),
+            HTMLPart: createRepairCustomerEmail(site, formData),
+          },
+        ],
+      }
+
+      console.log(`[${site.id}] Préparation de l'envoi des emails atelier via Mailjet...`)
+      await mailjet.post('send', { version: 'v3.1' }).request(repairEmailData)
+
+      console.log(`[${site.id}] ✅ Emails atelier envoyés avec succès via Mailjet`)
+      cleanupFiles(files)
+
+      try {
+        const supabase = getSupabaseClient(site)
+        await persistLeadSubmission(supabase, site.id, type, formData, files)
+        if (isOptInTruthy(formData.newsletter_opt_in)) {
+          await recordNewsletterOptIn(supabase, site.id, {
+            email: formData.email,
+            name: formData.name,
+          })
+        }
+      } catch (persistErr) {
+        console.error(`[${site.id}] persistLeadSubmission (repair):`, persistErr.message)
+      }
+
+      return res.json({
+        success: true,
+        message: 'Demande de prise en charge envoyée avec succès',
       })
     }
 

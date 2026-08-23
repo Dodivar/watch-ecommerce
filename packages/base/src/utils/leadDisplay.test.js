@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   formatLeadBudget,
+  formatLeadHandling,
   formatLeadDate,
   formatLeadDateTime,
   formatLeadPrice,
@@ -134,6 +135,19 @@ describe('getLeadSummary', () => {
     expect(getLeadSummary({ type: 'search', payload: {} })).toBe('—')
   })
 
+  it('résume une demande atelier via la prestation et la montre', () => {
+    expect(
+      getLeadSummary({
+        type: 'repair',
+        payload: { service_type: 'Changement de pile', brand: 'Tissot', model: 'PRX' },
+      }),
+    ).toBe('Changement de pile — Tissot PRX')
+    expect(getLeadSummary({ type: 'repair', payload: { service_type: 'Révision' } })).toBe(
+      'Révision',
+    )
+    expect(getLeadSummary({ type: 'repair', payload: {} })).toBe('—')
+  })
+
   it('tronque les messages de contact à 60 caractères', () => {
     const long = 'a'.repeat(80)
     const out = getLeadSummary({ type: 'contact', payload: { message: long } })
@@ -188,5 +202,18 @@ describe('formatLeadBudget', () => {
   it('renvoie un tiret sans bornes', () => {
     expect(formatLeadBudget(null, null)).toBe('—')
     expect(formatLeadBudget('', '')).toBe('—')
+  })
+})
+
+describe('formatLeadHandling', () => {
+  it('traduit les modes de prise en charge', () => {
+    expect(formatLeadHandling('dropoff')).toBe('Dépôt en boutique')
+    expect(formatLeadHandling('shipping')).toBe('Envoi postal')
+    expect(formatLeadHandling('unsure')).toBe('Non décidé')
+  })
+
+  it('renvoie la valeur brute pour un mode inconnu et un tiret si absent', () => {
+    expect(formatLeadHandling('pigeon')).toBe('pigeon')
+    expect(formatLeadHandling(null)).toBe('—')
   })
 })

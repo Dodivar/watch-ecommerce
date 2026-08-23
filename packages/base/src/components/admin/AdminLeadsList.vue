@@ -36,6 +36,8 @@ const activeLeadTypes = computed(() => {
         return features.estimation
       case 'search':
         return features.recherche
+      case 'repair':
+        return features.repairRequest
       default:
         return false
     }

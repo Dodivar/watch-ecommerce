@@ -5,6 +5,14 @@ export const LEAD_TYPE_LABELS = {
   appointment: 'RDV',
   estimation: 'Estimation',
   search: 'Recherche',
+  repair: 'Atelier',
+}
+
+/** Mode de prise en charge choisi dans le formulaire atelier (payload `handling`). */
+export const LEAD_HANDLING_LABELS = {
+  dropoff: 'Dépôt en boutique',
+  shipping: 'Envoi postal',
+  unsure: 'Non décidé',
 }
 
 export const LEAD_STATUS_LABELS = {
@@ -19,6 +27,14 @@ export const LEAD_STATUS_LABELS = {
 export function formatLeadSlot(timeSlot) {
   if (!timeSlot) return '—'
   return SLOT_LABELS[timeSlot] || timeSlot
+}
+
+/**
+ * @param {string | null | undefined} handling
+ */
+export function formatLeadHandling(handling) {
+  if (!handling) return '—'
+  return LEAD_HANDLING_LABELS[handling] || handling
 }
 
 /**
@@ -85,6 +101,10 @@ export function getLeadSummary(lead) {
       const parts = [p.brand, p.model].filter(Boolean)
       return parts.length ? parts.join(' ') : '—'
     }
+    case 'repair': {
+      const parts = [p.service_type, [p.brand, p.model].filter(Boolean).join(' ')].filter(Boolean)
+      return parts.length ? parts.join(' — ') : '—'
+    }
     case 'contact': {
       const msg = typeof p.message === 'string' ? p.message.trim() : ''
       if (!msg) return '—'
@@ -126,6 +146,9 @@ export function getUnmappedPayloadKeys(payload) {
     'watch_id',
     'attachments',
     'directions_url',
+    'service_type',
+    'handling',
+    'source',
   ])
   return Object.keys(payload).filter((key) => !known.has(key) && payload[key] != null && payload[key] !== '')
 }

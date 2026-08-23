@@ -14,6 +14,13 @@
           <p class="text-lg lg:text-xl text-gray-600 leading-relaxed">
             {{ content.hero.lead }}
           </p>
+          <a
+            v-if="features.repairRequest"
+            href="#devis"
+            class="mt-8 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 font-semibold text-white shadow-lg hover:bg-primaryHover transition-colors"
+          >
+            {{ t('repair.cta') }}
+          </a>
         </div>
       </div>
     </section>
@@ -37,6 +44,14 @@
               <div>
                 <h2 class="text-xl lg:text-2xl font-bold text-text-main">{{ section.title }}</h2>
                 <p v-if="section.intro" class="mt-1 text-gray-600">{{ section.intro }}</p>
+                <RouterLink
+                  v-if="landingBySection[section.id]"
+                  :to="landingBySection[section.id].path"
+                  class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primaryHover transition-colors"
+                >
+                  {{ t('common.learnMore') }}
+                  <span aria-hidden="true">→</span>
+                </RouterLink>
               </div>
             </div>
 
@@ -82,6 +97,24 @@
             </ul>
           </article>
         </div>
+      </div>
+    </section>
+
+    <!-- Toutes les prestations détaillées : garantit un lien vers chaque page prestation,
+         y compris celles qui ne correspondent à aucun bloc ci-dessus. -->
+    <section v-if="content.landings?.length" class="pb-6 lg:pb-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ul class="flex flex-wrap gap-3">
+          <li v-for="landing in content.landings" :key="landing.slug">
+            <RouterLink
+              :to="landing.path"
+              class="inline-flex items-center gap-1 rounded-full border border-cream-300 bg-white px-4 py-2 text-sm font-semibold text-text-main hover:border-primary hover:text-primary transition-colors"
+            >
+              {{ landing.navLabel }}
+              <span aria-hidden="true">→</span>
+            </RouterLink>
+          </li>
+        </ul>
       </div>
     </section>
 
@@ -134,6 +167,8 @@
         </div>
       </div>
     </section>
+
+    <RepairRequestForm v-if="features.repairRequest" source="services" />
 
     <!-- CTA -->
     <section v-if="content.cta" class="py-14 lg:py-16 bg-white">
@@ -188,11 +223,23 @@ import { useHead } from '@vueuse/head'
 import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import ServiceIcon from '@/components/services/ServiceIcon.vue'
+import RepairRequestForm from '@/components/services/RepairRequestForm.vue'
 import { t } from '@/i18n'
 
 const site = getSiteConfig()
 const content = site.servicesPage
 const features = site.features
+
+/**
+ * Chaque bloc de la page renvoie vers sa page prestation quand le manifest en déclare une
+ * (`landings[].sectionId`) : c'est le lien qui fait de `/services` la page-mère d'un petit
+ * cluster SEO plutôt qu'une page isolée.
+ */
+const landingBySection = Object.fromEntries(
+  (content.landings || [])
+    .filter((landing) => landing.sectionId)
+    .map((landing) => [landing.sectionId, landing]),
+)
 const seo = site.seo?.servicesPage
 
 if (seo) {

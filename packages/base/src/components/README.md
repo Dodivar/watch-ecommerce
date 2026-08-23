@@ -9,6 +9,9 @@ tooltips, sliders).
 
 - `admin/` : interface d’administration (CRUD articles, montres, statistiques).
 - `watch/` : composants dédiés à la collection (listing, cartes, détail).
+- `services/` : atelier — pages prestation `/services/:slug` (`ServiceLandingPage.vue`)
+  et formulaire de prise en charge (`RepairRequestForm.vue`), tous deux pilotés par le
+  bloc `servicesPage` du manifest client.
 
 ## Bonnes pratiques
 

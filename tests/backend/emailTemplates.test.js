@@ -4,6 +4,12 @@ import { describe, expect, it } from 'vitest'
 const require = createRequire(import.meta.url)
 const { resolveEmailBranding } = require('../../backend/templates/emailCommon.js')
 const { createEmailTemplate } = require('../../backend/templates/estimationEmail.js')
+const {
+  createRepairVendorEmail,
+  createRepairCustomerEmail,
+  formatRepairVendorText,
+  formatRepairCustomerText,
+} = require('../../backend/templates/repairEmail.js')
 
 function mockSite(overrides = {}) {
   return {
@@ -107,5 +113,68 @@ describe('createEmailTemplate', () => {
     expect(html).toContain('5')
     expect(html).toContain('8')
     expect(html).toContain('Délai souhaité')
+  })
+})
+
+const repairForm = {
+  type: 'repair',
+  name: 'Dupont',
+  email: 'jean@example.com',
+  tel: '0600000000',
+  service_type: 'Changement de pile',
+  handling: 'dropoff',
+  brand: 'Tissot',
+  model: 'PRX',
+  message: 'La montre est arrêtée depuis une semaine.',
+  source: 'changement-pile-montre',
+}
+
+describe('emails de prise en charge atelier', () => {
+  it("récapitule la demande pour l'atelier, photos comprises", () => {
+    const html = createRepairVendorEmail(mockSite(), repairForm, [{ name: 'cadran.jpg' }])
+
+    expect(html).toContain('Tissot PRX')
+    expect(html).toContain('Changement de pile')
+    expect(html).toContain('Dépôt en boutique')
+    expect(html).toContain('La montre est arrêtée depuis une semaine.')
+    expect(html).toContain('cadran.jpg')
+    expect(html).toContain('mailto:jean%40example.com')
+  })
+
+  it('accuse réception auprès du client sans rien promettre', () => {
+    const html = createRepairCustomerEmail(mockSite(), repairForm)
+
+    expect(html).toContain('Bonjour Dupont')
+    expect(html).toContain('Changement de pile')
+    expect(html).toContain('48 h ouvrées')
+    expect(html).toContain('sans votre accord')
+  })
+
+  it("ne rappelle l'adresse que pour un dépôt et un magasin public", () => {
+    const site = mockSite()
+    site.config.storeMap = { enabled: true }
+    site.config.legal = { address: '24 Place des Halles, 67000 Strasbourg' }
+
+    expect(createRepairCustomerEmail(site, repairForm)).toContain('24 Place des Halles')
+    expect(
+      createRepairCustomerEmail(site, { ...repairForm, handling: 'shipping' }),
+    ).not.toContain('24 Place des Halles')
+
+    const privateSite = mockSite()
+    privateSite.config.storeMap = { enabled: false }
+    privateSite.config.legal = { address: '24 Place des Halles, 67000 Strasbourg' }
+    expect(createRepairCustomerEmail(privateSite, repairForm)).not.toContain('24 Place des Halles')
+  })
+
+  it('produit un pendant texte pour les deux messages', () => {
+    const vendorText = formatRepairVendorText(repairForm, [{ name: 'cadran.jpg' }])
+    expect(vendorText).toContain('Prestation: Changement de pile')
+    expect(vendorText).toContain('Prise en charge: Dépôt en boutique')
+    expect(vendorText).toContain("Page d'origine: changement-pile-montre")
+    expect(vendorText).toContain('Photos: cadran.jpg')
+
+    const customerText = formatRepairCustomerText(repairForm)
+    expect(customerText).toContain('Bonjour Dupont')
+    expect(customerText).toContain('Montre: Tissot PRX')
   })
 })

@@ -1,5 +1,6 @@
 import homeSelectionCards from './homeSelections.config.js'
 import guidePage from './guide.config.js'
+import servicesAtelier from './services.config.js'
 import { publicPath } from '../../packages/base/src/utils/publicPath.js'
 import { t } from '../../packages/base/src/site/i18nValue.js'
 
@@ -180,9 +181,9 @@ export default {
           de: 'Bieten Sie Uhrenreparaturen an?',
         }),
         answer: t({
-          fr: 'Oui&nbsp;: <strong>réparation et entretien toutes marques</strong>, changement de pile, étanchéité, verres et bracelets — avec un <strong>horloger sur place</strong> aux Place des Halles. Consultez notre page <a href="/services" class="text-primary underline">Nos services</a> pour les tarifs et prestations.',
-          en: 'Yes — <strong>repairs and servicing for all brands</strong>, battery replacement, water-resistance testing, crystals and straps, with a <strong>watchmaker on site</strong> at Place des Halles. See our <a href="/services" class="text-primary underline">Our services</a> page for prices and services.',
-          de: 'Ja — <strong>Reparatur und Wartung aller Marken</strong>, Batteriewechsel, Dichtheitsprüfung, Gläser und Armbänder — mit einem <strong>Uhrmacher vor Ort</strong> in der Place des Halles. Preise und Leistungen finden Sie auf unserer Seite <a href="/services" class="text-primary underline">Unsere Leistungen</a>.',
+          fr: 'Oui&nbsp;: <strong>réparation et entretien toutes marques</strong>, changement de pile, étanchéité, verres et bracelets — avec un <strong>horloger sur place</strong> aux Place des Halles. Détail de la <a href="/services/reparation-montre-strasbourg" class="text-primary underline">réparation de montre à Strasbourg</a>, ou demandez une prise en charge depuis la page <a href="/services" class="text-primary underline">Nos services</a>.',
+          en: 'Yes — <strong>repairs and servicing for all brands</strong>, battery replacement, water-resistance testing, crystals and straps, with a <strong>watchmaker on site</strong> at Place des Halles. See <a href="/services/reparation-montre-strasbourg" class="text-primary underline">watch repair in Strasbourg</a> in detail, or send us a request from the <a href="/services" class="text-primary underline">Our services</a> page.',
+          de: 'Ja — <strong>Reparatur und Wartung aller Marken</strong>, Batteriewechsel, Dichtheitsprüfung, Gläser und Armbänder — mit einem <strong>Uhrmacher vor Ort</strong> in der Place des Halles. Alles zur <a href="/services/reparation-montre-strasbourg" class="text-primary underline">Uhrenreparatur in Straßburg</a>, oder senden Sie uns eine Anfrage über die Seite <a href="/services" class="text-primary underline">Unsere Leistungen</a>.',
         }),
       },
       {
@@ -612,6 +613,8 @@ export default {
   },
 
   servicesPage: {
+    /** Formulaire de prise en charge, pages prestation et zone desservie — voir services.config.js. */
+    ...servicesAtelier,
     hero: {
       eyebrow: t({
         fr: 'Atelier & service rapide',
@@ -963,6 +966,7 @@ export default {
     about: true,
     servicesPage: true,
     guidePage: true,
+    repairRequest: true,
     legal: true,
     faq: true,
     purchase: true,

@@ -1,7 +1,7 @@
 import { supabase } from '../supabase'
 import { getAdminSiteId } from './adminSiteContext.js'
 
-const LEAD_TYPES = ['contact', 'appointment', 'estimation', 'search']
+const LEAD_TYPES = ['contact', 'appointment', 'estimation', 'search', 'repair']
 const LEAD_STATUSES = ['new', 'read', 'archived']
 
 /**
