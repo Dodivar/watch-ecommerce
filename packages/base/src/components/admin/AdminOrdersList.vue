@@ -1,15 +1,19 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getOrdersForAdmin } from '@/services/admin/adminOrderService'
+import { RETURN_STATUS_LABELS } from '@/services/admin/orderReturns'
 import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
+const route = useRoute()
 const orders = ref([])
 const total = ref(0)
 const isLoading = ref(true)
 const error = ref(null)
 const statusFilter = ref('paid')
+// Le dashboard renvoie ici avec ?retours=open pour les dossiers à traiter.
+const returnFilter = ref(route.query.retours === 'open' ? 'open' : '')
 const searchQuery = ref('')
 
 const statusLabels = {
@@ -42,6 +46,7 @@ async function loadOrders() {
     error.value = null
     const result = await getOrdersForAdmin({
       status: statusFilter.value || undefined,
+      returnStatus: returnFilter.value || undefined,
       search: searchQuery.value,
     })
     orders.value = result.orders
@@ -66,6 +71,12 @@ onMounted(loadOrders)
           <option value="pending_payment">Paiement en cours</option>
           <option value="draft">Brouillons</option>
         </select>
+        <select v-model="returnFilter" class="px-4 py-2 border border-gray-300 rounded-lg bg-white" @change="loadOrders">
+          <option value="">Tous les retours</option>
+          <option value="open">Retours à traiter</option>
+          <option value="refunded">Remboursées</option>
+          <option value="rejected">Retours refusés</option>
+        </select>
         <input v-model="searchQuery" type="search" placeholder="Email ou téléphone…" class="flex-1 px-4 py-2 border rounded-lg" @keyup.enter="loadOrders" />
         <button type="button" class="px-4 py-2 bg-primary text-white rounded-lg" @click="loadOrders">Filtrer</button>
       </div>
@@ -80,6 +91,7 @@ onMounted(loadOrders)
               <th class="px-4 py-3 text-left text-xs uppercase text-gray-500">Total</th>
               <th class="px-4 py-3 text-left text-xs uppercase text-gray-500">Statut</th>
               <th class="px-4 py-3 text-left text-xs uppercase text-gray-500">Préparation</th>
+              <th class="px-4 py-3 text-left text-xs uppercase text-gray-500">Retour</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
@@ -89,6 +101,16 @@ onMounted(loadOrders)
               <td class="px-4 py-3 text-sm font-medium">{{ formatPrice(order.totalCents) }}</td>
               <td class="px-4 py-3 text-sm">{{ statusLabels[order.status] || order.status }}</td>
               <td class="px-4 py-3 text-sm">{{ fulfillmentLabels[order.fulfillmentStatus] || order.fulfillmentStatus }}</td>
+              <td class="px-4 py-3 text-sm">
+                <span
+                  v-if="order.returnStatus && order.returnStatus !== 'none'"
+                  class="inline-block rounded-full px-2 py-0.5 text-xs"
+                  :class="order.returnStatus === 'refunded' ? 'bg-gray-100 text-gray-700' : 'bg-amber-100 text-amber-800'"
+                >
+                  {{ RETURN_STATUS_LABELS[order.returnStatus] || order.returnStatus }}
+                </span>
+                <span v-else class="text-gray-400">—</span>
+              </td>
             </tr>
           </tbody>
         </table>

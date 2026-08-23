@@ -1,6 +1,7 @@
 import { supabase } from '../supabase'
 import { getBackendApiUrl, readApiResponseBody } from '../backendApiUrl.js'
 import { getAdminSiteId } from './adminSiteContext.js'
+import { RETURN_STATUSES, validateReturnUpdate } from './orderReturns.js'
 
 const FULFILLMENT_STATUSES = ['pending', 'preparing', 'shipped', 'ready_for_pickup', 'completed']
 
@@ -25,11 +26,19 @@ function mapOrderRow(row) {
     updatedAt: row.updated_at,
     paidAt: row.paid_at,
     receiptStoragePath: row.receipt_storage_path || null,
+    stripePaymentIntentId: row.stripe_payment_intent_id || null,
+    deliveredAt: row.delivered_at || null,
+    returnStatus: row.return_status || 'none',
+    returnRequestedAt: row.return_requested_at || null,
+    returnNotes: row.return_notes || '',
+    refundAmountCents: row.refund_amount_cents ?? null,
+    refundedAt: row.refunded_at || null,
+    stripeRefundId: row.stripe_refund_id || null,
   }
 }
 
 /**
- * @param {{ status?: string, fulfillmentStatus?: string, search?: string, limit?: number, offset?: number }} [filters]
+ * @param {{ status?: string, fulfillmentStatus?: string, returnStatus?: string, search?: string, limit?: number, offset?: number }} [filters]
  */
 export async function getOrdersForAdmin(filters = {}) {
   const siteId = getAdminSiteId()
@@ -44,6 +53,13 @@ export async function getOrdersForAdmin(filters = {}) {
   }
   if (filters.fulfillmentStatus) {
     query = query.eq('fulfillment_status', filters.fulfillmentStatus)
+  }
+  // `open` = dossiers de rétractation encore à traiter (colis attendu ou reçu,
+  // remboursement pas encore fait).
+  if (filters.returnStatus === 'open') {
+    query = query.in('return_status', ['requested', 'received'])
+  } else if (filters.returnStatus) {
+    query = query.eq('return_status', filters.returnStatus)
   }
   if (filters.search?.trim()) {
     // Retirer les caractères réservés de la grammaire or() PostgREST (',', '(', ')')
@@ -171,6 +187,47 @@ export async function updateOrderFulfillmentStatus(orderId, fulfillmentStatus) {
 }
 
 /**
+ * Enregistre l'avancement d'un dossier retour / remboursement.
+ *
+ * Le remboursement n'est pas déclenché ici : il est effectué à la main dans le
+ * dashboard Stripe, cette fonction ne fait qu'en garder la trace côté commande.
+ *
+ * @param {string} orderId
+ * @param {{ returnStatus: string, deliveredAt?: string|null, returnRequestedAt?: string|null,
+ *   refundAmountCents?: number|null, refundedAt?: string|null, stripeRefundId?: string|null,
+ *   returnNotes?: string|null }} update
+ * @param {{ totalCents?: number|null }} [order] - Commande de référence, pour borner le montant.
+ */
+export async function updateOrderReturn(orderId, update, order = {}) {
+  const validation = validateReturnUpdate(update, order)
+  if (!validation.ok) {
+    throw new Error(validation.error)
+  }
+
+  const siteId = getAdminSiteId()
+  const refundId = update.stripeRefundId?.trim() || null
+  const notes = update.returnNotes?.trim() || null
+
+  const { error } = await supabase
+    .from('orders')
+    .update({
+      return_status: update.returnStatus,
+      delivered_at: update.deliveredAt || null,
+      return_requested_at: update.returnRequestedAt || null,
+      refund_amount_cents: update.refundAmountCents ?? null,
+      refunded_at: update.refundedAt || null,
+      stripe_refund_id: refundId,
+      return_notes: notes,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', orderId)
+    .eq('site_id', siteId)
+
+  if (error) throw new Error(error.message)
+  return { success: true }
+}
+
+/**
  * KPI commandes pour le dashboard admin.
  */
 export async function getOrderKpisForAdmin() {
@@ -223,12 +280,12 @@ export async function getOrderKpisForAdmin() {
 
 /**
  * Compteurs d'actions commandes pour le dashboard admin.
- * @returns {Promise<{ pendingFulfillmentCount: number, pendingPaymentCount: number }>}
+ * @returns {Promise<{ pendingFulfillmentCount: number, pendingPaymentCount: number, openReturnCount: number }>}
  */
 export async function getOrderActionCountsForAdmin() {
   const siteId = getAdminSiteId()
 
-  const [fulfillmentResult, paymentResult] = await Promise.all([
+  const [fulfillmentResult, paymentResult, returnResult] = await Promise.all([
     supabase
       .from('orders')
       .select('*', { count: 'exact', head: true })
@@ -240,14 +297,21 @@ export async function getOrderActionCountsForAdmin() {
       .select('*', { count: 'exact', head: true })
       .eq('site_id', siteId)
       .eq('status', 'pending_payment'),
+    supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('site_id', siteId)
+      .in('return_status', ['requested', 'received']),
   ])
 
   if (fulfillmentResult.error) throw new Error(fulfillmentResult.error.message)
   if (paymentResult.error) throw new Error(paymentResult.error.message)
+  if (returnResult.error) throw new Error(returnResult.error.message)
 
   return {
     pendingFulfillmentCount: fulfillmentResult.count ?? 0,
     pendingPaymentCount: paymentResult.count ?? 0,
+    openReturnCount: returnResult.count ?? 0,
   }
 }
 
@@ -328,7 +392,7 @@ export async function getOrdersForWatchAdmin(watchId) {
   return (orders || []).map(mapOrderRow)
 }
 
-export { FULFILLMENT_STATUSES }
+export { FULFILLMENT_STATUSES, RETURN_STATUSES }
 
 /**
  * Télécharge le reçu PDF d'une commande payée (admin).

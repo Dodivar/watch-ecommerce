@@ -16,6 +16,11 @@ Interface back-office accessible après authentification Supabase.
   moyen de vente), chiffre d'affaires réel issu des commandes payées, séries
   temporelles avec sélecteur de période, répartitions du catalogue (statut,
   audience, marques, tranches de prix) et métriques infra (stockage, tables).
+- `AdminOrderReturnPanel.vue` : dossier retour d'une commande payée (délai de
+  rétractation de 14 jours, statut du retour, trace du remboursement). Aucun
+  remboursement n'est déclenché depuis l'admin : le panneau renvoie vers le
+  paiement dans le dashboard Stripe, où l'opération est faite à la main, puis
+  enregistre le montant et l'identifiant `re_…` obtenus.
 - `AdminLogin.vue`, `AdminShell.vue` + `AdminSidebar.vue` : enveloppe d’authentification et navigation.
 
 ## Flux de données
