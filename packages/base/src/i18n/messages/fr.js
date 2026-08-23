@@ -209,6 +209,7 @@ export default {
   'collection.applyFilters': 'Appliquer',
   'collection.resultCount': { one: '{count} montre', other: '{count} montres' },
   'collection.resultCountOfTotal': { one: '{count} montre sur {total}', other: '{count} montres sur {total}' },
+  'collection.loadingMore': '(chargement du reste du catalogue…)',
   'collection.resultFoundCount': { one: '{count} montre trouvée', other: '{count} montres trouvées' },
   'collection.campaignUnavailable': 'Événement promotionnel indisponible',
   'collection.brandNoMatch': 'Aucune marque ne correspond à « {query} ».',

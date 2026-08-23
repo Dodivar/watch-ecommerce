@@ -200,6 +200,7 @@ export default {
   'collection.applyFilters': 'Apply',
   'collection.resultCount': { one: '{count} watch', other: '{count} watches' },
   'collection.resultCountOfTotal': { one: '{count} watch out of {total}', other: '{count} watches out of {total}' },
+  'collection.loadingMore': '(loading the rest of the catalogue…)',
   'collection.resultFoundCount': { one: '{count} watch found', other: '{count} watches found' },
   'collection.campaignUnavailable': 'Promotional event unavailable',
   'collection.brandNoMatch': 'No brand matches “{query}”.',

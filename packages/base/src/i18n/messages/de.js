@@ -200,6 +200,7 @@ export default {
   'collection.applyFilters': 'Anwenden',
   'collection.resultCount': { one: '{count} Uhr', other: '{count} Uhren' },
   'collection.resultCountOfTotal': { one: '{count} Uhr von {total}', other: '{count} Uhren von {total}' },
+  'collection.loadingMore': '(restlicher Katalog wird geladen…)',
   'collection.resultFoundCount': { one: '{count} Uhr gefunden', other: '{count} Uhren gefunden' },
   'collection.campaignUnavailable': 'Aktionsangebot nicht verfügbar',
   'collection.brandNoMatch': 'Keine Marke passt zu „{query}“.',

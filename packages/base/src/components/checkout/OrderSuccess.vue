@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { verifyOrder, downloadOrderReceipt } from '@/services/orderService.js'
-import { getWatchById, getAllWatchesForListing } from '@/services/watchService'
+import { getWatchById, getLatestAvailableWatches } from '@/services/watchService'
 import { useCart } from '@/composables/useCart.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
@@ -121,8 +121,9 @@ async function loadAdminPreview() {
 
   let exampleWatch = null
   try {
-    const all = await getAllWatchesForListing()
-    exampleWatch = all?.[0] || null
+    // Une seule montre suffit ici : ne pas charger le catalogue entier pour un aperçu.
+    const [latest] = await getLatestAvailableWatches(1)
+    exampleWatch = latest || null
   } catch {
     /* ignore : on retombe sur un exemple purement fictif */
   }
