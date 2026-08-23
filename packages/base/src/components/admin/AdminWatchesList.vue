@@ -842,6 +842,10 @@ onMounted(async () => {
                       v-if="watch.images && watch.images.length > 0"
                       :src="watch.images[0]"
                       :alt="watch.name"
+                      loading="lazy"
+                      decoding="async"
+                      width="96"
+                      height="96"
                       class="h-full w-full object-cover"
                     />
                     <div v-else class="h-full w-full flex items-center justify-center text-gray-400 text-xs">

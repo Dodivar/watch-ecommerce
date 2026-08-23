@@ -136,4 +136,49 @@ describe('WatchCard', () => {
     expect(yearBadge.classes()).toContain('top-2')
     expect(yearBadge.classes()).not.toContain('left-2')
   })
+
+  it("ne charge d'office que la première image de la carte", async () => {
+    // Marquer aussi la deuxième image en `eager` la faisait télécharger sur
+    // toutes les cartes de la grille, y compris celles jamais atteintes au
+    // scroll : plusieurs dizaines de Mo d'egress par page de collection.
+    getSiteConfigMock.mockReturnValue({
+      watchCatalog: { display: { showReference: false, showSoldBadge: false } },
+    })
+
+    const wrapper = mount(WatchCard, {
+      props: {
+        watch: { ...baseWatch, images: ['a.webp', 'b.webp', 'c.webp'] },
+        showImageNavigation: true,
+      },
+    })
+
+    const loadings = wrapper.findAll('img').map((img) => img.attributes('loading'))
+
+    expect(loadings[0]).toBe('lazy')
+    expect(loadings.slice(1)).toEqual(['lazy', 'lazy'])
+  })
+
+  it('précharge les images voisines au survol, pas toute la série', async () => {
+    getSiteConfigMock.mockReturnValue({
+      watchCatalog: { display: { showReference: false, showSoldBadge: false } },
+    })
+
+    const wrapper = mount(WatchCard, {
+      props: {
+        watch: { ...baseWatch, images: ['a.webp', 'b.webp', 'c.webp', 'd.webp'] },
+        showImageNavigation: true,
+      },
+    })
+
+    await wrapper.findComponent({ name: 'WatchImageSwipeCarousel' }).trigger('mouseenter')
+
+    const loadings = wrapper.findAll('img').map((img) => img.attributes('loading'))
+
+    // La première image suit la prop `imageLoading` (la carte peut être hors
+    // écran) ; seule la voisine immédiatement atteignable est préchargée.
+    expect(loadings[0]).toBe('lazy')
+    expect(loadings[1]).toBe('eager')
+    expect(loadings[2]).toBe('lazy')
+    expect(loadings[3]).toBe('lazy')
+  })
 })

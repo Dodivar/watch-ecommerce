@@ -78,10 +78,18 @@
                 prev-navigation-class="left-2 lg:left-4"
                 next-navigation-class="right-2 lg:right-4"
               >
-                <template #slide="{ image, isActive }">
+                <!--
+                  Seules l'image affichée et la suivante sont chargées d'office :
+                  le reste attend le clic. La condition ne redevient jamais fausse
+                  quand `currentImageIndex` avance, donc aucune image déjà chargée
+                  n'est redemandée.
+                -->
+                <template #slide="{ image, index, isActive }">
                   <img
                     :src="image"
                     :alt="watchItem.name"
+                    :loading="index <= currentImageIndex + 1 ? 'eager' : 'lazy'"
+                    decoding="async"
                     class="h-full w-full object-cover object-center"
                     :class="isActive ? 'cursor-zoom-in' : ''"
                     @click="isActive && openLightbox()"
@@ -186,6 +194,10 @@
                 <img
                   :src="image"
                   :alt="`${watchItem.name} - Image ${index + 1}`"
+                  loading="lazy"
+                  decoding="async"
+                  width="80"
+                  height="80"
                   class="w-full h-full object-cover"
                 />
               </button>
