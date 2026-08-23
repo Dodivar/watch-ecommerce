@@ -82,6 +82,7 @@ html[data-ui-color-scheme='dark'] {
  * le contexte, sinon leur libellé passerait en teinte « sur vert ».
  */
 html[data-ui-color-scheme='dark'] :is(
+    .home-band--light,
     .bg-white,
     .bg-white\/70,
     .bg-white\/80,
@@ -165,7 +166,7 @@ html[data-ui-color-scheme='dark'] :is(
  * Les fonds propres à chaque cas sont posés plus bas ; ce bloc ne fixe que le
  * jeu de variables hérité par leur contenu.
  */
-html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *),
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *):not(.home-band--light),
 html[data-ui-color-scheme='dark'] aside.admin-sidebar,
 html[data-ui-color-scheme='dark'] .admin-topbar :is(a, button).bg-white {
   color: var(--ui-text);
@@ -209,7 +210,7 @@ html[data-ui-color-scheme='dark'] .admin-topbar :is(a, button).bg-white {
 }
 
 /** Cas 1 : la bande porte le fond de page. */
-html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *) {
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *):not(.home-band--light) {
   background-color: var(--ui-page);
 }
 
@@ -269,6 +270,42 @@ html[data-ui-color-scheme='dark'] .hover\:bg-gray-50:hover {
   background-color: var(--ui-g50);
 }
 
+/* ------------------------------------------------- rythme de la page d'accueil */
+
+/**
+ * Bandes de l'accueil : l'alternance « vert de marque / blanc » est décidée en
+ * JS (`site/homeBands.js`, appliquée par `HomePage.vue`), qui pose
+ * `home-band--primary` ou `home-band--light` sur chaque section rendue. Les
+ * sections qui alignent beaucoup de montres (carrousels) tombent toujours du
+ * côté clair : les vignettes se lisent mieux sur blanc.
+ *
+ * Le ton de la bande prime sur le fond d'origine du composant (`bg-cream`,
+ * `bg-white`) — d'où la place de ce bloc après la section « fonds ».
+ */
+html[data-ui-color-scheme='dark'] section.home-band--primary {
+  background-color: var(--color-page);
+}
+
+/**
+ * Seul endroit du site où une bande pleine largeur reste vraiment blanche : le
+ * jeu de variables « sur blanc » lui est posé plus haut (la classe figure dans
+ * la liste des surfaces claires), donc titres, gris, filets et boutons verts
+ * retrouvent leurs valeurs d'origine sans retoucher les composants.
+ */
+html[data-ui-color-scheme='dark'] section.home-band--light {
+  background-color: #ffffff;
+}
+
+/**
+ * Passage d'un ton à l'autre : le contraste vert/blanc sépare déjà les deux
+ * bandes, le filet posé plus bas (`section + section`) ferait doublon. Deux
+ * bandes de même ton (deux carrousels à la suite) le gardent, lui.
+ */
+html[data-ui-color-scheme='dark'] section.home-band--primary + section.home-band--light,
+html[data-ui-color-scheme='dark'] section.home-band--light + section.home-band--primary {
+  border-top: 0;
+}
+
 /* ------------------------------------------------ aplats et accents « primary » */
 
 /*
@@ -315,7 +352,7 @@ html[data-ui-color-scheme='dark'] :is(.bg-primary\/10, .bg-primary\/5, .hover\:b
 html[data-ui-color-scheme='dark']
   :is(a, button, [role='button']):is(.border-primary, [class*='border-primary\/']).bg-white:not(.bg-white *):not(
     .admin-scope *
-  ) {
+  ):not(.home-band--light *) {
   background-color: transparent;
   border-color: rgba(255, 255, 255, 0.35);
   color: var(--color-text-on-dark);
@@ -490,7 +527,7 @@ html[data-ui-color-scheme='dark'] :is(.shadow, .shadow-sm, .shadow-md, .shadow-l
 html[data-ui-color-scheme='dark'] :is(.bg-white, .bg-gray-50, .bg-gray-100):is(.shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .watch-shadow) {
   box-shadow: var(--ui-shadow);
 }
-html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *) {
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *):not(.home-band--light) {
   box-shadow: none;
 }
 

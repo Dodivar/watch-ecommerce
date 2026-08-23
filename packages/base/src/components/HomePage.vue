@@ -6,6 +6,7 @@ import { scrollAnimation } from '@/animation'
 import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { filterHomeSectionsByFeatures } from '@/site/homeSections.js'
+import { homeBandClass, resolveHomeBands } from '@/site/homeBands.js'
 
 import CarouselNouvelles from './CarouselNouvelles.vue'
 import CarouselVentes from './CarouselVentes.vue'
@@ -41,6 +42,9 @@ const seo = site.seo.home
 const resolvedSections = computed(() =>
   filterHomeSectionsByFeatures(site.home.sections, site.features, site),
 )
+
+/** Alternance vert de marque / blanc, une bande par section rendue. */
+const sectionBands = computed(() => resolveHomeBands(resolvedSections.value).map(homeBandClass))
 
 const route = useRoute()
 
@@ -180,8 +184,9 @@ watch(() => route.hash, async () => {
   <div>
     <component
       :is="SECTION_COMPONENTS[id]"
-      v-for="id in resolvedSections"
+      v-for="(id, index) in resolvedSections"
       :key="id"
+      :class="sectionBands[index]"
     />
   </div>
 </template>
