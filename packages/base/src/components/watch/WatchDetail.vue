@@ -971,7 +971,13 @@ const isHovering = ref(false)
 const mousePosition = ref({ x: 0, y: 0 })
 const imageContainerRef = ref(null)
 const imageNaturalSize = ref({ width: 0, height: 0 })
-const zoomLevel = 1 // Niveau de zoom (3x pour garantir que l'image couvre toujours l'encart)
+// Grossissement de l'encart, exprimé par rapport à ce qui est affiché à l'écran et non
+// par rapport à la résolution du fichier : les photos étant désormais redimensionnées
+// (UPLOAD_IMAGE_MAX_DIMENSION = 1600 px) avant l'upload Supabase, les afficher à leur
+// taille naturelle rendait le zoom de plus en plus faible à mesure que les sources
+// rétrécissaient. Au-delà d'environ 2,7x, l'encart interpole la source 1600 px : 3,5x
+// reste net à l'oeil tout en grossissant nettement plus qu'avant.
+const ZOOM_MAGNIFICATION = 3.5
 
 // State
 const watchItem = ref(null)
@@ -1252,9 +1258,18 @@ const zoomImageStyle = computed(() => {
   const finalXRatio = Math.max(0, Math.min(1, xRatio))
   const finalYRatio = Math.max(0, Math.min(1, yRatio))
   
+  // Taille à laquelle l'image est réellement affichée dans le conteneur (object-cover)
+  const displayScale = rect.width / visibleImageWidth
+
   // Calculer les dimensions de l'image zoomée en préservant le ratio d'aspect
-  const zoomedWidth = imageNaturalSize.value.width * zoomLevel
-  const zoomedHeight = imageNaturalSize.value.height * zoomLevel
+  let zoomedWidth = imageNaturalSize.value.width * displayScale * ZOOM_MAGNIFICATION
+  let zoomedHeight = imageNaturalSize.value.height * displayScale * ZOOM_MAGNIFICATION
+
+  // Garde-fou : l'image agrandie doit toujours couvrir l'encart, sinon des bandes
+  // blanches apparaissent sur les bords quand l'image source est petite.
+  const coverScale = Math.max(1, previewSize / zoomedWidth, previewSize / zoomedHeight)
+  zoomedWidth *= coverScale
+  zoomedHeight *= coverScale
   
   // Calculer la position dans l'image zoomée où se trouve le point sous la souris
   const zoomedX = finalXRatio * zoomedWidth
