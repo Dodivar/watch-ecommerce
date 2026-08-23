@@ -23,6 +23,7 @@ import {
   Globe,
   CalendarDays,
   CreditCard,
+  RotateCcw,
   ArrowRight,
 } from '@lucide/vue'
 import { getWatchInventoryStats } from '@/services/admin/adminWatchService'
@@ -58,7 +59,7 @@ const orderKpis = ref({
   weekRevenueCents: 0,
   previousWeekRevenueCents: 0,
 })
-const orderActions = ref({ pendingFulfillmentCount: 0, pendingPaymentCount: 0 })
+const orderActions = ref({ pendingFulfillmentCount: 0, pendingPaymentCount: 0, openReturnCount: 0 })
 const unreadLeadsCount = ref(0)
 const recentOrders = ref([])
 const recentLeads = ref([])
@@ -129,6 +130,15 @@ const alerts = computed(() => {
       message: `${n} paiement${n > 1 ? 's' : ''} en cours`,
       to: '/admin/orders',
       icon: CreditCard,
+    })
+  }
+  if (orderActions.value.openReturnCount > 0) {
+    const n = orderActions.value.openReturnCount
+    items.push({
+      key: 'returns',
+      message: `${n} retour${n > 1 ? 's' : ''} à rembourser`,
+      to: '/admin/orders?retours=open',
+      icon: RotateCcw,
     })
   }
   if (showAppointments.value && todayAppointmentsCount.value > 0) {

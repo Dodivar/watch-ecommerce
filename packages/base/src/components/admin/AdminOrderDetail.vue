@@ -11,6 +11,7 @@ import {
 import { watchCardImageUrl } from '@/utils/watchImageUrl.js'
 import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import AdminShell from './AdminShell.vue'
+import AdminOrderReturnPanel from './AdminOrderReturnPanel.vue'
 
 const { canWrite } = useAdminPermissions()
 const route = useRoute()
@@ -259,7 +260,7 @@ onMounted(load)
           </ul>
         </div>
 
-        <div v-if="detail.order.status === 'paid'" class="bg-white rounded-lg shadow p-6">
+        <div v-if="detail.order.status === 'paid'" class="bg-white rounded-lg shadow p-6 mb-6">
           <h2 class="text-lg font-semibold mb-4">Suivi préparation</h2>
           <div class="flex flex-col sm:flex-row gap-3">
             <select
@@ -281,6 +282,12 @@ onMounted(load)
             </button>
           </div>
         </div>
+
+        <AdminOrderReturnPanel
+          v-if="detail.order.status === 'paid'"
+          :order="detail.order"
+          @updated="load"
+        />
       </template>
   </AdminShell>
 </template>
