@@ -40,7 +40,9 @@ onMounted(() => {
             ? t('thanks.estimation')
             : $route.query.from == 'contact'
               ? t('thanks.contact')
-              : t('thanks.sourcing')
+              : $route.query.from == 'repair'
+                ? t('thanks.repair')
+                : t('thanks.sourcing')
         }}
       </p>
       <!-- RouterLink et non `<a href>` : une ancre brute contourne la base d'historique et

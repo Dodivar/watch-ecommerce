@@ -5,6 +5,7 @@ import { resolveHomeSelectionsConfig } from './homeSelections.js'
 import { mergeSiteFeatures } from './siteFeatures.js'
 import { resolveCheckoutShipping } from './checkoutShipping.js'
 import { resolveWatchCatalogConfig } from './watchCatalogDisplay.js'
+import { resolveServiceLandings } from './serviceLandings.js'
 import { localizeTree } from './i18nValue.js'
 import { resolveI18nConfig } from './resolveI18nConfig.js'
 
@@ -45,6 +46,18 @@ export function resolveSiteConfig(rawSiteConfig, locale) {
       guidePage: Boolean(mergedFeatures.guidePage && siteConfig.guidePage),
     }
   }
+  // Atelier : les deux modules vivent sous `servicesPage`, donc sous son drapeau. Sans page
+  // services, ni le formulaire de prise en charge ni les pages prestation n'ont de point d'entrée.
+  const serviceLandings = resolveServiceLandings(siteConfig)
+  features = {
+    ...features,
+    repairRequest: Boolean(
+      features.servicesPage &&
+        mergedFeatures.repairRequest &&
+        siteConfig.servicesPage?.repairRequest,
+    ),
+    serviceLandings: Boolean(features.servicesPage && serviceLandings.length > 0),
+  }
   const watchCatalog = resolveWatchCatalogConfig(siteConfig)
   features = {
     ...features,
@@ -66,6 +79,9 @@ export function resolveSiteConfig(rawSiteConfig, locale) {
   const shippingResolved = resolveCheckoutShipping(checkoutRaw)
   return {
     ...siteConfig,
+    ...(siteConfig.servicesPage != null
+      ? { servicesPage: { ...siteConfig.servicesPage, landings: serviceLandings } }
+      : {}),
     i18n: { ...i18n, activeLocale },
     locale: activeLocale,
     features,

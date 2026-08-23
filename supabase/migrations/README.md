@@ -624,3 +624,11 @@ upload hors application y remette des originaux de plusieurs Mo.
 
 Effet de bord assumé : les SVG ne sont plus acceptés dans ces buckets (aucun n'y est
 stocké, et un SVG servi depuis un bucket public est un vecteur XSS).
+
+## Demandes de prise en charge atelier
+
+`20260823140000_lead_submissions_repair.sql` — requis pour les clients avec
+`features.repairRequest` : ajoute le type `repair` à la contrainte de `lead_submissions.type`.
+
+Sans cette migration, l'email de demande de devis part bien mais l'insertion du lead est
+rejetée par la contrainte : la demande n'apparaît pas dans la boîte de réception admin.

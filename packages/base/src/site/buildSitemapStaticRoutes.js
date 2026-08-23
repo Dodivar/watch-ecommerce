@@ -1,4 +1,5 @@
 import { isRouteActiveForFeatures } from './routeFeatures.js'
+import { resolveServiceLandings } from './serviceLandings.js'
 
 /**
  * Routes statiques indexables pour le sitemap (hors pages transactionnelles, admin, recherche dynamique).
@@ -66,12 +67,29 @@ export function isSitemapRouteActive(def, features, siteConfig) {
 }
 
 /**
+ * Pages prestation du manifest (`servicesPage.landings`) — leur nombre et leurs slugs varient
+ * d'un client à l'autre, elles ne peuvent donc pas figurer dans la table statique ci-dessus.
+ * @param {Record<string, boolean>} features
+ * @param {Record<string, any>} siteConfig
+ */
+function buildServiceLandingRoutes(features, siteConfig) {
+  if (!features.serviceLandings) return []
+  return resolveServiceLandings(siteConfig).map((landing) => ({
+    path: landing.path,
+    priority: '0.75',
+    changefreq: 'monthly',
+  }))
+}
+
+/**
  * @param {Record<string, boolean>} features
  * @param {Record<string, unknown>} [siteConfig]
  * @returns {{ path: string, priority: string, changefreq: string }[]}
  */
 export function buildSitemapStaticRoutes(features, siteConfig = {}) {
-  return SITEMAP_STATIC_ROUTE_DEFS.filter((def) =>
+  const routes = SITEMAP_STATIC_ROUTE_DEFS.filter((def) =>
     isSitemapRouteActive(def, features, siteConfig),
   ).map(({ path, priority, changefreq }) => ({ path, priority, changefreq }))
+
+  return [...routes, ...buildServiceLandingRoutes(features, siteConfig)]
 }

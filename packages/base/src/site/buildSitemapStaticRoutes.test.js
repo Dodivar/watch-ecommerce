@@ -54,6 +54,39 @@ describe('buildSitemapStaticRoutes', () => {
     expect(routes.map((route) => route.path)).toContain('/services')
   })
 
+  it('ajoute une entrée par page prestation du manifest', () => {
+    const routes = buildSitemapStaticRoutes(
+      { ...DEFAULT_SITE_FEATURES, servicesPage: true, serviceLandings: true },
+      {
+        servicesPage: {
+          title: 'Services',
+          landings: [
+            { slug: 'changement-pile-montre', hero: { title: 'Pile' } },
+            { slug: 'bracelets-montre-strasbourg', hero: { title: 'Bracelets' } },
+          ],
+        },
+      },
+    )
+    const paths = routes.map((route) => route.path)
+
+    expect(paths).toContain('/services/changement-pile-montre')
+    expect(paths).toContain('/services/bracelets-montre-strasbourg')
+  })
+
+  it('omet les pages prestation quand la feature est inactive', () => {
+    const routes = buildSitemapStaticRoutes(
+      { ...DEFAULT_SITE_FEATURES, servicesPage: true, serviceLandings: false },
+      {
+        servicesPage: {
+          title: 'Services',
+          landings: [{ slug: 'changement-pile-montre', hero: { title: 'Pile' } }],
+        },
+      },
+    )
+
+    expect(routes.map((route) => route.path)).not.toContain('/services/changement-pile-montre')
+  })
+
   it('reflète le profil place-des-montres (pas de blog ni estimation)', () => {
     const routes = buildSitemapStaticRoutes(
       {

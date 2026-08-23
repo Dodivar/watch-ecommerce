@@ -20,6 +20,7 @@ export const APP_ROUTE_META = [
   { path: '/blog/:id', feature: 'blog' },
   { path: '/a-propos', feature: 'about' },
   { path: '/services', feature: 'servicesPage' },
+  { path: '/services/:serviceSlug', feature: 'serviceLandings' },
   { path: '/guide-horloger', feature: 'guidePage' },
   { path: '/contact', feature: 'contact' },
   { path: '/faq', feature: 'faq' },

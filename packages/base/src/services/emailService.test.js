@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   prepareAppointmentFormData,
+  prepareRepairFormData,
   sendEmailWithRetry,
 } from './emailService.js'
 
@@ -54,6 +55,39 @@ describe('prepareAppointmentFormData', () => {
 
     expect(formData.get('watch_price')).toBeNull()
     expect(formData.get('watch_url')).toBeNull()
+  })
+})
+
+describe('prepareRepairFormData', () => {
+  function buildRepairForm() {
+    const form = document.createElement('form')
+    const fields = {
+      name: 'Dupont',
+      email: 'jean@example.com',
+      service_type: 'Changement de pile',
+      brand: 'Tissot',
+      message: 'La montre est arrêtée.',
+    }
+    for (const [name, value] of Object.entries(fields)) {
+      const input = document.createElement('input')
+      input.name = name
+      input.value = value
+      form.appendChild(input)
+    }
+    return form
+  }
+
+  it('ajoute le type repair et la page d’origine', () => {
+    const formData = prepareRepairFormData(buildRepairForm(), { source: 'changement-pile-montre' })
+
+    expect(formData.get('type')).toBe('repair')
+    expect(formData.get('source')).toBe('changement-pile-montre')
+    expect(formData.get('service_type')).toBe('Changement de pile')
+    expect(formData.get('message')).toBe('La montre est arrêtée.')
+  })
+
+  it('omet la source quand elle n’est pas fournie', () => {
+    expect(prepareRepairFormData(buildRepairForm()).get('source')).toBeNull()
   })
 })
 

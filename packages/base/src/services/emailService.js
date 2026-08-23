@@ -145,6 +145,23 @@ export function prepareContactFormData(form) {
 }
 
 /**
+ * Prépare les données du formulaire de prise en charge atelier (réparation, pile, étanchéité…).
+ *
+ * @param {HTMLFormElement} form
+ * @param {{ source?: string }} [context] — page d'origine (`services` ou slug de prestation),
+ *   conservée dans le lead pour savoir quelle page rapporte des demandes.
+ * @returns {FormData}
+ */
+export function prepareRepairFormData(form, context = {}) {
+  const formData = new FormData(form)
+  formData.append('type', 'repair')
+  if (context.source) {
+    formData.append('source', context.source)
+  }
+  return withLocale(formData)
+}
+
+/**
  * Prépare les données du formulaire de prise de rendez-vous (fiche montre retail).
  * @param {HTMLFormElement} form
  * @param {{ id: string|number, name: string, price?: number|string, url?: string }} watchContext

@@ -10,6 +10,7 @@ import {
   formatLeadDateTime,
   formatLeadPrice,
   formatLeadBudget,
+  formatLeadHandling,
   getLeadWatchLink,
   getUnmappedPayloadKeys,
 } from '@/utils/leadDisplay'
@@ -170,6 +171,32 @@ onMounted(load)
                 Modifier en admin
               </RouterLink>
             </dd>
+          </div>
+        </dl>
+      </div>
+
+      <div v-if="lead.type === 'repair'" class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4">Demande atelier</h2>
+        <dl class="space-y-2 text-sm">
+          <div v-if="payload.service_type" class="flex gap-2">
+            <dt class="font-medium text-gray-600 min-w-[140px]">Prestation</dt>
+            <dd>{{ payload.service_type }}</dd>
+          </div>
+          <div v-if="payload.handling" class="flex gap-2">
+            <dt class="font-medium text-gray-600 min-w-[140px]">Prise en charge</dt>
+            <dd>{{ formatLeadHandling(payload.handling) }}</dd>
+          </div>
+          <div v-if="payload.brand" class="flex gap-2">
+            <dt class="font-medium text-gray-600 min-w-[140px]">Marque</dt>
+            <dd>{{ payload.brand }}</dd>
+          </div>
+          <div v-if="payload.model" class="flex gap-2">
+            <dt class="font-medium text-gray-600 min-w-[140px]">Modèle</dt>
+            <dd>{{ payload.model }}</dd>
+          </div>
+          <div v-if="payload.source" class="flex gap-2">
+            <dt class="font-medium text-gray-600 min-w-[140px]">Page d’origine</dt>
+            <dd>{{ payload.source }}</dd>
           </div>
         </dl>
       </div>
