@@ -1,22 +1,11 @@
-Ajouter des images sur la page d'accueil illustrant un texte pour ne pas paraître trop fake et non humain
-
-COMPLETER LES VITE_PUBLIC_LEGAL_
-
 Article :
 - Ajouter des images pour les articles
     - Nouvelles méthode et storage, à voir pour la limite si toujours ok voir payer 25€ par mois
 - Indiquer si l'article doit pouvoir être liés à une montre
     - ne pas proposer ceux non liables aux montres 
-- modifier n8n pour accepter de faire des articles sur d'autres sujets que juste des montres, par exemple article de montres à moins de 2k€ 
-
-Paiement :
-- lien du retour vers base_url sans le 'www.' ce qui indique pas sécurisé. commen l'ajouté
-    lien recette non dispo sans 'www.' à demander/voir dans DSN hostinger
+- modifier n8n pour accepter de faire des articles sur d'autres sujets que juste des montres, par exemple article de montres à moins de 2k€
 
 Demander quel serait les meilleurs utilité Google Tag Manager et ce qu'il faudrait faire pour ce projet
 
 Estimation :
 - Ajouter un article de blog "Anatomie d'une arnaque" / "Comment repérer une arnaque"
-
-backend:
-- Création de facture et envoi automatisé à l'e-mail du client ? Stripe le propose pour 0,4% de la trs (max 2$)
