@@ -1,3 +1,40 @@
+import { encodeImageForStorage } from '../lib/encodeImageForStorage.js'
+import {
+  STORAGE_IMAGE_CACHE_CONTROL,
+  UPLOAD_IMAGE_MIME,
+  buildUploadFileName,
+} from '../../packages/base/src/utils/imageEncoding.js'
+
+/**
+ * Redimensionne et ré-encode l'image téléchargée avant l'envoi au Storage.
+ *
+ * Un catalogue PrestaShop se compte en milliers de références : importer les
+ * visuels d'origine reconstituerait en une passe le stock d'images lourdes que
+ * `scripts/reencode-storage-images.mjs` vient de résorber.
+ *
+ * @param {{ buffer: ArrayBuffer, contentType: string, ext: string }} downloaded
+ * @returns {Promise<{ buffer: Buffer, contentType: string, fileName: string }>}
+ */
+async function prepareForStorage({ buffer, contentType, ext }) {
+  const input = Buffer.from(buffer)
+
+  try {
+    const encoded = await encodeImageForStorage(input)
+    return {
+      buffer: encoded.buffer,
+      contentType: UPLOAD_IMAGE_MIME,
+      fileName: buildUploadFileName(),
+    }
+  } catch (err) {
+    // Format que sharp ne sait pas lire : mieux vaut importer l'original que
+    // perdre le visuel. Le script de reprise le signalera.
+    console.warn(
+      `[import-images] ré-encodage impossible, original conservé : ${err instanceof Error ? err.message : String(err)}`,
+    )
+    return { buffer: input, contentType, fileName: buildUploadFileName(ext) }
+  }
+}
+
 /**
  * Télécharge une image depuis une URL avec retries.
  * @param {string} url
@@ -93,12 +130,12 @@ export async function importWatchImages(supabase, watchId, imageUrls, options = 
  * @param {number} order
  */
 async function uploadImageFromUrl(supabase, watchId, url, order) {
-  const { buffer, contentType, ext } = await downloadImage(url)
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`
+  const downloaded = await downloadImage(url)
+  const { buffer, contentType, fileName } = await prepareForStorage(downloaded)
   const filePath = `watches/${watchId}/${fileName}`
 
   const { error: uploadError } = await supabase.storage.from('watch-images').upload(filePath, buffer, {
-    cacheControl: '3600',
+    cacheControl: STORAGE_IMAGE_CACHE_CONTROL,
     upsert: false,
     contentType,
   })

@@ -1,4 +1,4 @@
-import heic2any from 'heic2any'
+import { isHeicFile } from './imageCompressionService.js'
 
 /**
  * Génère un élément de preview pour un fichier image ou PDF
@@ -8,7 +8,7 @@ import heic2any from 'heic2any'
 export async function createPreviewElement(file) {
   let previewEl
   // Gestion HEIC
-  const isHeic = file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic'
+  const isHeic = isHeicFile(file)
   if (file.type.startsWith('image/') && !isHeic) {
     previewEl = document.createElement('div')
     previewEl.style.display = 'inline-block'
@@ -47,6 +47,9 @@ export async function createPreviewElement(file) {
     // Conversion asynchrone
     ;(async () => {
       try {
+        // Import dynamique : libheif pèse près d'un Mo et ne concerne que les
+        // visiteurs qui déposent une photo iPhone.
+        const { default: heic2any } = await import('heic2any')
         const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.8 })
         img.src = URL.createObjectURL(convertedBlob)
       } catch {

@@ -73,7 +73,7 @@
         :slide-key-fn="(image, index) => `${watchItem.id}-${index}`"
         :slide-alt-fn="(_, index) => (index === currentImageIndex ? watchItem.name : '')"
         @index-change="onCarouselIndexChange"
-        @mouseenter="warmNavigableImages"
+        @mouseenter="warmAdjacentImagesOnHover"
       >
         <template #slide="{ image, index, isActive }">
           <img
@@ -276,7 +276,13 @@ const showInlineYear = computed(
 
 const currentImageIndex = ref(0)
 const imageCarouselRef = ref(null)
-const warmedNavIndices = ref([0, 1])
+/**
+ * Index chargés en `eager`. Uniquement la première image au départ : marquer
+ * aussi la suivante la faisait télécharger sur *toutes* les cartes de la grille,
+ * même celles jamais atteintes au scroll. Les voisines sont réchauffées à la
+ * demande, au survol ou au changement d'image.
+ */
+const warmedNavIndices = ref([0])
 const navImageRefs = ref([])
 const decodedNavIndices = new Set()
 const isHoveringSecond = ref(false)
@@ -322,9 +328,14 @@ function warmNavIndex(index) {
   }
 }
 
-function warmNavigableImages() {
+/**
+ * Au survol, l'utilisateur peut cliquer sur les flèches : on ne précharge que
+ * les images immédiatement atteignables. Réchauffer les cinq d'un coup faisait
+ * télécharger plusieurs Mo par carte simplement balayée à la souris.
+ */
+function warmAdjacentImagesOnHover() {
   if (!effectiveShowImageNavigation.value) return
-  warmedNavIndices.value = navigableImages.value.map((_, index) => index)
+  warmAdjacentImages(currentImageIndex.value)
 }
 
 function setNavImageRef(el, index) {
@@ -432,7 +443,7 @@ vueWatch(
   () => props.watch.id,
   () => {
     currentImageIndex.value = 0
-    warmedNavIndices.value = [0, 1]
+    warmedNavIndices.value = [0]
     navImageRefs.value = []
     decodedNavIndices.clear()
   },

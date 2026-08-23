@@ -1,5 +1,7 @@
 import { supabase } from '../supabase'
 import { getWatchArticlesForAdmin } from '../watchArticleService'
+import { compressImageForUpload } from '../imageCompressionService.js'
+import { STORAGE_IMAGE_CACHE_CONTROL } from '@/utils/imageEncoding.js'
 import { normalizeCaseSizeValue } from '@/utils/caseSize'
 import { normalizeBraceletColors } from '@/constants/watchBraceletColors'
 import { normalizeBraceletMaterials } from '@/constants/watchBraceletMaterials'
@@ -415,16 +417,17 @@ export async function deleteWatch(watchId) {
  */
 export async function uploadWatchImage(watchId, imageFile, order = null) {
   try {
-    // Générer un nom de fichier unique
-    const fileExt = imageFile.name.split('.').pop()
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-    const filePath = `watches/${watchId}/${fileName}`
+    // Redimensionnement + WebP avant envoi : une photo de téléphone brute pèse
+    // jusqu'à 12 Mo et serait re-servie telle quelle à chaque visiteur.
+    const upload = await compressImageForUpload(imageFile)
+    const filePath = `watches/${watchId}/${upload.fileName}`
 
     // Upload vers Supabase Storage
     const { error: uploadError } = await supabase.storage
       .from('watch-images')
-      .upload(filePath, imageFile, {
-        cacheControl: '3600',
+      .upload(filePath, upload.blob, {
+        cacheControl: STORAGE_IMAGE_CACHE_CONTROL,
+        contentType: upload.contentType,
         upsert: false,
       })
 

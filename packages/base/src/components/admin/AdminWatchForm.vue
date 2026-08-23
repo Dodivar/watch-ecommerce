@@ -1116,6 +1116,8 @@ onMounted(async () => {
                 <img
                   :src="image.url"
                   :alt="`Image ${index + 1}`"
+                  loading="lazy"
+                  decoding="async"
                   class="w-full h-32 object-cover rounded-lg"
                 />
                 <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg flex items-center justify-center space-x-2">

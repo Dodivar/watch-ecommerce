@@ -612,3 +612,15 @@ create trigger watch_translations_touch_updated_at
   for each row
   execute function public.touch_watch_translations_updated_at();
 ```
+
+## Limites des buckets d'images
+
+`20260823120000_storage_image_limits.sql` — plafonne `watch-images` et `home-carousel`
+à 2 Mo par objet et restreint les types acceptés (webp, jpeg, png, avif).
+
+À appliquer **après** `npm run images:reencode:apply` : la reprise réécrit les images
+existantes en WebP redimensionné, ces limites empêchent ensuite qu'un import ou un
+upload hors application y remette des originaux de plusieurs Mo.
+
+Effet de bord assumé : les SVG ne sont plus acceptés dans ces buckets (aucun n'y est
+stocké, et un SVG servi depuis un bucket public est un vecteur XSS).

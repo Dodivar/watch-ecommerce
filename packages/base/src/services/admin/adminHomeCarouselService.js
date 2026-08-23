@@ -1,4 +1,6 @@
 import { supabase } from '../supabase'
+import { compressImageForUpload } from '../imageCompressionService.js'
+import { STORAGE_IMAGE_CACHE_CONTROL } from '@/utils/imageEncoding.js'
 import { getAdminSiteId } from './adminSiteContext.js'
 import { getActiveWatchPromotionCampaignsForCarousel } from './adminWatchPromotionService.js'
 
@@ -67,14 +69,16 @@ function resolveSlideImageUrl(row) {
  */
 export async function uploadHomeCarouselSlide(imageFile, meta = {}) {
   const siteId = getAdminSiteId()
-  const fileExt = imageFile.name.split('.').pop()
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-  const filePath = `${siteId}/${fileName}`
+  // Le visuel du carrousel est chargé en `fetchpriority="high"` sur l'accueil :
+  // c'est la toute première image payée par chaque visiteur.
+  const upload = await compressImageForUpload(imageFile)
+  const filePath = `${siteId}/${upload.fileName}`
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
-    .upload(filePath, imageFile, {
-      cacheControl: '3600',
+    .upload(filePath, upload.blob, {
+      cacheControl: STORAGE_IMAGE_CACHE_CONTROL,
+      contentType: upload.contentType,
       upsert: false,
     })
 
