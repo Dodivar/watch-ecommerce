@@ -29,6 +29,13 @@ const STUB_ENV = {
   // Clé Stripe laissée vide : le tunnel est vérifié jusqu'au montant final,
   // sans monter le Payment Element (qui nécessiterait js.stripe.com).
   VITE_STRIPE_PUBLISHABLE_KEY: '',
+  // Identifiants de mesure vidés : aucun script tiers (googletagmanager.com,
+  // connect.facebook.net) n'est chargé. Les événements restent observables dans
+  // `window.dataLayer`, ce que vérifie analytics.spec.js.
+  VITE_GA_ID: '',
+  VITE_GOOGLE_ADS_ID: '',
+  VITE_GOOGLE_ADS_PURCHASE_LABEL: '',
+  VITE_META_PIXEL_ID: '',
 }
 
 export default defineConfig({

@@ -41,6 +41,10 @@
         <p v-html="t('legal.analyticsText')"></p>
         <p class="mt-2" v-html="t('legal.legalBasisConsent')"></p>
 
+        <h3 class="text-lg font-semibold text-text-main mt-6 mb-2">{{ t('legal.advertisingTitle') }}</h3>
+        <p v-html="t('legal.advertisingText')"></p>
+        <p class="mt-2" v-html="t('legal.legalBasisConsent')"></p>
+
         <h3 class="text-lg font-semibold text-text-main mt-6 mb-2">{{ t('legal.formsTitle') }}</h3>
         <p v-html="t('legal.formsText')"></p>
         <p class="mt-2" v-html="t('legal.formsLegalBasis')"></p>
@@ -84,6 +88,16 @@
             >{{ t('legal.stripePrivacyLink') }}</a
             > ;
           </li>
+          <li>
+            <span v-html="t('legal.recipientMeta')"></span>
+            {{ ' ' }}<a
+              href="https://www.facebook.com/privacy/policy"
+              class="font-medium text-primary underline decoration-primary/40 hover:text-primary-hover"
+              rel="noopener noreferrer"
+              target="_blank"
+            >{{ t('legal.metaPrivacyLink') }}</a
+            > ;
+          </li>
           <li v-if="features.newsletter">
             <span v-html="t('legal.recipientMailjet')"></span>
             {{ ' ' }}<a
@@ -110,6 +124,7 @@
           <li v-html="t('legal.retentionForms')"></li>
           <li v-html="t('legal.retentionPayment')"></li>
           <li v-html="t('legal.retentionAnalytics')"></li>
+          <li v-html="t('legal.retentionMarketing')"></li>
           <li v-if="features.newsletter" v-html="t('legal.retentionNewsletter')"></li>
         </ul>
       </section>

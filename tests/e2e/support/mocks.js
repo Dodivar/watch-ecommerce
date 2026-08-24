@@ -10,6 +10,8 @@
 
 import {
   cartStorageKey,
+  cookieConsentKey,
+  cookieConsentPayload,
   maintenanceKey,
   cartLineFromWatch,
   catalogFromWatches,
@@ -34,19 +36,38 @@ function json(body, status = 200) {
   }
 }
 
-/** Amorce l'état navigateur (maintenance + panier) avant tout chargement de page. */
-export async function seedBrowser(page, { cartLines, siteId } = {}) {
+/**
+ * Amorce l'état navigateur (maintenance + panier) avant tout chargement de page.
+ *
+ * `consent` amorce en plus le choix cookies, pour tester la mesure sans avoir à cliquer dans
+ * le bandeau. Omis, aucun consentement n'est enregistré : c'est l'état par défaut d'un
+ * visiteur, et donc celui dans lequel aucun traceur ne doit se charger.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {{ cartLines?: object[], siteId?: string,
+ *   consent?: { analytics?: boolean, marketing?: boolean } }} [options]
+ */
+export async function seedBrowser(page, { cartLines, siteId, consent } = {}) {
   const lines = cartLines || [cartLineFromWatch(SAMPLE_WATCH)]
   await page.addInitScript(
-    ({ maintKey, cartKey, cart }) => {
+    ({ maintKey, cartKey, cart, consentKey, consentValue }) => {
       try {
         localStorage.setItem(maintKey, 'true')
         localStorage.setItem(cartKey, JSON.stringify(cart))
+        if (consentValue) {
+          localStorage.setItem(consentKey, consentValue)
+        }
       } catch {
         /* localStorage indisponible : ignoré */
       }
     },
-    { maintKey: maintenanceKey(siteId), cartKey: cartStorageKey(siteId), cart: lines },
+    {
+      maintKey: maintenanceKey(siteId),
+      cartKey: cartStorageKey(siteId),
+      cart: lines,
+      consentKey: cookieConsentKey(siteId),
+      consentValue: consent ? cookieConsentPayload(consent) : null,
+    },
   )
 }
 

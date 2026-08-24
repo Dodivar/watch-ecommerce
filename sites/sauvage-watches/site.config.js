@@ -179,6 +179,7 @@ export default {
     gaInitFlag: '__sauvage_ga_initialized',
     gaPendingWaitersKey: '__sauvage_ga_pending_waiters',
     gaDevLogPrefix: '[Sauvage]',
+    metaPixelInitFlag: '__sauvage_meta_pixel_initialized',
   },
 
   /**

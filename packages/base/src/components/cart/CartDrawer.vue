@@ -4,6 +4,7 @@ import { Clock, X } from '@lucide/vue'
 import { useCart } from '@/composables/useCart.js'
 import { useRouter } from 'vue-router'
 import { formatPrice as formatAmount } from '@/utils/formatters.js'
+import { trackBeginCheckout, trackViewCart } from '@/services/analytics'
 import { t, tc } from '@/i18n'
 
 /** Le tiroir a toujours affiché les centimes (« 8 690,00 € ») : on conserve ce rendu. */
@@ -19,7 +20,6 @@ const {
   drawerOpen,
   closeDrawer,
   getWatchIds,
-  getCheckoutLines,
   cartMultiQuantity,
 } = useCart()
 
@@ -54,6 +54,9 @@ function onEscape(e) {
 watch(drawerOpen, (open) => {
   if (open) {
     checkoutError.value = ''
+    // Seul point d'ouverture du panier : couvre l'en-tête, la navigation mobile et
+    // l'ouverture automatique après un ajout.
+    trackViewCart(items.value, totalPrice.value)
   }
 })
 
@@ -70,6 +73,7 @@ function onCheckout() {
   if (ids.length === 0) {
     return
   }
+  trackBeginCheckout(items.value, totalPrice.value)
   checkoutError.value = ''
   isCheckingOut.value = true
   closeDrawer()

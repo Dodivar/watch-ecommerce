@@ -119,6 +119,7 @@ export default {
     gaInitFlag: '__demo_store_ga_initialized',
     gaPendingWaitersKey: '__demo_store_ga_pending_waiters',
     gaDevLogPrefix: '[DemoStore]',
+    metaPixelInitFlag: '__demo_store_meta_pixel_initialized',
   },
 
   /**

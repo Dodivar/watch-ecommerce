@@ -873,6 +873,7 @@ const soldArchiveEnabled = site.features.soldArchive === true
 const rechercheEnabled = site.features.recherche === true
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { getEffectiveWatchPrice } from '@/utils/watchPricing.js'
+import { trackAddToCart, trackViewItem } from '@/services/analytics'
 import { useCart } from '@/composables/useCart.js'
 import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import WatchDetailSkeleton from '@/components/watch/WatchDetailSkeleton.vue'
@@ -1070,6 +1071,7 @@ const loadWatch = async ({ force = false } = {}) => {
       ? await getWatchBySlug(routeKey, isAdmin.value, soldArchiveEnabled)
       : await getWatchById(routeKey, isAdmin.value, soldArchiveEnabled)
     watchItem.value = data
+    trackViewItem(data)
 
     const canonicalPath = buildWatchPath(data)
     if (!isSlugRoute.value && isLegacyWatchIdParam(String(routeKey)) && canonicalPath.startsWith('/montre/')) {
@@ -1333,17 +1335,21 @@ const handleAddToCart = () => {
   if (!watchItem.value || !watchItem.value.id) {
     return
   }
-  const result = addToCart({
+  const line = {
     watchId: watchItem.value.id,
     name: watchItem.value.name,
     reference: watchItem.value.reference,
+    brand: watchItem.value.brand ?? null,
+    model: watchItem.value.model ?? null,
     price: displayPrice.value,
     imageUrl: watchItem.value.images?.[0] ?? null,
-  })
+  }
+  const result = addToCart(line)
   if (!result.ok) {
     alert(result.reason || t('watch.addToCartFailed'))
     return
   }
+  trackAddToCart(line)
   openCartDrawer()
 }
 
