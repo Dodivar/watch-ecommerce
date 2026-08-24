@@ -52,3 +52,6 @@ render.yaml
 !sites/**/public/**/*.pdf
 !documentation/commercial/**/*.pdf
 *.sql
+# Pack contractuel Place des Montres — marges, TJM, clauses juridiques non relues.
+# Le depot est PUBLIC : ce dossier reste strictement local.
+documentation/commercial/place-des-montres/contractuel/

@@ -14,6 +14,7 @@ Livrables pour le rendez-vous client [placedesmontres.fr](https://www.placedesmo
 | [guide-demo.md](guide-demo.md) | Parcours démo 45 min + checklist + objections |
 | [fiche-recap-one-pager.md](fiche-recap-one-pager.md) | Fiche 1 page à imprimer et remettre au client |
 | [assets/](assets/) | Captures avant/après + graphiques (`assets/charts/`) pour les slides |
+| `contractuel/` *(local, hors dépôt)* | **Pack contractuel** — SLA, sauvegarde, DPA, réversibilité, accessibilité, dossier de preuves, grille TCO |
 
 ## Regénérer la brochure PDF
 
@@ -33,7 +34,16 @@ const { chromium } = require('playwright-core');
 "
 ```
 
-> **Discrétion :** la brochure ne mentionne ni d'autres clients ni le caractère mutualisé du socle technique — le site y est présenté uniquement comme « votre site dédié ». Conserver cette règle lors des modifications.
+> **Positionnement (règle actuelle) :** le socle technique **est** mutualisé entre plusieurs
+> clients, et cela s'assume — c'est ce qui fait que la migration coûte 4 900 € et non 40 000 €.
+> Ce qui est **dédié** à Place des Montres : son backend, sa base de données, ses secrets, son
+> compte Stripe. Formuler « socle éprouvé et mutualisé, runtime et données dédiés », jamais
+> « votre site dédié » seul, qui laisse croire à un développement exclusif.
+>
+> L'ancienne consigne de discrétion sur la mutualisation est abandonnée : un client qui le
+> découvre après signature perd confiance, alors que le même fait énoncé le premier devient une
+> preuve de sérieux. Élément de langage complet dans
+> `contractuel/README.md` (local).
 
 ## Exporter les slides
 
@@ -48,6 +58,13 @@ const { chromium } = require('playwright-core');
 ```bash
 npx @marp-team/marp-cli documentation/commercial/place-des-montres/presentation-slides.md --pdf
 npx @marp-team/marp-cli documentation/commercial/place-des-montres/presentation-slides.md --pptx
+```
+
+Si Marp échoue faute de Chromium (`Could not find Chrome`), réutiliser celui de Playwright déjà
+installé pour les tests e2e :
+
+```bash
+CHROME_PATH="$(node -e "const{chromium}=require('playwright-core');console.log(chromium.executablePath())")" npx @marp-team/marp-cli documentation/commercial/place-des-montres/presentation-slides.md --pdf --allow-local-files
 ```
 
 ### Option C — Google Slides
@@ -92,7 +109,9 @@ Graphiques vectoriels SVG dans `assets/charts/`, éditables directement (valeurs
 Voir slides 16–17 dans `presentation-slides.md` :
 
 - Migration : **4 900 € HT**
-- Abonnement : **249 € HT / mois** (2 h support, réponse 4 h ouvrées)
+- Abonnement : **249 € HT / mois** (2 h support, incident critique pris en charge sous 4 h ouvrées)
 - Engagement : 12 mois recommandé
 
-Ajuster ces montants dans `presentation-slides.md` et `fiche-recap-one-pager.md` si besoin.
+Ajuster ces montants dans `presentation-slides.md`, `fiche-recap-one-pager.md` **et
+`contractuel/01-conditions-de-service.md` (local)** si besoin — les trois doivent concorder, le client
+les lit ensemble.

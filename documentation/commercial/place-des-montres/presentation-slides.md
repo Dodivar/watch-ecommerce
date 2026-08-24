@@ -478,7 +478,7 @@ Tout est inclus : vous n'avez plus aucun serveur à gérer, aucune mise à jour 
 | Hébergement | Vercel + Render + Supabase                    |
 | Maintenance | Corrective + évolutions de la plateforme incluses |
 | Monitoring  | Disponibilité, alertes incidents              |
-| Support     | **2 h / mois** — réponse sous **4 h ouvrées** |
+| Support     | **2 h / mois** — incident critique pris en charge sous **4 h ouvrées** |
 | Sauvegardes | Politique backup Supabase                     |
 
 **Engagement recommandé :** 12 mois · **Domaine et données restent à vous** (export Supabase possible)
