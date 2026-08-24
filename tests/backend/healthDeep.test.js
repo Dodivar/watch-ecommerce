@@ -10,7 +10,9 @@ const {
 } = require('../../backend/health/deepCheck.js')
 const { createCachedRunner } = require('../../backend/health/cache.js')
 const { buildHealthRouter, parseRequiredSites } = require('../../backend/routes/health.js')
-const express = require('../../backend/node_modules/express')
+// `express` du workspace racine : la CI n'installe que les dépendances racine
+// (`npm ci` à la racine), donc `backend/node_modules` n'existe pas sur le runner.
+const express = require('express')
 
 function fakeRegistry(sites) {
   const byId = new Map(sites.map((site) => [site.id, site]))
