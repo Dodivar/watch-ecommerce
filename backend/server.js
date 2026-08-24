@@ -12,6 +12,7 @@ const { buildOrdersRouter } = require('./routes/orders')
 const n8nRoutes = require('./routes/n8n')
 const { buildAdminRouter } = require('./admin/adminRoutes')
 const { buildNewsletterRouter } = require('./routes/newsletter')
+const { buildHealthRouter } = require('./routes/health')
 const { startNewsletterScheduler } = require('./newsletter/scheduler')
 const { startAbandonedCheckoutScheduler } = require('./orders/recovery')
 
@@ -20,6 +21,16 @@ const isProductionBoot =
 
 function logBootWarnings(registry) {
   if (!isProductionBoot) return
+  if (!process.env.HEALTH_CHECK_TOKEN) {
+    console.warn(
+      '⚠️  HEALTH_CHECK_TOKEN absent : /api/health/deep et /api/health/payments répondront 503 (supervision désactivée).',
+    )
+  }
+  if (!process.env.HEALTH_REQUIRED_SITES) {
+    console.warn(
+      "⚠️  HEALTH_REQUIRED_SITES absent : aucun site n'est déclaré en production, donc un secret effacé passera pour « site non configuré » et non pour une panne. Renseigner la liste des sites live (CSV).",
+    )
+  }
   for (const site of registry.list()) {
     const missing = []
     if (!site.secrets.stripe.secretKey) missing.push('STRIPE_SECRET_KEY')
@@ -90,13 +101,19 @@ async function main() {
   })
 
   // Routes publiques sans contexte de site.
+  // Liveness seule : ne prouve que « le process répond ». L'état réel des tiers
+  // (Supabase, Stripe, Mailjet) est sur /api/health/deep, protégé par jeton.
+  // La liste des sites n'est plus exposée publiquement.
   app.get('/api/health', (req, res) => {
     res.json({
       status: 'ok',
       message: 'Server is running',
-      sites: Array.from(registry.byId.keys()),
+      sitesLoaded: registry.byId.size,
     })
   })
+
+  // Supervision (jeton HEALTH_CHECK_TOKEN) : /api/health/deep et /api/health/payments.
+  app.use('/api/health', buildHealthRouter(registry))
 
   // Routes nécessitant un site (Mailjet + n8n) — site résolu via Origin/header.
   app.use('/api', resolveSite(registry), mailjetRoutes)
