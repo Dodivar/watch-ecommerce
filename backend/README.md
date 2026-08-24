@@ -147,6 +147,8 @@ Les variables historiques (`STRIPE_SECRET_KEY`, `MAILJET_API_KEY`, `BASE_URL`, e
 | Méthode | URL                            | Site résolu via         |
 | ------- | ------------------------------ | ----------------------- |
 | GET     | `/api/health`                  | (aucun)                 |
+| GET     | `/api/health/deep`             | Jeton `X-Health-Token`  |
+| GET     | `/api/health/payments`         | Jeton `X-Health-Token`  |
 | POST    | `/api/send-email`              | Origin (rate-limité)    |
 | GET     | `/api/config-check`            | Origin + Bearer admin   |
 | GET     | `/api/test-mailjet`            | Origin + Bearer admin   |
@@ -173,7 +175,7 @@ npm run dev
 Pour tester un autre site en local :
 
 ```bash
-curl -H "X-Site-Id: demo-store" http://localhost:3000/api/health
+curl -H "X-Site-Id: demo-store" http://localhost:3000/api/config-check
 ```
 
 ## Déploiement Render
@@ -186,7 +188,72 @@ URL de production : `https://watch-ecommerce-mp9l.onrender.com`
   - `NODE_ENV=production`, `RENDER=true`
   - Pour chaque client actif : `SITE_<ID>__*` (Stripe / Supabase / Mailjet / PaymentCancel)
   - Optionnel : `BACKEND_CORS_ORIGINS` (extras globaux)
-4. Healthcheck : `/api/health` (renvoie la liste des sites chargés).
+4. Healthcheck Render : `/api/health` (liveness seule). La supervision réelle passe par `/api/health/deep` (voir « Supervision »).
+
+## Supervision
+
+`/api/health` ne prouve qu'une chose : le process Express répond. Un projet
+Supabase mis en pause, une clé Stripe révoquée ou un quota Mailjet atteint le
+laissent vert. Deux routes protégées par `HEALTH_CHECK_TOKEN` (voir
+`env.example`) couvrent le reste.
+
+### `GET /api/health/deep`
+
+Un aller-retour réel par tiers et par site : base Supabase (`select id limit 1`),
+storage Supabase (liste d'un objet), Stripe (`balance.retrieve`), Mailjet
+(`GET /user`). Aucune sonde n'écrit ni ne scanne. Résultat mémoïsé 60 s et
+dédoublonné : plusieurs moniteurs ne déclenchent qu'un seul passage réel.
+
+```bash
+curl -s -H "X-Health-Token: $HEALTH_CHECK_TOKEN"   https://watch-ecommerce-mp9l.onrender.com/api/health/deep | jq
+```
+
+| Cas | Statut | HTTP |
+| --- | --- | --- |
+| Tout répond | `ok` | 200 |
+| Dépendance souple HS (storage, Mailjet) | `degraded` | 200 — 503 avec `?strict=1` |
+| Dépendance dure HS (base Supabase, Stripe) | `down` | 503 |
+| Secret absent pour un site non listé | `not_configured` | neutre : pas d'alerte |
+| Secret absent pour un site de `HEALTH_REQUIRED_SITES` | `down` | 503 |
+
+Paramètres : `?site=<id>` (un seul site, hors cache), `?force=1` (ignore le
+cache), `?strict=1` (`degraded` devient 503).
+
+**`HEALTH_REQUIRED_SITES` n'est pas optionnel en production.** Sans cette liste,
+un `SITE_X__SUPABASE_URL` effacé des variables Render fait passer toutes les
+sondes du site en `not_configured` — donc en « normal » — et la supervision
+reste verte alors que la boutique ne sert plus rien. Le champ `requiredSites` de
+la réponse dit ce qui est déclaré ; le workflow alerte quand il est vide.
+
+### `GET /api/health/payments`
+
+Invariant métier : **tout PaymentIntent réussi doit avoir sa commande `paid`**.
+C'est la seule alerte qui attrape les pannes silencieuses où le client est
+débité sans commande créée — endpoint webhook désactivé par Stripe après échecs
+répétés, `STRIPE_WEBHOOK_SECRET` tourné, régression CORS, RLS modifiée, cold
+start Render trop lent. Aucune page d'état fournisseur ne remonte ces cas.
+
+Deux garde-fous contre le faux positif : les paiements de moins de 5 minutes
+sont ignorés (le webhook a le droit d'arriver après), et un PaymentIntent sans
+`metadata.order_id` (paiement manuel, Payment Link) est compté dans `unknown`
+sans alerter. Réponse 503 dès qu'un orphelin est trouvé, avec son
+`paymentIntentId`, son montant et la raison (`no_order` / `order_not_paid`).
+
+Les PaymentIntents sont paginés (Stripe les rend du plus récent au plus ancien :
+sans pagination, ce sont les orphelins mûrs qui disparaîtraient). Au-delà de
+300 paiements dans la fenêtre, la réponse porte `truncated: true` et le workflow
+le signale plutôt que de laisser croire à une fenêtre complète.
+
+Paramètres : `?site=<id>`, `?windowMinutes=<n>` (défaut 90), `?force=1`.
+
+### Où faire tourner les checks
+
+Un check hébergé sur Render ne peut pas signaler que Render est tombé. Le
+workflow `.github/workflows/monitoring.yml` interroge ces routes depuis GitHub
+Actions et surveille en plus les pages d'état des fournisseurs. Il reste un
+complément : le `schedule` GitHub est « best effort » et se désactive après
+~60 jours sans activité sur le repo. Garder en parallèle **un** moniteur externe
+(UptimeRobot, Better Stack, Healthchecks.io) sur `/api/health/deep`.
 
 ## Sécurité
 

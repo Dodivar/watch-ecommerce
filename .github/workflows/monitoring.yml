@@ -1,0 +1,227 @@
+# Supervision des tiers et du backend, depuis GitHub Actions.
+#
+# Pourquoi ici et pas sur Render : un check hébergé sur Render ne peut pas
+# signaler que Render est tombé. Ce workflow tourne donc en dehors de toute
+# l'infra qu'il surveille.
+#
+# Il reste un complément, pas un substitut : le `schedule` GitHub est « best
+# effort » (retards de plusieurs minutes fréquents) et se désactive tout seul
+# après ~60 jours sans activité sur le repo. Garder en parallèle UN moniteur
+# externe (UptimeRobot / Better Stack / Healthchecks.io, offres gratuites) sur
+# `/api/health/deep`.
+#
+# À configurer une fois :
+#   - secret `HEALTH_CHECK_TOKEN` : même valeur que la variable d'env Render.
+#   - variable `BACKEND_URL` (optionnelle) : URL du backend, sans slash final.
+#
+# Cadence : toutes les 30 min. Le repo est public, donc les minutes Actions sont
+# gratuites ; s'il repassait en privé, compter ~750 min/mois à cette cadence
+# (quota gratuit 2 000 min) et `*/15` doublerait la note.
+
+name: Supervision (tiers + backend)
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: monitoring
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    env:
+      BACKEND_URL: ${{ vars.BACKEND_URL || 'https://watch-ecommerce-mp9l.onrender.com' }}
+      HEALTH_CHECK_TOKEN: ${{ secrets.HEALTH_CHECK_TOKEN }}
+      REPORT: ${{ github.workspace }}/monitoring-report.md
+
+    steps:
+      - name: Préparer le rapport
+        run: ': > "$REPORT"'
+
+      # 1. Pages d'état des fournisseurs.
+      #    Cinq d'entre eux sont sur Atlassian Statuspage (`/api/v2/status.json`,
+      #    indicateur `none` quand tout va bien) ; Stripe a son propre format
+      #    (`largestatus: up`). Ne remplace pas l'abonnement e-mail natif aux
+      #    pages d'état : lui seul prévient des maintenances programmées.
+      - name: Pages d'état des fournisseurs
+        continue-on-error: true
+        run: |
+          set -u
+          fail=0
+
+          check_statuspage() {
+            name="$1"; url="$2"
+            body=$(curl -sS --max-time 15 "$url" || echo '')
+            if [ -z "$body" ]; then
+              echo "- ⚠️ **$name** : page d'état injoignable ($url)" >> "$REPORT"
+              return 0
+            fi
+            # Une sortie jq vide (filtre cassé, JSON inattendu) doit valoir
+            # « page injoignable », pas « incident » : sinon une erreur de parsing
+            # déclenche une fausse alerte sur les cinq fournisseurs d'un coup.
+            indicator=$(echo "$body" | jq -r '.status.indicator // empty' 2>/dev/null || true)
+            description=$(echo "$body" | jq -r '.status.description // "?"' 2>/dev/null || true)
+            if [ -z "$indicator" ]; then
+              echo "- ⚠️ **$name** : réponse d'état illisible ($url)" >> "$REPORT"
+              return 0
+            fi
+            if [ "$indicator" != "none" ]; then
+              echo "- 🔴 **$name** : $description (\`$indicator\`) — $url" >> "$REPORT"
+              fail=1
+            else
+              echo "$name: ok"
+            fi
+          }
+
+          check_statuspage "Supabase" "https://status.supabase.com/api/v2/status.json"
+          check_statuspage "Render"   "https://status.render.com/api/v2/status.json"
+          check_statuspage "Vercel"   "https://www.vercel-status.com/api/v2/status.json"
+          check_statuspage "GitHub"   "https://www.githubstatus.com/api/v2/status.json"
+          check_statuspage "Mailjet"  "https://status.mailjet.com/api/v2/status.json"
+
+          # Stripe n'est pas sur Statuspage : format maison.
+          stripe_body=$(curl -sS --max-time 15 "https://status.stripe.com/current" || echo '')
+          if [ -z "$stripe_body" ]; then
+            echo "- ⚠️ **Stripe** : page d'état injoignable" >> "$REPORT"
+          else
+            largestatus=$(echo "$stripe_body" | jq -r '.largestatus // empty' 2>/dev/null || true)
+            if [ -z "$largestatus" ]; then
+              echo "- ⚠️ **Stripe** : réponse d'état illisible" >> "$REPORT"
+            elif [ "$largestatus" != "up" ]; then
+              message=$(echo "$stripe_body" | jq -r '.message // "?"')
+              degraded=$(echo "$stripe_body" | jq -r '.statuses | to_entries | map(select(.value != "up") | "\(.key)=\(.value)") | join(", ")')
+              echo "- 🔴 **Stripe** : $message ($degraded)" >> "$REPORT"
+              fail=1
+            fi
+          fi
+
+          exit $fail
+
+      # 2. Dépendances vues depuis le backend : Supabase (base + storage),
+      #    Stripe, Mailjet, site par site.
+      - name: Healthcheck profond du backend
+        continue-on-error: true
+        run: |
+          set -u
+          if [ -z "${HEALTH_CHECK_TOKEN:-}" ]; then
+            echo "- ⚠️ **Supervision** : secret \`HEALTH_CHECK_TOKEN\` absent, checks backend non exécutés" >> "$REPORT"
+            exit 1
+          fi
+
+          code=$(curl -sS --max-time 30 -o deep.json -w '%{http_code}' \
+            -H "X-Health-Token: $HEALTH_CHECK_TOKEN" \
+            "$BACKEND_URL/api/health/deep?strict=1" || echo '000')
+
+          if [ "$code" = "200" ]; then
+            jq -c '.sites' deep.json
+            # Sans HEALTH_REQUIRED_SITES côté Render, un secret effacé passe pour
+            # « site non configuré » et non pour une panne : la supervision serait
+            # verte à tort.
+            required=$(jq -r '.requiredSites // [] | length' deep.json 2>/dev/null || echo 0)
+            if [ "$required" = "0" ]; then
+              echo "- ⚠️ **Supervision incomplète** : \`HEALTH_REQUIRED_SITES\` n'est pas renseigné côté Render, un secret manquant ne déclenchera pas d'alerte" >> "$REPORT"
+              exit 1
+            fi
+            exit 0
+          fi
+
+          echo "- 🔴 **Backend `/api/health/deep`** : HTTP $code" >> "$REPORT"
+          if [ -s deep.json ]; then
+            # Détail par site/dépendance, sans recopier tout le JSON.
+            jq -r '
+              .sites // {} | to_entries[]
+              | select(.value.status != "ok" and .value.status != "not_configured")
+              | "  - `\(.key)` → \(.value.status) : " + (
+                  .value.checks // {} | to_entries
+                  | map(select(.value.status == "down") | "\(.key) (\(.value.error // "?"))")
+                  | join(", ")
+                )
+            ' deep.json >> "$REPORT" || true
+          fi
+          exit 1
+
+      # 3. L'alerte à plus forte valeur : un paiement encaissé sans commande.
+      #    Attrape le webhook désactivé, le secret tourné, la RLS cassée — tous
+      #    des cas où chaque page d'état fournisseur reste verte.
+      - name: Invariant paiements (PaymentIntent réussi sans commande)
+        continue-on-error: true
+        run: |
+          set -u
+          if [ -z "${HEALTH_CHECK_TOKEN:-}" ]; then
+            exit 0
+          fi
+
+          code=$(curl -sS --max-time 60 -o payments.json -w '%{http_code}' \
+            -H "X-Health-Token: $HEALTH_CHECK_TOKEN" \
+            "$BACKEND_URL/api/health/payments" || echo '000')
+
+          if [ "$code" = "200" ]; then
+            jq -c '{status, sites: (.sites | map_values({succeeded, matched, unknown, scanned, truncated}))}' payments.json
+            # Fenêtre tronquée = des paiements anciens n'ont pas été examinés,
+            # justement ceux sortis de la période de grâce.
+            truncated=$(jq -r '[.sites // {} | .[] | select(.truncated == true)] | length' payments.json 2>/dev/null || echo 0)
+            if [ "$truncated" != "0" ]; then
+              echo "- ⚠️ **Invariant paiements tronqué** : trop de PaymentIntents dans la fenêtre, augmenter \`maxPayments\` ou resserrer \`HEALTH_PAYMENTS_WINDOW_MINUTES\`" >> "$REPORT"
+              exit 1
+            fi
+            exit 0
+          fi
+
+          echo "- 💸 **Paiement sans commande** : HTTP $code sur \`/api/health/payments\`" >> "$REPORT"
+          if [ -s payments.json ]; then
+            jq -r '
+              .sites // {} | to_entries[]
+              | .key as $site | (.value.orphans // [])[]
+              | "  - `\($site)` \(.paymentIntentId) — \(.amount / 100) \(.currency | ascii_upcase) — \(.reason) (commande \(.orderId // "absente"))"
+            ' payments.json >> "$REPORT" || true
+          fi
+          exit 1
+
+      # 4. Une seule issue ouverte à la fois : on commente tant que l'incident
+      #    dure, on ferme dès que tout est revenu au vert.
+      - name: Ouvrir, commenter ou fermer l'issue de supervision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TITLE="🚨 Supervision : incident détecté"
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          # Recherche volontairement large (les caractères spéciaux du titre
+          # cassent la syntaxe de recherche GitHub) ; titre exact filtré par jq.
+          existing=$(gh issue list --state open --search "in:title Supervision" \
+            --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")
+
+          if [ ! -s "$REPORT" ]; then
+            if [ -n "$existing" ]; then
+              gh issue comment "$existing" --body "✅ Tout est revenu au vert ($RUN_URL)."
+              gh issue close "$existing"
+            fi
+            echo "Tout est vert."
+            exit 0
+          fi
+
+          body=$(printf '%s\n\n%s\n\n%s\n' \
+            "Détecté le $(date -u '+%Y-%m-%d %H:%M UTC') par la supervision planifiée." \
+            "$(cat "$REPORT")" \
+            "Run : $RUN_URL")
+
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$TITLE" --body "$body"
+          fi
+
+          {
+            echo "## Incident détecté"
+            cat "$REPORT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit 1
