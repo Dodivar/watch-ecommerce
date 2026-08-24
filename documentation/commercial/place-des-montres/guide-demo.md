@@ -7,12 +7,12 @@ Parcours recommandé pour un rendez-vous client de **45 minutes**. Ouvrir par la
 | Environnement | URL | Statut (juin 2026) |
 |---|---|---|
 | Production actuelle (PrestaShop) | http://www.placedesmontres.fr | ✅ Accessible |
-| Recette plateforme | https://recette.placedesmontres.fr | ⚠️ 503 — réactiver le déploiement Vercel avant le RDV |
+| Recette plateforme | https://recette.placedesmontres.fr | ⚠️ Vérifier la veille du RDV — a déjà répondu 503, réactiver le déploiement le cas échéant |
 | Démo locale | `SITE_ID=place-des-montres npm run dev` → http://localhost:5173 | ✅ Fonctionnel |
 
-**Plan B si recette indisponible :** lancer la démo locale sur laptop branché en partage d'écran (`SITE_ID=place-des-montres npm run dev`). Rester centré à 100 % sur Place des Montres — ne pas montrer d'autre site client, l'argument est l'exclusivité du leur.
+**Plan B si recette indisponible :** lancer la démo locale sur laptop branché en partage d'écran (`SITE_ID=place-des-montres npm run dev`). Rester centré sur Place des Montres — non par souci d'exclusivité, mais parce que 45 minutes suffisent à peine à couvrir leur site. Si la mutualisation du socle vient dans la conversation, l'assumer : élément de langage dans `contractuel/README.md` *(local)*.
 
-**Mot de passe maintenance (recette protégée) :** voir `sites/place-des-montres/site.config.js` → `maintenance.password`.
+**Mot de passe maintenance (recette protégée) :** demander au responsable technique, hors dépôt.
 
 ---
 
@@ -114,13 +114,20 @@ Capture : `assets/apres-admin-plateforme.png`
 
 ## Objections fréquentes & réponses
 
-| Objection | Réponse |
-|---|---|
-| « On va perdre notre référencement » | Redirections 301 PrestaShop déjà configurées dans `site.config.js` ; import conserve les IDs produits |
-| « C'est trop cher » | Comparatif coût total PrestaShop (hébergeur + agence + modules + temps interne) vs. 249 €/mois tout inclus |
-| « On dépend de vous » | Domaine à vous, données exportables Supabase, pas de lock-in propriétaire |
-| « La migration est risquée » | Recette déjà avancée, import CLI testé, bascule DNS en quelques heures |
-| « Et si le site tombe ? » | Infra Vercel / Render / Supabase managée, monitoring inclus |
+| Objection | Réponse | Document à poser sur la table |
+|---|---|---|
+| « On va perdre notre référencement » | Redirections 301 PrestaShop déjà configurées dans `site.config.js` ; import conserve les IDs produits ; critère de recette contractuel à J+30 | `contractuel/07` *(local)* §3 |
+| « C'est trop cher » | Ne pas défendre le prix : proposer de remplir la grille de coût réel avec leurs chiffres. Puis montrer la décomposition des 249 € | `contractuel/08` *(local)* |
+| « On dépend de vous » | Licence perpétuelle sur le code, dépôt dont ils sont propriétaires, réversibilité sous 15 jours activable à tout moment | `contractuel/05` *(local)* |
+| « La migration est risquée » | Audit express sur leur export réel **avant** devis ; migration remboursée si les critères de recette ne sont pas atteints | `contractuel/07` *(local)* §4-5 |
+| « Et si le site tombe ? » | 99,5 % mesuré par un tiers indépendant, prise en charge P1 en 4 h ouvrées, pénalités en avoir, backend dédié donc sans mise en veille | `contractuel/02` *(local)* |
+| **« Vous êtes seul »** *(jamais dit à voix haute — l'ouvrir soi-même)* | Dépôt de code dont ils sont propriétaires, licence perpétuelle, contact de secours nommé au contrat, comptes à leur nom qu'ils peuvent reprendre sans moi | `contractuel/05` *(local)* |
+| « Et si vous perdez nos données ? » | RPO 24 h / RTO 4 h, rétention 7 j, restauration testée 2×/an avec PV remis, rapprochement Stripe pour les commandes payées | `contractuel/03` *(local)* |
+| « Et le RGPD ? » | Contrat de sous-traitance article 28 signé avec le contrat, sous-traitants listés, hébergement UE | `contractuel/04` *(local)* |
+| « À qui appartient le compte Stripe ? » | **Le leur** — à dire avant qu'ils ne le demandent. Aucun encaissement ne transite par nous, vérifiable dans le code | `contractuel/01` *(local)* §5 |
+| « Montrez-moi un autre revendeur » | Ne pas gonfler Sauvage Watches : annoncer la différence de profil, puis basculer sur preuves vérifiables + garantie de résultat | `contractuel/07` *(local)* |
+| « Et l'accessibilité ? » | Poser d'abord la question des seuils (effectif, CA). Ne revendiquer aucune conformité : aucun audit n'a eu lieu | `contractuel/06` *(local)* |
+| « Et avec mes 3 000 montres, ça tient ? » | Ne pas répondre oui de mémoire : proposer l'audit express sur leur export réel avant le devis définitif | `contractuel/07` *(local)* §5 |
 
 ---
 
@@ -132,3 +139,6 @@ Capture : `assets/apres-admin-plateforme.png`
 - [ ] Slides exportées (`presentation-slides.md` → PDF via Marp)
 - [ ] Fiche récap imprimée (`fiche-recap-one-pager.md`)
 - [ ] Devis signable avec grille tarifaire slides 16–17
+- [ ] Dossier de preuves et grille TCO imprimés (`contractuel/07`, `contractuel/08`)
+- [ ] Chiffres du dossier de preuves recomptés le jour même (voir `contractuel/README.md`)
+- [ ] Contact de secours identifié et nommable — sans lui, l'objection « vous êtes seul » ressort renforcée

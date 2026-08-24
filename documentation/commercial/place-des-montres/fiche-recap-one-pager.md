@@ -16,9 +16,11 @@
 
 ## Notre proposition
 
-Une **solution e-commerce sur-mesure, dédiée à votre maison**, avec **hébergement et maintenance managés**. Votre futur site est **déjà dessiné pour vous** : identité visuelle, textes, FAQ, services, règles Colissimo (gratuit dès 80 €) et retrait magasin.
+Une **plateforme e-commerce déjà éprouvée en production**, avec **hébergement et maintenance managés**. Votre futur site est **déjà dessiné pour vous** : identité visuelle, textes, FAQ, services, règles Colissimo (gratuit dès 80 €) et retrait magasin.
 
-**Fiabilité :** socle technique déjà éprouvé en conditions réelles de production e-commerce — commandes, paiements et administration opérationnels.
+**Ce qui est dédié à votre maison :** votre base de données, votre backend commandes, vos clés et **votre compte Stripe** — séparés de tout autre client. Vous accédez à un socle mature au lieu de financer un développement de zéro : c'est ce qui rend la migration accessible.
+
+**Fiabilité :** socle déjà en production e-commerce — commandes, paiements et administration opérationnels, couverts par plus de 890 tests automatisés rejoués à chaque mise à jour.
 
 ---
 
@@ -52,10 +54,21 @@ Une **solution e-commerce sur-mesure, dédiée à votre maison**, avec **héberg
 | **Migration PrestaShop** (one-shot) | **4 900 € HT** |
 | ↳ Import ~3 000 références, bascule DNS, SEO 301, formation 2 h | |
 | **Hébergement + maintenance** | **à partir de 249 € HT / mois** |
-| ↳ Infra, mises à jour, monitoring, 2 h support/mois (réponse sous 4 h ouvrées) | |
+| ↳ Infra, mises à jour, monitoring, 2 h support/mois (prise en charge sous 4 h ouvrées) | |
 | **Engagement recommandé** | 12 mois |
 
-*Devis définitif après audit export PrestaShop. Domaine et données restent votre propriété.*
+## Ce qui est contractuel
+
+| Engagement | Niveau |
+|---|---|
+| **Disponibilité** | 99,5 % / mois, mesurée par un tiers indépendant, pénalités en avoir |
+| **Sauvegardes** | Quotidiennes, rétention 7 jours, restauration testée 2×/an avec PV remis |
+| **Réversibilité** | Données **et** code sous 15 jours, à tout moment, inclus une fois |
+| **Continuité** | Dépôt de code dont vous êtes propriétaire + contact de secours nommé au contrat |
+| **RGPD** | Contrat de sous-traitance article 28, hébergement UE, sous-traitants listés |
+| **Garantie** | Migration remboursée si les critères de recette ne sont pas atteints à J+30 |
+
+*Devis définitif après audit export PrestaShop. Domaine, données, **compte Stripe** et comptes d'hébergement à votre nom. Détail dans le pack contractuel remis avec le devis.*
 
 ---
 

@@ -141,10 +141,12 @@ Voir [`PHASE-2-SCOPE.md`](./PHASE-2-SCOPE.md).
 
 À valider **avant signature** :
 
-1. **Délai de retour** : 14 jours (légal actuel PrestaShop) vs 30 jours (config FAQ nouvelle plateforme) — choix commercial à acter
-2. **Horaires téléphone SAV** : aligner config et réalité boutique (lun–sam 9h–20h en config actuelle)
-3. **Hébergeur historique** : RFI Informatique (PrestaShop) → Vercel + Render (à mentionner en mentions légales — déjà prévu côté template)
-4. **Données personnelles** : DPA Stripe, Supabase, Mailjet — registre RGPD client
+1. **Délai de retour** : 14 jours (légal actuel PrestaShop) vs 30 jours (config FAQ nouvelle plateforme) — choix commercial à acter. ⚠️ Toujours ouvert
+2. **Garantie produit** : 1 an à l'import (`IMPORT-CATALOG.md`) vs **2 ans** annoncés en fiche produit et sur la home. ⚠️ Toujours ouvert — contradiction affichée au consommateur, à trancher **avant** la mise en production : c'est un risque juridique pour le Client, pas seulement une incohérence de contenu
+3. **Horaires téléphone SAV** : aligner config et réalité boutique (lun–sam 9h–20h en config actuelle). ⚠️ Toujours ouvert
+4. **Hébergeur historique** : RFI Informatique (PrestaShop) → Vercel + Render (à mentionner en mentions légales — déjà prévu côté template)
+5. **Données personnelles** : ✅ traité — DPA article 28, sous-traitants et localisation dans `documentation/commercial/place-des-montres/contractuel/04` *(local)*. Le registre RGPD reste à la charge du Client, responsable de traitement
+6. **SLA, sauvegardes, réversibilité, propriété du code et des comptes** : ✅ traités par le pack contractuel *(local)*
 
 ---
 
