@@ -3,15 +3,15 @@ import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getConsentState, shouldShowBanner, saveConsent } from '@/services/cookieConsent'
 import { cookiePreferencesTick } from '@/services/cookiePreferencesUi'
-import { ensureGoogleAnalytics } from '@/services/googleAnalytics'
+import { applyConsent } from '@/services/analytics'
 import { t } from '@/i18n'
 
 const route = useRoute()
-const GA_ID = import.meta.env.VITE_GA_ID
 
 const dismissed = ref(!shouldShowBanner())
 const showCustomize = ref(false)
 const analyticsChoice = ref(false)
+const marketingChoice = ref(false)
 
 const isMaintenance = computed(() => route.path === '/maintenance')
 
@@ -20,35 +20,36 @@ const open = computed(() => !dismissed.value && !isMaintenance.value)
 watch(cookiePreferencesTick, () => {
   if (cookiePreferencesTick.value < 1) return
   const state = getConsentState()
-  analyticsChoice.value = Boolean(state && !state.expired && state.analytics)
+  const valid = Boolean(state && !state.expired)
+  analyticsChoice.value = Boolean(valid && state.analytics)
+  marketingChoice.value = Boolean(valid && state.marketing)
   showCustomize.value = false
   dismissed.value = false
 })
 
-function applyChoice(analytics) {
-  saveConsent({ analytics })
-  if (analytics) {
-    ensureGoogleAnalytics(GA_ID)
-  }
+function applyChoice(analytics, marketing) {
+  saveConsent({ analytics, marketing })
+  applyConsent({ analytics, marketing })
   dismissed.value = true
   showCustomize.value = false
 }
 
 function onAccept() {
-  applyChoice(true)
+  applyChoice(true, true)
 }
 
 function onRefuse() {
-  applyChoice(false)
+  applyChoice(false, false)
 }
 
 function onOpenCustomize() {
   showCustomize.value = true
   analyticsChoice.value = false
+  marketingChoice.value = false
 }
 
 function onSaveCustomize() {
-  applyChoice(analyticsChoice.value)
+  applyChoice(analyticsChoice.value, marketingChoice.value)
 }
 </script>
 
@@ -111,6 +112,17 @@ function onSaveCustomize() {
           <span class="text-sm leading-snug text-text-main">
             <span class="font-semibold text-primary">{{ t('cookies.analyticsTitle') }}</span>
             {{ t('cookies.analyticsBody') }}
+          </span>
+        </label>
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-100 bg-gray-50/80 p-4">
+          <input
+            v-model="marketingChoice"
+            type="checkbox"
+            class="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+          />
+          <span class="text-sm leading-snug text-text-main">
+            <span class="font-semibold text-primary">{{ t('cookies.marketingTitle') }}</span>
+            {{ t('cookies.marketingBody') }}
           </span>
         </label>
         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">

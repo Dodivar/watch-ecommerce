@@ -7,13 +7,11 @@ import { createApp } from 'vue'
 import { createHead } from '@vueuse/head'
 import App from './App.vue'
 import router from './router'
-import { isAnalyticsAllowed } from '@/services/cookieConsent'
-import { ensureGoogleAnalytics } from '@/services/googleAnalytics'
+import { initAnalytics, trackPageView } from '@/services/analytics'
 import { getActiveLocale, getActiveLocalePrefix } from '@/i18n/activeLocale.js'
 
-if (isAnalyticsAllowed()) {
-  ensureGoogleAnalytics(import.meta.env.VITE_GA_ID)
-}
+// Pose les signaux Consent Mode et rejoue le choix mémorisé, avant tout chargement de traceur.
+initAnalytics()
 
 // La coquille HTML est pré-rendue dans la langue par défaut : on rétablit `lang` quand la
 // langue active vient de l'URL, du choix mémorisé ou du navigateur. Lecteurs d'écran et
@@ -27,14 +25,11 @@ app.use(router)
 app.use(head)
 app.mount('#app')
 
-// Ecoute des changements de route pour GA (uniquement si consentement analytics encore valide)
+// Pages vues des navigations SPA (les consentements sont vérifiés par la couche analytics).
 router.afterEach((to) => {
-  const gaId = import.meta.env.VITE_GA_ID
-  if (gaId && window.gtag && isAnalyticsAllowed()) {
-    // `fullPath` est dépréfixé : sans le préfixe, les trois langues se confondraient
-    // sur une même ligne de rapport.
-    window.gtag('config', gaId, { page_path: `${getActiveLocalePrefix()}${to.fullPath}` })
-  }
+  // `fullPath` est dépréfixé : sans le préfixe, les trois langues se confondraient
+  // sur une même ligne de rapport.
+  trackPageView(`${getActiveLocalePrefix()}${to.fullPath}`)
 })
 
 // Écouter les changements de thème pour mettre à jour les favicons

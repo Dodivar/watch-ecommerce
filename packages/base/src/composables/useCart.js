@@ -1,7 +1,12 @@
 import { ref, computed, watch } from 'vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 
-/** @typedef {{ watchId: string, name: string, reference?: string|null, price: number, imageUrl?: string|null, quantity?: number }} CartLine */
+/**
+ * `brand` et `model` ne servent pas à l'affichage du panier : ils accompagnent la ligne
+ * jusqu'aux événements de mesure (`item_brand`, `item_variant`), où la marque est la
+ * dimension la plus parlante d'un catalogue de montres.
+ * @typedef {{ watchId: string, name: string, reference?: string|null, brand?: string|null, model?: string|null, price: number, imageUrl?: string|null, quantity?: number }} CartLine
+ */
 
 const MAX_CART_LINES = 10
 const MAX_CART_UNITS = 10
@@ -56,6 +61,8 @@ function loadFromStorage() {
         watchId: row.watchId,
         name: row.name,
         reference: row.reference ?? null,
+        brand: row.brand ?? null,
+        model: row.model ?? null,
         price: row.price,
         imageUrl: row.imageUrl ?? null,
         quantity: lineQuantity(row),
@@ -241,6 +248,8 @@ export function useCart() {
         watchId: row.watchId,
         name: row.name,
         reference: row.reference ?? null,
+        brand: row.brand ?? null,
+        model: row.model ?? null,
         price: Number(row.price) || 0,
         imageUrl: row.imageUrl ?? null,
         quantity: cartMultiQuantity.value ? lineQuantity(row) : 1,

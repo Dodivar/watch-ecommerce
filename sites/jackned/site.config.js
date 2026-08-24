@@ -104,6 +104,7 @@ export default {
     gaInitFlag: '__jackned_ga_initialized',
     gaPendingWaitersKey: '__jackned_ga_pending_waiters',
     gaDevLogPrefix: "[Jack'N'Ed]",
+    metaPixelInitFlag: '__jackned_meta_pixel_initialized',
   },
 
   maintenance: {

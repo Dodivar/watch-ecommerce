@@ -13,6 +13,7 @@ const {
   verifyOrderAccessToken,
 } = require('../orders/tokens')
 const { buildOrderQuote } = require('../orders/pricing')
+const { sendPurchase: sendGa4Purchase } = require('../analytics/ga4MeasurementProtocol')
 const { findShippingMethod, validateHomeAddress } = require('../orders/shipping')
 const { loadPromoCode, validatePromoEligibility, redeemPromoCode } = require('../orders/promo')
 const {
@@ -625,6 +626,15 @@ function buildOrdersRouter(registry) {
       const currency = (order.currency || 'eur').toLowerCase()
       const receiptEmail = order.customer_email ? String(order.customer_email).trim() : null
 
+      // Identifiants GA4 du visiteur, transportés par les metadata du PaymentIntent : le
+      // webhook les relit pour rattacher le `purchase` serveur à la bonne session, sans
+      // colonne supplémentaire en base. Absents si le visiteur n'a pas consenti.
+      const analyticsMetadata = {}
+      const gaClientId = typeof req.body?.gaClientId === 'string' ? req.body.gaClientId.slice(0, 100) : ''
+      const gaSessionId = typeof req.body?.gaSessionId === 'string' ? req.body.gaSessionId.slice(0, 100) : ''
+      if (gaClientId) analyticsMetadata.ga_client_id = gaClientId
+      if (gaSessionId) analyticsMetadata.ga_session_id = gaSessionId
+
       let paymentIntent = null
       if (order.stripe_payment_intent_id) {
         paymentIntent = await stripe.paymentIntents.retrieve(order.stripe_payment_intent_id)
@@ -640,6 +650,11 @@ function buildOrdersRouter(registry) {
           if (receiptEmail) {
             updatePayload.receipt_email = receiptEmail
           }
+          // Stripe fusionne les metadata à la mise à jour : le PI réutilisé récupère les
+          // identifiants s'ils n'avaient pas encore pu être lus (gtag chargé plus tard).
+          if (Object.keys(analyticsMetadata).length > 0) {
+            updatePayload.metadata = analyticsMetadata
+          }
           paymentIntent = await stripe.paymentIntents.update(
             order.stripe_payment_intent_id,
             updatePayload,
@@ -654,6 +669,7 @@ function buildOrdersRouter(registry) {
           metadata: {
             order_id: orderId,
             site_id: site.id,
+            ...analyticsMetadata,
           },
         }
         if (receiptEmail) {
@@ -883,6 +899,26 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
   }
 
   const orderForEmail = refreshedOrder ?? { ...order.data, status: 'paid' }
+
+  // Achat remonté à GA4 côté serveur : c'est ce qui rend le chiffre d'affaires mesuré fidèle
+  // au chiffre d'affaires réel, même quand le client ne revient jamais sur la page de
+  // confirmation. Même `transaction_id` que l'envoi navigateur, donc pas de double comptage.
+  // Ne doit jamais faire échouer le webhook : la commande est déjà payée.
+  try {
+    await sendGa4Purchase({
+      site,
+      orderId,
+      currency: orderForEmail.currency,
+      totalCents: orderForEmail.total_cents,
+      shippingCents: orderForEmail.shipping_cents,
+      lines: lineRows || [],
+      clientId: paymentIntent.metadata?.ga_client_id || null,
+      sessionId: paymentIntent.metadata?.ga_session_id || null,
+    })
+  } catch (analyticsErr) {
+    console.error(`[${site.id}] GA4 purchase commande ${orderId}:`, analyticsErr)
+  }
+
   const receiptExtras = {
     shipping: shippingRow || null,
     discount: discountRowForEmail || null,

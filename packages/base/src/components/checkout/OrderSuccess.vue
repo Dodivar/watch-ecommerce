@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { verifyOrder, downloadOrderReceipt } from '@/services/orderService.js'
 import { getWatchById, getLatestAvailableWatches } from '@/services/watchService'
 import { useCart } from '@/composables/useCart.js'
+import { trackPurchase } from '@/services/analytics'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService.js'
@@ -198,6 +199,15 @@ onMounted(async () => {
     shippingMethodLabel.value = order.shippingMethodLabel || ''
     pickupLocation.value = order.pickupLocation || null
     lines.value = result.lines || []
+
+    // Avant de vider le panier : `trackPurchase` porte sa propre garde anti-doublon, la page
+    // étant rechargeable et atteignable par retour arrière.
+    trackPurchase({
+      orderId: orderId.value,
+      lines: lines.value,
+      totalCents: totalCents.value,
+      shippingCents: shippingCents.value,
+    })
 
     const { clear: clearCart } = useCart()
     clearCart()

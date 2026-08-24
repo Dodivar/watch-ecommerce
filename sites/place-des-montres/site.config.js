@@ -950,6 +950,7 @@ export default {
     gaInitFlag: '__pdm_ga_initialized',
     gaPendingWaitersKey: '__pdm_ga_pending_waiters',
     gaDevLogPrefix: '[Place des Montres]',
+    metaPixelInitFlag: '__pdm_meta_pixel_initialized',
   },
 
   maintenance: {

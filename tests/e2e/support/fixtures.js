@@ -19,6 +19,32 @@ export function maintenanceKey(siteId = SITE_ID) {
   return `maintenance_authenticated_${siteId}`
 }
 
+/**
+ * Clé localStorage du consentement cookies, par site
+ * (`integrations.cookieConsentStorageKey` du manifest).
+ */
+const CONSENT_KEYS = {
+  'sauvage-watches': 'sauvage_cookie_consent_v1',
+  'place-des-montres': 'pdm_cookie_consent_v1',
+}
+
+export function cookieConsentKey(siteId = SITE_ID) {
+  return CONSENT_KEYS[siteId] || CONSENT_KEYS[SITE_ID]
+}
+
+/**
+ * Payload de consentement v2 (voir `services/cookieConsent.js`). Les deux finalités sont
+ * distinctes : `marketing` couvre Google Ads et le pixel Meta.
+ */
+export function cookieConsentPayload({ analytics = true, marketing = true } = {}) {
+  return JSON.stringify({
+    version: 2,
+    analytics,
+    marketing,
+    savedAt: new Date().toISOString(),
+  })
+}
+
 /** Clé localStorage du panier (site par défaut). */
 export const CART_STORAGE_KEY = cartStorageKey()
 

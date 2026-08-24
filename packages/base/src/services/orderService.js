@@ -84,10 +84,22 @@ export async function removeOrderPromo(orderId, accessToken) {
   return parseJson(response)
 }
 
-export async function createOrderPayment(orderId, accessToken) {
+/**
+ * @param {string} orderId
+ * @param {string} accessToken
+ * @param {{ clientId?: string|null, sessionId?: string|null }} [analyticsIds] Identifiants GA4
+ *   du visiteur, stockés dans les metadata du PaymentIntent pour que le `purchase` envoyé
+ *   depuis le webhook Stripe se rattache à sa session. Absents sans consentement.
+ */
+export async function createOrderPayment(orderId, accessToken, analyticsIds) {
+  const body = {}
+  if (analyticsIds?.clientId) body.gaClientId = analyticsIds.clientId
+  if (analyticsIds?.sessionId) body.gaSessionId = analyticsIds.sessionId
+
   const response = await fetch(`${getBackendApiUrl()}/api/orders/${orderId}/pay`, {
     method: 'POST',
     headers: apiHeaders(accessToken),
+    body: JSON.stringify(body),
   })
   return parseJson(response)
 }

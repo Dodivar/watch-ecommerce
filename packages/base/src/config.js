@@ -30,6 +30,27 @@ export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KE
 /** Clé Google Maps / Places (carte boutique + autocomplétion checkout) — `VITE_GOOGLE_PLACES_API_KEY` par déploiement. */
 export const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || ''
 
+/**
+ * Mesure et attribution. Tous optionnels : une valeur vide désactive proprement la
+ * destination correspondante (voir `packages/base/src/services/analytics/`).
+ */
+
+/** GA4 — `VITE_GA_ID`, ex. `G-XXXXXXXXXX`. */
+export const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_ID || ''
+
+/** Google Ads — `VITE_GOOGLE_ADS_ID`, ex. `AW-123456789`. Partage le script gtag.js de GA4. */
+export const GOOGLE_ADS_ID = import.meta.env.VITE_GOOGLE_ADS_ID || ''
+
+/**
+ * Libellé de l'action de conversion « achat » dans Google Ads — `VITE_GOOGLE_ADS_PURCHASE_LABEL`.
+ * Sans lui, aucune conversion n'est remontée même si `GOOGLE_ADS_ID` est renseigné : le
+ * `send_to` d'une conversion s'écrit `AW-123456789/AbC-D_efGh12`.
+ */
+export const GOOGLE_ADS_PURCHASE_LABEL = import.meta.env.VITE_GOOGLE_ADS_PURCHASE_LABEL || ''
+
+/** Meta (Facebook / Instagram) — `VITE_META_PIXEL_ID`, identifiant numérique du pixel. */
+export const META_PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID || ''
+
 const urlProduction = site.urls.production
 const urlStaging = site.urls.staging
 const urlDevelopment = site.urls.development

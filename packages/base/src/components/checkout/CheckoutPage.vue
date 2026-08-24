@@ -6,6 +6,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { useCart } from '@/composables/useCart.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { STRIPE_PUBLISHABLE_KEY } from '@/config'
+import { getGaIdentifiers, trackAddPaymentInfo } from '@/services/analytics'
 import {
   createOrder,
   fetchOrder,
@@ -646,7 +647,10 @@ async function initPayment() {
     paymentLoading.value = true
   }
   try {
-    const pay = await createOrderPayment(orderId.value, accessToken.value)
+    // Transmis au backend pour que le `purchase` envoyé depuis le webhook Stripe se rattache
+    // à la session GA4 du visiteur. Absents sans consentement : aucun envoi serveur alors.
+    const analyticsIds = await getGaIdentifiers()
+    const pay = await createOrderPayment(orderId.value, accessToken.value, analyticsIds)
     const newTotal = pay.totalCents ?? quote.value?.totalCents
     const clientSecretChanged = pay.clientSecret !== lastClientSecret
     const totalChanged = newTotal != null && newTotal !== lastPaymentTotalCents
@@ -679,6 +683,15 @@ async function initPayment() {
     if (!paymentElement || needsNewElements) {
       paymentElement = elementsInstance.create('payment')
       paymentElement.mount('#payment-element')
+    }
+
+    if (isFirstInit) {
+      // `initPayment` est rejoué à chaque changement de total ou de promo : l'événement ne
+      // doit partir qu'au premier affichage du moyen de paiement.
+      trackAddPaymentInfo({
+        lines: orderLines.value,
+        totalCents: newTotal ?? quote.value?.totalCents,
+      })
     }
 
     stripeReady.value = true

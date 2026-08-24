@@ -63,6 +63,7 @@ function getSiteSecret(siteId, key, opts = {}) {
  *   stripe: { secretKey: string|null, webhookSecret: string|null, checkoutRateLimitMax: number },
  *   supabase: { url: string|null, serviceRoleKey: string|null },
  *   mailjet: { apiKey: string|null, secretKey: string|null },
+ *   analytics: { ga4MeasurementId: string|null, ga4ApiSecret: string|null },
  *   paymentCancelSecret: string|null,
  *   baseUrlOverride: string|null,
  *   emailFrom: string|null
@@ -85,6 +86,12 @@ function getSiteSecrets(siteId) {
     mailjet: {
       apiKey: getSiteSecret(siteId, 'MAILJET_API_KEY'),
       secretKey: getSiteSecret(siteId, 'MAILJET_SECRET_KEY'),
+    },
+    // Envoi serveur du `purchase` à GA4 (Measurement Protocol). Clés introduites après la
+    // migration multi-sites : pas de repli sur une variable historique non préfixée.
+    analytics: {
+      ga4MeasurementId: getSiteSecret(siteId, 'GA4_MEASUREMENT_ID', { legacyFallback: null }),
+      ga4ApiSecret: getSiteSecret(siteId, 'GA4_API_SECRET', { legacyFallback: null }),
     },
     paymentCancelSecret: getSiteSecret(siteId, 'PAYMENT_CANCEL_SECRET'),
     baseUrlOverride: getSiteSecret(siteId, 'BASE_URL'),
