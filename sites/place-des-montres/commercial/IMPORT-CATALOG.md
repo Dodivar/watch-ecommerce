@@ -119,10 +119,10 @@ Le pipeline supporte `--on-conflict update` : ré-importer un CSV PrestaShop met
 
 | Donnée | Traitement proposé |
 |--------|-------------------|
-| Comptes clients PrestaShop | Non migrables (mots de passe hashés) — phase 2 espace client |
-| Historique commandes | Export PDF / archive PrestaShop consultable 12 mois |
+| Comptes clients PrestaShop | Mots de passe non reprenables (hachage lié à la clé de leur installation) — reprenables par **aucun** prestataire. Arbitrage 24/08/2026 : on ne recrée pas de comptes, voir Lot A′ de `PHASE-2-SCOPE.md` |
+| Historique commandes | **Importé en archive** dans la nouvelle base, rattaché à l'e-mail client, consultable depuis « Retrouver ma commande » (Lot A′). Remplace l'ancienne piste « garder le PrestaShop allumé 12 mois », jamais chiffrée et à la charge du client. Volumétrie à obtenir : `ps_customer`, `ps_orders`, `ps_order_detail`, `ps_address` |
 | Avis produits | Absents sur plateforme — non migrés |
-| Coups de cœur clients | Non migrés — nouvelle liste en phase 2 |
+| Coups de cœur clients | Non migrés — nouvelle liste sans compte (par navigateur) au Lot A′ ; synchronisation multi-appareils seulement avec le Lot A |
 | Modules tiers (newsletter lists) | Export CSV depuis outil email actuel |
 
 ## Risques et mitigations
@@ -154,3 +154,8 @@ Le pipeline supporte `--on-conflict update` : ré-importer un CSV PrestaShop met
 | **Total migration catalogue** | **5–7 jours** |
 
 Hors périmètre : formation client, synchro temps réel stock magasin, migration comptes clients.
+
+> **Note.** L'import de l'historique de commandes (Lot A′) est chiffré à part, dans
+> `PHASE-2-SCOPE.md` — il ne fait pas partie des 5–7 jours de migration catalogue ci-dessus.
+> C'est un traitement de données personnelles à porter au registre, dont Place des Montres
+> reste responsable de traitement.

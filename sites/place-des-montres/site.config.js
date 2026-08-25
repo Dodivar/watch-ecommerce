@@ -116,9 +116,9 @@ export default {
           de: 'Wie nehme ich mein Paket entgegen?',
         }),
         answer: t({
-          fr: 'À réception de votre commande, nous vous recommandons vivement de vérifier la conformité en présence du livreur, surtout si le colis est abîmé. Pour qu’une réclamation soit recevable, elle doit être mentionnée par écrit au moment de la réception. En cas de doute, il est conseillé de refuser le colis et d’en informer notre service client via votre compte client.',
-          en: 'When your order arrives, we strongly recommend checking it in the presence of the delivery driver, especially if the parcel is damaged. For a claim to be admissible it must be noted in writing at the time of delivery. If in doubt, refuse the parcel and inform our customer service through your customer account.',
-          de: 'Wir empfehlen dringend, die Lieferung bei Erhalt in Anwesenheit der Zustellperson zu prüfen, insbesondere wenn das Paket beschädigt ist. Damit eine Reklamation zulässig ist, muss sie bei der Entgegennahme schriftlich vermerkt werden. Im Zweifelsfall nehmen Sie das Paket nicht an und informieren unseren Kundenservice über Ihr Kundenkonto.',
+          fr: 'À réception de votre commande, nous vous recommandons vivement de vérifier la conformité en présence du livreur, surtout si le colis est abîmé. Pour qu’une réclamation soit recevable, elle doit être mentionnée par écrit au moment de la réception. En cas de doute, il est conseillé de refuser le colis et d’en informer notre service client par e-mail à service.client@placedesmontres.fr ou au 03 88 22 40 40.',
+          en: 'When your order arrives, we strongly recommend checking it in the presence of the delivery driver, especially if the parcel is damaged. For a claim to be admissible it must be noted in writing at the time of delivery. If in doubt, refuse the parcel and inform our customer service by email at service.client@placedesmontres.fr or on 03 88 22 40 40.',
+          de: 'Wir empfehlen dringend, die Lieferung bei Erhalt in Anwesenheit der Zustellperson zu prüfen, insbesondere wenn das Paket beschädigt ist. Damit eine Reklamation zulässig ist, muss sie bei der Entgegennahme schriftlich vermerkt werden. Im Zweifelsfall nehmen Sie das Paket nicht an und informieren unseren Kundenservice per E-Mail an service.client@placedesmontres.fr oder unter 03 88 22 40 40.',
         }),
       },
       {
