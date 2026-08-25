@@ -10,6 +10,7 @@ import { supabase } from '../supabase'
 import {
   getOrderActionCountsForAdmin,
   getOrdersForAdmin,
+  getReturnStatsForAdmin,
   updateOrderReturn,
 } from './adminOrderService.js'
 
@@ -247,5 +248,49 @@ describe('getOrderActionCountsForAdmin', () => {
     )
 
     await expect(getOrderActionCountsForAdmin()).rejects.toThrow('timeout')
+  })
+})
+
+describe('getReturnStatsForAdmin', () => {
+  const refundedRow = {
+    total_cents: 100000,
+    return_status: 'refunded',
+    return_requested_at: '2026-08-01T10:00:00.000Z',
+    refund_amount_cents: 90000,
+    refunded_at: '2026-08-05T10:00:00.000Z',
+  }
+
+  it('agrège les colonnes retour des commandes payées', async () => {
+    stubQueries(createQuery({ data: [refundedRow, { total_cents: 50000 }], error: null }))
+
+    const stats = await getReturnStatsForAdmin()
+
+    expect(stats.paidOrderCount).toBe(2)
+    expect(stats.refundedCount).toBe(1)
+    expect(stats.refundedAmountCents).toBe(90000)
+    expect(stats.byStatus.none).toBe(1)
+  })
+
+  it('borne la fenêtre sur `paid_at`, comme le chiffre d’affaires', async () => {
+    const [query] = stubQueries(createQuery({ data: [], error: null }))
+
+    await getReturnStatsForAdmin({ days: 30 })
+
+    expect(callsTo(query, 'eq')).toContainEqual(['status', 'paid'])
+    expect(callsTo(query, 'gte').map(([column]) => column)).toEqual(['paid_at'])
+  })
+
+  it('ne filtre pas sur la date quand aucune période n’est demandée', async () => {
+    const [query] = stubQueries(createQuery({ data: [], error: null }))
+
+    await getReturnStatsForAdmin()
+
+    expect(callsTo(query, 'gte')).toEqual([])
+  })
+
+  it('remonte l’erreur PostgREST', async () => {
+    stubQueries(createQuery({ data: null, error: { message: 'colonne inconnue' } }))
+
+    await expect(getReturnStatsForAdmin()).rejects.toThrow('colonne inconnue')
   })
 })

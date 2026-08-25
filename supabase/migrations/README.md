@@ -632,3 +632,48 @@ stocké, et un SVG servi depuis un bucket public est un vecteur XSS).
 
 Sans cette migration, l'email de demande de devis part bien mais l'insertion du lead est
 rejetée par la contrainte : la demande n'apparaît pas dans la boîte de réception admin.
+
+## Retours & remboursements (dossiers de rétractation)
+
+`20260824120000_order_returns.sql` — requis pour le panneau retour d'une commande
+(`AdminOrderReturnPanel.vue`) et la section « Retours & remboursements » de
+`/admin/stats`. Sans ces colonnes, PostgREST rejette la lecture comme l'écriture
+(`column orders.return_status does not exist`).
+
+- `orders.delivered_at` — réception du colis : point de départ des 14 jours de rétractation
+- `orders.return_status` — avancement du dossier (`none`, `requested`, `received`, `refunded`, `rejected`)
+- `orders.return_requested_at` — notification de la rétractation : point de départ des 14 jours de remboursement
+- `orders.refund_amount_cents`, `orders.refunded_at`, `orders.stripe_refund_id` — trace du
+  remboursement effectué à la main dans le dashboard Stripe
+- `orders.return_notes` — commentaire libre de l'admin
+- Index partiel pour les dossiers encore à traiter (badge dashboard, filtre `?retours=open`)
+
+```sql
+alter table public.orders
+  add column if not exists delivered_at timestamptz,
+  add column if not exists return_status text not null default 'none',
+  add column if not exists return_requested_at timestamptz,
+  add column if not exists refund_amount_cents integer,
+  add column if not exists refunded_at timestamptz,
+  add column if not exists stripe_refund_id text,
+  add column if not exists return_notes text;
+
+alter table public.orders
+  drop constraint if exists orders_return_status_check;
+
+alter table public.orders
+  add constraint orders_return_status_check
+  check (return_status in ('none', 'requested', 'received', 'refunded', 'rejected'));
+
+-- Le montant remboursé ne peut pas être négatif ni dépasser le total encaissé.
+alter table public.orders
+  drop constraint if exists orders_refund_amount_check;
+
+alter table public.orders
+  add constraint orders_refund_amount_check
+  check (refund_amount_cents is null or (refund_amount_cents >= 0 and refund_amount_cents <= total_cents));
+
+create index if not exists orders_open_returns_idx
+  on public.orders (site_id, return_status)
+  where return_status in ('requested', 'received');
+```
