@@ -96,7 +96,8 @@ export default {
   },
 
   storeMap: {
-    enabled: true,
+    /** Pas de carte publique : l'adresse ne sort pas des mentions légales (visites sur rendez-vous). */
+    enabled: false,
     provider: 'google',
     /** Bonhomme Street View (vue 360°) — facturation Google « Dynamic Street View » si utilisé */
     streetViewControl: false,
