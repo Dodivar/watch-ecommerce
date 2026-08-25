@@ -23,12 +23,17 @@ import {
   getStorageStats,
   getTableSizes,
 } from '@/services/admin/adminWatchService'
-import { getSalesStatsByDay } from '@/services/admin/adminOrderService'
+import { getSalesStatsByDay, getReturnStatsForAdmin } from '@/services/admin/adminOrderService'
 import { getArticleStatsByDay } from '@/services/admin/adminArticleService'
+import { getLeadStatsByDay } from '@/services/admin/adminLeadService'
+import { RETURN_STATUS_LABELS } from '@/services/admin/orderReturns.js'
+import { LEAD_TYPE_LABELS } from '@/utils/leadDisplay'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import AdminShell from './AdminShell.vue'
 
 const isBlogEnabled = computed(() => !!getSiteConfig().features?.blog)
+/** Sans vente en ligne, aucune commande à rembourser : la section retours n'a pas lieu d'être. */
+const isPurchaseEnabled = computed(() => !!getSiteConfig().features?.purchase)
 
 // Enregistrer les composants Chart.js
 ChartJS.register(
@@ -91,6 +96,14 @@ const isLoadingInventory = ref(false)
 // Ventes réelles (commandes payées) sur la période sélectionnée
 const salesStats = ref({ daily: [], totalRevenueCents: 0, orderCount: 0, avgOrderValueCents: 0 })
 const isLoadingSales = ref(false)
+
+// Retours / remboursements des commandes payées de la période
+const returnStats = ref(null)
+const isLoadingReturns = ref(false)
+
+// Demandes clients (boîte de réception) sur la période
+const leadStats = ref({ daily: [], byType: {}, total: 0 })
+const isLoadingLeads = ref(false)
 
 // Séries temporelles filtrées par période
 const filteredStats = computed(() => filterByPeriod(stats.value))
@@ -692,6 +705,136 @@ const revenueChartOptions = computed(() => ({
   },
 }))
 
+// --- Retours / remboursements -------------------------------------------------
+
+/** Statuts affichés : `none` est le cas normal, il écraserait les dossiers réels. */
+const RETURN_CHART_STATUSES = ['requested', 'received', 'refunded', 'rejected']
+
+/** Couleurs par statut : en cours en orange/bleu, remboursé en vert, refusé en gris. */
+const RETURN_STATUS_COLORS = {
+  requested: 'rgb(251, 146, 60)', // orange-500
+  received: 'rgb(59, 130, 246)', // blue-500
+  refunded: 'rgb(34, 197, 94)', // green-500
+  rejected: 'rgb(156, 163, 175)', // gray-400
+}
+
+const hasReturnCases = computed(() =>
+  RETURN_CHART_STATUSES.some((status) => (returnStats.value?.byStatus?.[status] || 0) > 0),
+)
+
+const refundedAmount = computed(() => (returnStats.value?.refundedAmountCents || 0) / 100)
+
+/** Délai moyen demande → remboursement, arrondi au dixième de jour. */
+const avgRefundDelay = computed(() => {
+  const days = returnStats.value?.avgRefundDelayDays
+  return days == null ? null : Math.round(days * 10) / 10
+})
+
+const returnStatusChartData = computed(() => {
+  const byStatus = returnStats.value?.byStatus || {}
+  const statuses = RETURN_CHART_STATUSES.filter((status) => (byStatus[status] || 0) > 0)
+  return {
+    labels: statuses.map((status) => RETURN_STATUS_LABELS[status]),
+    datasets: [
+      {
+        data: statuses.map((status) => byStatus[status]),
+        backgroundColor: statuses.map((status) => RETURN_STATUS_COLORS[status]),
+        borderWidth: 0,
+      },
+    ],
+  }
+})
+
+// --- Demandes clients ---------------------------------------------------------
+
+/** Couleur par type de demande, reprise de la palette des répartitions. */
+const LEAD_TYPE_COLORS = {
+  contact: 'rgb(59, 130, 246)', // blue-500
+  appointment: 'rgb(34, 197, 94)', // green-500
+  repair: 'rgb(168, 85, 247)', // purple-500
+  estimation: 'rgb(251, 146, 60)', // orange-500
+  search: 'rgb(14, 165, 233)', // sky-500
+}
+
+/**
+ * Types de demandes à tracer : ceux que le site propose, plus ceux qui ont un
+ * historique sur la période — couper l'estimation ne doit pas effacer du
+ * graphique les estimations déjà reçues.
+ */
+const visibleLeadTypes = computed(() => {
+  const site = getSiteConfig()
+  const { features } = site
+  const isRetail = site.watchCatalog?.isRetail ?? site.watchCatalog?.mode !== 'resale'
+  const enabled = {
+    contact: features.contact,
+    appointment: (site.watchCatalog?.appointmentEnabled ?? isRetail) && features.collection,
+    estimation: features.estimation,
+    search: features.recherche,
+    repair: features.repairRequest,
+  }
+  return Object.keys(LEAD_TYPE_COLORS).filter(
+    (type) => enabled[type] || (leadStats.value?.byType?.[type] || 0) > 0,
+  )
+})
+
+const topLeadType = computed(() => {
+  const byType = leadStats.value?.byType || {}
+  const best = visibleLeadTypes.value.reduce(
+    (max, type) => ((byType[type] || 0) > max.count ? { type, count: byType[type] || 0 } : max),
+    { type: null, count: 0 },
+  )
+  return best.type ? { label: LEAD_TYPE_LABELS[best.type], count: best.count } : null
+})
+
+const leadChartData = computed(() => {
+  const daily = leadStats.value?.daily || []
+  return {
+    labels: daily.map((item) => {
+      const date = new Date(item.date)
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: isMobile.value ? undefined : 'numeric',
+      })
+    }),
+    datasets: visibleLeadTypes.value.map((type) => ({
+      type: 'bar',
+      label: LEAD_TYPE_LABELS[type],
+      data: daily.map((item) => item.byType?.[type] || 0),
+      backgroundColor: LEAD_TYPE_COLORS[type],
+      borderWidth: 0,
+    })),
+  }
+})
+
+const leadChartOptions = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'top',
+      labels: { boxWidth: isMobile.value ? 10 : 12, font: { size: isMobile.value ? 10 : 12 } },
+    },
+    tooltip: { mode: 'index', intersect: false },
+  },
+  scales: {
+    x: {
+      stacked: true,
+      ticks: {
+        maxRotation: isMobile.value ? 45 : 0,
+        minRotation: isMobile.value ? 45 : 0,
+        font: { size: isMobile.value ? 9 : 11 },
+      },
+    },
+    y: {
+      stacked: true,
+      beginAtZero: true,
+      ticks: { stepSize: 1, precision: 0, font: { size: isMobile.value ? 9 : 11 } },
+      title: { display: !isMobile.value, text: 'Demandes' },
+    },
+  },
+}))
+
 const totalRevenue = computed(() => (salesStats.value?.totalRevenueCents || 0) / 100)
 const avgOrderValue = computed(() => (salesStats.value?.avgOrderValueCents || 0) / 100)
 
@@ -747,6 +890,37 @@ const loadSalesStats = async () => {
   }
 }
 
+// Charger les dossiers retour / remboursement sur la période sélectionnée
+const loadReturnStats = async () => {
+  if (!isPurchaseEnabled.value) return
+  try {
+    isLoadingReturns.value = true
+    returnStats.value = await getReturnStatsForAdmin(
+      selectedPeriod.value ? { days: selectedPeriod.value } : {},
+    )
+  } catch (err) {
+    console.error('Erreur lors du chargement des retours:', err)
+    // Ne pas bloquer l'affichage si les retours échouent
+  } finally {
+    isLoadingReturns.value = false
+  }
+}
+
+// Charger les demandes clients (boîte de réception) sur la période sélectionnée
+const loadLeadStats = async () => {
+  try {
+    isLoadingLeads.value = true
+    leadStats.value = await getLeadStatsByDay(
+      selectedPeriod.value ? { days: selectedPeriod.value } : {},
+    )
+  } catch (err) {
+    console.error('Erreur lors du chargement des demandes clients:', err)
+    // Ne pas bloquer l'affichage si les demandes échouent
+  } finally {
+    isLoadingLeads.value = false
+  }
+}
+
 // Méthode pour charger les stats de stockage
 const loadStorageStats = async () => {
   try {
@@ -775,9 +949,11 @@ const loadTableSizes = async () => {
   }
 }
 
-// Recharger le CA réel quand la période change (filtré côté serveur)
+// Recharger les séries filtrées côté serveur quand la période change
 vueWatch(selectedPeriod, () => {
   loadSalesStats()
+  loadReturnStats()
+  loadLeadStats()
 })
 
 onMounted(async () => {
@@ -785,6 +961,8 @@ onMounted(async () => {
     loadStats(),
     loadInventoryStats(),
     loadSalesStats(),
+    loadReturnStats(),
+    loadLeadStats(),
     loadStorageStats(),
     loadTableSizes(),
   ])
@@ -925,6 +1103,133 @@ onMounted(async () => {
           </div>
           <div v-else class="h-64 sm:h-80 md:h-96">
             <Chart :data="revenueChartData" :options="revenueChartOptions" />
+          </div>
+        </div>
+
+        <!-- Retours & remboursements -->
+        <div v-if="isPurchaseEnabled" class="bg-white rounded-lg shadow p-6 mb-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">Retours & remboursements</h2>
+              <p class="text-xs text-gray-500">
+                Sur les commandes payées de la période ({{ periodLabel }})
+              </p>
+            </div>
+            <RouterLink
+              to="/admin/orders?retours=open"
+              class="text-xs font-medium text-primary hover:underline"
+            >
+              Dossiers à traiter →
+            </RouterLink>
+          </div>
+
+          <div v-if="isLoadingReturns" class="text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
+            <p class="text-gray-600 text-sm">Chargement des retours...</p>
+          </div>
+          <template v-else>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                <div class="text-sm text-gray-600 mb-1">Commandes remboursées</div>
+                <div class="text-3xl font-bold text-text-main">{{ returnStats?.refundedCount || 0 }}</div>
+                <div class="text-xs text-gray-500 mt-2">
+                  Sur {{ returnStats?.paidOrderCount || 0 }} commande{{ (returnStats?.paidOrderCount || 0) > 1 ? 's' : '' }} payée{{ (returnStats?.paidOrderCount || 0) > 1 ? 's' : '' }}
+                </div>
+              </div>
+              <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                <div class="text-sm text-gray-600 mb-1">Montant remboursé</div>
+                <div class="text-3xl font-bold text-red-600">{{ formatEuro(refundedAmount) }}</div>
+                <div class="text-xs text-gray-500 mt-2">
+                  {{ (returnStats?.refundedRevenueShare || 0).toFixed(1) }} % du CA encaissé
+                </div>
+              </div>
+              <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                <div class="text-sm text-gray-600 mb-1">Taux de retour</div>
+                <div class="text-3xl font-bold text-text-main">
+                  {{ (returnStats?.refundRate || 0).toFixed(1) }} %
+                </div>
+                <div class="text-xs text-gray-500 mt-2">
+                  {{ returnStats?.openCount || 0 }} dossier{{ (returnStats?.openCount || 0) > 1 ? 's' : '' }} en cours
+                </div>
+              </div>
+              <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+                <div class="text-sm text-gray-600 mb-1">Délai moyen de remboursement</div>
+                <div class="text-3xl font-bold text-text-main" v-if="avgRefundDelay != null">
+                  {{ avgRefundDelay }} j
+                </div>
+                <div v-else class="text-gray-400 text-2xl">N/A</div>
+                <div
+                  class="text-xs mt-2"
+                  :class="(returnStats?.overdueCount || 0) > 0 ? 'text-red-600 font-medium' : 'text-gray-500'"
+                >
+                  <template v-if="(returnStats?.overdueCount || 0) > 0">
+                    {{ returnStats.overdueCount }} dossier{{ returnStats.overdueCount > 1 ? 's' : '' }} hors délai légal (14 j)
+                  </template>
+                  <template v-else>Délai légal : 14 jours après la demande</template>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="!hasReturnCases" class="text-center py-16">
+              <h3 class="text-lg text-gray-600 mb-2">Aucun dossier retour sur cette période</h3>
+              <p class="text-gray-500 text-sm">
+                Les rétractations et remboursements enregistrés apparaîtront ici.
+              </p>
+            </div>
+            <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Dossiers par statut</h3>
+                <div class="h-64">
+                  <Doughnut :data="returnStatusChartData" :options="doughnutOptions" />
+                </div>
+              </div>
+              <dl class="grid grid-cols-2 gap-3 text-sm self-center">
+                <div
+                  v-for="status in RETURN_CHART_STATUSES"
+                  :key="status"
+                  class="rounded-lg bg-cream/60 px-3 py-2"
+                >
+                  <dt class="text-gray-500">{{ RETURN_STATUS_LABELS[status] }}</dt>
+                  <dd class="font-semibold text-text-main">{{ returnStats?.byStatus?.[status] || 0 }}</dd>
+                </div>
+              </dl>
+            </div>
+          </template>
+        </div>
+
+        <!-- Demandes clients -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900">Demandes clients</h2>
+              <p class="text-xs text-gray-500">Boîte de réception, par type ({{ periodLabel }})</p>
+            </div>
+            <div class="flex gap-6">
+              <div class="text-right">
+                <div class="text-xs text-gray-500">Total</div>
+                <div class="text-xl font-bold text-text-main">{{ leadStats.total }}</div>
+              </div>
+              <div class="text-right" v-if="topLeadType">
+                <div class="text-xs text-gray-500">Type dominant</div>
+                <div class="text-xl font-bold text-blue-600">
+                  {{ topLeadType.label }} ({{ topLeadType.count }})
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="isLoadingLeads" class="text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
+            <p class="text-gray-600 text-sm">Chargement des demandes...</p>
+          </div>
+          <div v-else-if="leadStats.total === 0" class="text-center py-16">
+            <h3 class="text-lg text-gray-600 mb-2">Aucune demande sur cette période</h3>
+            <p class="text-gray-500 text-sm">
+              Contacts, rendez-vous et demandes atelier apparaîtront ici.
+            </p>
+          </div>
+          <div v-else class="h-64 sm:h-80 md:h-96">
+            <Chart :data="leadChartData" :options="leadChartOptions" />
           </div>
         </div>
 

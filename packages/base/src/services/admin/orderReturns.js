@@ -157,3 +157,75 @@ export function validateReturnUpdate(update, order = {}) {
 
   return { ok: true }
 }
+
+/** Dossiers encore à traiter : colis attendu ou reçu, remboursement pas encore fait. */
+export const OPEN_RETURN_STATUSES = ['requested', 'received']
+
+/**
+ * Agrège les dossiers retour d'un lot de commandes payées.
+ *
+ * Le dénominateur est le lot reçu (les commandes payées de la période) : un
+ * taux de retour ne veut rien dire rapporté aux seules commandes retournées.
+ * `avgRefundDelayDays` mesure le délai réel demande → remboursement, à comparer
+ * aux 14 jours de `REFUND_PERIOD_DAYS` ; il vaut `null` tant qu'aucun dossier
+ * remboursé ne porte les deux dates (les dossiers d'avant le suivi retour).
+ *
+ * @param {Array<{ totalCents?: number|null, returnStatus?: string|null,
+ *   returnRequestedAt?: string|Date|null, refundAmountCents?: number|null,
+ *   refundedAt?: string|Date|null }>} orders
+ * @param {Date} [now]
+ */
+export function summarizeReturnStats(orders, now = new Date()) {
+  const rows = orders || []
+  /** @type {Record<string, number>} */
+  const byStatus = Object.fromEntries(RETURN_STATUSES.map((status) => [status, 0]))
+  const refundDelays = []
+  let paidRevenueCents = 0
+  let refundedAmountCents = 0
+  let overdueCount = 0
+
+  for (const order of rows) {
+    const status = RETURN_STATUSES.includes(order?.returnStatus) ? order.returnStatus : 'none'
+    byStatus[status] += 1
+    paidRevenueCents += order?.totalCents || 0
+
+    if (status === 'refunded') {
+      refundedAmountCents += order?.refundAmountCents || 0
+      const requestedAt = toDate(order?.returnRequestedAt)
+      const refundedAt = toDate(order?.refundedAt)
+      if (requestedAt && refundedAt) {
+        refundDelays.push((refundedAt.getTime() - requestedAt.getTime()) / DAY_MS)
+      }
+    } else if (OPEN_RETURN_STATUSES.includes(status)) {
+      // Hors délai légal : la rétractation est notifiée depuis plus de 14 jours
+      // et le remboursement n'est toujours pas enregistré.
+      if (computeRefundDeadline(order?.returnRequestedAt, now)?.isOverdue) {
+        overdueCount += 1
+      }
+    }
+  }
+
+  const paidOrderCount = rows.length
+  const openCount = OPEN_RETURN_STATUSES.reduce((sum, status) => sum + byStatus[status], 0)
+  const refundedCount = byStatus.refunded
+
+  return {
+    paidOrderCount,
+    paidRevenueCents,
+    byStatus,
+    openCount,
+    refundedCount,
+    refundedAmountCents,
+    overdueCount,
+    /** Part des commandes payées effectivement remboursées, en %. */
+    refundRate: paidOrderCount > 0 ? (refundedCount / paidOrderCount) * 100 : 0,
+    /** Part du chiffre d'affaires encaissé rendue au client, en %. */
+    refundedRevenueShare:
+      paidRevenueCents > 0 ? (refundedAmountCents / paidRevenueCents) * 100 : 0,
+    /** Délai moyen demande → remboursement, en jours. */
+    avgRefundDelayDays:
+      refundDelays.length > 0
+        ? refundDelays.reduce((sum, days) => sum + days, 0) / refundDelays.length
+        : null,
+  }
+}

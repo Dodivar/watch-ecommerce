@@ -155,4 +155,66 @@ export async function getAppointmentsByDate() {
   return byDate
 }
 
+/**
+ * Demandes clients groupées par jour et par type, pour la page statistiques.
+ *
+ * Les types sont renvoyés tels quels : c'est la page qui décide lesquels
+ * afficher selon les features du site — un site qui vient de couper
+ * l'estimation a encore un historique d'estimations à montrer.
+ *
+ * @param {{ days?: number }} [options] - Fenêtre temporelle en jours (omis = tout l'historique).
+ * @returns {Promise<{ daily: Array<{ date: string, total: number, byType: Record<string, number> }>,
+ *   byType: Record<string, number>, total: number }>}
+ */
+export async function getLeadStatsByDay({ days } = {}) {
+  const siteId = getAdminSiteId()
+
+  let query = supabase
+    .from('lead_submissions')
+    .select('type, created_at')
+    .eq('site_id', siteId)
+    .order('created_at', { ascending: true })
+
+  if (typeof days === 'number' && days > 0) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+    query = query.gte('created_at', since)
+  }
+
+  const { data, error } = await query
+  if (error) throw new Error(error.message)
+
+  const rows = data || []
+  const byType = Object.fromEntries(LEAD_TYPES.map((type) => [type, 0]))
+  /** @type {Map<string, { date: string, total: number, byType: Record<string, number> }>} */
+  const byDate = new Map()
+
+  for (const row of rows) {
+    if (!row.created_at) continue
+    const type = LEAD_TYPES.includes(row.type) ? row.type : null
+    if (!type) continue
+
+    byType[type] += 1
+
+    const dateKey = new Date(row.created_at).toISOString().split('T')[0]
+    if (!byDate.has(dateKey)) {
+      byDate.set(dateKey, {
+        date: dateKey,
+        total: 0,
+        byType: Object.fromEntries(LEAD_TYPES.map((t) => [t, 0])),
+      })
+    }
+    const dayStats = byDate.get(dateKey)
+    dayStats.byType[type] += 1
+    dayStats.total += 1
+  }
+
+  const daily = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date))
+
+  return {
+    daily,
+    byType,
+    total: daily.reduce((sum, day) => sum + day.total, 0),
+  }
+}
+
 export { LEAD_TYPES, LEAD_STATUSES }
