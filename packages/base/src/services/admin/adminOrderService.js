@@ -1,7 +1,7 @@
 import { supabase } from '../supabase'
 import { getBackendApiUrl, readApiResponseBody } from '../backendApiUrl.js'
 import { getAdminSiteId } from './adminSiteContext.js'
-import { RETURN_STATUSES, validateReturnUpdate } from './orderReturns.js'
+import { RETURN_STATUSES, summarizeReturnStats, validateReturnUpdate } from './orderReturns.js'
 
 const FULFILLMENT_STATUSES = ['pending', 'preparing', 'shipped', 'ready_for_pickup', 'completed']
 
@@ -364,6 +364,44 @@ export async function getSalesStatsByDay({ days } = {}) {
     orderCount,
     avgOrderValueCents,
   }
+}
+
+/**
+ * Statistiques retours / remboursements des commandes payées de la période.
+ *
+ * Même fenêtre que `getSalesStatsByDay` (bornée sur `paid_at`) pour que le taux
+ * de retour se lise en face du chiffre d'affaires de la même période.
+ *
+ * @param {{ days?: number }} [options] - Fenêtre temporelle en jours (omis = tout l'historique).
+ * @returns {Promise<ReturnType<typeof summarizeReturnStats>>}
+ */
+export async function getReturnStatsForAdmin({ days } = {}) {
+  const siteId = getAdminSiteId()
+
+  let query = supabase
+    .from('orders')
+    .select('total_cents, return_status, return_requested_at, refund_amount_cents, refunded_at')
+    .eq('site_id', siteId)
+    .eq('status', 'paid')
+    .not('paid_at', 'is', null)
+
+  if (typeof days === 'number' && days > 0) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+    query = query.gte('paid_at', since)
+  }
+
+  const { data, error } = await query
+  if (error) throw new Error(error.message)
+
+  return summarizeReturnStats(
+    (data || []).map((row) => ({
+      totalCents: row.total_cents,
+      returnStatus: row.return_status,
+      returnRequestedAt: row.return_requested_at,
+      refundAmountCents: row.refund_amount_cents,
+      refundedAt: row.refunded_at,
+    })),
+  )
 }
 
 /**
