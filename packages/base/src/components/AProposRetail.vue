@@ -37,13 +37,14 @@
             </div>
           </div>
 
-          <div class="relative w-full" :class="heroImageWrapClass">
+          <div v-if="showHeroImage" class="relative w-full" :class="heroImageWrapClass">
             <div class="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/5" :class="heroImageFrameClass">
               <img
                 :src="heroImageSrc"
                 :alt="heroImageAlt"
                 class="h-full w-full object-cover object-center"
                 loading="eager"
+                @error="heroImageFailed = true"
               />
               <p
                 v-if="about.hero.imageCaption"
@@ -266,7 +267,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useHead } from '@vueuse/head'
 import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -281,13 +282,23 @@ const seo = site.seo.aPropos
 const features = site.features
 const storeMap = site.storeMap
 
+/**
+ * Visuel du hero : `about.hero.image`, sinon le logo de marque servi depuis `public/`.
+ * Un site qui ne fournit ni l'un ni l'autre ne doit pas afficher d'image cassée : le bloc
+ * disparaît et le discours occupe toute la largeur.
+ */
 const heroImageSrc = about.hero?.image || '/brand-logo.jpg'
+const heroImageFailed = ref(false)
 const heroImageAlt = about.hero?.imageAlt || brandDisplayName
 const isLandscapeHero = about.hero?.imageLayout === 'landscape'
 
-const heroGridClass = computed(() =>
-  isLandscapeHero ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]' : 'lg:grid-cols-2',
-)
+const showHeroImage = computed(() => Boolean(heroImageSrc) && !heroImageFailed.value)
+
+/** Sans visuel, le hero repasse sur une colonne : sinon le discours reste tassé à gauche. */
+const heroGridClass = computed(() => {
+  if (!showHeroImage.value) return ''
+  return isLandscapeHero ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]' : 'lg:grid-cols-2'
+})
 
 const heroImageWrapClass = computed(() =>
   isLandscapeHero ? 'lg:justify-self-stretch' : 'flex justify-center lg:justify-end',
