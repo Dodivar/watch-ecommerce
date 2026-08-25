@@ -127,6 +127,7 @@ Capture : `assets/apres-admin-plateforme.png`
 | « À qui appartient le compte Stripe ? » | **Le leur** — à dire avant qu'ils ne le demandent. Aucun encaissement ne transite par nous, vérifiable dans le code | `contractuel/01` *(local)* §5 |
 | « Montrez-moi un autre revendeur » | Ne pas gonfler Sauvage Watches : annoncer la différence de profil, puis basculer sur preuves vérifiables + garantie de résultat | `contractuel/07` *(local)* |
 | « Et l'accessibilité ? » | Poser d'abord la question des seuils (effectif, CA). Ne revendiquer aucune conformité : aucun audit n'a eu lieu | `contractuel/06` *(local)* |
+| **« Mes clients ont un compte »** *(question certaine — l'ouvrir soi-même)* | Les mots de passe PrestaShop ne sont reprenables par personne, chez aucun prestataire. On supprime le besoin de compte : suivi de commande et factures accessibles par lien e-mail, historique d'avant la bascule importé | `objection-comptes-clients.md` |
 | « Et avec mes 3 000 montres, ça tient ? » | Ne pas répondre oui de mémoire : proposer l'audit express sur leur export réel avant le devis définitif | `contractuel/07` *(local)* §5 |
 
 ---

@@ -77,7 +77,7 @@ Proposition structurée en **3 packs** pour la vente de la plateforme watch-ecom
 - Compte Stripe avec PayPal activé
 - Contrat / identifiants API Colissimo ou partenaire relais
 - Compte email marketing (Brevo/Mailjet)
-- Communication « recréez votre compte » pour anciens clients PrestaShop
+- Export PrestaShop des commandes (`ps_customer`, `ps_orders`, `ps_order_detail`, `ps_address`) pour l'import de l'historique — **plus de communication « recréez votre compte »** depuis l'arbitrage « zéro compte » du 24/08/2026
 
 ### Détail technique
 
@@ -125,7 +125,9 @@ Voir [`PHASE-2-SCOPE.md`](./PHASE-2-SCOPE.md).
 
 ### « Mes clients ont un compte »
 
-**Réponse** : Le Pack Lancement fonctionne en checkout invité avec emails et PDF — comme beaucoup de boutiques modernes. Le Pack Fidélisation ajoute l'espace client sans bloquer la mise en ligne.
+**Réponse** : Les mots de passe PrestaShop ne sont reprenables par aucun prestataire — toute solution avec compte impose de les refaire. On supprime donc le besoin de compte : suivi de commande et factures accessibles par lien e-mail, et historique d'avant la bascule importé. L'espace client avec identifiant reste disponible en option, s'ils le demandent.
+
+**Argumentaire complet et scénarios chiffrés** : `documentation/commercial/place-des-montres/objection-comptes-clients.md`.
 
 ### « Et PayPal / le point relais ? »
 
