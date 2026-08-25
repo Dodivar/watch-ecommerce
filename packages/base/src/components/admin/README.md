@@ -16,6 +16,10 @@ Interface back-office accessible après authentification Supabase.
   moyen de vente), chiffre d'affaires réel issu des commandes payées, séries
   temporelles avec sélecteur de période, répartitions du catalogue (statut,
   audience, marques, tranches de prix) et métriques infra (stockage, tables).
+  Le graphique « articles créés et vus » dépend de `features.blog` : sans ce
+  drapeau dans `sites/<SITE_ID>/site.config.js`, la section n'est pas rendue et
+  `getArticleStatsByDay()` n'est même pas appelé (voir
+  `AdminWatchStats.component.test.js`).
 - `AdminOrderReturnPanel.vue` : dossier retour d'une commande payée (délai de
   rétractation de 14 jours, statut du retour, trace du remboursement). Aucun
   remboursement n'est déclenché depuis l'admin : le panneau renvoie vers le
