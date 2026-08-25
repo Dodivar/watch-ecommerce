@@ -2,6 +2,9 @@
  * Manifest client — Jack'N'Ed (jackned.com), horlogerie-bijouterie à Strasbourg.
  * Données publiques issues du site vitrine : adresse, horaires, contact, texte « À propos ».
  * SIRET : à renseigner depuis les mentions légales officielles du client.
+ *
+ * Site monolingue : pas de bloc `i18n`, donc pas de `t({ fr, en, de })` — les chaînes
+ * françaises simples suffisent (voir AGENTS.md).
  */
 import faq from './faq.config.js'
 
@@ -12,17 +15,22 @@ export default {
 
   locale: 'fr',
 
-  /** Design tokens — palette boutique / cathédrale (neutre luxe) */
+  /**
+   * Design tokens repris du site actuel jackned.com : fond blanc, boutons noirs,
+   * bandes gris très clair, aucun accent coloré, coins droits.
+   */
   theme: {
     colors: {
-      primary: '#3d2914',
-      primaryHover: '#52361a',
-      cream: '#f7ede0',
-      cream100: '#ede4d8',
-      cream200: '#e3d9cc',
-      cream300: '#d9cec0',
-      textMain: '#000000',
+      primary: '#111111',
+      primaryHover: '#3d3d3d',
+      cream: '#f7f7f7',
+      cream100: '#ececec',
+      cream200: '#e0e0e0',
+      cream300: '#d1d1d1',
+      textMain: '#1e1a1a',
     },
+    /** Coins droits sur cartes/boutons/champs ; cercles (`rounded-full`) conservés. */
+    radius: 'sharp',
   },
 
   brand: {
@@ -35,6 +43,8 @@ export default {
 
   contact: {
     whatsappE164: '+33390413057',
+    phoneDisplay: '03 90 41 30 57',
+    phoneE164: '+33390413057',
     email: 'sa@jackned.com',
     footerAddressHtml: '14 Place de la Cathédrale<br />67000 Strasbourg, France',
   },
@@ -47,7 +57,9 @@ export default {
     streetViewControl: true,
     center: { lat: 48.58185, lng: 7.74875 },
     zoom: 16,
-    markerLabel: "Jack'N'Ed",
+    markerLabel: "Jack'N'Ed — Place de la Cathédrale",
+    /** Logo bulle carte : à activer une fois `public/brand-logo.jpg` fourni par le client. */
+    // popupLogoSrc: publicPath('brand-logo.jpg'),
     directionsAddress: '14 Place de la Cathédrale, 67000 Strasbourg, France',
     openingHours: {
       daysLabel: 'Lundi – samedi',
@@ -58,6 +70,7 @@ export default {
   legal: {
     companyName: "Jack'N'Ed",
     address: '14 Place de la Cathédrale 67000 Strasbourg',
+    /** TODO client : SIRET réel à reprendre des mentions légales officielles. */
     siret: '000 000 000 00000',
   },
 
@@ -68,13 +81,134 @@ export default {
     previewFallbackHost: 'recette.jackned.com',
   },
 
+  /**
+   * Seule la page Facebook du client est confirmée. Instagram et TikTok étaient des URLs
+   * racines génériques (liens morts) : retirés en attendant les comptes réels.
+   */
   social: {
-    footerTiktokUrl: 'https://www.tiktok.com/',
     suivezNous: {
-      instagramUrl: 'https://www.instagram.com/',
-      instagramHandle: '@jackned',
-      tiktokUrl: 'https://www.tiktok.com/',
-      tiktokHandle: '@jackned',
+      facebookUrl: 'https://www.facebook.com/JacknedWatchesJewelryForAll/',
+      facebookHandle: "Jack'N'Ed",
+    },
+  },
+
+  about: {
+    variant: 'retail',
+    hero: {
+      eyebrow: 'Qui sommes-nous ?',
+      title: "Jack'N'Ed",
+      lead: "Située au cœur historique de Strasbourg, au pied de la cathédrale, notre boutique offre aux Strasbourgeois comme aux visiteurs de passage une vue imprenable sur cette splendeur architecturale — et un large choix de montres à essayer au poignet.",
+      /**
+       * Photo de devanture à ajouter dans `public/places/` : renseigner alors `image`
+       * (+ `imageAlt`, `imageCaption`, `imageLayout: 'landscape'`). Sans elle, le hero
+       * passe automatiquement sur une seule colonne.
+       */
+    },
+    stats: [
+      {
+        value: '20+',
+        label: 'Marques proposées',
+        detail: 'Du quotidien accessible au Swiss Made',
+      },
+      {
+        value: 'Lun–Sam',
+        label: '10h – 19h',
+        detail: 'Six jours sur sept, sans rendez-vous',
+      },
+      {
+        value: '1',
+        label: 'Adresse à Strasbourg',
+        detail: '14 place de la Cathédrale',
+      },
+      {
+        value: 'SAV',
+        label: 'Sur place',
+        detail: 'Réparations, piles et bracelets',
+      },
+    ],
+    story: {
+      title: 'Une entreprise familiale au pied de la cathédrale',
+      paragraphs: [
+        "Jack'N'Ed est avant tout une entreprise familiale, au plus proche de sa clientèle et à l'écoute des attentes et des besoins de chacun. Ouverte du lundi au samedi de 10h à 19h, la boutique se visite sans rendez-vous, que vous cherchiez une première montre, un cadeau ou simplement un conseil.",
+        "Les marques que nous proposons offrent un large choix : il y en a pour tous les goûts et pour tous les budgets. Les montres et les bijoux sont garantis, et nous assurons un service après-vente de qualité — réparations, révisions et changements de piles.",
+        "Un personnel qualifié et accueillant est là pour vous guider dans vos choix : essayer plusieurs modèles au poignet, comparer les tailles de boîtier, ajuster un bracelet, comprendre ce que change un mouvement automatique. C'est ce dialogue, plus que le catalogue, qui fait la différence.",
+      ],
+      pullQuote:
+        "Pousser notre porte, c'est prendre le temps d'essayer, de comparer et de repartir avec la montre qui vous ressemble.",
+    },
+    styles: [
+      {
+        title: 'Sport & quotidien',
+        description:
+          'Chronographes, montres résistantes, modèles robustes au quotidien : pour le bureau, le week-end ou le grand air.',
+        icon: 'sport',
+      },
+      {
+        title: 'Élégance intemporelle',
+        description:
+          'Cadrans sobres, finitions soignées, bracelets cuir ou acier : la montre qui accompagne une tenue et traverse les saisons.',
+        icon: 'elegance',
+      },
+      {
+        title: 'Mécanique vivante',
+        description:
+          'Pour les amateurs de belles mécaniques : montres automatiques, parfois à fond transparent, pour admirer les rouages en mouvement.',
+        icon: 'mechanics',
+      },
+    ],
+    brands: {
+      title: 'Une vingtaine de marques, un seul standard',
+      intro:
+        'Tissot, Hamilton, Seiko, Certina, Citizen, Orient, Herbelin, Lip, Yema, Victorinox, Briston, Squale, Zeppelin, Pierre Lannier, Festina, Maserati, Casio, G-Shock… nous sélectionnons des maisons reconnues pour leur qualité et leur diversité.',
+      names: [
+        'Tissot',
+        'Hamilton',
+        'Seiko',
+        'Certina',
+        'Citizen',
+        'Orient',
+        'Orient Star',
+        'Herbelin',
+        'Lip',
+        'Yema',
+        'Victorinox',
+        'Wenger',
+        'Briston',
+        'Squale',
+        'Zeppelin',
+        'Pierre Lannier',
+        'Festina',
+        'Maserati',
+        'Casio',
+        'G-Shock',
+      ],
+    },
+    experience: {
+      title: "L'expérience Jack'N'Ed",
+      items: [
+        {
+          title: 'Conseil de proximité',
+          description:
+            'Essayer au poignet, comparer les modèles, poser toutes vos questions : notre équipe vous accueille du lundi au samedi, sans rendez-vous.',
+        },
+        {
+          title: 'Boutique & e-commerce',
+          description:
+            'Commandez en ligne ou passez nous voir place de la Cathédrale : retrait gratuit en boutique, ou livraison suivie et assurée à domicile.',
+        },
+        {
+          title: 'Service après-vente sur place',
+          description:
+            "Changement de pile, remise en état, ajustement et remplacement de bracelet : nous intervenons directement en boutique, y compris sur les montres achetées ailleurs.",
+        },
+      ],
+    },
+    cta: {
+      title: 'Prêt à trouver votre montre ?',
+      subtitle:
+        'Parcourez la collection en ligne ou venez nous rencontrer au 14 place de la Cathédrale — nous vous accueillons du lundi au samedi, de 10h à 19h.',
+      collectionLabel: 'Découvrir nos montres',
+      contactLabel: 'Nous contacter',
     },
   },
 
@@ -111,12 +245,17 @@ export default {
     password: 'dodi',
   },
 
+  /**
+   * Boutique retail : ni recherche personnalisée ni estimation/reprise (notions revente).
+   * Blog coupé tant qu'aucun article n'est rédigé.
+   * `faq` n'est pas déclaré ici : `resolveSiteConfig` le dérive de `faq.enabled` + `faq.items`.
+   */
   features: {
     collection: true,
-    blog: true,
-    recherche: true,
-    estimation: true,
-    estimationProcess: true,
+    blog: false,
+    recherche: false,
+    estimation: false,
+    estimationProcess: false,
     merci: true,
     about: true,
     legal: true,
@@ -224,12 +363,176 @@ export default {
   },
 
   collection: {
+    pageSize: 12,
     filters: {
       price: true,
       brand: true,
       audience: true,
       caseSize: true,
+      braceletColor: true,
+      braceletMaterial: true,
+      promotion: true,
     },
+  },
+
+  /**
+   * Accueil. `sections` ne retient que ce que le site sait afficher aujourd'hui :
+   * `homeCarousel` (uploads Supabase) et `selections` (visuels + homeSelections.config.js)
+   * seraient de toute façon filtrés par `filterHomeSectionsByFeatures`.
+   */
+  home: {
+    /**
+     * Hero « vitrine » : le discours à gauche, une montre du catalogue dans un panneau blanc
+     * à droite — elle se renouvelle seule, aucun visuel à fournir. Écho direct du packshot
+     * sur fond blanc du site actuel.
+     */
+    hero: {
+      variant: 'vitrine',
+      eyebrow: 'Horlogerie à Strasbourg',
+      title: 'Votre montre, choisie au pied de la cathédrale.',
+      subtitle:
+        "Entreprise familiale au 14 place de la Cathédrale : un large choix de marques, un conseil qui prend le temps, et un service après-vente sur place.",
+      highlights: [
+        'Montres garanties',
+        'Réparations et piles sur place',
+        'Ouvert du lundi au samedi, 10h–19h',
+      ],
+      primaryCta: {
+        label: 'Découvrir nos montres',
+        to: '/collection',
+      },
+      secondaryCta: {
+        label: 'Nous contacter',
+        to: '/contact',
+      },
+    },
+    nouvelles: {
+      title: 'Nouveautés',
+      subtitle: 'Les derniers modèles arrivés en boutique.',
+    },
+    collectionHighlight: {
+      title: 'Nos coups de cœur',
+      subtitle:
+        'Quelques pièces choisies dans la collection — venez les essayer au poignet place de la Cathédrale.',
+      cta: {
+        label: 'Voir toute la collection',
+        to: '/collection',
+      },
+    },
+    stats: {
+      items: [
+        {
+          icon: 'stock',
+          value: '20+',
+          label: 'Marques',
+          detail: 'Du quotidien accessible au Swiss Made',
+        },
+        {
+          icon: 'store',
+          value: 'Lun–Sam',
+          label: '10h – 19h',
+          detail: '14 place de la Cathédrale, Strasbourg',
+        },
+        {
+          icon: 'atelier',
+          value: 'SAV',
+          label: 'Sur place',
+          detail: 'Réparations, piles et bracelets',
+        },
+      ],
+      highlights: [
+        {
+          icon: 'guarantee',
+          label: 'Montres garanties',
+          detail: 'Garantie fabricant indiquée sur chaque fiche modèle',
+        },
+        {
+          icon: 'pickup',
+          label: 'Retrait gratuit en boutique',
+          detail: 'Commandez en ligne, récupérez place de la Cathédrale',
+        },
+        {
+          icon: 'payment',
+          label: 'Paiement sécurisé',
+          detail: 'Règlement en ligne protégé via Stripe',
+        },
+      ],
+    },
+    aboutPreview: {
+      eyebrow: 'Qui sommes-nous ?',
+      title: 'Une entreprise familiale au pied de la cathédrale',
+      description:
+        "Située au cœur historique de Strasbourg, la boutique offre une vue imprenable sur la cathédrale. Ouverte du lundi au samedi, elle réunit un large choix de marques, des montres garanties et un service après-vente assuré sur place — réparations, révisions et changements de piles.",
+      /** Photo de devanture à ajouter dans `public/places/` ; en attendant, repli texte. */
+      imageFallback: "Jack'N'Ed",
+      ctaLabel: 'Découvrir notre histoire',
+      to: '/a-propos',
+    },
+    sections: [
+      'hero',
+      'nouvelles',
+      'collectionHighlight',
+      'stats',
+      'aboutPreview',
+      'faq',
+    ],
+  },
+
+  navigation: {
+    main: [
+      {
+        type: 'megaMenu',
+        label: 'Nos montres',
+        to: '/collection',
+        feature: 'collection',
+        columns: [
+          {
+            title: 'Genre',
+            items: [
+              { label: 'Montre femme', to: '/collection?public=femme', feature: 'collection' },
+              { label: 'Montre homme', to: '/collection?public=homme', feature: 'collection' },
+              { label: 'Montre enfant', to: '/collection?public=enfant', feature: 'collection' },
+            ],
+          },
+          {
+            title: 'Marques',
+            source: 'brands',
+            columns: 2,
+            footerLink: {
+              label: 'Toutes les marques',
+              to: '/collection/marques',
+            },
+          },
+          {
+            title: 'Promotions',
+            titleLink: '/collection?promotion=1',
+            dynamicCampaigns: true,
+            items: [
+              {
+                label: 'Promotions femme',
+                to: '/collection?promotion=1&public=femme',
+                feature: 'collection',
+              },
+              {
+                label: 'Promotions homme',
+                to: '/collection?promotion=1&public=homme',
+                feature: 'collection',
+              },
+            ],
+          },
+        ],
+      },
+      { type: 'link', label: 'À propos', to: '/a-propos', feature: 'about' },
+      { type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' },
+      { type: 'link', label: 'Contact', to: '/contact', feature: 'contact' },
+    ],
+    footer: [
+      { label: 'Accueil', to: '/#accueil' },
+      { label: 'Marques', to: '/collection/marques', feature: 'collection' },
+      { label: 'À propos', to: '/a-propos', feature: 'about' },
+      { label: 'FAQ', to: '/faq', feature: 'faq' },
+      { label: 'Contact', to: '/contact', feature: 'contact' },
+    ],
   },
 
   backend: {
@@ -238,7 +541,13 @@ export default {
       extraAllowedOrigins: [],
     },
     email: {
-      template: {},
+      fromName: "Jack'N'Ed",
+      fromAddress: 'sa@jackned.com',
+      toAddress: 'sa@jackned.com',
+      template: {
+        logoText: "Jack'N'Ed",
+        accentColor: '#111111',
+      },
     },
     n8n: {
       productionWorkflowUrl: '',
@@ -264,6 +573,10 @@ export default {
       ogLocale: 'fr_FR',
       ogSiteName: "Jack'N'Ed",
       appleMobileWebAppTitle: "Jack'N'Ed",
+      /**
+       * TODO client : `public/logo500x500.png` reste à fournir. Ce même chemin est codé en dur
+       * dans le JSON-LD de la fiche montre (`WatchDetail.vue`), donc un seul fichier suffit.
+       */
       ogImagePath: '/logo500x500.png',
     },
     home: {
@@ -331,6 +644,17 @@ export default {
         'Vue sur la cathédrale, équipe qualifiée, réparations et piles — du lundi au samedi.',
       twitterTitle: "À propos Jack'N'Ed",
       twitterDescription: 'Une boutique familiale au pied de la cathédrale.',
+    },
+    faq: {
+      title: "FAQ | Jack'N'Ed — Commande, retrait, garanties et SAV",
+      metaDescription:
+        'Réponses aux questions fréquentes : horaires et accès, retrait gratuit en boutique, livraison, paiement Stripe, garanties, réparations et changements de piles.',
+      ogTitle: "FAQ | Jack'N'Ed",
+      ogDescription:
+        'Commande, retrait place de la Cathédrale, livraison, garanties et service après-vente — toutes les réponses.',
+      twitterTitle: "FAQ — Jack'N'Ed",
+      twitterDescription:
+        'Retrait boutique, garanties, piles et réparations : vos questions, nos réponses.',
     },
     politique: {
       title: "Politique de confidentialité | Jack'N'Ed",
