@@ -6,7 +6,7 @@ const { generateOrderReceiptPdf, receiptPdfFilename } = require('./receiptPdf')
  * @param {object} site
  * @param {object} order
  * @param {object[]} lines
- * @param {{ shipping?: object|null, discount?: object|null }} [extras]
+ * @param {{ shipping?: object|null, discount?: object|null, followUpUrl?: string|null }} [extras]
  */
 async function sendOrderConfirmationEmails(site, order, lines, extras = {}) {
   if (!order.customer_email) {

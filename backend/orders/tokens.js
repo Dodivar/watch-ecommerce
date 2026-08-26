@@ -2,6 +2,13 @@ const crypto = require('crypto')
 
 const DEFAULT_TTL_SECONDS = 60 * 60 * 2 // 2 hours (covers reserve window + checkout)
 
+// Lien de suivi durable envoyé dans l'email de confirmation : il doit rester
+// valable aussi longtemps que le reçu qu'il permet de retélécharger, soit la
+// durée de conservation des pièces justificatives (10 ans, art. L123-22 du code
+// de commerce). Un TTL plus court reproduirait la même rupture d'accès, juste
+// plus tard. Ce token n'ouvre que la lecture (voir `requireOrderAccess`).
+const FOLLOW_UP_TTL_SECONDS = 60 * 60 * 24 * 365 * 10
+
 /**
  * @param {string} token
  * @returns {string}
@@ -81,4 +88,5 @@ module.exports = {
   signOrderAccessToken,
   verifyOrderAccessToken,
   DEFAULT_TTL_SECONDS,
+  FOLLOW_UP_TTL_SECONDS,
 }

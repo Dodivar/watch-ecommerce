@@ -41,7 +41,7 @@ function buildAddressHtml(address) {
  * @param {object} order
  * @param {object[]} lines
  * @param {boolean} forMerchant
- * @param {{ shipping?: object|null, discount?: object|null }} [extras]
+ * @param {{ shipping?: object|null, discount?: object|null, followUpUrl?: string|null }} [extras]
  */
 function createOrderConfirmationEmail(site, order, lines, forMerchant = false, extras = {}) {
   const accent = site.config.backend.email.template.accentColor
@@ -51,6 +51,9 @@ function createOrderConfirmationEmail(site, order, lines, forMerchant = false, e
 
   const shipping = extras.shipping || null
   const discount = extras.discount || null
+  // Lien de suivi durable — la trace que le client garde de sa commande, sans compte
+  // ni mot de passe. Réservé à l'email client : le commerçant passe par l'admin.
+  const followUpUrl = !forMerchant && extras.followUpUrl ? String(extras.followUpUrl) : ''
 
   const linesHtml = (lines || [])
     .map(
@@ -105,6 +108,21 @@ function createOrderConfirmationEmail(site, order, lines, forMerchant = false, e
     </div>`
     : ''
 
+  const followUpHtml = followUpUrl
+    ? `
+    <div style="margin:0 0 24px;padding:16px;border:1px solid #eee;border-radius:8px;background:#fafafa;">
+      <h2 style="font-size:15px;color:#111;margin:0 0 8px;">Suivre votre commande</h2>
+      <p style="color:#444;margin:0 0 12px;line-height:1.5;">
+        Retrouvez à tout moment le détail de votre commande et retéléchargez votre reçu
+        depuis ce lien — sans compte ni mot de passe. Conservez cet email.
+      </p>
+      <a
+        href="${escapeHtml(followUpUrl)}"
+        style="display:inline-block;padding:10px 18px;background:${accent};color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;"
+      >Voir ma commande</a>
+    </div>`
+    : ''
+
   const addressHtml = buildAddressHtml(order.shipping_address)
   const shippingHtml =
     shipping || addressHtml
@@ -152,6 +170,7 @@ function createOrderConfirmationEmail(site, order, lines, forMerchant = false, e
     ${summaryHtml}
     ${discountHtml}
     ${shippingHtml}
+    ${followUpHtml}
     <p style="color:#888;font-size:12px;margin-top:32px;">${escapeHtml(brandName)}</p>
   </div>
 </body>

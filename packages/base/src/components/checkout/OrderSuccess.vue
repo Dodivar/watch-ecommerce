@@ -14,13 +14,20 @@ import {
   WATCH_CARD_IMAGE_SIZES,
 } from '@/utils/watchImageUrl.js'
 import { formatPrice as formatAmount } from '@/utils/formatters.js'
-import { t } from '@/i18n'
+import { t, getActiveLocale } from '@/i18n'
 
 const route = useRoute()
 const site = getSiteConfig()
 const browsePath = getBrowsePath(site.features)
 
+// `/commande/suivi` : lien durable envoyé dans l'email de confirmation. Même vue que la fin
+// de tunnel, mais la commande peut être rouverte des mois plus tard — aucun effet de bord de
+// fin de tunnel ne doit s'y rejouer (voir onMounted).
+const isTrackingView = computed(() => route.path.endsWith('/commande/suivi'))
+
 const orderId = ref('')
+const fulfillmentStatus = ref('')
+const paidAt = ref('')
 const subtotalCents = ref(0)
 const shippingCents = ref(0)
 const discountCents = ref(0)
@@ -49,6 +56,33 @@ const DISCOUNT_TYPE_LABELS = {
 function formatPrice(cents) {
   return formatAmount((cents || 0) / 100, { decimals: true })
 }
+
+/** Clés de traduction des statuts de préparation (`orders.fulfillment_status`). */
+const FULFILLMENT_STATUS_KEYS = {
+  pending: 'checkout.statusPending',
+  preparing: 'checkout.statusPreparing',
+  shipped: 'checkout.statusShipped',
+  ready_for_pickup: 'checkout.statusReadyForPickup',
+  completed: 'checkout.statusCompleted',
+}
+
+const fulfillmentStatusLabel = computed(() => {
+  const key = FULFILLMENT_STATUS_KEYS[fulfillmentStatus.value]
+  return key ? t(key) : ''
+})
+
+const paidAtLabel = computed(() => {
+  if (!paidAt.value) return ''
+  const date = new Date(paidAt.value)
+  if (Number.isNaN(date.getTime())) return ''
+  return t('checkout.orderPlacedOn', {
+    date: date.toLocaleDateString(getActiveLocale(), {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }),
+  })
+})
 
 const hasDiscount = computed(() => !!discountInfo.value || discountCents.value > 0)
 
@@ -189,6 +223,8 @@ onMounted(async () => {
       return
     }
     const order = result.order || {}
+    fulfillmentStatus.value = order.fulfillmentStatus || ''
+    paidAt.value = order.paidAt || ''
     totalCents.value = order.totalCents || 0
     subtotalCents.value = order.subtotalCents ?? order.totalCents ?? 0
     shippingCents.value = order.shippingCents || 0
@@ -200,18 +236,22 @@ onMounted(async () => {
     pickupLocation.value = order.pickupLocation || null
     lines.value = result.lines || []
 
-    // Avant de vider le panier : `trackPurchase` porte sa propre garde anti-doublon, la page
-    // étant rechargeable et atteignable par retour arrière.
-    trackPurchase({
-      orderId: orderId.value,
-      lines: lines.value,
-      totalCents: totalCents.value,
-      shippingCents: shippingCents.value,
-    })
+    // Effets de bord de fin de tunnel — jamais sur le lien de suivi durable : rouvert des
+    // mois plus tard, il viderait un panier en cours de constitution et rejouerait un achat.
+    if (!isTrackingView.value) {
+      // Avant de vider le panier : `trackPurchase` porte sa propre garde anti-doublon, la page
+      // étant rechargeable et atteignable par retour arrière.
+      trackPurchase({
+        orderId: orderId.value,
+        lines: lines.value,
+        totalCents: totalCents.value,
+        shippingCents: shippingCents.value,
+      })
 
-    const { clear: clearCart } = useCart()
-    clearCart()
-    clearCheckoutSession()
+      const { clear: clearCart } = useCart()
+      clearCart()
+      clearCheckoutSession()
+    }
 
     const loaded = []
     for (const line of lines.value) {
@@ -238,14 +278,16 @@ onMounted(async () => {
         v-if="loading"
         class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8 text-center text-gray-600"
       >
-        {{ t('checkout.verifyingPayment') }}
+        {{ isTrackingView ? t('checkout.loadingOrder') : t('checkout.verifyingPayment') }}
       </div>
 
       <div
         v-else-if="error"
         class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8 text-center"
       >
-        <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ t('checkout.confirmationUnavailable') }}</h1>
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">
+          {{ isTrackingView ? t('checkout.orderUnavailable') : t('checkout.confirmationUnavailable') }}
+        </h1>
         <p class="text-gray-600 mb-6">{{ error }}</p>
         <router-link :to="browsePath" class="text-primary underline">{{ t('checkout.backToShop') }}</router-link>
       </div>
@@ -262,7 +304,7 @@ onMounted(async () => {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
           <!-- Colonne gauche : confirmation -->
           <div class="bg-white rounded-2xl shadow-lg p-8 lg:p-10">
-            <div class="mb-6">
+            <div v-if="!isTrackingView" class="mb-6">
               <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                 <svg
                   class="w-9 h-9 text-green-600"
@@ -275,17 +317,28 @@ onMounted(async () => {
                 </svg>
               </div>
             </div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-3">{{ t('checkout.paymentSuccessful') }}</h1>
-            <p class="text-lg text-gray-600 mb-1">{{ t('checkout.thankYou') }}</p>
+            <h1 class="text-3xl font-bold text-gray-900 mb-3">
+              {{ isTrackingView ? t('checkout.trackingTitle') : t('checkout.paymentSuccessful') }}
+            </h1>
+            <p class="text-lg text-gray-600 mb-1">
+              {{ isTrackingView ? t('checkout.trackingIntro') : t('checkout.thankYou') }}
+            </p>
             <p v-if="orderId" class="text-sm text-gray-400 mb-4">
               Commande <span class="font-medium text-gray-500">{{ orderId }}</span>
             </p>
-            <p v-if="customerEmail" class="text-sm text-gray-500 mb-6">
+            <p v-if="isTrackingView && paidAtLabel" class="text-sm text-gray-500 mb-2">
+              {{ paidAtLabel }}
+            </p>
+            <p v-if="isTrackingView && fulfillmentStatusLabel" class="text-sm text-gray-500 mb-6">
+              {{ t('checkout.orderStatusLabel') }} :
+              <span class="font-medium text-gray-700">{{ fulfillmentStatusLabel }}</span>
+            </p>
+            <p v-if="!isTrackingView && customerEmail" class="text-sm text-gray-500 mb-6">
               {{ t('checkout.confirmationEmailSentTo') }}
               <span class="font-medium text-gray-700">{{ customerEmail }}</span>.
             </p>
 
-            <div class="rounded-xl bg-gray-50 border border-gray-100 p-4 mb-8">
+            <div v-if="!isTrackingView" class="rounded-xl bg-gray-50 border border-gray-100 p-4 mb-8">
               <p class="text-gray-600 text-sm leading-relaxed">{{ followUpMessage }}</p>
             </div>
 
