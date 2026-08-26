@@ -42,6 +42,16 @@ jobs:
       REPORT: ${{ github.workspace }}/monitoring-report.md
 
     steps:
+      # Doit rester le tout premier pas, pour deux raisons.
+      # 1. `gh` (étape 4) résout le dépôt depuis le remote git du répertoire
+      #    courant : sans checkout, `gh issue list` échoue sur
+      #    « fatal: not a git repository » et aucune alerte n'est publiée.
+      # 2. `actions/checkout` nettoie `github.workspace` (`clean: true` par
+      #    défaut). Placé après « Préparer le rapport », il effacerait `$REPORT`
+      #    et le moindre incident serait annoncé « tout est vert ».
+      - name: Checkout du dépôt (contexte git pour `gh`)
+        uses: actions/checkout@v4
+
       - name: Préparer le rapport
         run: ': > "$REPORT"'
 

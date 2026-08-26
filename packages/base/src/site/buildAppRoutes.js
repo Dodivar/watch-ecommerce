@@ -84,6 +84,9 @@ const COMPONENTS_BY_PATH = {
   '/conditions-generales-utilisation': ConditionsGeneralesUtilisation,
   '/checkout': CheckoutPage,
   '/commande/succes': OrderSuccess,
+  // Lien de suivi durable de l'email de confirmation : même vue, sans les effets de
+  // bord de fin de tunnel (voir OrderSuccess.vue).
+  '/commande/suivi': OrderSuccess,
   '/commande/annulee': OrderCancel,
   '/admin/login': AdminLogin,
   '/admin/forgot-password': AdminForgotPassword,

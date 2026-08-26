@@ -29,6 +29,7 @@ export const APP_ROUTE_META = [
   { path: '/conditions-generales-utilisation', feature: 'legal' },
   { path: '/checkout', feature: 'purchase' },
   { path: '/commande/succes', feature: 'paymentReturn' },
+  { path: '/commande/suivi', feature: 'paymentReturn' },
   { path: '/commande/annulee', feature: 'paymentReturn' },
   { path: '/paiement-succes' },
   { path: '/paiement-annule' },
