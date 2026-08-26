@@ -1,0 +1,44 @@
+# Verrouille la provenance des PR vers `main` : seule `staging` peut y etre mergee.
+#
+# GitHub ne sait pas restreindre nativement la branche source d'une pull request
+# (ni protection classique, ni ruleset). Ce workflow comble le trou : il est
+# promu en « required status check » sur `main`, donc une PR dont la source
+# n'est pas `staging` reste non mergeable.
+#
+# Declencheur `pull_request_target` et non `pull_request` : le fichier de
+# workflow est alors lu depuis `main` (la base), pas depuis la branche de la PR.
+# Une branche qui supprimerait ce fichier ne peut donc pas contourner le check.
+# Aucun `checkout` du code propose ici : rien de la PR n'est execute, c'est la
+# precaution qui rend `pull_request_target` sans risque.
+#
+# `types` inclut `edited` : rebasculer la base d'une PR deja ouverte relance le check.
+
+name: Garde-fou main
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  staging-only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verifier que la PR provient de staging
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "::error::PR issue du fork $HEAD_REPO. Seule la branche staging de $BASE_REPO peut etre mergee dans main."
+            exit 1
+          fi
+          if [ "$HEAD_REF" != "staging" ]; then
+            echo "::error::PR issue de « $HEAD_REF ». Seule staging peut etre mergee dans main : ouvrir d'abord une PR vers staging, puis staging vers main."
+            exit 1
+          fi
+          echo "Source de la PR : staging. Conforme."
