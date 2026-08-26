@@ -19,6 +19,7 @@
 
 const { getSupabaseClient, getMailjetClient, MissingSecretsError } = require('../utils/siteClients')
 const { signOrderAccessToken, hashOrderAccessToken } = require('./tokens')
+const { resolveStorefrontBase, buildResumeCheckoutUrl } = require('./orderLinks')
 const { createAbandonedCheckoutEmail } = require('../templates/abandonedCheckoutEmail')
 
 const TICK_MS = 5 * 60 * 1000
@@ -36,28 +37,6 @@ function getAbandonedCartConfig(site) {
   return cfg && typeof cfg === 'object'
     ? cfg
     : { enabled: false, delayMinutes: 60, maxAgeHours: 48 }
-}
-
-/**
- * Base publique de la vitrine pour le lien de reprise (pas de `req` ici).
- * @param {object} site
- * @returns {string}
- */
-function resolveStorefrontBase(site) {
-  const urls = site.config?.urls || {}
-  const base = urls.production || urls.staging || urls.development || ''
-  return String(base).replace(/\/+$/, '')
-}
-
-/**
- * @param {object} site
- * @param {string} orderId
- * @param {string} token
- * @returns {string}
- */
-function buildResumeCheckoutUrl(site, orderId, token) {
-  const params = new URLSearchParams({ order: String(orderId), token })
-  return `${resolveStorefrontBase(site)}/checkout?${params.toString()}`
 }
 
 /**

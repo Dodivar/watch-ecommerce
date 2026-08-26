@@ -291,6 +291,7 @@ Avant de déployer, appliquer côté Supabase de chaque client :
 9. `supabase/migrations/20260621120000_order_receipts_storage.sql` — reçus PDF commandes (Storage privé)
 10. `supabase/migrations/20260622120000_watch_promotions.sql` — promotions par montre (`promotion_price`, `discount_percent`, prix effectif au checkout)
 11. « Relance panier abandonné » (`supabase/migrations/README.md`) — colonnes `orders.recovery_email_sent_at` / `orders.recovery_token_hash`, requis pour les sites avec `checkout.abandonedCart.enabled`
+12. `supabase/migrations/20260826120000_order_followup_link.sql` — colonne `orders.followup_token_hash`, lien de suivi durable envoyé dans l'email de confirmation
 
 ### Checkout personnalisé (Payment Element)
 
@@ -299,6 +300,7 @@ Avant de déployer, appliquer côté Supabase de chaque client :
 - Passage en `paid` : déclenché soit par le webhook, soit par `GET …/verify` qui réconcilie en interrogeant le PaymentIntent (utile si le webhook tarde ou, en dev local, sans `stripe listen`). Idempotent : les effets de bord (stock, promo, email) ne s'exécutent qu'une fois.
 - Dev local : pour recevoir le webhook, lancer `stripe listen --forward-to http://localhost:3000/api/stripe/webhook/<site-id>` et reporter le `whsec_…` dans `SITE_<ID>__STRIPE_WEBHOOK_SECRET`. La réconciliation `/verify` permet néanmoins de finaliser sans webhook.
 - Front : `VITE_STRIPE_PUBLISHABLE_KEY` + parcours `/checkout` → `/commande/succes`
+- Suivi durable : au passage en `paid`, un token de lecture longue durée (10 ans, `FOLLOW_UP_TTL_SECONDS`) est signé, son hash stocké dans `orders.followup_token_hash`, et le lien `/commande/suivi?order=…&token=…` ajouté à l'email de confirmation client. Le client rouvre sa commande et retélécharge son reçu sans compte. Ce token n'ouvre que `GET …/verify` et `GET …/receipt` — jamais une modification, un paiement ou une annulation. Si l'écriture du hash échoue, l'email part sans lien plutôt qu'avec un lien mort.
 - Configuration livraison / promo : bloc `checkout` dans `sites/<id>/site.config.js`
 
 ### Relance des paniers abandonnés

@@ -58,6 +58,9 @@ const router = createRouter({
   },
 })
 
+/** Pages ouvertes par un lien porteur de token de commande (retour de paiement, suivi durable). */
+const ORDER_ACCESS_PATHS = ['/commande/succes', '/commande/suivi']
+
 // Guard de maintenance - bloque toutes les routes sauf /maintenance si non authentifié
 router.beforeEach(async (to, from, next) => {
   // Le back-office reste en français : une URL `/en/admin/...` est ramenée sur `/admin/...`.
@@ -131,8 +134,10 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  // Pages de retour commande (désactivé si `features.paymentReturn` est false)
-  if (features.paymentReturn && to.path === '/commande/succes') {
+  // Pages de retour commande (désactivé si `features.paymentReturn` est false).
+  // `/commande/suivi` est le lien durable de l'email de confirmation : il doit rester
+  // atteignable exactement comme le retour de paiement, y compris site en maintenance.
+  if (features.paymentReturn && ORDER_ACCESS_PATHS.includes(to.path)) {
     const isAdmin = await isAdminAuthenticated()
     if (isAdmin) {
       next()
@@ -142,16 +147,14 @@ router.beforeEach(async (to, from, next) => {
     const orderId = to.query.order || null
     const token = to.query.token || null
     if (!orderId || !token) {
-      console.warn('⚠️  Accès /commande/succes sans order ou token')
+      console.warn(`⚠️  Accès ${to.path} sans order ou token`)
       next(browseFallback)
       return
     }
 
     const verification = await verifyOrder(String(orderId), String(token))
     if (!verification.valid) {
-      console.warn(
-        `⚠️  Accès /commande/succes refusé: ${verification.reason || 'Commande invalide'}`,
-      )
+      console.warn(`⚠️  Accès ${to.path} refusé: ${verification.reason || 'Commande invalide'}`)
       next(browseFallback)
       return
     }

@@ -335,6 +335,19 @@ create index if not exists orders_abandoned_recovery_idx
   where recovery_email_sent_at is null and customer_email is not null;
 ```
 
+## Lien de suivi de commande (email de confirmation)
+
+`20260826120000_order_followup_link.sql` — requis pour le lien durable envoyé dans l'email de confirmation (« Voir ma commande »), qui remplace l'accès limité à 2 h de l'onglet de checkout :
+
+- Colonne `orders.followup_token_hash` — hash du token signé du lien `/commande/suivi?order=…&token=…`, écrit au passage en `paid` (voir `handlePaymentIntentSucceeded` dans `backend/routes/orders.js`)
+- Ce token vit dix ans (durée de conservation du reçu) et n'est accepté **qu'en lecture** : `GET /api/orders/:id/verify` et `GET /api/orders/:id/receipt`. Modification, paiement et annulation continuent d'exiger le token de checkout
+- Sans la colonne, le fulfillment n'échoue pas : l'email part simplement sans lien de suivi
+
+```sql
+alter table public.orders
+  add column if not exists followup_token_hash text;
+```
+
 ## Rôles admin (admin / moderator / visitor)
 
 `20260720130000_admin_user_roles.sql` — requis pour la gestion des utilisateurs du panel d'administration (invitation par email, rôles) :
@@ -677,3 +690,16 @@ create index if not exists orders_open_returns_idx
   on public.orders (site_id, return_status)
   where return_status in ('requested', 'received');
 ```
+
+## Catalogue admin — pagination serveur et réordonnancement
+
+`20260826140000_admin_watches_server_pagination.sql` — requis pour la liste `/admin/watches` : sans ce fichier, la page charge encore, mais le filtre marque reste vide et tout reclassement échoue (`Could not find the function public.admin_reorder_watches`).
+
+Ce que la migration apporte :
+
+- Index de tri (`display_order desc nulls last, id`, plus `created_at`, `price`, `brand`, `model`) — la clé `id` départage les valeurs égales, sans quoi une montre peut apparaître sur deux pages ou sur aucune
+- `admin_watch_brands()` — marques distinctes tous statuts confondus, PostgREST ne sachant pas faire de `DISTINCT`
+- `admin_reorder_watches(jsonb)` — applique tout un lot de positions en un seul `UPDATE … FROM jsonb_to_recordset`, au lieu d'une requête PATCH par montre
+- `admin_move_watch_to_catalog_edge(uuid, text)` — « placer en tête » / « placer en fin » (`max + 1` / `min - 1`), une seule ligne touchée
+
+Les trois fonctions sont en `security invoker` : c'est la policy RLS `"Admins can update watches"` (voir `documentation/supabase_admin_setup.sql`) qui autorise l'écriture. Un appelant non admin ne met à jour aucune ligne, ce que le contrôle de `row_count` transforme en erreur explicite. **Cette policy n'est pas dans les migrations** — sur un projet provisionné à partir des seuls fichiers de ce dossier, il faut appliquer `documentation/supabase_admin_setup.sql` avant celui-ci.

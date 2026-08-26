@@ -11,6 +11,7 @@ const {
   hashOrderAccessToken,
   signOrderAccessToken,
   verifyOrderAccessToken,
+  FOLLOW_UP_TTL_SECONDS,
 } = require('../orders/tokens')
 const { buildOrderQuote } = require('../orders/pricing')
 const { sendPurchase: sendGa4Purchase } = require('../analytics/ga4MeasurementProtocol')
@@ -23,11 +24,43 @@ const {
 } = require('../orders/paymentIntentSync')
 const { fulfillOrderPayment, releaseOrderReservation, applyRetailStockDecrement } = require('../orders/fulfillment')
 const { createDraftOrderViaRpc } = require('../orders/createDraftOrder')
+const { buildOrderFollowUpUrl } = require('../orders/orderLinks')
 const { sendOrderConfirmationEmails } = require('../orders/email')
 const { recordNewsletterOptIn, isOptInTruthy } = require('../newsletter/optIn')
 const { generateOrderReceiptPdf, receiptPdfFilename } = require('../orders/receiptPdf')
 const { resolveReceiptConfig } = require('../orders/receiptBranding')
 const { persistOrderReceiptPdf, resolveOrderReceiptPdfBuffer } = require('../orders/receiptStorage')
+
+/**
+ * Contrôle d'accès à une commande par token porteur.
+ *
+ * @param {object} site
+ * @param {object} order
+ * @param {string|null} token
+ * @param {{ allowFollowUp?: boolean }} [options] `allowFollowUp` n'est passé que par les
+ *   routes en lecture seule : le lien de suivi durable de l'email de confirmation vit dix
+ *   ans, il ne doit ouvrir ni modification ni paiement ni annulation.
+ * @returns {{ ok: boolean, status?: number, error?: string }}
+ */
+function requireOrderAccess(site, order, token, options = {}) {
+  if (!site.secrets.paymentCancelSecret) {
+    return { ok: false, status: 503, error: 'Configuration serveur incomplète' }
+  }
+  if (!token || !verifyOrderAccessToken(site.secrets.paymentCancelSecret, token, order.id)) {
+    return { ok: false, status: 403, error: 'Accès refusé' }
+  }
+  // Le token d'origine et le token de relance panier abandonné (voir
+  // orders/recovery.js) sont tous deux acceptés, sans s'invalider mutuellement.
+  // Le token de suivi (orders.followup_token_hash) s'y ajoute en lecture seule.
+  const knownHashes = [order.access_token_hash, order.recovery_token_hash].filter(Boolean)
+  if (options.allowFollowUp && order.followup_token_hash) {
+    knownHashes.push(order.followup_token_hash)
+  }
+  if (knownHashes.length > 0 && !knownHashes.includes(hashOrderAccessToken(token))) {
+    return { ok: false, status: 403, error: 'Accès refusé' }
+  }
+  return { ok: true }
+}
 
 /**
  * @param {*} registry
@@ -142,22 +175,6 @@ function buildOrdersRouter(registry) {
     })
     await persistQuote(supabase, order.id, quote)
     return { quote, lines }
-  }
-
-  function requireOrderAccess(site, order, token) {
-    if (!site.secrets.paymentCancelSecret) {
-      return { ok: false, status: 503, error: 'Configuration serveur incomplète' }
-    }
-    if (!token || !verifyOrderAccessToken(site.secrets.paymentCancelSecret, token, order.id)) {
-      return { ok: false, status: 403, error: 'Accès refusé' }
-    }
-    // Le token d'origine et le token de relance panier abandonné (voir
-    // orders/recovery.js) sont tous deux acceptés, sans s'invalider mutuellement.
-    const knownHashes = [order.access_token_hash, order.recovery_token_hash].filter(Boolean)
-    if (knownHashes.length > 0 && !knownHashes.includes(hashOrderAccessToken(token))) {
-      return { ok: false, status: 403, error: 'Accès refusé' }
-    }
-    return { ok: true }
   }
 
   function orderToResponse(order, lines, quote, accessToken = null) {
@@ -303,7 +320,7 @@ function buildOrdersRouter(registry) {
       if (!order) {
         return res.json({ valid: false, reason: 'Commande introuvable' })
       }
-      const access = requireOrderAccess(site, order, token)
+      const access = requireOrderAccess(site, order, token, { allowFollowUp: true })
       if (!access.ok) {
         return res.json({ valid: false, reason: access.error })
       }
@@ -349,6 +366,9 @@ function buildOrdersRouter(registry) {
         order: {
           id: currentOrder.id,
           status: currentOrder.status,
+          // Consultés par la page de suivi durable, rouverte longtemps après l'achat.
+          fulfillmentStatus: currentOrder.fulfillment_status || 'pending',
+          paidAt: currentOrder.paid_at || null,
           subtotalCents: currentOrder.subtotal_cents,
           shippingCents: currentOrder.shipping_cents,
           discountCents: currentOrder.discount_cents,
@@ -721,7 +741,7 @@ function buildOrdersRouter(registry) {
       if (!order) {
         return res.status(404).json({ success: false, error: 'Commande introuvable' })
       }
-      const access = requireOrderAccess(site, order, token)
+      const access = requireOrderAccess(site, order, token, { allowFollowUp: true })
       if (!access.ok) {
         return res.status(access.status).json({ success: false, error: access.error })
       }
@@ -793,6 +813,37 @@ function buildOrdersRouter(registry) {
   })
 
   return router
+}
+
+/**
+ * Signe le token de suivi durable de la commande, en persiste le hash, et renvoie
+ * l'URL publique correspondante. Renvoie `null` (et n'interrompt jamais le
+ * fulfillment) si le secret, l'URL vitrine ou l'écriture du hash manquent.
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {object} site
+ * @param {string} orderId
+ * @returns {Promise<string|null>}
+ */
+async function mintOrderFollowUpUrl(supabase, site, orderId) {
+  if (!site.secrets?.paymentCancelSecret) return null
+  try {
+    const token = signOrderAccessToken(
+      site.secrets.paymentCancelSecret,
+      orderId,
+      FOLLOW_UP_TTL_SECONDS,
+    )
+    const url = buildOrderFollowUpUrl(site, orderId, token)
+    if (!url) return null
+    const { error } = await supabase
+      .from('orders')
+      .update({ followup_token_hash: hashOrderAccessToken(token) })
+      .eq('id', orderId)
+    if (error) throw error
+    return url
+  } catch (err) {
+    console.error(`[${site.id}] Lien de suivi commande ${orderId}:`, err)
+    return null
+  }
 }
 
 /**
@@ -945,10 +996,16 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
     }
   }
 
+  // Lien de suivi durable : le hash est écrit avant l'envoi de l'email. Si l'écriture
+  // échoue, on part sans lien — un lien mort dans la confirmation serait pire que pas
+  // de lien du tout, et c'est exactement la régression qu'on ferme ici.
+  const followUpUrl = await mintOrderFollowUpUrl(supabase, site, orderId)
+
   try {
     await sendOrderConfirmationEmails(site, orderForEmail, lineRows || [], {
       ...receiptExtras,
       pdfBuffer,
+      followUpUrl,
     })
   } catch (mailErr) {
     console.error(`[${site.id}] Email commande:`, mailErr)
@@ -960,4 +1017,6 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
 module.exports = {
   buildOrdersRouter,
   handlePaymentIntentSucceeded,
+  requireOrderAccess,
+  mintOrderFollowUpUrl,
 }
