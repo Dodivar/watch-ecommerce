@@ -993,6 +993,192 @@ async function attachFirstImagesToWatches(watches) {
 }
 
 /**
+ * Colonnes affichées par la liste admin. `description` en est volontairement absente :
+ * c'est la colonne la plus lourde de la table et le tableau ne la montre pas.
+ */
+const ADMIN_LIST_COLUMNS =
+  'id, ad_code, name, brand, model, reference, price, created_at, display_order, is_available, is_sold, stock_quantity'
+
+/** Colonnes triables depuis l'en-tête du tableau, indexées par la clé utilisée côté UI. */
+const ADMIN_LIST_SORT_COLUMNS = {
+  order: 'display_order',
+  price: 'price',
+  date: 'created_at',
+  brand: 'brand',
+  model: 'model',
+}
+
+/**
+ * Applique le filtre d'onglet à une requête sur `watches`.
+ *
+ * `is_available` et `is_sold` sont NOT NULL DEFAULT (`documentation/supabase_admin_setup.sql`),
+ * où « n'est pas false » équivaut à « est true ». On garde cette forme parce qu'elle reste
+ * juste sur une base provisionnée sans la contrainte, et parce que c'est déjà la règle
+ * d'affichage du tableau (`is_available !== false` = en stock).
+ * @param {object} query
+ * @param {'available'|'unavailable'|'sold'|'all'} status
+ * @returns {object}
+ */
+function applyAdminStatusFilter(query, status) {
+  if (status === 'available') {
+    // Une montre vendue ne doit pas apparaître « en stock », même si `is_available`
+    // n'a pas été remis à false (anciennes données).
+    return query.not('is_available', 'is', false).not('is_sold', 'is', true)
+  }
+  if (status === 'unavailable') {
+    return query.is('is_available', false)
+  }
+  if (status === 'sold') {
+    return query.is('is_sold', true)
+  }
+  return query
+}
+
+/**
+ * Une page de la liste admin, filtrée, triée et paginée côté serveur.
+ *
+ * Le tri est systématiquement complété par `id` : sans clé de départage, deux montres de
+ * même `display_order` (ou de même marque, de même prix...) peuvent apparaître sur deux
+ * pages ou sur aucune.
+ *
+ * @param {{
+ *   status?: 'available'|'unavailable'|'sold'|'all',
+ *   search?: string,
+ *   brand?: string,
+ *   sortColumn?: string|null,
+ *   sortDirection?: 'asc'|'desc',
+ *   page?: number,
+ *   pageSize?: number,
+ * }} [options]
+ * @returns {Promise<{ watches: Array<object>, total: number, page: number, pageSize: number }>}
+ */
+export async function listWatchesForAdmin({
+  status = 'available',
+  search = '',
+  brand = '',
+  sortColumn = null,
+  sortDirection = 'desc',
+  page = 1,
+  pageSize = 25,
+} = {}) {
+  const pageNum = Math.max(1, page)
+  const size = Math.min(100, Math.max(1, pageSize))
+  const offset = (pageNum - 1) * size
+
+  let query = supabase.from('watches').select(ADMIN_LIST_COLUMNS, { count: 'exact' })
+  query = applyAdminStatusFilter(query, status)
+
+  const term = String(search || '').trim()
+  if (term) {
+    const pattern = `%${term.replace(/[%_,()]/g, '')}%`
+    query = query.or(
+      [
+        `name.ilike.${pattern}`,
+        `brand.ilike.${pattern}`,
+        `model.ilike.${pattern}`,
+        `reference.ilike.${pattern}`,
+        `ad_code.ilike.${pattern}`,
+      ].join(','),
+    )
+  }
+
+  if (brand) {
+    query = query.eq('brand', brand)
+  }
+
+  const column = ADMIN_LIST_SORT_COLUMNS[sortColumn] || 'display_order'
+  // Sans tri explicite, l'ordre du catalogue : `display_order` décroissant.
+  const ascending = sortColumn ? sortDirection === 'asc' : false
+  query = query
+    // Les montres vendues portent `display_order = NULL` ; en DESC, Postgres les place en
+    // tête par défaut. `nullsFirst: false` évite d'ouvrir l'onglet « Toutes » sur un mur
+    // de montres vendues.
+    .order(column, { ascending, nullsFirst: false })
+    .order('id', { ascending: true })
+    .range(offset, offset + size - 1)
+
+  const { data, error, count } = await query
+  if (error) {
+    throw new Error(`Erreur lors de la récupération des montres: ${error.message}`)
+  }
+
+  return {
+    watches: await attachFirstImagesToWatches(data || []),
+    total: count ?? 0,
+    page: pageNum,
+    pageSize: size,
+  }
+}
+
+/**
+ * Compteurs des onglets de la liste admin.
+ *
+ * `head: true` renvoie le total sans transporter une seule ligne : quatre requêtes
+ * quasi gratuites, là où l'ancien code comptait dans un tableau chargé en entier.
+ * @returns {Promise<{ available: number, unavailable: number, sold: number, all: number }>}
+ */
+export async function getAdminWatchStatusCounts() {
+  const statuses = ['available', 'unavailable', 'sold', 'all']
+
+  const results = await Promise.all(
+    statuses.map(async (status) => {
+      const query = applyAdminStatusFilter(
+        supabase.from('watches').select('id', { count: 'exact', head: true }),
+        status,
+      )
+      const { count, error } = await query
+      if (error) {
+        throw new Error(`Erreur lors du comptage des montres: ${error.message}`)
+      }
+      return count ?? 0
+    }),
+  )
+
+  return {
+    available: results[0],
+    unavailable: results[1],
+    sold: results[2],
+    all: results[3],
+  }
+}
+
+/**
+ * Marques présentes dans le catalogue, tous statuts confondus (filtre admin).
+ * Passe par une fonction SQL : PostgREST ne sait pas faire de `DISTINCT`.
+ * @returns {Promise<string[]>}
+ */
+export async function getAdminWatchBrands() {
+  const { data, error } = await supabase.rpc('admin_watch_brands')
+  if (error) {
+    throw new Error(`Erreur lors de la récupération des marques: ${error.message}`)
+  }
+  return (data || []).map((row) => (typeof row === 'string' ? row : row.brand)).filter(Boolean)
+}
+
+/**
+ * Envoie une montre en tête ou en fin de catalogue.
+ *
+ * Position absolue : contrairement au glisser-déposer, l'opération ne dépend pas des lignes
+ * affichées et fonctionne donc identiquement depuis la page 1 ou la page 40.
+ * @param {string} watchId
+ * @param {'top'|'bottom'} edge
+ * @returns {Promise<{success: boolean, displayOrder?: number, error?: string}>}
+ */
+export async function moveWatchToCatalogEdge(watchId, edge) {
+  const { data, error } = await supabase.rpc('admin_move_watch_to_catalog_edge', {
+    p_watch_id: watchId,
+    p_edge: edge,
+  })
+
+  if (error) {
+    console.error('Erreur dans moveWatchToCatalogEdge:', error)
+    return { success: false, error: error.message || 'Erreur lors du repositionnement de la montre' }
+  }
+
+  return { success: true, displayOrder: data }
+}
+
+/**
  * Récupère toutes les montres (pour l'admin, avec toutes les données)
  * @returns {Promise<Array>} Liste des montres avec la première image
  */
@@ -1121,20 +1307,19 @@ export async function updateWatchDisplayOrder(watchId, newOrder) {
  */
 export async function reorderWatches(watchOrders) {
   try {
-    // Mettre à jour toutes les montres en parallèle
-    const updates = watchOrders.map(({ id, display_order }) =>
-      supabase
-        .from('watches')
-        .update({ display_order })
-        .eq('id', id)
-    )
+    const orders = (watchOrders || [])
+      .filter((entry) => entry && entry.id && Number.isFinite(Number(entry.display_order)))
+      .map(({ id, display_order }) => ({ id, display_order: Number(display_order) }))
 
-    const results = await Promise.all(updates)
-    
-    // Vérifier s'il y a des erreurs
-    const errors = results.filter((result) => result.error)
-    if (errors.length > 0) {
-      throw new Error(`Erreur lors de la réorganisation: ${errors[0].error.message}`)
+    if (orders.length === 0) {
+      return { success: true }
+    }
+
+    // Un seul aller-retour : l'ancienne version envoyait une requête PATCH par montre,
+    // ce qui rendait un glisser-déposer proportionnel à la taille du catalogue.
+    const { error } = await supabase.rpc('admin_reorder_watches', { p_orders: orders })
+    if (error) {
+      throw new Error(`Erreur lors de la réorganisation: ${error.message}`)
     }
 
     return {

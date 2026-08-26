@@ -1,7 +1,16 @@
 <script setup>
-import { ref, computed, onMounted, watch as vueWatch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch as vueWatch } from 'vue'
 import { useRouter } from 'vue-router'
-import { getAllWatchesForAdmin, deleteWatch, toggleWatchAvailability, markWatchAsSold, reorderWatches } from '@/services/admin/adminWatchService'
+import {
+  listWatchesForAdmin,
+  getAdminWatchStatusCounts,
+  getAdminWatchBrands,
+  deleteWatch,
+  toggleWatchAvailability,
+  markWatchAsSold,
+  reorderWatches,
+  moveWatchToCatalogEdge,
+} from '@/services/admin/adminWatchService'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import AdminShell from './AdminShell.vue'
@@ -14,172 +23,146 @@ const { canWrite } = useAdminPermissions()
 const isRetailCatalog = computed(() => getSiteConfig().watchCatalog?.mode !== 'resale')
 
 // State
+// `watches` ne contient que la page affichée : filtres, tri et pagination sont résolus par
+// la base. Charger le catalogue entier pour en découper 25 lignes tronquait silencieusement
+// la liste au-delà de `max_rows` et rendait la page inutilisable sur un catalogue de
+// plusieurs milliers de références.
 const watches = ref([])
+const totalCount = ref(0)
+const statusCounts = ref({ available: 0, unavailable: 0, sold: 0, all: 0 })
+const brandOptions = ref([])
 const isLoading = ref(true)
+const isReordering = ref(false)
 const error = ref(null)
 const success = ref(null)
 const searchQuery = ref('')
+const debouncedSearch = ref('')
 const selectedBrand = ref('')
 const showDeleteConfirm = ref(false)
 const watchToDelete = ref(null)
 const activeTab = ref('available') // 'available', 'unavailable', 'sold', ou 'all'
 
-// Pagination state (côté client)
+// Pagination state (résolue côté serveur)
 const currentPage = ref(1)
 const pageSize = ref(25)
 
 // Sorting state
-const sortColumn = ref(null) // 'price', 'date', 'brand', 'model'
+const sortColumn = ref(null) // 'order', 'price', 'date', 'brand', 'model'
 const sortDirection = ref('asc') // 'asc' or 'desc'
 
-// Computed
-const availableBrands = computed(() => {
-  const brands = [...new Set(watches.value.map((watch) => watch.brand))]
-  return brands.sort()
-})
-
-const filteredWatches = computed(() => {
-  let filtered = watches.value
-
-  // Filter by tab selection
-  if (activeTab.value === 'available') {
-    // Une montre vendue ne doit pas apparaître "en stock", même si is_available
-    // n'a pas été remis à false (anciennes données).
-    filtered = filtered.filter((watch) => {
-      const isAvailable = watch.is_available !== undefined ? watch.is_available : true
-      return isAvailable && watch.is_sold !== true
-    })
-  } else if (activeTab.value === 'unavailable') {
-    filtered = filtered.filter((watch) => watch.is_available === false)
-  } else if (activeTab.value === 'sold') {
-    filtered = filtered.filter((watch) => watch.is_sold === true)
-  }
-  // 'all' shows all watches, no filter needed
-
-  // Filter by search query
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(
-      (watch) =>
-        watch.name?.toLowerCase().includes(query) ||
-        watch.brand?.toLowerCase().includes(query) ||
-        watch.model?.toLowerCase().includes(query) ||
-        watch.reference?.toLowerCase().includes(query) ||
-        watch.ad_code?.toLowerCase().includes(query),
-    )
-  }
-
-  // Filter by brand
-  if (selectedBrand.value) {
-    filtered = filtered.filter((watch) => watch.brand === selectedBrand.value)
-  }
-
-  // Apply sorting
-  if (sortColumn.value) {
-    filtered = [...filtered].sort((a, b) => {
-      let aValue, bValue
-
-      switch (sortColumn.value) {
-        case 'order':
-          aValue = a.display_order || 0
-          bValue = b.display_order || 0
-          break
-        case 'price':
-          aValue = parseFloat(a.price) || 0
-          bValue = parseFloat(b.price) || 0
-          break
-        case 'date':
-          // Use created_at only
-          aValue = a.created_at ? new Date(a.created_at).getTime() : 0
-          bValue = b.created_at ? new Date(b.created_at).getTime() : 0
-          break
-        case 'brand':
-          aValue = (a.brand || '').toLowerCase()
-          bValue = (b.brand || '').toLowerCase()
-          break
-        case 'model':
-          aValue = (a.model || '').toLowerCase()
-          bValue = (b.model || '').toLowerCase()
-          break
-        default:
-          return 0
-      }
-
-      // Compare values
-      if (sortColumn.value === 'order' || sortColumn.value === 'price' || sortColumn.value === 'date') {
-        // Numeric comparison
-        return sortDirection.value === 'asc' ? aValue - bValue : bValue - aValue
-      } else {
-        // String comparison
-        if (aValue < bValue) return sortDirection.value === 'asc' ? -1 : 1
-        if (aValue > bValue) return sortDirection.value === 'asc' ? 1 : -1
-        return 0
-      }
-    })
-  } else {
-    // Default sort by display_order descending (highest first)
-    filtered = [...filtered].sort((a, b) => {
-      const orderA = a.display_order || 0
-      const orderB = b.display_order || 0
-      return orderB - orderA
-    })
-  }
-
-  return filtered
-})
-
-// Pagination dérivée de la liste filtrée
-const totalPages = computed(() => {
-  return Math.max(1, Math.ceil(filteredWatches.value.length / pageSize.value))
-})
-
-// Décalage de la page courante : convertit un index local de ligne rendue en index global dans filteredWatches
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 const pageOffset = computed(() => (currentPage.value - 1) * pageSize.value)
 
-const paginatedWatches = computed(() => {
-  const start = pageOffset.value
-  return filteredWatches.value.slice(start, start + pageSize.value)
-})
+const paginationStart = computed(() => (totalCount.value === 0 ? 0 : pageOffset.value + 1))
+const paginationEnd = computed(() =>
+  Math.min(pageOffset.value + watches.value.length, totalCount.value),
+)
 
-const paginationStart = computed(() => {
-  if (filteredWatches.value.length === 0) return 0
-  return (currentPage.value - 1) * pageSize.value + 1
-})
+// Le classement ne veut rien dire quand le tableau est trié par prix, marque ou date : la
+// ligne voisine à l'écran n'est alors pas la voisine dans l'ordre du catalogue. Le
+// glisser-déposer et les flèches ne sont donc proposés que sur l'ordre du catalogue.
+const isCatalogOrder = computed(() => sortColumn.value === null || sortColumn.value === 'order')
+const canReorder = computed(
+  () => canWrite.value && activeTab.value !== 'sold' && isCatalogOrder.value,
+)
 
-const paginationEnd = computed(() => {
-  return Math.min(currentPage.value * pageSize.value, filteredWatches.value.length)
-})
+const showSuccess = (message) => {
+  success.value = message
+  setTimeout(() => {
+    success.value = null
+  }, 3000)
+}
 
-// Revenir à la page 1 dès qu'un filtre, une recherche ou un tri change
-vueWatch([searchQuery, selectedBrand, activeTab, sortColumn, sortDirection, pageSize], () => {
-  currentPage.value = 1
-})
+// Methods
+// Jeton de requête : une frappe rapide dans la recherche peut faire revenir une réponse
+// périmée après une plus récente ; on ignore alors la plus ancienne.
+let listRequestId = 0
 
-// Si le nombre de pages diminue (suppression, filtre), garder currentPage valide
-vueWatch(totalPages, (pages) => {
-  if (currentPage.value > pages) {
-    currentPage.value = pages
+const loadWatches = async ({ silent = false } = {}) => {
+  const requestId = ++listRequestId
+  if (!silent) isLoading.value = true
+  try {
+    const result = await listWatchesForAdmin({
+      status: activeTab.value,
+      search: debouncedSearch.value,
+      brand: selectedBrand.value,
+      sortColumn: sortColumn.value,
+      sortDirection: sortDirection.value,
+      page: currentPage.value,
+      pageSize: pageSize.value,
+    })
+    if (requestId !== listRequestId) return
+
+    watches.value = result.watches
+    totalCount.value = result.total
+    error.value = null
+
+    // Une suppression ou un changement de filtre peut vider la page courante : revenir sur
+    // la dernière page utile plutôt que d'afficher un tableau vide.
+    if (result.watches.length === 0 && result.total > 0 && currentPage.value > 1) {
+      currentPage.value = Math.max(1, Math.ceil(result.total / pageSize.value))
+    }
+  } catch (err) {
+    if (requestId !== listRequestId) return
+    console.error('Erreur lors du chargement des montres:', err)
+    error.value = err.message || 'Une erreur est survenue lors du chargement des montres'
+  } finally {
+    if (requestId === listRequestId) isLoading.value = false
   }
+}
+
+const loadStatusCounts = async () => {
+  try {
+    statusCounts.value = await getAdminWatchStatusCounts()
+  } catch (err) {
+    console.error('Erreur lors du comptage des montres:', err)
+  }
+}
+
+const loadBrands = async () => {
+  try {
+    brandOptions.value = await getAdminWatchBrands()
+  } catch (err) {
+    console.error('Erreur lors du chargement des marques:', err)
+    brandOptions.value = []
+  }
+}
+
+// Recharge la page et les compteurs après une écriture (statut, suppression, vente).
+const refreshAfterMutation = async () => {
+  await Promise.all([loadWatches({ silent: true }), loadStatusCounts()])
+}
+
+const goToFirstPage = () => {
+  // Remettre `currentPage` à 1 déclenche déjà un rechargement via son watcher : ne relancer
+  // manuellement que si on y était déjà.
+  if (currentPage.value === 1) loadWatches()
+  else currentPage.value = 1
+}
+
+let searchDebounce = null
+vueWatch(searchQuery, (value) => {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(() => {
+    debouncedSearch.value = value
+  }, 300)
+})
+
+vueWatch([activeTab, debouncedSearch, selectedBrand, sortColumn, sortDirection, pageSize], () => {
+  goToFirstPage()
+})
+
+vueWatch(currentPage, () => {
+  loadWatches()
+})
+
+onBeforeUnmount(() => {
+  clearTimeout(searchDebounce)
 })
 
 const goToPage = (page) => {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
-}
-
-// Methods
-const loadWatches = async () => {
-  try {
-    isLoading.value = true
-    error.value = null
-    const data = await getAllWatchesForAdmin()
-    watches.value = data
-  } catch (err) {
-    console.error('Erreur lors du chargement des montres:', err)
-    error.value = err.message || 'Une erreur est survenue lors du chargement des montres'
-  } finally {
-    isLoading.value = false
-  }
 }
 
 const handleEdit = (watchId) => {
@@ -197,7 +180,7 @@ const confirmDelete = async () => {
   try {
     const result = await deleteWatch(watchToDelete.value.id)
     if (result.success) {
-      await loadWatches()
+      await refreshAfterMutation()
       showDeleteConfirm.value = false
       watchToDelete.value = null
     } else {
@@ -218,8 +201,8 @@ const handleToggleAvailability = async (watch) => {
   try {
     const result = await toggleWatchAvailability(watch.id)
     if (result.success) {
-      // Mettre à jour le statut localement
-      watch.is_available = result.data.is_available
+      // La montre peut sortir de l'onglet courant : recharger la page et les compteurs.
+      await refreshAfterMutation()
     } else {
       error.value = result.error || 'Erreur lors du changement de statut'
     }
@@ -233,8 +216,7 @@ const handleMarkAsSold = async (watch) => {
   try {
     const result = await markWatchAsSold(watch.id)
     if (result.success) {
-      // Recharger les montres pour afficher la date de mise en vente
-      await loadWatches()
+      await refreshAfterMutation()
     } else {
       error.value = result.error || 'Erreur lors du marquage comme vendue'
     }
@@ -281,206 +263,201 @@ const getSortDirection = (column) => {
   return sortDirection.value
 }
 
+// ---------------------------------------------------------------------------
+// Réordonnancement
+//
+// Deux gestes complémentaires, parce qu'aucun ne suffit seul sur un gros catalogue :
+//   * glisser-déposer et flèches : réglage fin entre lignes voisines. Ils permutent les
+//     `display_order` déjà détenus par ces lignes — des positions absolues. Le reste du
+//     catalogue n'est jamais touché, et au plus `pageSize` lignes changent.
+//   * « en tête » / « en fin » : positions absolues, indépendantes de l'affichage. C'est le
+//     seul geste qui traverse les pages, et il ne modifie qu'une ligne.
+// ---------------------------------------------------------------------------
+
+// Lignes de la page qui participent au classement (les vendues gardent display_order null).
+const orderableRows = computed(() => watches.value.filter((w) => w.is_sold !== true))
+
+const applyOrders = async (updates, { reload = true } = {}) => {
+  if (updates.length === 0) return
+  isReordering.value = true
+  try {
+    const result = await reorderWatches(updates)
+    if (result.success) {
+      if (reload) await loadWatches({ silent: true })
+      showSuccess('Ordre mis à jour avec succès')
+    } else {
+      error.value = result.error || "Erreur lors de la mise à jour de l'ordre"
+    }
+  } catch (err) {
+    error.value = "Une erreur est survenue lors de la mise à jour de l'ordre"
+    console.error(err)
+  } finally {
+    isReordering.value = false
+  }
+}
+
+// Récupère la montre située juste avant (ou juste après) la page affichée, pour que les
+// flèches fonctionnent aussi sur la première et la dernière ligne d'une page.
+const fetchNeighbourAcrossPage = async (globalIndex) => {
+  if (globalIndex < 0 || globalIndex >= totalCount.value) return null
+  const result = await listWatchesForAdmin({
+    status: activeTab.value,
+    search: debouncedSearch.value,
+    brand: selectedBrand.value,
+    sortColumn: sortColumn.value,
+    sortDirection: sortDirection.value,
+    page: globalIndex + 1,
+    pageSize: 1,
+  })
+  return result.watches[0] || null
+}
+
+const swapWithNeighbour = async (watchId, direction) => {
+  if (!canReorder.value || isReordering.value) return
+
+  const rows = orderableRows.value
+  const index = rows.findIndex((w) => w.id === watchId)
+  if (index === -1) return
+
+  const current = rows[index]
+  if (current.display_order == null) {
+    error.value = "Cette montre n'a pas encore de position : utilisez « en tête » ou « en fin »."
+    return
+  }
+
+  const step = direction === 'up' ? -1 : 1
+  let neighbour = rows[index + step]
+  let crossesPage = false
+
+  if (!neighbour) {
+    // Bord de page : la voisine est sur la page adjacente. Un index global suffit à
+    // l'atteindre, sans jamais recharger le catalogue.
+    const globalIndex = pageOffset.value + watches.value.indexOf(current) + step
+    neighbour = await fetchNeighbourAcrossPage(globalIndex)
+    crossesPage = true
+  }
+
+  if (!neighbour || neighbour.is_sold === true || neighbour.display_order == null) return
+
+  // Suivre la montre déplacée si elle a changé de page : le changement de page recharge
+  // déjà la liste, inutile de la recharger deux fois.
+  const target = crossesPage
+    ? direction === 'up'
+      ? currentPage.value - 1
+      : currentPage.value + 1
+    : null
+  const followsPage = target !== null && target >= 1 && target <= totalPages.value
+
+  await applyOrders(
+    [
+      { id: current.id, display_order: neighbour.display_order },
+      { id: neighbour.id, display_order: current.display_order },
+    ],
+    { reload: !followsPage },
+  )
+
+  if (followsPage) currentPage.value = target
+}
+
+const moveWatchUp = (watchId) => swapWithNeighbour(watchId, 'up')
+const moveWatchDown = (watchId) => swapWithNeighbour(watchId, 'down')
+
+const moveWatchToEdge = async (watchId, edge) => {
+  if (!canWrite.value || isReordering.value) return
+  isReordering.value = true
+  try {
+    const result = await moveWatchToCatalogEdge(watchId, edge)
+    if (result.success) {
+      await loadWatches({ silent: true })
+      showSuccess(
+        edge === 'top' ? 'Montre placée en tête du catalogue' : 'Montre placée en fin de catalogue',
+      )
+    } else {
+      error.value = result.error || 'Erreur lors du repositionnement de la montre'
+    }
+  } catch (err) {
+    error.value = 'Une erreur est survenue lors du repositionnement de la montre'
+    console.error(err)
+  } finally {
+    isReordering.value = false
+  }
+}
+
+const isFirstOfCatalog = (watch) => pageOffset.value === 0 && watches.value.indexOf(watch) === 0
+
+const isLastOfCatalog = (watch) =>
+  pageOffset.value + watches.value.indexOf(watch) === totalCount.value - 1
+
 // Drag & Drop state
 const draggedWatch = ref(null)
 const draggedOverIndex = ref(null)
 
-// Functions for reordering watches
-const moveWatchUp = async (watchId) => {
-  try {
-    const currentIndex = filteredWatches.value.findIndex((w) => w.id === watchId)
-    if (currentIndex <= 0) return // Already at the top
-
-    const currentWatch = filteredWatches.value[currentIndex]
-    
-    // Don't move sold watches
-    if (currentWatch.is_sold === true) return
-
-    // Find the previous non-sold watch
-    let previousIndex = currentIndex - 1
-    while (previousIndex >= 0 && filteredWatches.value[previousIndex].is_sold === true) {
-      previousIndex--
-    }
-    if (previousIndex < 0) return // No previous non-sold watch
-
-    const previousWatch = filteredWatches.value[previousIndex]
-    
-    // Don't swap with sold watches
-    if (previousWatch.is_sold === true) return
-
-    // Swap display_order values
-    const tempOrder = currentWatch.display_order
-    currentWatch.display_order = previousWatch.display_order
-    previousWatch.display_order = tempOrder
-
-    // Update both watches in the database
-    const result = await reorderWatches([
-      { id: currentWatch.id, display_order: currentWatch.display_order },
-      { id: previousWatch.id, display_order: previousWatch.display_order },
-    ])
-
-    if (result.success) {
-      await loadWatches() // Reload to get updated order
-      success.value = 'Ordre mis à jour avec succès'
-      setTimeout(() => {
-        success.value = null
-      }, 3000)
-    } else {
-      error.value = result.error || 'Erreur lors de la mise à jour de l\'ordre'
-    }
-  } catch (err) {
-    error.value = 'Une erreur est survenue lors de la mise à jour de l\'ordre'
-    console.error(err)
-  }
-}
-
-const moveWatchDown = async (watchId) => {
-  try {
-    const currentIndex = filteredWatches.value.findIndex((w) => w.id === watchId)
-    if (currentIndex >= filteredWatches.value.length - 1) return // Already at the bottom
-
-    const currentWatch = filteredWatches.value[currentIndex]
-    
-    // Don't move sold watches
-    if (currentWatch.is_sold === true) return
-
-    // Find the next non-sold watch
-    let nextIndex = currentIndex + 1
-    while (nextIndex < filteredWatches.value.length && filteredWatches.value[nextIndex].is_sold === true) {
-      nextIndex++
-    }
-    if (nextIndex >= filteredWatches.value.length) return // No next non-sold watch
-
-    const nextWatch = filteredWatches.value[nextIndex]
-    
-    // Don't swap with sold watches
-    if (nextWatch.is_sold === true) return
-
-    // Swap display_order values
-    const tempOrder = currentWatch.display_order
-    currentWatch.display_order = nextWatch.display_order
-    nextWatch.display_order = tempOrder
-
-    // Update both watches in the database
-    const result = await reorderWatches([
-      { id: currentWatch.id, display_order: currentWatch.display_order },
-      { id: nextWatch.id, display_order: nextWatch.display_order },
-    ])
-
-    if (result.success) {
-      await loadWatches() // Reload to get updated order
-      success.value = 'Ordre mis à jour avec succès'
-      setTimeout(() => {
-        success.value = null
-      }, 3000)
-    } else {
-      error.value = result.error || 'Erreur lors de la mise à jour de l\'ordre'
-    }
-  } catch (err) {
-    error.value = 'Une erreur est survenue lors de la mise à jour de l\'ordre'
-    console.error(err)
-  }
-}
-
-// Drag & Drop handlers
 const handleDragStart = (event, watch) => {
-  if (activeTab.value === 'sold') return
+  if (!canReorder.value || watch.is_sold === true) return
   draggedWatch.value = watch
   event.dataTransfer.effectAllowed = 'move'
-  event.dataTransfer.setData('text/html', event.target)
+  event.dataTransfer.setData('text/plain', watch.id)
   if (event.target && event.target.style) {
     event.target.style.opacity = '0.5'
   }
 }
 
 const handleDragOver = (event, index) => {
-  if (activeTab.value === 'sold') return
+  if (!canReorder.value) return
   event.preventDefault()
   event.dataTransfer.dropEffect = 'move'
   draggedOverIndex.value = index
 }
 
 const handleDragLeave = () => {
-  if (activeTab.value === 'sold') return
+  if (!canReorder.value) return
   draggedOverIndex.value = null
 }
 
 const handleDrop = async (event, dropIndex) => {
-  if (activeTab.value === 'sold') return
+  if (!canReorder.value) return
   event.preventDefault()
   draggedOverIndex.value = null
 
-  if (!draggedWatch.value) return
+  const dragged = draggedWatch.value
+  draggedWatch.value = null
+  if (event.target && event.target.style) {
+    event.target.style.opacity = '1'
+  }
+  if (!dragged || dragged.is_sold === true) return
 
-  const draggedIndex = filteredWatches.value.findIndex((w) => w.id === draggedWatch.value.id)
-  if (draggedIndex === -1 || draggedIndex === dropIndex) {
-    draggedWatch.value = null
+  const rows = orderableRows.value
+  const from = rows.findIndex((w) => w.id === dragged.id)
+  if (from === -1) return
+
+  // Index de dépôt exprimé dans la liste réordonnable (les vendues, affichées dans l'onglet
+  // « Toutes », ne comptent pas comme position).
+  const to = watches.value.slice(0, dropIndex).filter((w) => w.is_sold !== true).length
+  if (from === to) return
+
+  // Les positions détenues par les lignes de la page, dans l'ordre affiché. On les
+  // redistribue selon le nouvel ordre : c'est une permutation, donc rien ne bouge en dehors
+  // de la page et aucune position n'est inventée.
+  const slots = rows.map((w) => w.display_order)
+  if (slots.some((slot) => slot == null)) {
+    error.value = "Certaines montres n'ont pas de position : utilisez « en tête » ou « en fin »."
     return
   }
 
-  try {
-    // Don't allow reordering sold watches
-    if (draggedWatch.value.is_sold === true) {
-      draggedWatch.value = null
-      return
-    }
+  const reordered = [...rows]
+  const [moved] = reordered.splice(from, 1)
+  reordered.splice(to, 0, moved)
 
-    // Calculate new display_order values for all affected watches
-    // Exclude sold watches from reordering - they keep display_order = null
-    const watchesToUpdate = []
-    
-    // Get all non-sold watches from the filtered list
-    const nonSoldWatches = filteredWatches.value.filter((w) => w.is_sold !== true)
-    
-    // Find indices in the non-sold list
-    const draggedIndexInNonSold = nonSoldWatches.findIndex((w) => w.id === draggedWatch.value.id)
-    if (draggedIndexInNonSold === -1) {
-      draggedWatch.value = null
-      return
-    }
+  const updates = reordered
+    .map((watch, index) => ({
+      id: watch.id,
+      display_order: slots[index],
+      previous: watch.display_order,
+    }))
+    .filter((entry) => entry.previous !== entry.display_order)
+    .map(({ id, display_order }) => ({ id, display_order }))
 
-    // Calculate the drop index in the non-sold list
-    // Count how many non-sold watches are before the drop position
-    const nonSoldWatchesBeforeDrop = filteredWatches.value.slice(0, dropIndex).filter((w) => w.is_sold !== true)
-    const dropIndexInNonSold = nonSoldWatchesBeforeDrop.length
-
-    // Create a copy of non-sold watches for reordering
-    const sortedWatches = [...nonSoldWatches]
-    
-    // Remove dragged watch from its current position
-    const [draggedItem] = sortedWatches.splice(draggedIndexInNonSold, 1)
-    
-    // Insert it at the new position
-    sortedWatches.splice(dropIndexInNonSold, 0, draggedItem)
-
-    // Assign new display_order values (highest to lowest) - only for non-sold watches
-    const maxOrder = Math.max(...sortedWatches.map((w) => w.display_order || 0), 0)
-    sortedWatches.forEach((watch, index) => {
-      const newOrder = maxOrder - index
-      if (watch.display_order !== newOrder) {
-        watchesToUpdate.push({ id: watch.id, display_order: newOrder })
-      }
-    })
-
-    if (watchesToUpdate.length > 0) {
-      const result = await reorderWatches(watchesToUpdate)
-      if (result.success) {
-        await loadWatches()
-        success.value = 'Ordre mis à jour avec succès'
-        setTimeout(() => {
-          success.value = null
-        }, 3000)
-      } else {
-        error.value = result.error || 'Erreur lors de la mise à jour de l\'ordre'
-      }
-    }
-  } catch (err) {
-    error.value = 'Une erreur est survenue lors de la mise à jour de l\'ordre'
-    console.error(err)
-  }
-
-  draggedWatch.value = null
-  event.target.style.opacity = '1'
+  await applyOrders(updates)
 }
 
 const handleDragEnd = (event) => {
@@ -499,7 +476,7 @@ const handleDragEnd = (event) => {
 }
 
 onMounted(async () => {
-  await loadWatches()
+  await Promise.all([loadWatches(), loadStatusCounts(), loadBrands()])
 })
 </script>
 
@@ -520,7 +497,7 @@ onMounted(async () => {
             >
               Montres en stock
               <span class="ml-2 text-xs bg-primary text-white px-2 py-1 rounded-full">
-                {{ watches.filter((w) => w.is_available !== false && w.is_sold !== true).length }}
+                {{ statusCounts.available }}
               </span>
             </button>
             <button
@@ -534,7 +511,7 @@ onMounted(async () => {
             >
               Montres hors stock
               <span class="ml-2 text-xs bg-primary text-white px-2 py-1 rounded-full">
-                {{ watches.filter((w) => w.is_available === false).length }}
+                {{ statusCounts.unavailable }}
               </span>
             </button>
             <button
@@ -548,7 +525,7 @@ onMounted(async () => {
             >
               Montres vendues
               <span class="ml-2 text-xs bg-primary text-white px-2 py-1 rounded-full">
-                {{ watches.filter((w) => w.is_sold === true).length }}
+                {{ statusCounts.sold }}
               </span>
             </button>
             <button
@@ -562,7 +539,7 @@ onMounted(async () => {
             >
               Toutes les montres
               <span class="ml-2 text-xs bg-primary text-white px-2 py-1 rounded-full">
-                {{ watches.length }}
+                {{ statusCounts.all }}
               </span>
             </button>
           </nav>
@@ -584,7 +561,7 @@ onMounted(async () => {
               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value="">Toutes les marques</option>
-              <option v-for="brand in availableBrands" :key="brand" :value="brand">
+              <option v-for="brand in brandOptions" :key="brand" :value="brand">
                 {{ brand }}
               </option>
             </select>
@@ -598,6 +575,19 @@ onMounted(async () => {
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- Reclassement indisponible sous un tri autre que l'ordre du catalogue -->
+      <div
+        v-if="canWrite && activeTab !== 'sold' && !isCatalogOrder"
+        class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg mb-6 text-sm"
+      >
+        Le tableau est trié par une autre colonne : le glisser-déposer et les flèches sont
+        désactivés, car la ligne voisine à l'écran n'est pas la voisine dans l'ordre du catalogue.
+        « Placer en tête » et « placer en fin » restent disponibles.
+        <button @click="sortColumn = null" class="ml-2 underline hover:no-underline">
+          Revenir à l'ordre du catalogue
+        </button>
       </div>
 
       <!-- Error State -->
@@ -619,7 +609,7 @@ onMounted(async () => {
       </div>
 
       <!-- Watches Table -->
-      <div v-else-if="filteredWatches.length > 0" class="bg-white rounded-lg shadow overflow-hidden">
+      <div v-else-if="watches.length > 0" class="bg-white rounded-lg shadow overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="">
@@ -787,34 +777,51 @@ onMounted(async () => {
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr
-                v-for="(watch, index) in paginatedWatches"
+                v-for="(watch, index) in watches"
                 :key="watch.id"
                 :class="[
                   'hover:bg-cream transition-colors',
-                  canWrite && activeTab !== 'sold' ? 'cursor-move' : 'cursor-default',
-                  draggedOverIndex === pageOffset + index ? 'bg-blue-50 border-2 border-blue-300' : '',
+                  canReorder ? 'cursor-move' : 'cursor-default',
+                  draggedOverIndex === index ? 'bg-blue-50 border-2 border-blue-300' : '',
                 ]"
-                :draggable="canWrite && activeTab !== 'sold'"
+                :draggable="canReorder && watch.is_sold !== true"
                 @dragstart="handleDragStart($event, watch)"
-                @dragover.prevent="handleDragOver($event, pageOffset + index)"
+                @dragover.prevent="handleDragOver($event, index)"
                 @dragleave="handleDragLeave"
-                @drop="handleDrop($event, pageOffset + index)"
+                @drop="handleDrop($event, index)"
                 @dragend="handleDragEnd"
               >
                 <td v-if="activeTab !== 'sold'" class="w-0 px-2 py-4 whitespace-nowrap">
                   <div class="flex flex-col items-center gap-0.5">
                     <div class="text-xs text-gray-500 font-semibold">
-                      #{{ watch.display_order || 0 }}
+                      #{{ watch.display_order != null ? watch.display_order : '—' }}
                     </div>
-                    <div class="flex flex-col">
+                    <div v-if="canWrite" class="flex flex-col">
                       <button
-                        @click.stop="moveWatchUp(watch.id)"
-                        :disabled="pageOffset + index === 0"
+                        @click.stop="moveWatchToEdge(watch.id, 'top')"
+                        :disabled="isReordering || watch.is_sold === true"
                         :class="[
                           'p-0.5 rounded hover:bg-cream-200 transition-colors',
-                          pageOffset + index === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+                          isReordering || watch.is_sold === true
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'cursor-pointer',
                         ]"
-                        title="Déplacer vers le haut"
+                        title="Placer en tête du catalogue"
+                      >
+                        <svg class="w-3.5 h-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11l7-7 7 7M5 19l7-7 7 7" />
+                        </svg>
+                      </button>
+                      <button
+                        @click.stop="moveWatchUp(watch.id)"
+                        :disabled="!canReorder || isReordering || watch.is_sold === true || isFirstOfCatalog(watch)"
+                        :class="[
+                          'p-0.5 rounded hover:bg-cream-200 transition-colors',
+                          !canReorder || isReordering || watch.is_sold === true || isFirstOfCatalog(watch)
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'cursor-pointer',
+                        ]"
+                        :title="canReorder ? 'Déplacer vers le haut' : 'Revenez au tri « Ordre » pour reclasser'"
                       >
                         <svg class="w-3.5 h-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
@@ -822,15 +829,32 @@ onMounted(async () => {
                       </button>
                       <button
                         @click.stop="moveWatchDown(watch.id)"
-                        :disabled="pageOffset + index === filteredWatches.length - 1"
+                        :disabled="!canReorder || isReordering || watch.is_sold === true || isLastOfCatalog(watch)"
                         :class="[
                           'p-0.5 rounded hover:bg-cream-200 transition-colors',
-                          pageOffset + index === filteredWatches.length - 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+                          !canReorder || isReordering || watch.is_sold === true || isLastOfCatalog(watch)
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'cursor-pointer',
                         ]"
-                        title="Déplacer vers le bas"
+                        :title="canReorder ? 'Déplacer vers le bas' : 'Revenez au tri « Ordre » pour reclasser'"
                       >
                         <svg class="w-3.5 h-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        @click.stop="moveWatchToEdge(watch.id, 'bottom')"
+                        :disabled="isReordering || watch.is_sold === true"
+                        :class="[
+                          'p-0.5 rounded hover:bg-cream-200 transition-colors',
+                          isReordering || watch.is_sold === true
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'cursor-pointer',
+                        ]"
+                        title="Placer en fin de catalogue"
+                      >
+                        <svg class="w-3.5 h-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7M19 5l-7 7-7-7" />
                         </svg>
                       </button>
                     </div>
@@ -1032,7 +1056,7 @@ onMounted(async () => {
         <div class="px-6 py-3 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div class="flex items-center gap-4">
             <p class="text-sm text-gray-500 italic">
-              {{ paginationStart }}-{{ paginationEnd }} sur {{ filteredWatches.length }} montre{{ filteredWatches.length > 1 ? 's' : '' }}
+              {{ paginationStart }}-{{ paginationEnd }} sur {{ totalCount }} montre{{ totalCount > 1 ? 's' : '' }}
             </p>
             <label class="text-sm text-gray-500 flex items-center gap-2">
               Par page
