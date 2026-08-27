@@ -163,7 +163,10 @@ async function nextDisplayOrder() {
   const { data } = await supabase
     .from('watches')
     .select('display_order')
-    .order('display_order', { ascending: false })
+    // `nullsFirst: false` est indispensable : en tri décroissant Postgres place
+    // les NULL en tête, et la moitié du catalogue a un `display_order` nul. Sans
+    // ça la requête ramène une ligne NULL et le prochain rang repart à 1.
+    .order('display_order', { ascending: false, nullsFirst: false })
     .limit(1)
     .maybeSingle()
 
