@@ -2,6 +2,7 @@ import { resolveHomeHeroConfig } from './homeHero.js'
 import { resolveHomeSections } from './homeSections.js'
 import { resolveHomeNouvellesConfig } from './homeNouvelles.js'
 import { resolveHomeSelectionsConfig } from './homeSelections.js'
+import { resolveGoogleReviewsConfig } from './googleReviews.js'
 import { mergeSiteFeatures } from './siteFeatures.js'
 import { resolveCheckoutShipping } from './checkoutShipping.js'
 import { resolveWatchCatalogConfig } from './watchCatalogDisplay.js'
@@ -71,9 +72,14 @@ export function resolveSiteConfig(rawSiteConfig, locale) {
   const selections = resolveHomeSelectionsConfig(siteConfig)
   const nouvelles = resolveHomeNouvellesConfig(siteConfig)
   const hero = resolveHomeHeroConfig(siteConfig)
+  // Avis Google : drapeau entièrement dérivé du bloc `googleReviews` du manifest, comme
+  // `homeNouvelles` l'est de `home.sections`. Il ne s'allume qu'avec un `placeId` renseigné — un
+  // manifest livré avec le placeholder vide n'affiche ni la section d'accueil ni le bloc Contact.
+  const googleReviews = resolveGoogleReviewsConfig(siteConfig)
   features = {
     ...features,
     homeNouvelles: homeSections.includes('nouvelles'),
+    googleReviews: googleReviews.enabled,
   }
   const checkoutRaw = siteConfig.checkout || {}
   const shippingResolved = resolveCheckoutShipping(checkoutRaw)
@@ -85,6 +91,7 @@ export function resolveSiteConfig(rawSiteConfig, locale) {
     i18n: { ...i18n, activeLocale },
     locale: activeLocale,
     features,
+    googleReviews,
     watchCatalog,
     checkout: {
       ...checkoutRaw,

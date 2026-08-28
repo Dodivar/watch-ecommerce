@@ -54,6 +54,10 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 
 `sites/sauvage-watches` et `sites/place-des-montres` sont servis en français, anglais et allemand. Un site déclare ses langues par un bloc `i18n` dans son manifest ; sans ce bloc il reste monolingue. Les textes du client se traduisent sur place avec `t({ fr, en, de })`, ceux de l’interface vivent dans `packages/base/src/i18n/messages/`. Conventions, URLs préfixées, garde-fous de traduction et périmètre laissé en français : voir [documentation/i18n/README.md](documentation/i18n/README.md).
 
+## Avis Google
+
+Les vitrines dont le client possède une fiche Google Business affichent ses derniers avis (accueil + page Contact). Les avis sont lus par le backend et mis en cache 6 h, ce qui garde la consommation de l'API Places dans le quota gratuit. Activation par client (Place ID + clé serveur) : voir [documentation/google-reviews/README.md](documentation/google-reviews/README.md).
+
 ## Ligne éditoriale
 
 Pour le site `sites/sauvage-watches` : avant toute modification ou ajout de texte, consulter [documentation/ligne-editoriale.md](documentation/ligne-editoriale.md) (ton, vocabulaire, valeurs, conventions, exemples).

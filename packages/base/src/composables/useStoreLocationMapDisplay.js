@@ -1,5 +1,8 @@
 import { computed, toValue } from 'vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { t, tc } from '@/i18n'
+import { formatRating } from '@/utils/formatters.js'
+import { useGoogleReviews } from '@/composables/useGoogleReviews.js'
 import {
   buildStoreMapPopupHtml,
   resolveStoreMapPopupLogoUrl,
@@ -19,6 +22,19 @@ import {
 export function useStoreLocationMapDisplay(props) {
   const site = getSiteConfig()
   const storeMap = site.storeMap
+
+  // La note Google enrichit la bulle du marqueur quand les avis sont configurés. L'état est
+  // partagé avec le bloc d'avis de la page : aucun appel réseau supplémentaire.
+  const {
+    status: reviewsStatus,
+    rating,
+    userRatingCount,
+    profileUrl,
+    load: loadReviews,
+  } = useGoogleReviews()
+  // `load()` sort immédiatement si la fonctionnalité est éteinte, et la promesse est mémoïsée :
+  // la carte et le bloc d'avis d'une même page ne déclenchent qu'un seul appel.
+  void loadReviews()
 
   const resolvedZoom = computed(() => {
     const z = toValue(props).zoom ?? storeMap?.zoom
@@ -67,11 +83,17 @@ export function useStoreLocationMapDisplay(props) {
   const resolvedPopupHtml = computed(() => {
     if (toValue(props).popupHtml?.trim()) return toValue(props).popupHtml.trim()
 
+    const hasRating = reviewsStatus.value === 'ready' && rating.value != null
+
     return buildStoreMapPopupHtml({
       title: resolvedMarkerTitle.value,
       addressHtml: resolvedAddressHtml.value,
       logoUrl: resolvedPopupLogoUrl.value,
       logoAlt: site.brand?.logoAlt || resolvedMarkerTitle.value,
+      ratingLabel: hasRating ? formatRating(rating.value) : '',
+      countLabel: hasRating ? tc('reviews.reviewCount', userRatingCount.value) : '',
+      reviewsUrl: hasRating ? profileUrl.value : '',
+      reviewsLabel: t('reviews.mapSeeReviews'),
     })
   })
 

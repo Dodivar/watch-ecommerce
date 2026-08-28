@@ -897,4 +897,15 @@ export default {
     other: '{count} months warranty',
   },
   'watchSpec.guarantee.detail': '{detail} warranty',
+
+  // Google reviews (`avisGoogle` home section + Contact page block)
+  'reviews.title': 'What our customers say',
+  'reviews.subtitle': 'The latest reviews published on our Google listing.',
+  'reviews.reviewCount': { one: '{count} review', other: '{count} reviews' },
+  'reviews.ratingOutOf': '{rating} out of {max}',
+  'reviews.seeAllOnGoogle': 'See all reviews on Google',
+  'reviews.readMore': 'Read more',
+  'reviews.loading': 'Loading Google reviews…',
+  'reviews.poweredByGoogle': 'Reviews published on Google.',
+  'reviews.mapSeeReviews': 'View on Google',
 }

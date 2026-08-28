@@ -46,6 +46,12 @@ export const DEFAULT_SITE_FEATURES = {
    */
   homeCarousel: false,
   /**
+   * Avis Google (section d'accueil `avisGoogle` + bloc sous la carte Contact).
+   * Dérivé de `googleReviews.placeId` dans `resolveSiteConfig` — inutile de le poser à la main
+   * dans un manifest : il reste faux tant que le Place ID de la fiche n'est pas renseigné.
+   */
+  googleReviews: false,
+  /**
    * Carrousel « nouveautés » sur l'accueil — dérivé de `home.sections` contenant `nouvelles` (voir resolveSiteConfig).
    */
   homeNouvelles: false,

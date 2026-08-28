@@ -77,6 +77,22 @@ export function formatNumber(value) {
 }
 
 /**
+ * Note sur 5 avec une décimale, dans la langue active (« 4,7 » en français, « 4.7 » en anglais).
+ *
+ * @param {number | string} value
+ * @returns {string} Chaîne vide si la valeur n'est pas un nombre.
+ */
+export function formatRating(value) {
+  if (value === null || value === undefined || value === '') return ''
+  const amount = Number(value)
+  if (!Number.isFinite(amount)) return ''
+  const locale = intlLocale()
+  return cached(`rating|${locale}`, () =>
+    new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+  ).format(amount)
+}
+
+/**
  * Date longue (« 3 mars 2026 », « 3 March 2026 », « 3. März 2026 »).
  *
  * @param {string | Date | null | undefined} value

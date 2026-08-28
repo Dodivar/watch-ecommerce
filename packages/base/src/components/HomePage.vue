@@ -20,6 +20,7 @@ import HomeSelectionsSection from './home/HomeSelectionsSection.vue'
 import HomeCollectionHighlightSection from './home/HomeCollectionHighlightSection.vue'
 import HomeStatsSection from './home/HomeStatsSection.vue'
 import HomeAboutPreviewSection from './home/HomeAboutPreviewSection.vue'
+import HomeGoogleReviewsSection from './home/HomeGoogleReviewsSection.vue'
 
 const SECTION_COMPONENTS = {
   homeCarousel: HomeCarouselSection,
@@ -32,6 +33,7 @@ const SECTION_COMPONENTS = {
   trust: HomeTrustSection,
   ventes: CarouselVentes,
   suivezNous: SuivezNous,
+  avisGoogle: HomeGoogleReviewsSection,
   services: HomeServicesSection,
   faq: FaqSection,
 }
