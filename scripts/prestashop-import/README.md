@@ -11,7 +11,7 @@ Pipeline ETL CLI pour migrer le catalogue produits d'une boutique PrestaShop ver
    SUPABASE_SERVICE_ROLE_KEY=eyJ...
    ```
 
-2. **Migration Supabase** (recommandée pour ré-import idempotent) :
+2. **Migration Supabase** (optionnelle, recommandée pour un ré-import idempotent) :
 
    Exécuter le contenu de [`prestashop_product_id.sql.example`](prestashop_product_id.sql.example) dans le SQL Editor du projet Supabase client :
 
@@ -22,7 +22,10 @@ Pipeline ETL CLI pour migrer le catalogue produits d'une boutique PrestaShop ver
      WHERE prestashop_product_id IS NOT NULL;
    ```
 
-   Sans cette colonne, la déduplication se fait uniquement par `ad_code`.
+   Sans cette colonne l'import fonctionne quand même : la clé PrestaShop n'est simplement
+   pas stockée et la déduplication repose entièrement sur `ad_code`. Un ré-import ne
+   retrouve donc les fiches existantes que si les références `ad_code` n'ont pas bougé
+   côté PrestaShop — sinon il crée des doublons.
 
 3. **Mapping client** : copier et adapter [`sites/_template/prestashop-import.mapping.json`](../../sites/_template/prestashop-import.mapping.json) vers `sites/<SITE_ID>/prestashop-import.mapping.json`.
 
@@ -136,7 +139,7 @@ Fixture locale : `tests/fixtures/prestashop/products-sample.csv`.
 
 ## Déroulé recommandé (nouveau client)
 
-1. Appliquer la migration SQL `prestashop_product_id`
+1. Appliquer la migration SQL `prestashop_product_id` (optionnelle, mais elle seule rend le ré-import idempotent)
 2. Exporter CSV produits + CSV images depuis PrestaShop
 3. Adapter `prestashop-import.mapping.json`
 4. Dry-run `--limit 10`
@@ -151,7 +154,7 @@ Fixture locale : `tests/fixtures/prestashop/products-sample.csv`.
 | Encodage cassé | Ré-exporter en UTF-8 ; le parser gère le BOM |
 | Prix invalides | Vérifier séparateur décimal (`,` → normalisé en `.`) |
 | Features vides | Colonne Features absente de l'export — l'activer dans PrestaShop |
-| Colonne `prestashop_product_id` absente | Appliquer la migration SQL |
+| Colonne `prestashop_product_id` absente | Non bloquant : l'import tourne, la clé PrestaShop n'est pas écrite. Appliquer la migration SQL pour un ré-import idempotent |
 | Images 403/404 | URLs publiques requises ; vérifier le domaine PrestaShop |
 
 ## Structure
