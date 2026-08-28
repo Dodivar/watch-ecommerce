@@ -13,7 +13,10 @@ export async function getMaxDisplayOrder(supabase) {
   const { data } = await supabase
     .from('watches')
     .select('display_order')
-    .order('display_order', { ascending: false })
+    // `nullsFirst: false` est indispensable : en tri décroissant Postgres place
+    // les NULL en tête, et la moitié du catalogue a un `display_order` nul. Sans
+    // ça la requête ramène une ligne NULL et le lot importé repart à 1.
+    .order('display_order', { ascending: false, nullsFirst: false })
     .limit(1)
     .maybeSingle()
 
@@ -77,6 +80,8 @@ function isMissingColumnError(error) {
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {WatchImportRecord} record
  * @param {{ displayOrder: number, onConflict: 'update' | 'skip', usePrestashopId: boolean }} options
+ *   `usePrestashopId` reflète la présence de la colonne `watches.prestashop_product_id` :
+ *   elle gouverne à la fois la recherche du doublon et l'écriture de la clé.
  * @returns {Promise<{ action: 'created' | 'updated' | 'skipped', watchId: string }>}
  */
 export async function loadWatchRecord(supabase, record, options) {
@@ -95,6 +100,16 @@ export async function loadWatchRecord(supabase, record, options) {
   }
 
   const { watch, details, accessories } = recordToDbPayloads(record, options.displayOrder)
+
+  // La colonne `prestashop_product_id` est optionnelle (migration
+  // `prestashop_product_id.sql.example` non appliquée sur certaines bases). Sans ce
+  // retrait PostgREST rejette chaque écriture avec une erreur de schema cache : le
+  // repli annoncé — déduplication par `ad_code` seule — suppose de ne pas écrire la
+  // clé. `delete` plutôt qu'une valeur à `null` : c'est la présence de la clé dans
+  // le payload que PostgREST refuse, pas sa valeur.
+  if (!options.usePrestashopId) {
+    delete watch.prestashop_product_id
+  }
 
   if (existing) {
     const watchId = existing.id
@@ -185,7 +200,7 @@ export async function loadWatchBatch(supabase, records, report, options) {
 
   if (options.apply && supabase && !usePrestashopId && records.some((r) => r.prestashopProductId)) {
     console.warn(
-      '[prestashop-import] Colonne watches.prestashop_product_id absente — déduplication par ad_code uniquement.',
+      '[prestashop-import] Colonne watches.prestashop_product_id absente — la clé PrestaShop ne sera pas stockée, déduplication par ad_code uniquement.',
     )
     console.warn('[prestashop-import] Appliquer scripts/prestashop-import/prestashop_product_id.sql.example')
   }

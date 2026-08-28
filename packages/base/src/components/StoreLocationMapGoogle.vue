@@ -120,8 +120,18 @@ onUnmounted(() => {
   destroyMap()
 })
 
-watch([resolvedCenter, resolvedZoom, resolvedPopupHtml], () => {
+watch([resolvedCenter, resolvedZoom], () => {
   void scheduleInitMap()
+})
+
+// La note Google arrive après le montage : remplacer le contenu de la bulle suffit. Repasser par
+// `scheduleInitMap()` reconstruirait toute la carte (scintillement + chargement Google refacturé).
+watch(resolvedPopupHtml, (html) => {
+  if (infoWindowInstance) {
+    infoWindowInstance.setContent(html)
+  } else {
+    void scheduleInitMap()
+  }
 })
 </script>
 

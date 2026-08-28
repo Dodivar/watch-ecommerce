@@ -113,6 +113,8 @@
             </div>
 
             <StoreLocationMap v-if="showStoreMap" class="rounded-lg shadow-md" />
+
+            <GoogleReviewsBlock v-if="showGoogleReviews" variant="compact" />
           </div>
 
           <!-- Formulaire -->
@@ -215,6 +217,7 @@ import { useHead } from '@vueuse/head'
 import { EMAIL_CONTACT, WHATSAPP_NUMBER, CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import StoreLocationMap from '@/components/StoreLocationMap.vue'
+import GoogleReviewsBlock from '@/components/reviews/GoogleReviewsBlock.vue'
 import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
 import { handleFormSubmit, prepareContactFormData } from '@/services/emailService'
 import { t } from '@/i18n'
@@ -260,6 +263,12 @@ const showStoreMap = computed(() => {
     typeof center.lng === 'number'
   )
 })
+
+/**
+ * Avis Google sous la carte. Faux tant que `googleReviews.placeId` est vide : un site sans fiche
+ * (ou qui ne publie pas son adresse, comme Sauvage Watches) garde sa page Contact inchangée.
+ */
+const showGoogleReviews = computed(() => Boolean(site.features?.googleReviews))
 
 const form = reactive({
   name: '',

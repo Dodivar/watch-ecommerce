@@ -13,6 +13,7 @@ const n8nRoutes = require('./routes/n8n')
 const { buildAdminRouter } = require('./admin/adminRoutes')
 const { buildNewsletterRouter } = require('./routes/newsletter')
 const { buildHealthRouter } = require('./routes/health')
+const { buildReviewsRouter } = require('./routes/reviews')
 const { startNewsletterScheduler } = require('./newsletter/scheduler')
 const { startAbandonedCheckoutScheduler } = require('./orders/recovery')
 
@@ -120,6 +121,8 @@ async function main() {
   app.use('/api/n8n', resolveSite(registry), n8nRoutes)
   app.use('/api/admin', resolveSite(registry), buildAdminRouter(registry))
   app.use('/api/newsletter', resolveSite(registry), buildNewsletterRouter(registry))
+  // Avis Google publics (lecture seule, cache mémoire partagé) — voir routes/reviews.js.
+  app.use('/api/reviews', resolveSite(registry), buildReviewsRouter(registry))
 
   // Stripe webhooks (:siteId) — PaymentIntent
   app.use('/api/stripe', buildStripeRouter(registry))

@@ -25,6 +25,7 @@ describe('resolveHomeSections', () => {
     expect(KNOWN_HOME_SECTION_IDS).toContain('stats')
     expect(KNOWN_HOME_SECTION_IDS).toContain('aboutPreview')
     expect(KNOWN_HOME_SECTION_IDS).toContain('services')
+    expect(KNOWN_HOME_SECTION_IDS).toContain('avisGoogle')
   })
 })
 
@@ -35,6 +36,22 @@ describe('filterHomeSectionsByFeatures', () => {
     estimation: true,
     faq: true,
   }
+
+  it('retire avisGoogle si features.googleReviews est false', () => {
+    const out = filterHomeSectionsByFeatures(['hero', 'avisGoogle'], {
+      ...baseFeatures,
+      googleReviews: false,
+    })
+    expect(out).toEqual(['hero'])
+  })
+
+  it('conserve avisGoogle si features.googleReviews est true', () => {
+    const out = filterHomeSectionsByFeatures(['hero', 'avisGoogle'], {
+      ...baseFeatures,
+      googleReviews: true,
+    })
+    expect(out).toEqual(['hero', 'avisGoogle'])
+  })
 
   it('retire faq si features.faq est false', () => {
     const out = filterHomeSectionsByFeatures(['hero', 'faq'], { ...baseFeatures, faq: false })

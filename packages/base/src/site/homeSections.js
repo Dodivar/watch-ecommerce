@@ -13,6 +13,7 @@ export const KNOWN_HOME_SECTION_IDS = [
   'trust',
   'ventes',
   'suivezNous',
+  'avisGoogle',
   'services',
   'faq',
 ]
@@ -71,6 +72,7 @@ export function filterHomeSectionsByFeatures(sections, features, siteConfig) {
     if (id === 'collectionHighlight') {
       return Boolean(features.collection)
     }
+    if (id === 'avisGoogle') return Boolean(features.googleReviews)
     if (id === 'services') {
       return Boolean(
         features.recherche || features.collection || features.estimation,

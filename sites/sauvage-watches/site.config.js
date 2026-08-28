@@ -118,6 +118,23 @@ export default {
     popupLogoSrc: '/web-app-manifest-512x512.png',
   },
 
+  /**
+   * Avis Google de la fiche d'établissement — section d'accueil `avisGoogle` et bloc sous la
+   * carte de la page Contact. Les avis sont lus par le backend (`GET /api/reviews`) et mis en
+   * cache 6 h : voir `documentation/google-reviews/README.md`.
+   *
+   * Tant que `placeId` est vide, la fonctionnalité reste éteinte et rien ne change à l'affichage.
+   * Récupérer l'identifiant `ChIJ…` de la fiche avec le « Place ID Finder » de Google, puis
+   * déclarer le secret `SITE_SAUVAGE_WATCHES__GOOGLE_PLACES_API_KEY` côté Render.
+   */
+  googleReviews: {
+    enabled: true,
+    /** Place ID `ChIJ…` de la fiche Google Business. Vide = section masquée. */
+    placeId: 'ChIJ3Yd26nfJlkcR8t7VaQCaNxA',
+    /** Plafond dur de l'API Places : 5 avis maximum. */
+    maxReviews: 5,
+  },
+
   legal: {
     companyName: 'Sauvage Watches',
     address: '32 Allée de la Robertsau, 67000 Strasbourg, France',
@@ -327,7 +344,7 @@ export default {
     nouvelles: {
       title: t({ fr: 'Nouvelles arrivées', en: 'New arrivals', de: 'Neuzugänge' }),
     },
-    sections: ['hero', 'nouvelles', 'trust', 'ventes', 'suivezNous', 'services', 'faq'],
+    sections: ['hero', 'nouvelles', 'trust', 'avisGoogle', 'ventes', 'suivezNous', 'services', 'faq'],
   },
 
   /** Filtres collection — passer une clé à `false` pour masquer la section dans le tiroir. */
