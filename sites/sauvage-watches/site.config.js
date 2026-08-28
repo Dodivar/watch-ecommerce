@@ -130,7 +130,7 @@ export default {
   googleReviews: {
     enabled: true,
     /** Place ID `ChIJ…` de la fiche Google Business. Vide = section masquée. */
-    placeId: '',
+    placeId: 'ChIJ3Yd26nfJlkcR8t7VaQCaNxA',
     /** Plafond dur de l'API Places : 5 avis maximum. */
     maxReviews: 5,
   },
