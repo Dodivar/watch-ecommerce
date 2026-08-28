@@ -1,80 +1,74 @@
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/config', () => ({ BASE_URL: 'https://example.com/' }))
+// `@/config` lit le manifest complet au chargement ; le stub de site des tests n'a pas de bloc
+// `contact`. Seul `BASE_URL` est utilisé ici (URL absolue du logo de la bulle).
+vi.mock('@/config', () => ({ BASE_URL: 'https://example.test' }))
 
-import {
-  buildStoreMapPopupHtml,
-  resolveStoreMapPopupLogoUrl,
-} from './buildStoreMapPopupHtml.js'
+import { buildStoreMapPopupHtml } from './buildStoreMapPopupHtml.js'
 
-describe('resolveStoreMapPopupLogoUrl', () => {
-  it('retourne null sans chemin exploitable', () => {
-    expect(resolveStoreMapPopupLogoUrl('')).toBeNull()
-    expect(resolveStoreMapPopupLogoUrl('   ')).toBeNull()
-    expect(resolveStoreMapPopupLogoUrl(null)).toBeNull()
+const BASE = { title: 'Place des Montres', addressHtml: '24 Place des Halles' }
+
+describe('buildStoreMapPopupHtml — bulle sans avis', () => {
+  it('ne rend aucune ligne de note quand la note est absente', () => {
+    const html = buildStoreMapPopupHtml(BASE)
+    expect(html).not.toContain('★')
+    expect(html).toContain('Place des Montres')
+    expect(html).toContain('24 Place des Halles')
   })
 
-  it('laisse intactes les URLs absolues', () => {
-    expect(resolveStoreMapPopupLogoUrl('https://cdn.example.com/logo.png')).toBe(
-      'https://cdn.example.com/logo.png',
-    )
-    expect(resolveStoreMapPopupLogoUrl('HTTP://cdn.example.com/logo.png')).toBe(
-      'HTTP://cdn.example.com/logo.png',
-    )
+  it('produit exactement le même HTML avec ou sans paramètres d’avis vides', () => {
+    // Garde-fou : la carte des sites sans fiche Google ne doit pas bouger d'un caractère.
+    expect(
+      buildStoreMapPopupHtml({ ...BASE, ratingLabel: '', countLabel: '', reviewsUrl: '' }),
+    ).toBe(buildStoreMapPopupHtml(BASE))
   })
 
-  it('préfixe les chemins relatifs avec BASE_URL sans double slash', () => {
-    expect(resolveStoreMapPopupLogoUrl('/logo.png')).toBe('https://example.com/logo.png')
-    expect(resolveStoreMapPopupLogoUrl('logo.png')).toBe('https://example.com/logo.png')
+  it('n’affiche pas de note sans libellé, même avec un nombre d’avis', () => {
+    expect(buildStoreMapPopupHtml({ ...BASE, countLabel: '128 avis' })).toBe(
+      buildStoreMapPopupHtml(BASE),
+    )
   })
 })
 
-describe('buildStoreMapPopupHtml', () => {
-  it('inclut logo, titre et adresse quand tout est fourni', () => {
+describe('buildStoreMapPopupHtml — bulle avec avis', () => {
+  const WITH_RATING = {
+    ...BASE,
+    ratingLabel: '4,7',
+    countLabel: '128 avis',
+    reviewsUrl: 'https://maps.google.com/?cid=42',
+    reviewsLabel: 'Voir sur Google',
+  }
+
+  it('affiche la note, le nombre d’avis et le lien vers la fiche', () => {
+    const html = buildStoreMapPopupHtml(WITH_RATING)
+    expect(html).toContain('★')
+    expect(html).toContain('4,7')
+    expect(html).toContain('128 avis')
+    expect(html).toContain('href="https://maps.google.com/?cid=42"')
+    expect(html).toContain('Voir sur Google')
+    expect(html).toContain('rel="noopener noreferrer"')
+  })
+
+  it('rend la note dans les deux gabarits (avec et sans logo)', () => {
+    const withLogo = buildStoreMapPopupHtml({ ...WITH_RATING, logoUrl: 'https://cdn/logo.png' })
+    expect(withLogo).toContain('128 avis')
+    expect(withLogo).toContain('<img src="https://cdn/logo.png"')
+  })
+
+  it('échappe le libellé et l’URL', () => {
     const html = buildStoreMapPopupHtml({
-      title: 'Sauvage Watches',
-      addressHtml: '12 Rue de la Paix<br>75002 Paris',
-      logoUrl: 'https://example.com/logo.png',
-      logoAlt: 'Logo boutique',
+      ...WITH_RATING,
+      countLabel: '<script>alert(1)</script>',
+      reviewsUrl: 'https://example.com/"onmouseover="alert(1)',
     })
-
-    expect(html).toContain('src="https://example.com/logo.png"')
-    expect(html).toContain('alt="Logo boutique"')
-    expect(html).toContain('Sauvage Watches')
-    expect(html).toContain('12 Rue de la Paix<br>75002 Paris')
-  })
-
-  it('rend une bulle sans image quand logoUrl est absent', () => {
-    const html = buildStoreMapPopupHtml({ title: 'Boutique', addressHtml: 'Paris' })
-
-    expect(html).not.toContain('<img')
-    expect(html).toContain('Boutique')
-    expect(html).toContain('Paris')
-  })
-
-  it('omet le bloc adresse quand addressHtml est vide', () => {
-    const html = buildStoreMapPopupHtml({ title: 'Boutique', addressHtml: '   ' })
-    expect(html).not.toContain('margin-top:4px')
-  })
-
-  it('échappe le HTML du titre et de l’alt (anti-injection)', () => {
-    const html = buildStoreMapPopupHtml({
-      title: '<script>alert("x")</script> & Co',
-      logoUrl: 'https://example.com/a.png',
-      logoAlt: '"quotes"',
-    })
-
     expect(html).not.toContain('<script>')
     expect(html).toContain('&lt;script&gt;')
-    expect(html).toContain('&amp; Co')
-    expect(html).toContain('alt="&quot;quotes&quot;"')
+    expect(html).toContain('&quot;onmouseover=')
   })
 
-  it('utilise le titre comme alt par défaut', () => {
-    const html = buildStoreMapPopupHtml({
-      title: 'Boutique',
-      logoUrl: 'https://example.com/a.png',
-    })
-    expect(html).toContain('alt="Boutique"')
+  it('omet le lien quand aucune URL de fiche n’est connue', () => {
+    const html = buildStoreMapPopupHtml({ ...WITH_RATING, reviewsUrl: '' })
+    expect(html).toContain('128 avis')
+    expect(html).not.toContain('<a href')
   })
 })

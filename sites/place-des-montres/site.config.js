@@ -331,6 +331,23 @@ export default {
     },
   },
 
+  /**
+   * Avis Google de la fiche d'établissement — section d'accueil `avisGoogle` et bloc sous la
+   * carte de la page Contact. Les avis sont lus par le backend (`GET /api/reviews`) et mis en
+   * cache 6 h : voir `documentation/google-reviews/README.md`.
+   *
+   * Tant que `placeId` est vide, la fonctionnalité reste éteinte et rien ne change à l'affichage.
+   * Récupérer l'identifiant `ChIJ…` de la fiche avec le « Place ID Finder » de Google, puis
+   * déclarer le secret `SITE_PLACE_DES_MONTRES__GOOGLE_PLACES_API_KEY` côté Render.
+   */
+  googleReviews: {
+    enabled: true,
+    /** Place ID `ChIJ…` de la fiche Google Business. Vide = section masquée. */
+    placeId: '',
+    /** Plafond dur de l'API Places : 5 avis maximum. */
+    maxReviews: 5,
+  },
+
   legal: {
     companyName: 'LHN S.A.R.L. (Place des Montres)',
     address: '24 Place des Halles, Centre commercial Place des Halles, 67000 Strasbourg, France',
@@ -1352,6 +1369,7 @@ export default {
       'collectionHighlight',
       // 'stats', // Désactivé côté client (bloc chiffres-clés) — conservé pour réactivation éventuelle.
       'aboutPreview',
+      'avisGoogle',
       // 'hero',
       // 'trust',
       // 'ventes',

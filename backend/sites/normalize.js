@@ -169,6 +169,41 @@ function normalizeCheckout(raw) {
   }
 }
 
+/** Plafond dur de l'API Places (New) : une fiche ne renvoie jamais plus de 5 avis. */
+const MAX_GOOGLE_REVIEWS = 5
+
+/**
+ * Normalise le bloc `googleReviews` du manifest client.
+ *
+ * Le pendant front vit dans `packages/base/src/site/googleReviews.js` — les deux doivent rester
+ * alignés (même duplication assumée que `utils/googleMapsLinks.js`).
+ * `enabled` n'est vrai qu'avec un `placeId` renseigné : un manifest livré avec le placeholder
+ * vide laisse la fonctionnalité éteinte.
+ *
+ * @param {unknown} raw
+ * @returns {{ enabled: boolean, placeId: string, maxReviews: number, languageCode: string }}
+ */
+function normalizeGoogleReviews(raw) {
+  const cfg = raw && typeof raw === 'object' ? raw : {}
+  const placeId = typeof cfg.placeId === 'string' ? cfg.placeId.trim() : ''
+  const parsedMax = Number(cfg.maxReviews)
+  const maxReviews =
+    Number.isFinite(parsedMax) && parsedMax > 0
+      ? Math.min(Math.floor(parsedMax), MAX_GOOGLE_REVIEWS)
+      : MAX_GOOGLE_REVIEWS
+  const languageCode =
+    typeof cfg.languageCode === 'string' && cfg.languageCode.trim()
+      ? cfg.languageCode.trim()
+      : ''
+
+  return {
+    enabled: cfg.enabled !== false && placeId.length > 0,
+    placeId,
+    maxReviews,
+    languageCode,
+  }
+}
+
 function deriveAllowedHosts(siteConfig) {
   const origins = deriveAllowedOrigins(siteConfig)
   const hosts = new Set()
@@ -183,7 +218,7 @@ function deriveAllowedHosts(siteConfig) {
  * Renvoie la version normalisée du site, prête à être consommée côté backend.
  * Le bloc original reste accessible via `raw`.
  * @param {Record<string, unknown>} rawConfig
- * @returns {{ id: string, raw: Record<string, unknown>, urls: object, brand: object, contact: object, backend: object, allowedOrigins: string[], allowedHosts: string[] }}
+ * @returns {{ id: string, raw: Record<string, unknown>, urls: object, brand: object, contact: object, backend: object, googleReviews: object, allowedOrigins: string[], allowedHosts: string[] }}
  */
 function normalizeSiteConfig(rawConfig) {
   const id = rawConfig.siteId
@@ -238,6 +273,7 @@ function normalizeSiteConfig(rawConfig) {
     contact,
     backend,
     checkout,
+    googleReviews: normalizeGoogleReviews(rawConfig.googleReviews),
     allowedOrigins: corsAllowedOrigins,
     allowedHosts,
   }
@@ -246,6 +282,8 @@ function normalizeSiteConfig(rawConfig) {
 module.exports = {
   normalizeSiteConfig,
   normalizeCheckout,
+  normalizeGoogleReviews,
+  MAX_GOOGLE_REVIEWS,
   DEFAULT_CHECKOUT,
   deriveAllowedOrigins,
   deriveAllowedHosts,

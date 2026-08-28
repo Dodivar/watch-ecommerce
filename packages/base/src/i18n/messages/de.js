@@ -897,4 +897,15 @@ export default {
     other: '{count} Monate Garantie',
   },
   'watchSpec.guarantee.detail': 'Garantie {detail}',
+
+  // Google-Bewertungen (Startseiten-Abschnitt `avisGoogle` + Block der Kontaktseite)
+  'reviews.title': 'Das sagen unsere Kundinnen und Kunden',
+  'reviews.subtitle': 'Die neuesten Bewertungen auf unserem Google-Eintrag.',
+  'reviews.reviewCount': { one: '{count} Bewertung', other: '{count} Bewertungen' },
+  'reviews.ratingOutOf': '{rating} von {max}',
+  'reviews.seeAllOnGoogle': 'Alle Bewertungen auf Google ansehen',
+  'reviews.readMore': 'Weiterlesen',
+  'reviews.loading': 'Google-Bewertungen werden geladen…',
+  'reviews.poweredByGoogle': 'Bewertungen veröffentlicht auf Google.',
+  'reviews.mapSeeReviews': 'Auf Google ansehen',
 }

@@ -64,6 +64,7 @@ function getSiteSecret(siteId, key, opts = {}) {
  *   supabase: { url: string|null, serviceRoleKey: string|null },
  *   mailjet: { apiKey: string|null, secretKey: string|null },
  *   analytics: { ga4MeasurementId: string|null, ga4ApiSecret: string|null },
+ *   googlePlaces: { apiKey: string|null },
  *   paymentCancelSecret: string|null,
  *   baseUrlOverride: string|null,
  *   emailFrom: string|null
@@ -92,6 +93,12 @@ function getSiteSecrets(siteId) {
     analytics: {
       ga4MeasurementId: getSiteSecret(siteId, 'GA4_MEASUREMENT_ID', { legacyFallback: null }),
       ga4ApiSecret: getSiteSecret(siteId, 'GA4_API_SECRET', { legacyFallback: null }),
+    },
+    // Avis Google (Places API New, côté serveur). Clé DISTINCTE de la clé front
+    // `VITE_GOOGLE_PLACES_API_KEY` : celle-ci est restreinte par référent HTTP et ne peut pas
+    // servir depuis Render. Créer une clé serveur restreinte par IP, limitée à Places API (New).
+    googlePlaces: {
+      apiKey: getSiteSecret(siteId, 'GOOGLE_PLACES_API_KEY', { legacyFallback: null }),
     },
     paymentCancelSecret: getSiteSecret(siteId, 'PAYMENT_CANCEL_SECRET'),
     baseUrlOverride: getSiteSecret(siteId, 'BASE_URL'),
