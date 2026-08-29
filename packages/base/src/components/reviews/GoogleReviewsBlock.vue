@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, useId } from 'vue'
 import { t, tc } from '@/i18n'
 import { useGoogleReviews } from '@/composables/useGoogleReviews.js'
 import { formatRating } from '@/utils/formatters.js'
@@ -19,6 +19,30 @@ const { status, rating, userRatingCount, reviews, profileUrl, load } = useGoogle
 onMounted(() => {
   void load()
 })
+
+/**
+ * Avis visibles au premier rendu : une rangée pleine de la grille d'accueil (3 colonnes en `lg`).
+ * Les avis repliés sont déjà en mémoire — le backend en met cinq en cache d'un bloc — donc
+ * « voir plus » ne déclenche aucun appel réseau.
+ */
+const INITIAL_VISIBLE_REVIEWS = 3
+
+const expandedList = ref(false)
+
+const visibleReviews = computed(() =>
+  expandedList.value ? reviews.value : reviews.value.slice(0, INITIAL_VISIBLE_REVIEWS),
+)
+
+const hiddenCount = computed(() =>
+  Math.max(0, reviews.value.length - INITIAL_VISIBLE_REVIEWS),
+)
+
+const toggleLabel = computed(() =>
+  expandedList.value ? t('reviews.showLess') : tc('reviews.showMore', hiddenCount.value),
+)
+
+/** L'accueil et la page Contact peuvent monter deux blocs : `aria-controls` doit rester unique. */
+const listId = useId()
 
 const isCompact = computed(() => props.variant === 'compact')
 
@@ -69,12 +93,26 @@ const reviewCountLabel = computed(() => tc('reviews.reviewCount', userRatingCoun
         </a>
       </div>
 
-      <div :class="gridClass">
+      <div :id="listId" :class="gridClass">
         <GoogleReviewCard
-          v-for="review in reviews"
+          v-for="review in visibleReviews"
           :key="review.id || review.authorName"
           :review="review"
         />
+      </div>
+
+      <!-- Bascule plutôt que révélation à sens unique : un bouton qui disparaît sous le doigt
+           renvoie le focus clavier au haut de la page. -->
+      <div v-if="hiddenCount > 0" class="mt-6 flex justify-center">
+        <button
+          type="button"
+          class="text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary-hover"
+          :aria-expanded="expandedList"
+          :aria-controls="listId"
+          @click="expandedList = !expandedList"
+        >
+          {{ toggleLabel }}
+        </button>
       </div>
 
       <!-- Attribution exigée par les conditions d'utilisation de Google Maps Platform. -->

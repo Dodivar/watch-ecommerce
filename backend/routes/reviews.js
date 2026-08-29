@@ -16,6 +16,7 @@ const express = require('express')
 const rateLimit = require('express-rate-limit')
 
 const { createCachedRunner } = require('../health/cache')
+const { siteIdToEnvSegment } = require('../sites/secrets')
 
 const PLACES_ENDPOINT = 'https://places.googleapis.com/v1/places'
 const FIELD_MASK = 'id,rating,userRatingCount,googleMapsUri,reviews'
@@ -181,6 +182,21 @@ function buildReviewsRouter(registry, options = {}) {
     return runner
   }
 
+  /**
+   * Causes de 503 déjà signalées (`siteId:cause`). Une mauvaise configuration est permanente :
+   * la journaliser à chaque visiteur noierait le log Render, ne jamais la journaliser — le
+   * comportement d'origine — rend la panne invisible côté serveur comme côté navigateur.
+   * @type {Set<string>}
+   */
+  const warnedMisconfig = new Set()
+
+  function warnOnce(siteId, cause, message) {
+    const key = `${siteId}:${cause}`
+    if (warnedMisconfig.has(key)) return
+    warnedMisconfig.add(key)
+    console.warn(`⚠️  [${siteId}] reviews : ${message}`)
+  }
+
   const limiter = rateLimit({
     windowMs: 60 * 1000,
     max: parsePositiveInt(process.env.REVIEWS_RATE_LIMIT_MAX, 60),
@@ -199,6 +215,11 @@ function buildReviewsRouter(registry, options = {}) {
     const apiKey = site?.secrets?.googlePlaces?.apiKey
 
     if (!config.enabled || !config.placeId) {
+      warnOnce(
+        site?.id,
+        'placeId',
+        `googleReviews.placeId absent ou désactivé dans sites/${site?.id}/site.config.js — section masquée.`,
+      )
       return res.status(503).json({
         success: false,
         error: `Avis Google non configurés pour le site "${site?.id}" : renseigner googleReviews.placeId dans son site.config.js.`,
@@ -206,6 +227,11 @@ function buildReviewsRouter(registry, options = {}) {
     }
 
     if (!apiKey) {
+      warnOnce(
+        site.id,
+        'apiKey',
+        `secret SITE_${siteIdToEnvSegment(site.id)}__GOOGLE_PLACES_API_KEY absent — section masquée.`,
+      )
       return res.status(503).json({
         success: false,
         error: `Avis Google non configurés pour le site "${site.id}" : secret SITE_<ID>__GOOGLE_PLACES_API_KEY absent.`,

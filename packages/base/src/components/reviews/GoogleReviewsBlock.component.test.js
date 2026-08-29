@@ -69,13 +69,52 @@ describe('GoogleReviewsBlock', () => {
     const wrapper = mount(GoogleReviewsBlock)
     await flushPromises()
 
-    expect(wrapper.findAllComponents({ name: 'GoogleReviewCard' })).toHaveLength(5)
+    // Seuls les trois premiers sont dépliés ; les deux autres sont derrière « voir plus ».
+    expect(wrapper.findAllComponents({ name: 'GoogleReviewCard' })).toHaveLength(3)
     expect(wrapper.text()).toContain('4,7')
     expect(wrapper.text()).toContain('128 avis')
 
     const link = wrapper.get('a[target="_blank"]')
     expect(link.attributes('href')).toBe('https://maps.google.com/?cid=42')
     expect(link.attributes('rel')).toBe('noopener noreferrer')
+  })
+
+  it('déplie les avis restants sans nouvel appel réseau', async () => {
+    fetchGoogleReviewsMock.mockResolvedValue(payload(5))
+    const wrapper = mount(GoogleReviewsBlock)
+    await flushPromises()
+
+    const toggle = wrapper.get('button[aria-expanded]')
+    expect(toggle.text()).toBe('Voir les 2 autres avis')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+
+    await toggle.trigger('click')
+
+    expect(wrapper.findAllComponents({ name: 'GoogleReviewCard' })).toHaveLength(5)
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    expect(toggle.text()).toBe('Voir moins d’avis')
+    // Les cinq avis viennent du même payload mis en cache : déplier ne coûte rien.
+    expect(fetchGoogleReviewsMock).toHaveBeenCalledTimes(1)
+
+    await toggle.trigger('click')
+    expect(wrapper.findAllComponents({ name: 'GoogleReviewCard' })).toHaveLength(3)
+  })
+
+  it('accorde le libellé quand un seul avis est replié', async () => {
+    fetchGoogleReviewsMock.mockResolvedValue(payload(4))
+    const wrapper = mount(GoogleReviewsBlock)
+    await flushPromises()
+
+    expect(wrapper.get('button[aria-expanded]').text()).toBe('Voir 1 avis de plus')
+  })
+
+  it('n’affiche aucun bouton quand la fiche a trois avis ou moins', async () => {
+    fetchGoogleReviewsMock.mockResolvedValue(payload(3))
+    const wrapper = mount(GoogleReviewsBlock)
+    await flushPromises()
+
+    expect(wrapper.findAllComponents({ name: 'GoogleReviewCard' })).toHaveLength(3)
+    expect(wrapper.find('button[aria-expanded]').exists()).toBe(false)
   })
 
   it('respecte le plafond maxReviews du manifest', async () => {
@@ -124,8 +163,8 @@ describe('GoogleReviewsBlock', () => {
     await flushPromises()
 
     expect(fetchGoogleReviewsMock).toHaveBeenCalledTimes(1)
-    expect(home.findAllComponents({ name: 'GoogleReviewCard' })).toHaveLength(5)
-    expect(contact.findAllComponents({ name: 'GoogleReviewCard' })).toHaveLength(5)
+    expect(home.findAllComponents({ name: 'GoogleReviewCard' })).toHaveLength(3)
+    expect(contact.findAllComponents({ name: 'GoogleReviewCard' })).toHaveLength(3)
   })
 
   it('transmet la langue active au service', async () => {
