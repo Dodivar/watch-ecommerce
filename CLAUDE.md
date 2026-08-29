@@ -17,10 +17,13 @@ locaux référencés ci-dessous.
 | `supabase/migrations/` | Migrations SQL à appliquer **par client**. [README](supabase/migrations/README.md) |
 | `scripts/` | Imports catalogue (PrestaShop), seed démo, ré-encodage images, pré-rendu |
 | `tests/` | Vitest (`base`, `backend`, `api`, `contracts`) + Playwright (`e2e`) |
-| `documentation/` | Design system, i18n, avis Google, comptabilité, supports commerciaux |
+| `documentation/` | [multi-client](documentation/multi-client.md), [design system](documentation/design-system.md), [modèle de données](documentation/data-model.md), [tests](documentation/testing.md), [captures](documentation/screenshots/README.md), i18n, avis Google, comptabilité, supports commerciaux |
 
 Sites existants : `sauvage-watches` (référence), `place-des-montres`, `jackned`, `demo-store`,
 gabarit `_template`.
+
+Branches : `staging` intègre, `main` est la production ; une PR vers `main` doit venir de
+`staging` (garde-fou `.github/workflows/guard-main-source.yml`).
 
 ## Commandes
 
@@ -35,7 +38,12 @@ npm run test:e2e           # Playwright
 npm run lint               # ESLint --fix
 ```
 
-CI (`.github/workflows/test.yml`) : `npm ci` puis `npm test` sur chaque push.
+CI (`.github/workflows/test.yml`) : `npm ci` puis `npm test` sur chaque push. En session Claude
+sur le web, `.claude/hooks/session-start.sh` installe les dépendances au démarrage.
+
+Attention : `tests/contracts` compare chaque `site.config.js` à un **snapshot**. Toute
+modification de manifest le fait échouer — c'est le garde-fou. Lire le diff, puis
+`npx vitest run tests/contracts --update`. Détail : [documentation/testing.md](documentation/testing.md).
 
 ## La règle n°1 : la configuration client d'abord
 
@@ -84,14 +92,14 @@ Référence complète (palette, surfaces, typographie, arrondis, thème sombre) 
 
 ## Données
 
-Supabase par client. Tables principales : `watches`, `watch_details`, `watch_images`,
-`watch_translations`, `watch_audiences`, `watch_accessories`, `watch_articles`, `articles`,
-`orders`, `order_lines`, `order_shipping`, `order_discounts`, `promo_codes`, `admin_users`,
-`lead_submissions`, `home_carousel_slides`, `home_featured_watches`, `newsletter_*`,
-`watch_promotion_campaigns`.
+Un projet Supabase par client, schéma identique, colonne `site_id` partout. Carte des tables et
+des colonnes : [documentation/data-model.md](documentation/data-model.md). Schéma exact (types,
+contraintes, RLS) : `supabase/migrations/*.sql`, versionnées et décrites dans
+[supabase/migrations/README.md](supabase/migrations/README.md).
 
-Les fichiers `.sql` sont exclus du dépôt (voir `.gitignore`) : le schéma se déduit des services
-`packages/base/src/services/` et de [supabase/migrations/README.md](supabase/migrations/README.md).
+Deux réflexes : les montants de commande sont en **centimes** (`*_cents`) alors que
+`watches.price` est nominal ; `stripe_processed_events` assure l'idempotence des webhooks Stripe
+et ne doit jamais être court-circuitée.
 
 ## Multilingue (fr / en / de)
 
@@ -119,5 +127,8 @@ monolingue. Textes client traduits sur place avec `t({ fr, en, de })`, textes d'
   ce n'est pas le site actif au build.
 - Le dépôt est **public** : ne jamais y committer marges, TJM, clauses contractuelles ou secrets
   (`documentation/commercial/place-des-montres/contractuel/` reste strictement local).
-- La ligne éditoriale par site n'est pas versionnée. Avant d'écrire du texte pour un client,
-  demander le document de référence à l'utilisateur.
+- La ligne éditoriale par site n'est pas versionnée : elle appartient au client et vit en local
+  sous `documentation/<site-id>-ligne-editoriale.md`. Absente d'un clone frais, **ne pas inventer
+  de ton ni de vocabulaire** — demander le document de référence à l'utilisateur.
+- Les captures de `documentation/screenshots/` sont datées, pas continues : vérifier leur
+  fraîcheur avant de s'y fier pour juger le rendu actuel.

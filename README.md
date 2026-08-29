@@ -10,16 +10,18 @@ Documentation détaillée : [documentation/multi-client.md](documentation/multi-
 | --- | --- |
 | [CLAUDE.md](CLAUDE.md) | Carte du dépôt, commandes, conventions — chargé automatiquement par Claude Code |
 | [sites/CLAUDE.md](sites/CLAUDE.md) | Règles d'intervention sur une vitrine client |
+| [documentation/multi-client.md](documentation/multi-client.md) | `SITE_ID`, variables d'environnement, déploiements, ajout d'un client |
 | [documentation/design-system.md](documentation/design-system.md) | Tokens visuels, typographie, arrondis, thème sombre |
+| [documentation/data-model.md](documentation/data-model.md) | Tables Supabase et colonnes exposées |
+| [documentation/testing.md](documentation/testing.md) | Vitest, contrats de manifest, Playwright |
+| [documentation/screenshots/README.md](documentation/screenshots/README.md) | Captures de référence des vitrines |
 | [documentation/i18n/README.md](documentation/i18n/README.md) | Multilingue fr / en / de |
 | [documentation/google-reviews/README.md](documentation/google-reviews/README.md) | Avis Google |
 | [backend/README.md](backend/README.md) | Backend Express multi-tenant |
 
-> `.gitignore` exclut `*.md` par défaut. Les documents référencés dans ce README mais absents
-> d'un clone frais (`documentation/multi-client.md`, `documentation/testing.md`,
-> `documentation/ligne-editoriale.md`) n'existent que localement : les committer pour qu'ils
-> soient visibles en CI, sur Vercel et par les agents. Toute nouvelle documentation doit être
-> ajoutée en exception dans `.gitignore`.
+> `.gitignore` exclut `*.md` par défaut, avec une liste d'exceptions : **toute nouvelle
+> documentation Markdown doit y être ajoutée**, sinon elle reste locale et invisible en CI, sur
+> Vercel et pour les agents.
 
 ## Principes du monorepo multi-sites
 
@@ -77,9 +79,11 @@ Les vitrines dont le client possède une fiche Google Business affichent ses der
 
 ## Ligne éditoriale
 
-Pour le site `sites/sauvage-watches` : avant toute modification ou ajout de texte, consulter [documentation/ligne-editoriale.md](documentation/ligne-editoriale.md) (ton, vocabulaire, valeurs, conventions, exemples).
+Convention : un document par vitrine, nommé `documentation/<site-id>-ligne-editoriale.md` (ton, vocabulaire, valeurs, conventions, exemples). Avant toute modification ou ajout de texte pour un client, consulter le sien.
 
-Pour les autres vitrines sous `sites/<SITE_ID>/`, suivre la ligne éditoriale du client concerné ; l’agent Cursor ne charge une règle dédiée que si un fichier `.cursor/rules/<site-id>-editorial.mdc` existe pour ce site.
+Ces documents **ne sont pas versionnés** : ils appartiennent au client et restent locaux. En leur absence dans un clone frais, ne pas inventer de ligne éditoriale — demander le document de référence.
+
+Côté Cursor, une règle dédiée n’est chargée que si `.cursor/rules/<site-id>-editorial.mdc` existe pour ce site.
 
 ## Project Setup
 

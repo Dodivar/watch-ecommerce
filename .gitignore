@@ -61,6 +61,10 @@ render.yaml
 !sites/**/public/**/*.pdf
 !documentation/commercial/**/*.pdf
 *.sql
+# Migrations Supabase : versionnees pour que le schema soit lisible (CI, clones
+# frais, agents). Elles ne contiennent que du DDL et des policies RLS, aucun
+# secret ; tout dump de donnees reste exclu par la regle `*.sql` ci-dessus.
+!supabase/migrations/*.sql
 # Pack contractuel Place des Montres — marges, TJM, clauses juridiques non relues.
 # Le depot est PUBLIC : ce dossier reste strictement local.
 documentation/commercial/place-des-montres/contractuel/
