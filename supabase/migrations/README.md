@@ -703,3 +703,29 @@ Ce que la migration apporte :
 - `admin_move_watch_to_catalog_edge(uuid, text)` — « placer en tête » / « placer en fin » (`max + 1` / `min - 1`), une seule ligne touchée
 
 Les trois fonctions sont en `security invoker` : c'est la policy RLS `"Admins can update watches"` (voir `documentation/supabase_admin_setup.sql`) qui autorise l'écriture. Un appelant non admin ne met à jour aucune ligne, ce que le contrôle de `row_count` transforme en erreur explicite. **Cette policy n'est pas dans les migrations** — sur un projet provisionné à partir des seuls fichiers de ce dossier, il faut appliquer `documentation/supabase_admin_setup.sql` avant celui-ci.
+
+## Accès support en lecture seule (break-glass)
+
+`20260829120000_support_readonly_access.sql` — requis pour que le rôle `visitor` du panel soit réellement en lecture seule. **Avant ce fichier, le rôle n'existait que dans l'interface** : `is_admin_user()` ne testait que l'appartenance à `admin_users`, donc un compte « Visiteur » disposait des droits d'écriture complets sur toutes les tables et tous les buckets.
+
+Ce que la migration apporte :
+
+- Colonnes `admin_users.is_active` et `access_expires_at` — fenêtre d'accès bornée dans le temps, évaluée par `is_admin_user()` et `is_admin()`, donc appliquée d'un coup à toutes les policies existantes
+- `is_admin_writer()` / `is_admin_visitor()` / `assert_admin_writer()`
+- Un jeu de policies **RESTRICTIVE** `<table>_ro_insert|update|delete` sur les tables du panel et sur `storage.objects`. Les policies permissives se combinant en OU, ajouter une policy d'écriture sans supprimer les `FOR ALL` existantes ne changerait rien ; les RESTRICTIVE se combinent en ET et se superposent donc aux policies déjà en place, y compris celles créées à la main dans le dashboard
+- Vues `orders_support` et `lead_submissions_support` — mêmes colonnes, données nominatives masquées en base. Le rôle `visitor` perd le `SELECT` sur les tables de base correspondantes et lit ces vues à la place (`supportTable()` côté front)
+- Table `admin_access_log` — journal en écriture seule, alimenté par le backend en service role, consultable depuis `/admin/users`
+- Retrait de la policy `"Authenticated users can check admin emails"` de `documentation/supabase_admin_setup.sql`, qui exposait la liste des adresses admin à tout compte authentifié
+
+Prérequis, dans cet ordre : `documentation/supabase_admin_setup.sql`, `20260517120000_custom_checkout_orders.sql`, `20260525120000_admin_phase1.sql`, `20260621120000_order_receipts_storage.sql`, `20260823130000_order_returns.sql`, `20260826120000_order_followup_link.sql`. La vue `orders_support` référence nommément les colonnes de retour et de reçu : sur un tenant en retard de migration, sa création échoue avec `column o.<nom> does not exist` — appliquer les manquantes d'abord.
+
+Idempotent, et sans effet sur un tenant antérieur à la colonne `role` — les colonnes sont créées avant d'être lues. Après application, vérifier :
+
+```sql
+select tablename, policyname, permissive, cmd
+from pg_policies
+where schemaname = 'public' and policyname like '%\_ro\_%'
+order by tablename;
+```
+
+Puis, connecté avec un compte `visitor` depuis la console du panel : `supabase.from('admin_users').update(...)`, `supabase.from('watches').update(...)` et `supabase.storage.from('watch-images').upload(...)` doivent tous les trois échouer. Avant la migration, les trois réussissent.

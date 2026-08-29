@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { getAdminSiteId } from './adminSiteContext.js'
+import { supportTable } from './supportTables.js'
 
 const LEAD_TYPES = ['contact', 'appointment', 'estimation', 'search', 'repair']
 const LEAD_STATUSES = ['new', 'read', 'archived']
@@ -28,7 +29,7 @@ function mapLeadRow(row) {
 export async function getLeadsForAdmin(filters = {}) {
   const siteId = getAdminSiteId()
   let query = supabase
-    .from('lead_submissions')
+    .from(await supportTable('lead_submissions'))
     .select('*', { count: 'exact' })
     .eq('site_id', siteId)
     .order('created_at', { ascending: false })
@@ -63,7 +64,7 @@ export async function getLeadsForAdmin(filters = {}) {
 export async function getLeadByIdForAdmin(leadId) {
   const siteId = getAdminSiteId()
   const { data, error } = await supabase
-    .from('lead_submissions')
+    .from(await supportTable('lead_submissions'))
     .select('*')
     .eq('id', leadId)
     .eq('site_id', siteId)
@@ -100,7 +101,7 @@ export async function updateLeadStatus(leadId, status) {
 export async function getUnreadLeadsCountByType() {
   const siteId = getAdminSiteId()
   const { data, error } = await supabase
-    .from('lead_submissions')
+    .from(await supportTable('lead_submissions'))
     .select('type')
     .eq('site_id', siteId)
     .eq('status', 'new')
@@ -120,7 +121,7 @@ export async function getUnreadLeadsCountByType() {
 export async function getUnreadLeadsCount() {
   const siteId = getAdminSiteId()
   const { count, error } = await supabase
-    .from('lead_submissions')
+    .from(await supportTable('lead_submissions'))
     .select('*', { count: 'exact', head: true })
     .eq('site_id', siteId)
     .eq('status', 'new')
@@ -135,7 +136,7 @@ export async function getUnreadLeadsCount() {
 export async function getAppointmentsByDate() {
   const siteId = getAdminSiteId()
   const { data, error } = await supabase
-    .from('lead_submissions')
+    .from(await supportTable('lead_submissions'))
     .select('*')
     .eq('site_id', siteId)
     .eq('type', 'appointment')
@@ -170,7 +171,7 @@ export async function getLeadStatsByDay({ days } = {}) {
   const siteId = getAdminSiteId()
 
   let query = supabase
-    .from('lead_submissions')
+    .from(await supportTable('lead_submissions'))
     .select('type, created_at')
     .eq('site_id', siteId)
     .order('created_at', { ascending: true })

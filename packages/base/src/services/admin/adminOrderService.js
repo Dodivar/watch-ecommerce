@@ -2,6 +2,7 @@ import { supabase } from '../supabase'
 import { getBackendApiUrl, readApiResponseBody } from '../backendApiUrl.js'
 import { getAdminSiteId } from './adminSiteContext.js'
 import { RETURN_STATUSES, summarizeReturnStats, validateReturnUpdate } from './orderReturns.js'
+import { supportTable } from './supportTables.js'
 
 const FULFILLMENT_STATUSES = ['pending', 'preparing', 'shipped', 'ready_for_pickup', 'completed']
 
@@ -43,7 +44,7 @@ function mapOrderRow(row) {
 export async function getOrdersForAdmin(filters = {}) {
   const siteId = getAdminSiteId()
   let query = supabase
-    .from('orders')
+    .from(await supportTable('orders'))
     .select('*', { count: 'exact' })
     .eq('site_id', siteId)
     .order('created_at', { ascending: false })
@@ -88,7 +89,7 @@ export async function getOrderByIdForAdmin(orderId) {
   const siteId = getAdminSiteId()
 
   const { data: order, error: orderError } = await supabase
-    .from('orders')
+    .from(await supportTable('orders'))
     .select('*')
     .eq('id', orderId)
     .eq('site_id', siteId)
@@ -236,9 +237,10 @@ export async function getOrderKpisForAdmin() {
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString()
+  const ordersSource = await supportTable('orders')
 
   const { data: todayOrders, error: todayError } = await supabase
-    .from('orders')
+    .from(ordersSource)
     .select('total_cents, status')
     .eq('site_id', siteId)
     .eq('status', 'paid')
@@ -247,7 +249,7 @@ export async function getOrderKpisForAdmin() {
   if (todayError) throw new Error(todayError.message)
 
   const { data: weekOrders, error: weekError } = await supabase
-    .from('orders')
+    .from(ordersSource)
     .select('total_cents, status')
     .eq('site_id', siteId)
     .eq('status', 'paid')
@@ -256,7 +258,7 @@ export async function getOrderKpisForAdmin() {
   if (weekError) throw new Error(weekError.message)
 
   const { data: prevWeekOrders, error: prevWeekError } = await supabase
-    .from('orders')
+    .from(ordersSource)
     .select('total_cents, status')
     .eq('site_id', siteId)
     .eq('status', 'paid')
@@ -284,21 +286,22 @@ export async function getOrderKpisForAdmin() {
  */
 export async function getOrderActionCountsForAdmin() {
   const siteId = getAdminSiteId()
+  const ordersSource = await supportTable('orders')
 
   const [fulfillmentResult, paymentResult, returnResult] = await Promise.all([
     supabase
-      .from('orders')
+      .from(ordersSource)
       .select('*', { count: 'exact', head: true })
       .eq('site_id', siteId)
       .eq('status', 'paid')
       .in('fulfillment_status', ['pending', 'preparing']),
     supabase
-      .from('orders')
+      .from(ordersSource)
       .select('*', { count: 'exact', head: true })
       .eq('site_id', siteId)
       .eq('status', 'pending_payment'),
     supabase
-      .from('orders')
+      .from(ordersSource)
       .select('*', { count: 'exact', head: true })
       .eq('site_id', siteId)
       .in('return_status', ['requested', 'received']),
@@ -324,7 +327,7 @@ export async function getSalesStatsByDay({ days } = {}) {
   const siteId = getAdminSiteId()
 
   let query = supabase
-    .from('orders')
+    .from(await supportTable('orders'))
     .select('total_cents, paid_at')
     .eq('site_id', siteId)
     .eq('status', 'paid')
@@ -379,7 +382,7 @@ export async function getReturnStatsForAdmin({ days } = {}) {
   const siteId = getAdminSiteId()
 
   let query = supabase
-    .from('orders')
+    .from(await supportTable('orders'))
     .select('total_cents, return_status, return_requested_at, refund_amount_cents, refunded_at')
     .eq('site_id', siteId)
     .eq('status', 'paid')
@@ -420,7 +423,7 @@ export async function getOrdersForWatchAdmin(watchId) {
   if (orderIds.length === 0) return []
 
   const { data: orders, error } = await supabase
-    .from('orders')
+    .from(await supportTable('orders'))
     .select('*')
     .eq('site_id', siteId)
     .in('id', orderIds)
