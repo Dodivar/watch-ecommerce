@@ -905,6 +905,8 @@ export default {
   'reviews.ratingOutOf': '{rating} out of {max}',
   'reviews.seeAllOnGoogle': 'See all reviews on Google',
   'reviews.readMore': 'Read more',
+  'reviews.showMore': { one: 'Show 1 more review', other: 'Show {count} more reviews' },
+  'reviews.showLess': 'Show fewer reviews',
   'reviews.loading': 'Loading Google reviews…',
   'reviews.poweredByGoogle': 'Reviews published on Google.',
   'reviews.mapSeeReviews': 'View on Google',

@@ -915,6 +915,8 @@ export default {
   'reviews.ratingOutOf': '{rating} sur {max}',
   'reviews.seeAllOnGoogle': 'Voir tous les avis sur Google',
   'reviews.readMore': 'Lire la suite',
+  'reviews.showMore': { one: 'Voir 1 avis de plus', other: 'Voir les {count} autres avis' },
+  'reviews.showLess': 'Voir moins d’avis',
   'reviews.loading': 'Chargement des avis Google…',
   'reviews.poweredByGoogle': 'Avis publiés sur Google.',
   'reviews.mapSeeReviews': 'Voir sur Google',

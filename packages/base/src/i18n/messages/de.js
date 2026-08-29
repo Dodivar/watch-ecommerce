@@ -905,6 +905,11 @@ export default {
   'reviews.ratingOutOf': '{rating} von {max}',
   'reviews.seeAllOnGoogle': 'Alle Bewertungen auf Google ansehen',
   'reviews.readMore': 'Weiterlesen',
+  'reviews.showMore': {
+    one: '1 weitere Bewertung anzeigen',
+    other: '{count} weitere Bewertungen anzeigen',
+  },
+  'reviews.showLess': 'Weniger Bewertungen anzeigen',
   'reviews.loading': 'Google-Bewertungen werden geladen…',
   'reviews.poweredByGoogle': 'Bewertungen veröffentlicht auf Google.',
   'reviews.mapSeeReviews': 'Auf Google ansehen',
