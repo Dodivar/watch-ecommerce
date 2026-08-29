@@ -27,6 +27,11 @@ Le navigateur n'appelle jamais Google directement, pour deux raisons :
 L'API plafonne à **5 avis par fiche**. Ils sont classés par pertinence côté Google ; le backend les
 retrie par date décroissante pour tenir la promesse « les derniers avis ».
 
+Côté affichage, **3 avis sont dépliés** au premier rendu — une rangée pleine de la grille
+d'accueil — et un bouton discret révèle les suivants. Le repli est purement visuel : les cinq avis
+arrivent dans la même réponse et sont déjà en mémoire, donc « voir plus » ne déclenche ni appel
+backend ni appel Google.
+
 ## 2. Activer un client
 
 ### a. Récupérer le Place ID
