@@ -4,6 +4,23 @@ Socle e-commerce **Vue 3 + Vite** : code partagé dans `packages/base`, vitrines
 
 Documentation détaillée : [documentation/multi-client.md](documentation/multi-client.md).
 
+## Documentation et contexte agents
+
+| Fichier | Contenu |
+| --- | --- |
+| [CLAUDE.md](CLAUDE.md) | Carte du dépôt, commandes, conventions — chargé automatiquement par Claude Code |
+| [sites/CLAUDE.md](sites/CLAUDE.md) | Règles d'intervention sur une vitrine client |
+| [documentation/design-system.md](documentation/design-system.md) | Tokens visuels, typographie, arrondis, thème sombre |
+| [documentation/i18n/README.md](documentation/i18n/README.md) | Multilingue fr / en / de |
+| [documentation/google-reviews/README.md](documentation/google-reviews/README.md) | Avis Google |
+| [backend/README.md](backend/README.md) | Backend Express multi-tenant |
+
+> `.gitignore` exclut `*.md` par défaut. Les documents référencés dans ce README mais absents
+> d'un clone frais (`documentation/multi-client.md`, `documentation/testing.md`,
+> `documentation/ligne-editoriale.md`) n'existent que localement : les committer pour qu'ils
+> soient visibles en CI, sur Vercel et par les agents. Toute nouvelle documentation doit être
+> ajoutée en exception dans `.gitignore`.
+
 ## Principes du monorepo multi-sites
 
 - `**packages/base`** — composants, services et configuration communs à toutes les vitrines.

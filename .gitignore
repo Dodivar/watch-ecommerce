@@ -48,6 +48,15 @@ render.yaml
 *.md
 !README.md
 !tests/e2e/README.md
+# Contexte agents (Claude Code, CI, clones frais) : doit etre versionne, sinon
+# un clone frais ne voit aucune documentation.
+!CLAUDE.md
+!**/CLAUDE.md
+!.claude/**/*.md
+# Documentation projet : versionnee pour rester lisible hors du poste local.
+# Le dossier `contractuel/` reste exclu plus bas (une negation ne peut pas
+# re-inclure un fichier dont le dossier parent est exclu).
+!documentation/**/*.md
 *.pdf
 !sites/**/public/**/*.pdf
 !documentation/commercial/**/*.pdf
