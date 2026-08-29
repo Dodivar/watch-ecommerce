@@ -41,9 +41,10 @@ export async function fetchGoogleReviews(options = {}) {
 
     const body = await readApiResponseBody(response)
     if (!response.ok || !body?.success || !body?.data) {
-      if (import.meta.env.DEV) {
-        console.info('[Watch] Avis Google indisponibles :', body?.error || response.status)
-      }
+      // `console.warn` et non `console.info` en DEV seulement : la section disparaît sans bruit
+      // quand l'appel échoue, et une console muette laissait croire à un `placeId` mal renseigné
+      // alors que la cause (503 « secret absent », 502 « Places injoignable ») est dans la réponse.
+      console.warn('[Watch] Avis Google indisponibles :', body?.error || `HTTP ${response.status}`)
       return null
     }
 
@@ -56,9 +57,7 @@ export async function fetchGoogleReviews(options = {}) {
     }
   } catch (error) {
     if (error?.name === 'AbortError') return null
-    if (import.meta.env.DEV) {
-      console.info('[Watch] Avis Google : appel impossible —', error?.message || error)
-    }
+    console.warn('[Watch] Avis Google : appel impossible —', error?.message || error)
     return null
   }
 }
