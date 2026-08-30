@@ -1,8 +1,13 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronLeft, Menu } from '@lucide/vue'
+import { ChevronLeft, Eye, Menu } from '@lucide/vue'
 import AdminSidebar from './AdminSidebar.vue'
+import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
+
+// Bandeau permanent pour un compte support : ce qu'il consulte est masqué, il
+// doit le savoir avant de conclure quoi que ce soit d'un champ vide.
+const { role } = useAdminPermissions()
 
 const props = defineProps({
   title: {
@@ -87,6 +92,17 @@ const contentClasses = computed(() => {
                 <slot name="actions" />
               </div>
             </div>
+          </div>
+          <div
+            v-if="role === 'visitor'"
+            class="flex items-start gap-2 mb-6 px-4 py-3 rounded-lg bg-amber-50 text-amber-800 text-sm"
+          >
+            <Eye class="w-4 h-4 mt-0.5 shrink-0" :stroke-width="1.75" />
+            <p>
+              Session de support en lecture seule. Les données personnelles des clients (nom,
+              adresse, téléphone, email) sont masquées, et chaque page consultée est
+              enregistrée dans le journal d’accès.
+            </p>
           </div>
           <div v-if="$slots['below-header']" class="mb-8">
             <slot name="below-header" />

@@ -9,26 +9,44 @@ function clearRoleCache() {
   roleCache = { email: null, role: null }
 }
 
+// Jeux de colonnes tentés dans l'ordre : chaque tenant n'a que les migrations
+// qui lui ont été appliquées.
+const ADMIN_USER_COLUMN_SETS = ['email, role, is_active, access_expires_at', 'email, role', 'email']
+
 /**
- * Récupère la ligne admin_users (email + rôle) d'un email autorisé.
+ * La fenêtre d'accès du compte est-elle fermée (accès support expiré ou
+ * suspendu par le client) ?
+ * @param {{ is_active?: boolean, access_expires_at?: string|null }} row
+ */
+export function isAccessClosed(row) {
+  if (!row) return false
+  if (row.is_active === false) return true
+  if (!row.access_expires_at) return false
+  return new Date(row.access_expires_at).getTime() <= Date.now()
+}
+
+/**
+ * Récupère la ligne admin_users (email + rôle + fenêtre d'accès) d'un email
+ * autorisé.
  * @param {string} email
- * @returns {Promise<{email: string, role: string}|null>} null si non autorisé
+ * @returns {Promise<{email: string, role: string, closed: boolean}|null>} null si non autorisé
  */
 async function fetchAdminRow(email) {
   try {
-    let { data, error } = await supabase
-      .from('admin_users')
-      .select('email, role')
-      .eq('email', email)
-      .single()
+    let data = null
+    let error = null
 
-    // Tenant pré-migration rôles : colonne absente, retomber sur email seul.
-    if (error && error.code !== 'PGRST116' && /role/.test(error.message || '')) {
+    for (const columns of ADMIN_USER_COLUMN_SETS) {
       ;({ data, error } = await supabase
         .from('admin_users')
-        .select('email')
+        .select(columns)
         .eq('email', email)
         .single())
+
+      if (!error) break
+      if (error.code === 'PGRST116') break
+      // Colonne absente sur ce tenant : réessayer avec un jeu plus ancien.
+      if (!/does not exist|role|is_active|access_expires_at/i.test(error.message || '')) break
     }
 
     if (error) {
@@ -39,24 +57,27 @@ async function fetchAdminRow(email) {
     }
 
     if (!data) return null
-    return { email: data.email, role: data.role || 'admin' }
+    return { email: data.email, role: data.role || 'admin', closed: isAccessClosed(data) }
   } catch (error) {
     console.error('Erreur dans fetchAdminRow:', error)
     return null
   }
 }
 
+export const ACCESS_CLOSED_MESSAGE =
+  'Votre accès a expiré. Demandez au client de le rouvrir depuis Utilisateurs.'
+
 /**
- * Vérifie si un email est dans la liste des admins autorisés
+ * Vérifie qu'un email est autorisé et que sa fenêtre d'accès est ouverte.
  * @param {string} email - L'email à vérifier
- * @returns {Promise<boolean>} - True si l'email est autorisé
+ * @returns {Promise<{ ok: boolean, closed: boolean }>}
  */
-async function isAuthorizedAdmin(email) {
+async function checkAdminAccess(email) {
   const row = await fetchAdminRow(email)
-  if (row) {
-    roleCache = { email, role: row.role }
-  }
-  return !!row
+  if (!row) return { ok: false, closed: false }
+  if (row.closed) return { ok: false, closed: true }
+  roleCache = { email, role: row.role }
+  return { ok: true, closed: false }
 }
 
 /**
@@ -76,7 +97,7 @@ export async function getCurrentAdminRole() {
     }
 
     const row = await fetchAdminRow(email)
-    if (!row) return null
+    if (!row || row.closed) return null
     roleCache = { email, role: row.role }
     return row.role
   } catch (error) {
@@ -116,13 +137,15 @@ export async function loginAdmin(email, password, remember = false) {
     }
 
     // Vérifier que l'email est dans la liste des admins autorisés
-    const isAuthorized = await isAuthorizedAdmin(email)
-    if (!isAuthorized) {
+    const access = await checkAdminAccess(email)
+    if (!access.ok) {
       // Déconnecter l'utilisateur s'il n'est pas autorisé
       await supabase.auth.signOut()
       return {
         success: false,
-        error: 'Vous n\'êtes pas autorisé à accéder à l\'interface d\'administration',
+        error: access.closed
+          ? ACCESS_CLOSED_MESSAGE
+          : "Vous n'êtes pas autorisé à accéder à l'interface d'administration",
       }
     }
 
@@ -218,8 +241,8 @@ export async function isAdminAuthenticated() {
     }
 
     // Vérifier que l'email est toujours autorisé (au cas où il aurait été retiré)
-    const isAuthorized = await isAuthorizedAdmin(session.user.email)
-    if (!isAuthorized) {
+    const access = await checkAdminAccess(session.user.email)
+    if (!access.ok) {
       // Déconnecter si plus autorisé
       await logoutAdmin()
       return false
@@ -304,8 +327,8 @@ export async function refreshAdminSession() {
     }
 
     // Vérifier que l'email est toujours autorisé
-    const isAuthorized = await isAuthorizedAdmin(session.user.email)
-    if (!isAuthorized) {
+    const access = await checkAdminAccess(session.user.email)
+    if (!access.ok) {
       await logoutAdmin()
       return false
     }

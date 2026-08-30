@@ -7,15 +7,25 @@ import { getAdminSiteId } from './adminSiteContext.js'
  * @returns {Promise<{email: string, role: string}[]>}
  */
 export async function getAdminUsersList() {
-  let { data, error } = await supabase.from('admin_users').select('email, role').order('email')
+  // Jeux de colonnes du plus récent au plus ancien : chaque tenant n'a que les
+  // migrations qui lui ont été appliquées.
+  const columnSets = ['email, role, is_active, access_expires_at', 'email, role', 'email']
+  let data = null
+  let error = null
 
-  // Tenant pré-migration rôles : colonne absente, retomber sur email seul.
-  if (error && /role/.test(error.message || '')) {
-    ;({ data, error } = await supabase.from('admin_users').select('email').order('email'))
+  for (const columns of columnSets) {
+    ;({ data, error } = await supabase.from('admin_users').select(columns).order('email'))
+    if (!error) break
+    if (!/does not exist|role|is_active|access_expires_at/i.test(error.message || '')) break
   }
 
   if (error) throw new Error(error.message)
-  return (data || []).map((row) => ({ email: row.email, role: row.role || 'admin' }))
+  return (data || []).map((row) => ({
+    email: row.email,
+    role: row.role || 'admin',
+    isActive: row.is_active !== false,
+    accessExpiresAt: row.access_expires_at ?? null,
+  }))
 }
 
 /**
@@ -66,6 +76,19 @@ export function inviteAdminUser(email, role) {
  */
 export function updateAdminUserRole(email, role) {
   return callBackend('PATCH', `/${encodeURIComponent(email)}`, { role })
+}
+
+/**
+ * Ouvre ou referme la fenêtre d'accès d'un compte (break-glass).
+ *
+ * L'ouverture est bornée dans le temps : l'expiration est ensuite appliquée par
+ * la RLS et par le backend, sans intervention.
+ *
+ * @param {string} email
+ * @param {{ open: boolean, hours?: number }} options
+ */
+export function updateAdminUserAccess(email, { open, hours } = { open: true }) {
+  return callBackend('PATCH', `/${encodeURIComponent(email)}/access`, { open, hours })
 }
 
 /**
