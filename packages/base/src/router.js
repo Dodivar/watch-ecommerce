@@ -2,6 +2,7 @@ import { createWebHistory, createRouter } from 'vue-router'
 import { isAuthenticated } from './services/maintenanceService'
 import { isAdminAuthenticated, getCurrentAdminRole } from './services/admin/adminAuthService'
 import { canAccessPath } from './services/admin/adminPermissions'
+import { recordAccessLogEntry } from './services/admin/adminAccessLogService'
 import { verifyOrder } from './services/orderService'
 import { getBrowsePath } from './site/siteFeatures.js'
 import { getSiteConfig } from './site/getSiteConfig.js'
@@ -122,6 +123,13 @@ router.beforeEach(async (to, from, next) => {
     if (to.path !== '/admin' && !canAccessPath(role, to.path)) {
       next('/admin')
       return
+    }
+
+    // Les consultations d'un compte support sont tracées. Les lectures du panel
+    // passent en direct par Supabase : sans cet appel, le journal ne verrait
+    // que les rares requêtes backend.
+    if (role === 'visitor') {
+      recordAccessLogEntry({ action: 'view', path: to.path })
     }
 
     next()

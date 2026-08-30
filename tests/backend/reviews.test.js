@@ -169,6 +169,25 @@ describe('GET /api/reviews', () => {
     }
   })
 
+  it('signale la clé absente dans le log serveur, une seule fois', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const site = fakeSite({ apiKey: null })
+    const server = await startServer(buildReviewsRouter(fakeRegistry([site])), site)
+    try {
+      await fetch(`${server.url}/api/reviews`)
+      await fetch(`${server.url}/api/reviews`)
+
+      // Sans trace, un 503 permanent est invisible : la section disparaît et rien ne l'explique.
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(warn.mock.calls[0].join(' ')).toMatch(
+        /SITE_PLACE_DES_MONTRES__GOOGLE_PLACES_API_KEY/,
+      )
+    } finally {
+      await server.close()
+      warn.mockRestore()
+    }
+  })
+
   it('renvoie les avis et transmet placeId, clé et langue au fetcher', async () => {
     const site = fakeSite()
     const fetcher = vi

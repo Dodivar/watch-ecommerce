@@ -4,6 +4,25 @@ Socle e-commerce **Vue 3 + Vite** : code partagé dans `packages/base`, vitrines
 
 Documentation détaillée : [documentation/multi-client.md](documentation/multi-client.md).
 
+## Documentation et contexte agents
+
+| Fichier | Contenu |
+| --- | --- |
+| [CLAUDE.md](CLAUDE.md) | Carte du dépôt, commandes, conventions — chargé automatiquement par Claude Code |
+| [sites/CLAUDE.md](sites/CLAUDE.md) | Règles d'intervention sur une vitrine client |
+| [documentation/multi-client.md](documentation/multi-client.md) | `SITE_ID`, variables d'environnement, déploiements, ajout d'un client |
+| [documentation/design-system.md](documentation/design-system.md) | Tokens visuels, typographie, arrondis, thème sombre |
+| [documentation/data-model.md](documentation/data-model.md) | Tables Supabase et colonnes exposées |
+| [documentation/testing.md](documentation/testing.md) | Vitest, contrats de manifest, Playwright |
+| [documentation/screenshots/README.md](documentation/screenshots/README.md) | Captures de référence des vitrines |
+| [documentation/i18n/README.md](documentation/i18n/README.md) | Multilingue fr / en / de |
+| [documentation/google-reviews/README.md](documentation/google-reviews/README.md) | Avis Google |
+| [backend/README.md](backend/README.md) | Backend Express multi-tenant |
+
+> `.gitignore` exclut `*.md` par défaut, avec une liste d'exceptions : **toute nouvelle
+> documentation Markdown doit y être ajoutée**, sinon elle reste locale et invisible en CI, sur
+> Vercel et pour les agents.
+
 ## Principes du monorepo multi-sites
 
 - `**packages/base`** — composants, services et configuration communs à toutes les vitrines.
@@ -60,9 +79,11 @@ Les vitrines dont le client possède une fiche Google Business affichent ses der
 
 ## Ligne éditoriale
 
-Pour le site `sites/sauvage-watches` : avant toute modification ou ajout de texte, consulter [documentation/ligne-editoriale.md](documentation/ligne-editoriale.md) (ton, vocabulaire, valeurs, conventions, exemples).
+Convention : un document par vitrine, nommé `documentation/<site-id>-ligne-editoriale.md` (ton, vocabulaire, valeurs, conventions, exemples). Avant toute modification ou ajout de texte pour un client, consulter le sien.
 
-Pour les autres vitrines sous `sites/<SITE_ID>/`, suivre la ligne éditoriale du client concerné ; l’agent Cursor ne charge une règle dédiée que si un fichier `.cursor/rules/<site-id>-editorial.mdc` existe pour ce site.
+Ces documents **ne sont pas versionnés** : ils appartiennent au client et restent locaux. En leur absence dans un clone frais, ne pas inventer de ligne éditoriale — demander le document de référence.
+
+Côté Cursor, une règle dédiée n’est chargée que si `.cursor/rules/<site-id>-editorial.mdc` existe pour ce site.
 
 ## Project Setup
 

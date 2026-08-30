@@ -9,7 +9,7 @@ vi.mock('../supabase', () => ({
 }))
 
 import { supabase } from '../supabase'
-import { requestAdminPasswordReset } from './adminAuthService.js'
+import { isAccessClosed, requestAdminPasswordReset } from './adminAuthService.js'
 
 const GENERIC_MESSAGE =
   'Si un compte existe pour cette adresse, un email de réinitialisation a été envoyé.'
@@ -88,5 +88,29 @@ describe('requestAdminPasswordReset', () => {
     const result = await requestAdminPasswordReset('admin@example.com')
 
     expect(result).toEqual({ success: true, message: GENERIC_MESSAGE })
+  })
+})
+
+describe('isAccessClosed', () => {
+  it('laisse passer un compte du client, sans fenêtre d’accès', () => {
+    expect(isAccessClosed({ is_active: true, access_expires_at: null })).toBe(false)
+  })
+
+  it('laisse passer un tenant antérieur à la migration (colonnes absentes)', () => {
+    expect(isAccessClosed({ email: 'a@b.c', role: 'admin' })).toBe(false)
+  })
+
+  it('ferme un accès explicitement suspendu', () => {
+    expect(isAccessClosed({ is_active: false, access_expires_at: null })).toBe(true)
+  })
+
+  it('ferme un accès break-glass expiré', () => {
+    const past = new Date(Date.now() - 60_000).toISOString()
+    expect(isAccessClosed({ is_active: true, access_expires_at: past })).toBe(true)
+  })
+
+  it('laisse passer une fenêtre break-glass encore ouverte', () => {
+    const future = new Date(Date.now() + 3_600_000).toISOString()
+    expect(isAccessClosed({ is_active: true, access_expires_at: future })).toBe(false)
   })
 })

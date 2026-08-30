@@ -37,7 +37,11 @@
     "test:contracts": "vitest run tests/contracts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "screenshots:sauvage": "cross-env SITE_ID=sauvage-watches node scripts/capture-screenshots.mjs",
+    "screenshots:place": "cross-env SITE_ID=place-des-montres node scripts/capture-screenshots.mjs",
+    "screenshots:jackned": "cross-env SITE_ID=jackned node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",

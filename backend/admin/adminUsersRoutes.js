@@ -1,8 +1,14 @@
 const { getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
 const { getBaseUrl } = require('../utils/getBaseUrl')
+const { logAdminAccess } = require('./accessLog')
 
 const VALID_ROLES = ['admin', 'moderator', 'visitor']
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Fenêtre break-glass : durée par défaut et plafond. Un accès de support n'a pas
+// vocation à rester ouvert : au-delà, il faut le rouvrir explicitement.
+const DEFAULT_ACCESS_HOURS = 72
+const MAX_ACCESS_HOURS = 168
 
 /**
  * Liste complète des utilisateurs admin (table petite : comparaison
@@ -10,7 +16,15 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  */
 async function fetchAdminUsers(supabase) {
-  const { data, error } = await supabase.from('admin_users').select('email, role')
+  // Tenant sans la migration d'accès support : retomber sur les colonnes de base.
+  let { data, error } = await supabase
+    .from('admin_users')
+    .select('email, role, is_active, access_expires_at')
+
+  if (error && /is_active|access_expires_at|does not exist/i.test(error.message || '')) {
+    ;({ data, error } = await supabase.from('admin_users').select('email, role'))
+  }
+
   if (error) throw new Error(error.message)
   return data || []
 }
@@ -153,6 +167,76 @@ function registerAdminUsersRoutes(router) {
         return res.status(503).json({ success: false, error: e.message })
       }
       console.error(`[${site.id}] PATCH admin user:`, e)
+      return res.status(500).json({ success: false, error: 'Erreur serveur' })
+    }
+  })
+
+  // Ouverture / fermeture de la fenêtre d'accès d'un compte (break-glass).
+  //
+  // Réservée au rôle admin, donc au client : c'est lui qui ouvre l'accès de son
+  // prestataire, et qui peut le refermer à tout moment. L'expiration est
+  // ensuite appliquée par is_admin_user() côté RLS et par verifyAdminBearerToken
+  // côté backend.
+  router.patch('/:email/access', async (req, res) => {
+    const site = req.site
+    const email = decodeURIComponent(req.params.email || '').trim().toLowerCase()
+    const open = req.body?.open !== false
+    const rawHours = Number(req.body?.hours)
+    const hours = Number.isFinite(rawHours) && rawHours > 0 ? rawHours : DEFAULT_ACCESS_HOURS
+
+    if (hours > MAX_ACCESS_HOURS) {
+      return res.status(400).json({
+        success: false,
+        error: `La fenêtre d’accès ne peut pas dépasser ${MAX_ACCESS_HOURS} heures`,
+      })
+    }
+    if (email === (req.adminUser?.email || '').toLowerCase()) {
+      return res
+        .status(403)
+        .json({ success: false, error: 'Vous ne pouvez pas modifier votre propre accès' })
+    }
+
+    try {
+      const supabase = getSupabaseClient(site)
+      const users = await fetchAdminUsers(supabase)
+      const target = findUserByEmail(users, email)
+      if (!target) {
+        return res.status(404).json({ success: false, error: 'Utilisateur introuvable' })
+      }
+
+      const expiresAt = open ? new Date(Date.now() + hours * 3600 * 1000).toISOString() : null
+      const { error } = await supabase
+        .from('admin_users')
+        .update({ is_active: open, access_expires_at: expiresAt })
+        .eq('email', target.email)
+
+      if (error) {
+        // Tenant sans la migration d'accès support : le dire plutôt que de
+        // laisser croire que la fenêtre a été ouverte.
+        if (/is_active|access_expires_at|does not exist/i.test(error.message || '')) {
+          return res.status(409).json({
+            success: false,
+            error: 'Migration accès support non appliquée sur ce site',
+          })
+        }
+        throw new Error(error.message)
+      }
+
+      await logAdminAccess(supabase, site.id, {
+        email: req.adminUser.email,
+        role: req.adminUser.role,
+        action: open ? 'support_access_opened' : 'support_access_closed',
+        path: target.email,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+      })
+
+      return res.json({ success: true, email: target.email, isActive: open, accessExpiresAt: expiresAt })
+    } catch (e) {
+      if (e instanceof MissingSecretsError) {
+        return res.status(503).json({ success: false, error: e.message })
+      }
+      console.error(`[${site.id}] PATCH admin user access:`, e)
       return res.status(500).json({ success: false, error: 'Erreur serveur' })
     }
   })

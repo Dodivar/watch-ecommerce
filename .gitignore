@@ -48,10 +48,23 @@ render.yaml
 *.md
 !README.md
 !tests/e2e/README.md
+# Contexte agents (Claude Code, CI, clones frais) : doit etre versionne, sinon
+# un clone frais ne voit aucune documentation.
+!CLAUDE.md
+!**/CLAUDE.md
+!.claude/**/*.md
+# Documentation projet : versionnee pour rester lisible hors du poste local.
+# Le dossier `contractuel/` reste exclu plus bas (une negation ne peut pas
+# re-inclure un fichier dont le dossier parent est exclu).
+!documentation/**/*.md
 *.pdf
 !sites/**/public/**/*.pdf
 !documentation/commercial/**/*.pdf
 *.sql
+# Migrations Supabase : versionnees pour que le schema soit lisible (CI, clones
+# frais, agents). Elles ne contiennent que du DDL et des policies RLS, aucun
+# secret ; tout dump de donnees reste exclu par la regle `*.sql` ci-dessus.
+!supabase/migrations/*.sql
 # Pack contractuel Place des Montres — marges, TJM, clauses juridiques non relues.
 # Le depot est PUBLIC : ce dossier reste strictement local.
 documentation/commercial/place-des-montres/contractuel/
