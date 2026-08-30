@@ -27,6 +27,11 @@ Le navigateur n'appelle jamais Google directement, pour deux raisons :
 L'API plafonne à **5 avis par fiche**. Ils sont classés par pertinence côté Google ; le backend les
 retrie par date décroissante pour tenir la promesse « les derniers avis ».
 
+Côté affichage, **3 avis sont dépliés** au premier rendu — une rangée pleine de la grille
+d'accueil — et un bouton discret révèle les suivants. Le repli est purement visuel : les cinq avis
+arrivent dans la même réponse et sont déjà en mémoire, donc « voir plus » ne déclenche ni appel
+backend ni appel Google.
+
 ## 2. Activer un client
 
 ### a. Récupérer le Place ID
@@ -120,13 +125,47 @@ curl -s -H 'X-Site-Id: place-des-montres' http://localhost:3000/api/reviews | jq
 
 # Front
 npm run dev:place     # section sur /, bulle + bloc sur /contact
-npm run dev:sauvage   # placeId vide → aucun changement visible
+npm run dev:sauvage
 ```
 
 Tests automatisés : `tests/backend/reviews.test.js` (mapping, cache, TTL, stale, codes d'erreur),
 `packages/base/src/site/googleReviews.test.js`,
 `packages/base/src/components/reviews/GoogleReviewsBlock.component.test.js`,
+`packages/base/src/components/home/HomeGoogleReviewsSection.component.test.js`,
 `packages/base/src/utils/buildStoreMapPopupHtml.test.js`.
+
+### Si la section reste vide
+
+La fonctionnalité échoue **silencieusement par conception** : un `placeId` renseigné ne suffit pas,
+il faut aussi la clé serveur. Trois endroits à regarder, dans cet ordre.
+
+1. **Log de démarrage du backend** (Render → Logs). Un site dont le manifest active les avis sans
+   clé serveur est listé au boot :
+
+   ```
+   ⚠️  [place-des-montres] secrets manquants : GOOGLE_PLACES_API_KEY. …
+   ```
+
+   C'est la cause la plus fréquente : `placeId` est dans le manifest (donc versionné), la clé est
+   une variable d'environnement Render (donc à déclarer une fois par site, à la main).
+
+2. **Log du backend à l'appel.** Le premier `GET /api/reviews` qui retombe en 503 écrit la raison
+   exacte — `placeId` absent, ou nom précis du secret manquant. La ligne n'est émise qu'une fois
+   par site et par cause : une mauvaise configuration est permanente, inutile de la répéter à
+   chaque visiteur. Un échec Places (clé refusée, SKU non activé, quota) est journalisé, lui, à
+   chaque tentative avec le corps de la réponse Google.
+
+3. **Console du navigateur.** `[Watch] Avis Google indisponibles : …` reprend le message renvoyé
+   par le backend, en production comme en dev.
+
+Erreurs Places les plus courantes, telles qu'elles apparaissent dans le log serveur :
+
+| Réponse Google | Cause |
+| --- | --- |
+| `API key not valid` (400) | Clé absente, mal copiée, ou clé front (restreinte par référent HTTP) réutilisée côté serveur. |
+| `PERMISSION_DENIED` (403) | **Places API (New)** non activée sur le projet, ou restriction d'IP qui ne couvre pas les IP sortantes de Render. |
+| `NOT_FOUND` (404) | `placeId` invalide — souvent l'identifiant `0x…:0x…` d'une URL Maps partagée, qui n'est pas un Place ID. |
+| `RESOURCE_EXHAUSTED` (429) | Quota dépassé, ou facturation non activée sur le projet Google Cloud. |
 
 ## 6. Limites connues
 

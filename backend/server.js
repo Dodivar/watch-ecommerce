@@ -41,6 +41,12 @@ function logBootWarnings(registry) {
     if (!site.secrets.supabase.serviceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY')
     if (!site.secrets.mailjet.apiKey) missing.push('MAILJET_API_KEY')
     if (!site.secrets.mailjet.secretKey) missing.push('MAILJET_SECRET_KEY')
+    // Uniquement pour les sites qui ont activé les avis : ailleurs, l'absence de clé est le
+    // comportement attendu. Sans cette ligne, un `placeId` renseigné sans clé serveur laissait
+    // /api/reviews répondre 503 en silence — aucune trace au boot ni à l'appel.
+    if (site.config.googleReviews?.enabled && !site.secrets.googlePlaces.apiKey) {
+      missing.push('GOOGLE_PLACES_API_KEY')
+    }
     if (missing.length > 0) {
       console.warn(
         `⚠️  [${site.id}] secrets manquants : ${missing.join(', ')}. Les routes correspondantes renverront 503 pour ce site.`,
