@@ -1,7 +1,12 @@
 <template>
   <div :class="{ 'cursor-pointer': clickable }" @click="handleCardClick">
     <!-- Plaque blanche : les visuels montres gardent leur fond clair quel que soit le thème. -->
-    <div class="relative w-full aspect-square bg-white rounded-md overflow-hidden mb-2 border border-gray-100 group">
+    <div
+      :class="[
+        'relative w-full bg-white rounded-md overflow-hidden mb-2 border border-gray-100 group',
+        imageAspectClass,
+      ]"
+    >
       <span
         v-if="showNewBadge"
         class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-primary text-white shadow-sm"
@@ -126,7 +131,10 @@
     <div>
       <div class="flex items-start justify-between mb-1 md:mb-2">
         <h3
-          class="text-xs md:text-base lg:text-xl font-semibold text-gray-900 leading-tight flex-1 pr-1 truncate"
+          :class="[
+            titleSizeClass,
+            'font-semibold text-gray-900 leading-tight flex-1 pr-1 truncate',
+          ]"
           style="max-width: 100%"
           :title="watchItem.name"
         >
@@ -142,7 +150,7 @@
           v-else-if="isOutOfStock"
           class="ml-1 md:ml-2 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-orange-100 text-orange-800 whitespace-nowrap flex-shrink-0"
         >
-          Hors stock
+          {{ t('watch.outOfStock') }}
         </span>
       </div>
 
@@ -161,7 +169,7 @@
           >
             {{ formatPrice(watchItem.price) }}
           </span>
-          <span class="text-base md:text-xl lg:text-2xl font-bold text-primary">
+          <span :class="[priceSizeClass, 'font-bold text-primary']">
             {{ formatPrice(watchItem.effectivePrice ?? watchItem.price) }}
           </span>
         </span>
@@ -244,6 +252,20 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  /** Ratio du visuel — le mode showcase du catalogue passe un portrait. */
+  imageAspectClass: {
+    type: String,
+    default: 'aspect-square',
+  },
+  /**
+   * `compact` resserre titre et prix : à six colonnes, la typographie de la
+   * grille standard déborde de la carte.
+   */
+  density: {
+    type: String,
+    default: 'default',
+    validator: (v) => v === 'default' || v === 'compact',
+  },
 })
 
 const emit = defineEmits(['viewDetails'])
@@ -256,6 +278,16 @@ const effectiveShowReference = computed(
 
 const effectiveShowSoldBadge = computed(
   () => props.showSoldBadge && catalogDisplay.showSoldBadge,
+)
+
+const isCompact = computed(() => props.density === 'compact')
+
+const titleSizeClass = computed(() =>
+  isCompact.value ? 'text-[11px] md:text-xs lg:text-sm' : 'text-xs md:text-base lg:text-xl',
+)
+
+const priceSizeClass = computed(() =>
+  isCompact.value ? 'text-xs md:text-sm lg:text-base' : 'text-base md:text-xl lg:text-2xl',
 )
 
 const isOutOfStock = computed(() => isWatchOutOfStock(site, watchItem.value))

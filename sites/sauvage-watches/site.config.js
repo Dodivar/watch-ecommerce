@@ -349,6 +349,13 @@ export default {
 
   /** Filtres collection — passer une clé à `false` pour masquer la section dans le tiroir. */
   collection: {
+    /**
+     * Format du catalogue : 'grid' (défaut, grille 2/3/4 colonnes) | 'list'
+     * (une montre par ligne, caractéristiques visibles) | 'showcase' (grands
+     * visuels portrait, 1 à 2 par rangée) | 'compact' (grille dense jusqu'à
+     * 6 colonnes). Valeurs dans `packages/base/src/site/collectionFilters.js`.
+     */
+    displayMode: 'grid',
     /** Nombre de montres par page sur `/collection` (défaut socle : 12, bornes 4–96). */
     pageSize: 12,
     filters: {

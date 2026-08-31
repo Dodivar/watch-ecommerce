@@ -193,6 +193,13 @@ export default {
   },
 
   collection: {
+    /**
+     * Format du catalogue : 'grid' (défaut, grille 2/3/4 colonnes) | 'list'
+     * (une montre par ligne, caractéristiques visibles) | 'showcase' (grands
+     * visuels portrait, 1 à 2 par rangée) | 'compact' (grille dense jusqu'à
+     * 6 colonnes). Valeurs dans `packages/base/src/site/collectionFilters.js`.
+     */
+    displayMode: 'grid',
     filters: {
       price: true,
       brand: true,

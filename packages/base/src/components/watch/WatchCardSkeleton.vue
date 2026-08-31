@@ -1,7 +1,12 @@
 <template>
   <div>
     <!-- Image Slider Skeleton -->
-    <div class="relative w-full aspect-square bg-cream-300 rounded-md overflow-hidden mb-3 md:mb-4 lg:mb-6 shimmer-bg">
+    <div
+      :class="[
+        'relative w-full bg-cream-300 rounded-md overflow-hidden mb-3 md:mb-4 lg:mb-6 shimmer-bg',
+        imageAspectClass,
+      ]"
+    >
       <div
         v-if="showNewBadge"
         class="absolute top-2 left-2 z-10 h-4 md:h-5 w-12 md:w-14 bg-cream-200 rounded-full shimmer-bg"
@@ -12,7 +17,10 @@
     <div>
       <div class="flex items-start justify-between mb-1 md:mb-2">
         <!-- Title skeleton -->
-        <div class="h-4 md:h-5 lg:h-6 bg-cream-300 rounded flex-1 pr-1 shimmer-bg" style="max-width: 75%;"></div>
+        <div
+          :class="[titleBarClass, 'bg-cream-300 rounded flex-1 pr-1 shimmer-bg']"
+          style="max-width: 75%;"
+        ></div>
         <!-- Badge skeleton (optional, shown if showSoldBadge is true) -->
         <div
           v-if="effectiveShowSoldBadge"
@@ -29,7 +37,10 @@
         class="flex items-center gap-2"
       >
         <!-- Price skeleton -->
-        <div v-if="showPrice" class="h-5 md:h-6 lg:h-7 bg-cream-300 rounded w-24 md:w-32 shimmer-bg"></div>
+        <div
+          v-if="showPrice"
+          :class="[priceBarClass, 'bg-cream-300 rounded w-24 md:w-32 shimmer-bg']"
+        ></div>
       </div>
     </div>
   </div>
@@ -58,7 +69,28 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  /** Doit suivre `imageAspectClass` de WatchCard, sinon la grille saute au chargement. */
+  imageAspectClass: {
+    type: String,
+    default: 'aspect-square',
+  },
+  /** Doit suivre `density` de WatchCard, pour la même raison. */
+  density: {
+    type: String,
+    default: 'default',
+    validator: (v) => v === 'default' || v === 'compact',
+  },
 })
+
+const isCompact = computed(() => props.density === 'compact')
+
+const titleBarClass = computed(() =>
+  isCompact.value ? 'h-3 md:h-3.5 lg:h-4' : 'h-4 md:h-5 lg:h-6',
+)
+
+const priceBarClass = computed(() =>
+  isCompact.value ? 'h-4 md:h-4 lg:h-5' : 'h-5 md:h-6 lg:h-7',
+)
 
 const effectiveShowReference = computed(
   () => props.showReference && catalogDisplay.showReference,
