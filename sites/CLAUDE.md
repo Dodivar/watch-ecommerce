@@ -35,6 +35,10 @@ Gabarit de départ : [`_template/`](_template/README.md).
 - **`home.sections`** — tableau ordonné d'ids ; ids reconnus dans
   `packages/base/src/site/homeSections.js`. Un id inconnu est ignoré (avertissement en dev).
   Tableau absent ou vide → accueil sans blocs.
+- **`collection.displayMode`** — format du catalogue : `grid` (défaut), `list`, `showcase`
+  ou `compact`. Valeurs et disposition dans `packages/base/src/site/collectionFilters.js`
+  et `packages/base/src/constants/watchCollectionLayouts.js`. Une valeur inconnue retombe
+  sur `grid` (avertissement en dev).
 - **`theme`** — tokens visuels uniquement. Voir [documentation/design-system.md](../documentation/design-system.md).
 - **`i18n`** — présence du bloc = site multilingue. Textes client via `t({ fr, en, de })`.
   Voir [documentation/i18n/README.md](../documentation/i18n/README.md).

@@ -157,22 +157,8 @@
           </div>
         </div>
 
-        <!-- Skeleton -->
-        <div
-          v-if="listing.isLoading"
-          class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-8"
-        >
-          <WatchCardSkeleton
-            v-for="n in skeletonCardCount"
-            :key="`skeleton-${n}`"
-            :show-reference="true"
-            :show-sold-badge="true"
-            :show-price="true"
-          />
-        </div>
-
         <!-- Erreur -->
-        <div v-else-if="listing.error" class="text-center py-10">
+        <div v-if="listing.error" class="text-center py-10">
           <div class="text-red-500 mb-3">
             <AlertCircle class="w-16 h-16 mx-auto mb-3" :stroke-width="2" />
           </div>
@@ -187,23 +173,16 @@
           </button>
         </div>
 
-        <!-- Grille -->
-        <div
+        <!-- Catalogue : squelette puis montres, dans le format choisi par le manifest -->
+        <WatchCollectionLayout
           v-else
-          class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-8"
-        >
-          <WatchCard
-            v-for="(watch, index) in paginatedWatches"
-            :key="watch.id"
-            v-bind="WATCH_CARD_GRID_PROPS"
-            :watch="watch"
-            :show-new-badge="isNouvelle(watch.id)"
-            :image-loading="index < 4 ? 'eager' : 'lazy'"
-            :image-fetch-priority="index === 0 ? 'high' : 'auto'"
-            class="animate-fade-in"
-            @viewDetails="handleViewDetails"
-          />
-        </div>
+          :mode="collectionDisplayMode"
+          :watches="paginatedWatches"
+          :is-loading="listing.isLoading"
+          :skeleton-count="skeletonCardCount"
+          :is-nouvelle="isNouvelle"
+          @viewDetails="handleViewDetails"
+        />
 
         <!-- Pagination + total (discret) -->
         <div
@@ -390,20 +369,22 @@ import {
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useHead } from '@vueuse/head'
 
-import WatchCard from './WatchCard.vue'
-import WatchCardSkeleton from './WatchCardSkeleton.vue'
+import WatchCollectionLayout from './WatchCollectionLayout.vue'
 import WatchCollectionFiltersDrawer from './WatchCollectionFiltersDrawer.vue'
 import { scrollAnimation } from '@/animation'
 import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
-import { getMergedCollectionFilters, getResolvedCollectionPageSize } from '@/site/collectionFilters.js'
+import {
+  getMergedCollectionFilters,
+  getResolvedCollectionDisplayMode,
+  getResolvedCollectionPageSize,
+} from '@/site/collectionFilters.js'
 import { useWatchListing } from '@/composables/useWatchListing.js'
 import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import { isValidCollectionPublicQuerySlug, getStaticWatchAudienceFilterOptions } from '@/constants/watchAudiences.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 import { getBraceletColorLabel } from '@/constants/watchBraceletColors'
 import { getBraceletMaterialLabel } from '@/constants/watchBraceletMaterials'
-import { WATCH_CARD_GRID_PROPS } from '@/constants/watchCardDefaults.js'
 import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
 import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredData.js'
 import { buildBrandCollectionPath, buildBrandCollectionUrl, resolveBrandSlugFromRoute } from '@/utils/collectionRoutes.js'
@@ -530,6 +511,7 @@ watch(
 const siteConfig = getSiteConfig()
 
 const collectionPageSize = getResolvedCollectionPageSize(siteConfig)
+const collectionDisplayMode = getResolvedCollectionDisplayMode(siteConfig)
 
 const currentPage = ref(1)
 const collectionListingReady = ref(false)
@@ -552,7 +534,9 @@ const paginatedWatches = computed(() => {
   return listing.filteredWatches.slice(start, start + collectionPageSize)
 })
 
-const skeletonCardCount = computed(() => Math.min(collectionPageSize, 12))
+// Le plafond par format vit dans `WATCH_COLLECTION_LAYOUTS` : une rangée compacte
+// en montre plus qu'une vitrine, la page n'a pas à en décider.
+const skeletonCardCount = computed(() => collectionPageSize)
 
 const isCollectionPaginationCompact = ref(false)
 let collectionPaginationMq = null
@@ -958,21 +942,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out;
-}
-
 .collection-active-filters {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
