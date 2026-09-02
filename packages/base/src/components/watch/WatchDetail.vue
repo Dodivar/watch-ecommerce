@@ -848,8 +848,7 @@ import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredD
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { buildWatchPath, isLegacyWatchIdParam } from '@/utils/watchSlug.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
-import { getBraceletColorBySlug, getBraceletColorLabel } from '@/constants/watchBraceletColors'
-import { getBraceletMaterialLabel } from '@/constants/watchBraceletMaterials'
+import { getBraceletColorBySlug } from '@/constants/watchBraceletColors'
 
 const site = getSiteConfig()
 const siteCopy = site.copy
@@ -887,6 +886,8 @@ import { formatDate, formatPrice } from '@/utils/formatters.js'
 import { t } from '@/i18n'
 import {
   formatWaterResistance,
+  getBraceletColorLabel,
+  getBraceletMaterialLabel,
   resolveConditionSchemaValue,
   translateAccessory,
   translateDuration,

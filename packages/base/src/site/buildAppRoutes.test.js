@@ -50,6 +50,16 @@ describe('buildAppRoutes', () => {
     expect(paths).not.toContain('/faq')
   })
 
+  it('exclut /coup-de-foudre par défaut', () => {
+    const paths = getActiveRoutePaths(DEFAULT_SITE_FEATURES)
+    expect(paths).not.toContain('/coup-de-foudre')
+  })
+
+  it('inclut /coup-de-foudre quand watchMatchmaking est true', () => {
+    const paths = getActiveRoutePaths({ ...DEFAULT_SITE_FEATURES, watchMatchmaking: true })
+    expect(paths).toContain('/coup-de-foudre')
+  })
+
   it('newsletter est désactivée par défaut', () => {
     expect(DEFAULT_SITE_FEATURES.newsletter).toBe(false)
   })

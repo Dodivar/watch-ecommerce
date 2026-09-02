@@ -7,6 +7,7 @@ import WatchSearchResultsPage from '@/components/watch/WatchSearchResultsPage.vu
 import BrandsIndexPage from '@/components/watch/BrandsIndexPage.vue'
 import WatchDetail from '@/components/watch/WatchDetail.vue'
 import SoldWatchesArchivePage from '@/components/watch/SoldWatchesArchivePage.vue'
+import WatchMatchmakingPage from '@/components/matchmaking/WatchMatchmakingPage.vue'
 import EstimationPage from '@/components/EstimationPage.vue'
 import AdminLogin from '@/components/admin/AdminLogin.vue'
 import AdminForgotPassword from '@/components/admin/AdminForgotPassword.vue'
@@ -71,6 +72,7 @@ const COMPONENTS_BY_PATH = {
   '/montre/:slug': WatchDetail,
   '/watch/:id': WatchDetail,
   '/ventes': SoldWatchesArchivePage,
+  '/coup-de-foudre': WatchMatchmakingPage,
   '/blog': BlogList,
   '/blog/:id': BlogDetail,
   '/a-propos': APropos,

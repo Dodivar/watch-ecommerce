@@ -1,5 +1,3 @@
-import { t } from '@/i18n'
-
 /**
  * Couleurs de bracelet sélectionnables (filtre collection + formulaire admin).
  *
@@ -75,16 +73,6 @@ export function isValidBraceletColorSlug(slug) {
  */
 export function getBraceletColorBySlug(slug) {
   return BRACELET_COLOR_BY_SLUG.get(slug) || null
-}
-
-/**
- * Libellé traduit d'un slug (repli sur le slug brut si inconnu).
- * @param {string} slug
- * @returns {string}
- */
-export function getBraceletColorLabel(slug) {
-  const color = BRACELET_COLOR_BY_SLUG.get(slug)
-  return color ? t(color.labelKey) : slug
 }
 
 /**

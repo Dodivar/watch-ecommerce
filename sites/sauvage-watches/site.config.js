@@ -211,6 +211,17 @@ export default {
     adminWatchPromotions: true,
     /** Archive publique des montres vendues (`/ventes`) — preuve sociale + SEO. */
     soldArchive: true,
+    /**
+     * « Coup de foudre » (`/coup-de-foudre`) : préférences guidées puis montres à faire
+     * glisser, shortlist locale au navigateur. Exclusif à Sauvage.
+     */
+    watchMatchmaking: true,
+    /**
+     * Phase 2 : alerte e-mail quand une montre nouvellement ajoutée correspond aux préférences
+     * enregistrées. Nécessite la migration `20260902120000_watch_match_alerts.sql` et
+     * `backend.publicApiUrl` (les liens de désinscription en dépendent).
+     */
+    watchMatchAlerts: true,
   },
 
   /** Profil catalogue revente : année, état, contenu et référence visibles sur cartes et fiches. */
@@ -349,6 +360,13 @@ export default {
 
   /** Filtres collection — passer une clé à `false` pour masquer la section dans le tiroir. */
   collection: {
+    /**
+     * Format du catalogue : 'grid' (défaut, grille 2/3/4 colonnes) | 'list'
+     * (une montre par ligne, caractéristiques visibles) | 'showcase' (grands
+     * visuels portrait, 1 à 2 par rangée) | 'compact' (grille dense jusqu'à
+     * 6 colonnes). Valeurs dans `packages/base/src/site/collectionFilters.js`.
+     */
+    displayMode: 'grid',
     /** Nombre de montres par page sur `/collection` (défaut socle : 12, bornes 4–96). */
     pageSize: 12,
     filters: {
@@ -381,6 +399,11 @@ export default {
         type: 'group',
         label: t({ fr: 'Nos services', en: 'Our services', de: 'Unsere Leistungen' }),
         items: [
+          {
+            label: t({ fr: 'Coup de foudre', en: 'Find your match', de: 'Ihre Traumuhr' }),
+            to: '/coup-de-foudre',
+            feature: 'watchMatchmaking',
+          },
           {
             label: t({ fr: 'Recherche personnalisée', en: 'Watch sourcing', de: 'Uhrensuche' }),
             to: '/recherche',
@@ -422,6 +445,11 @@ export default {
         label: t({ fr: 'Nos ventes', en: 'Past sales', de: 'Verkaufte Uhren' }),
         to: '/ventes',
         feature: 'soldArchive',
+      },
+      {
+        label: t({ fr: 'Coup de foudre', en: 'Find your match', de: 'Ihre Traumuhr' }),
+        to: '/coup-de-foudre',
+        feature: 'watchMatchmaking',
       },
       {
         label: t({ fr: 'Recherche personnalisée', en: 'Watch sourcing', de: 'Uhrensuche' }),
@@ -726,6 +754,28 @@ export default {
         de: 'Entdecken Sie diese Luxusuhr bei Sauvage',
       }),
       structuredDataSellerName: 'Sauvage',
+    },
+    matchmaking: {
+      title: t({
+        fr: 'Coup de foudre | Trouvez la montre faite pour vous | Sauvage',
+        en: 'Find your match | The watch made for you | Sauvage',
+        de: 'Ihre Traumuhr | Die Uhr, die zu Ihnen passt | Sauvage',
+      }),
+      metaDescription: t({
+        fr: 'Dites-nous ce que vous cherchez, nous vous présentons les montres disponibles chez Sauvage une par une. Un geste pour passer, un autre pour garder — et une shortlist à la fin.',
+        en: 'Tell us what you are looking for and we will introduce you to the watches available at Sauvage, one at a time. Swipe to pass or keep — and end with your shortlist.',
+        de: 'Sagen Sie uns, was Sie suchen, und wir stellen Ihnen die bei Sauvage verfügbaren Uhren einzeln vor. Wischen zum Weitergehen oder Behalten — am Ende steht Ihre Auswahl.',
+      }),
+      ogTitle: t({
+        fr: 'Coup de foudre | Sauvage Watches',
+        en: 'Find your match | Sauvage Watches',
+        de: 'Ihre Traumuhr | Sauvage Watches',
+      }),
+      ogDescription: t({
+        fr: 'Trouvez la montre faite pour vous, une montre à la fois.',
+        en: 'Find the watch made for you, one watch at a time.',
+        de: 'Finden Sie die Uhr, die zu Ihnen passt — eine nach der anderen.',
+      }),
     },
     faq: {
       title: t({

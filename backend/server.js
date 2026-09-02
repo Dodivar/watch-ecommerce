@@ -12,9 +12,11 @@ const { buildOrdersRouter } = require('./routes/orders')
 const n8nRoutes = require('./routes/n8n')
 const { buildAdminRouter } = require('./admin/adminRoutes')
 const { buildNewsletterRouter } = require('./routes/newsletter')
+const { buildWatchMatchAlertsRouter } = require('./routes/watchMatchAlerts')
 const { buildHealthRouter } = require('./routes/health')
 const { buildReviewsRouter } = require('./routes/reviews')
 const { startNewsletterScheduler } = require('./newsletter/scheduler')
+const { startWatchMatchAlertScheduler } = require('./watchMatchAlerts/scheduler')
 const { startAbandonedCheckoutScheduler } = require('./orders/recovery')
 
 const isProductionBoot =
@@ -127,6 +129,8 @@ async function main() {
   app.use('/api/n8n', resolveSite(registry), n8nRoutes)
   app.use('/api/admin', resolveSite(registry), buildAdminRouter(registry))
   app.use('/api/newsletter', resolveSite(registry), buildNewsletterRouter(registry))
+  // Alertes « coup de foudre » (opt-in public + désinscription par jeton).
+  app.use('/api/watch-match-alerts', resolveSite(registry), buildWatchMatchAlertsRouter())
   // Avis Google publics (lecture seule, cache mémoire partagé) — voir routes/reviews.js.
   app.use('/api/reviews', resolveSite(registry), buildReviewsRouter(registry))
 
@@ -155,6 +159,10 @@ async function main() {
 
   // Relance email des paniers abandonnés (sites avec checkout.abandonedCart.enabled).
   startAbandonedCheckoutScheduler(registry)
+
+  // Alertes « coup de foudre » (sites avec features.watchMatchAlerts) : ne démarre pas tant
+  // qu'aucun site n'a levé le drapeau.
+  startWatchMatchAlertScheduler(registry)
 }
 
 main().catch((err) => {

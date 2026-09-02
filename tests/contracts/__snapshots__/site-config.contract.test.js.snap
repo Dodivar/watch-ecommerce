@@ -27,6 +27,8 @@ exports[`site contract: demo-store > charge et résout le manifest sans erreur 1
     "serviceLandings": false,
     "servicesPage": false,
     "soldArchive": false,
+    "watchMatchAlerts": false,
+    "watchMatchmaking": false,
     "watchReference": true,
   },
   "footerNav": [
@@ -128,6 +130,8 @@ exports[`site contract: jackned > charge et résout le manifest sans erreur 1`] 
     "serviceLandings": false,
     "servicesPage": false,
     "soldArchive": false,
+    "watchMatchAlerts": false,
+    "watchMatchmaking": false,
     "watchReference": false,
   },
   "footerNav": [
@@ -213,6 +217,8 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
     "serviceLandings": true,
     "servicesPage": true,
     "soldArchive": false,
+    "watchMatchAlerts": false,
+    "watchMatchmaking": false,
     "watchReference": false,
   },
   "footerNav": [
@@ -311,6 +317,8 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     "serviceLandings": false,
     "servicesPage": false,
     "soldArchive": true,
+    "watchMatchAlerts": true,
+    "watchMatchmaking": true,
     "watchReference": true,
   },
   "footerNav": [
@@ -325,6 +333,10 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     {
       "label": "Nos ventes",
       "to": "/ventes",
+    },
+    {
+      "label": "Coup de foudre",
+      "to": "/coup-de-foudre",
     },
     {
       "label": "Recherche personnalisée",
