@@ -989,7 +989,51 @@ export default {
   'matchmaking.cta.alert.emailLabel': 'Ihre E-Mail',
   'matchmaking.cta.alert.button': 'Benachrichtigen',
   'matchmaking.cta.alert.unavailable': 'Diese Option kommt bald.',
+  'matchmaking.cta.alert.consent': 'Ich möchte eine E-Mail erhalten, sobald eine Uhr meinen Vorlieben entspricht. Ich kann mich jederzeit abmelden.',
+  'matchmaking.cta.alert.success': 'Notiert. Wir melden uns, sobald eine Uhr zu Ihnen passt.',
   'matchmaking.cta.sourcing.title': 'Ganz bestimmte Ansprüche? Wir nehmen sie ernst.',
   'matchmaking.cta.sourcing.text': 'Unsere persönliche Suche geht von Ihren Kriterien aus – so präzise sie auch sind.',
   'matchmaking.cta.sourcing.button': 'Persönliche Suche starten',
+
+  // — Alarm « Liebe auf den ersten Blick »: Neuheiten-E-Mail und Abmeldeseiten.
+  // Vom Backend in der auf dem Alarm gespeicherten Sprache versendet, über
+  // `i18n/watchMatchAlertEmail.js` — daher Interface-Schlüssel für Texte außerhalb davon.
+  'matchmaking.alertEmail.subject': {
+    one: 'Eine Uhr für Sie bei {brand}',
+    other: '{count} Uhren für Sie bei {brand}',
+  },
+  'matchmaking.alertEmail.title': {
+    one: 'Eine Neuheit passt zu Ihnen.',
+    other: '{count} Neuheiten passen zu Ihnen.',
+  },
+  'matchmaking.alertEmail.intro':
+    'Sie entspricht den Vorlieben, die Sie uns hinterlassen haben. Sehen Sie sie vor allen anderen.',
+  'matchmaking.alertEmail.seeWatch': 'Uhr ansehen',
+  'matchmaking.alertEmail.more': {
+    one: 'Und eine weitere Uhr entspricht Ihren Kriterien.',
+    other: 'Und {count} weitere Uhren entsprechen Ihren Kriterien.',
+  },
+  'matchmaking.alertEmail.browse': 'Die ganze Kollektion ansehen',
+  'matchmaking.alertEmail.reason':
+    'Sie erhalten diese E-Mail, weil Sie Ihre Vorlieben auf unserer Website gespeichert haben.',
+  'matchmaking.alertEmail.unsubscribe': 'Diese Benachrichtigungen abbestellen',
+  'matchmaking.alertUnsubscribe.confirmTitle': 'Benachrichtigungen abbestellen',
+  'matchmaking.alertUnsubscribe.confirmText':
+    'Bestätigen Sie, um keine Hinweise auf passende Uhren mehr zu erhalten.',
+  'matchmaking.alertUnsubscribe.confirmButton': 'Abmeldung bestätigen',
+  'matchmaking.alertUnsubscribe.doneTitle': 'Abmeldung bestätigt',
+  'matchmaking.alertUnsubscribe.doneText':
+    'Sie erhalten diese Benachrichtigungen nicht mehr. Ihre Vorlieben wurden gelöscht. Bis bald!',
+  'matchmaking.alertUnsubscribe.alreadyTitle': 'Bereits abgemeldet',
+  'matchmaking.alertUnsubscribe.alreadyText': 'Sie erhalten diese Benachrichtigungen nicht mehr.',
+  'matchmaking.alertUnsubscribe.invalidTitle': 'Ungültiger Link',
+  'matchmaking.alertUnsubscribe.invalidText': 'Dieser Abmeldelink ist unvollständig.',
+  'matchmaking.alertUnsubscribe.unknownTitle': 'Unbekannter Link',
+  'matchmaking.alertUnsubscribe.unknownText': 'Dieser Abmeldelink wird nicht erkannt.',
+  'matchmaking.alertUnsubscribe.errorTitle': 'Fehler',
+  'matchmaking.alertUnsubscribe.errorText':
+    'Bei der Abmeldung ist ein Fehler aufgetreten. Bitte versuchen Sie es gleich erneut.',
+  'matchmaking.alertUnsubscribe.unavailableTitle': 'Dienst nicht verfügbar',
+  'matchmaking.alertUnsubscribe.unavailableText':
+    'Die Abmeldung ist vorübergehend nicht möglich.',
 }

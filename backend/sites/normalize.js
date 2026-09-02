@@ -245,6 +245,11 @@ function normalizeSiteConfig(rawConfig) {
   const allowedHosts = deriveAllowedHosts(rawConfig)
 
   const backend = {
+    // Base publique du backend, utilisée pour les liens de désinscription des e-mails envoyés
+    // hors requête HTTP (planificateurs). Trois appelants la lisaient déjà sous
+    // `site.config.backend.publicApiUrl` — mais elle ne traversait pas cette normalisation, si
+    // bien que les boucles d'envoi la voyaient toujours absente et se suspendaient en silence.
+    publicApiUrl: trimTrailingSlash(backendRaw?.publicApiUrl || ''),
     email: {
       fromName,
       fromAddress,

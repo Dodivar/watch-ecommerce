@@ -35,10 +35,26 @@
             aria-hidden="true"
             class="matchmaking-honeypot"
           />
+          <!--
+            Consentement propre à l'alerte, non cochée par défaut : le consentement doit être un
+            acte positif (RGPD/CNIL). `NewsletterOptInField.vue` suit la même règle mais parle de
+            la newsletter et disparaît sans `features.newsletter` — deux raisons de ne pas le
+            réemployer ici pour un opt-in qui n'est pas le sien.
+          -->
+          <label class="mt-3 flex cursor-pointer items-start gap-2 text-xs text-gray-600">
+            <input
+              v-model="consent"
+              type="checkbox"
+              name="consent"
+              required
+              class="mt-0.5 shrink-0"
+            />
+            <span>{{ t('matchmaking.cta.alert.consent') }}</span>
+          </label>
           <button
             type="submit"
             class="mt-3 rounded-lg border border-primary bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-            :disabled="status === 'loading'"
+            :disabled="status === 'loading' || status === 'success'"
           >
             {{ status === 'loading' ? t('common.sending') : t('matchmaking.cta.alert.button') }}
           </button>
@@ -88,6 +104,7 @@ const features = getSiteConfig().features
 
 const email = ref('')
 const website = ref('')
+const consent = ref(false)
 const status = ref('idle')
 const statusMessage = ref('')
 
@@ -99,12 +116,14 @@ async function submitAlert() {
       email: email.value,
       criteria: props.preferences,
       website: website.value,
+      consent: consent.value,
     })
     status.value = 'success'
+    statusMessage.value = t('matchmaking.cta.alert.success')
   } catch (err) {
     status.value = 'error'
     statusMessage.value =
-      err?.code === 'NOT_IMPLEMENTED'
+      err?.code === 'UNAVAILABLE'
         ? t('matchmaking.cta.alert.unavailable')
         : err?.message || t('form.submitError')
   }

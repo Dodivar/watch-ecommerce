@@ -187,6 +187,8 @@ import { ArrowRight, Heart, Trash2, X } from '@lucide/vue'
 import { t } from '@/i18n'
 import {
   formatWaterResistance,
+  getBraceletColorLabel,
+  getBraceletMaterialLabel,
   translateAccessory,
   translateDuration,
   translateGuarantee,
@@ -195,8 +197,6 @@ import {
 } from '@/i18n/watchSpecs.js'
 import { formatPrice } from '@/utils/formatters.js'
 import { watchLightboxImageUrl } from '@/utils/watchImageUrl.js'
-import { getBraceletColorLabel } from '@/constants/watchBraceletColors'
-import { getBraceletMaterialLabel } from '@/constants/watchBraceletMaterials'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import WatchImageSwipeCarousel from '@/components/watch/WatchImageSwipeCarousel.vue'
 

@@ -996,7 +996,51 @@ export default {
   'matchmaking.cta.alert.emailLabel': 'Votre e-mail',
   'matchmaking.cta.alert.button': 'Me prévenir',
   'matchmaking.cta.alert.unavailable': 'Cette option arrive bientôt.',
+  'matchmaking.cta.alert.consent': 'J’accepte de recevoir un e-mail lorsqu’une montre correspond à mes préférences. Je peux me désinscrire à tout moment.',
+  'matchmaking.cta.alert.success': 'C’est noté. Nous vous écrivons dès qu’une montre vous ressemble.',
   'matchmaking.cta.sourcing.title': 'Des exigences précises ? Nous les prenons au sérieux.',
   'matchmaking.cta.sourcing.text': 'Notre service de recherche personnalisée part de vos critères, aussi précis soient-ils.',
   'matchmaking.cta.sourcing.button': 'Lancer une recherche personnalisée',
+
+  // — Alerte « coup de foudre » : e-mail de nouveauté et pages de désinscription.
+  // Envoyées par le backend dans la langue enregistrée sur l'alerte, via
+  // `i18n/watchMatchAlertEmail.js` — d'où des clés d'interface pour des textes hors interface.
+  'matchmaking.alertEmail.subject': {
+    one: 'Une montre pour vous chez {brand}',
+    other: '{count} montres pour vous chez {brand}',
+  },
+  'matchmaking.alertEmail.title': {
+    one: 'Une nouvelle venue vous ressemble.',
+    other: '{count} nouvelles venues vous ressemblent.',
+  },
+  'matchmaking.alertEmail.intro':
+    'Elle correspond aux préférences que vous nous aviez laissées. À voir avant tout le monde.',
+  'matchmaking.alertEmail.seeWatch': 'Voir la montre',
+  'matchmaking.alertEmail.more': {
+    one: 'Et une autre montre correspond aussi à vos critères.',
+    other: 'Et {count} autres montres correspondent aussi à vos critères.',
+  },
+  'matchmaking.alertEmail.browse': 'Voir toute la collection',
+  'matchmaking.alertEmail.reason':
+    'Vous recevez cet e-mail parce que vous avez enregistré vos préférences sur notre site.',
+  'matchmaking.alertEmail.unsubscribe': 'Ne plus recevoir ces alertes',
+  'matchmaking.alertUnsubscribe.confirmTitle': 'Ne plus recevoir les alertes',
+  'matchmaking.alertUnsubscribe.confirmText':
+    'Confirmez pour ne plus être prévenu(e) des montres qui correspondent à vos préférences.',
+  'matchmaking.alertUnsubscribe.confirmButton': 'Confirmer la désinscription',
+  'matchmaking.alertUnsubscribe.doneTitle': 'Désinscription confirmée',
+  'matchmaking.alertUnsubscribe.doneText':
+    'Vous ne recevrez plus ces alertes. Vos préférences ont été effacées. À bientôt !',
+  'matchmaking.alertUnsubscribe.alreadyTitle': 'Déjà désinscrit(e)',
+  'matchmaking.alertUnsubscribe.alreadyText': 'Vous ne recevez plus ces alertes.',
+  'matchmaking.alertUnsubscribe.invalidTitle': 'Lien invalide',
+  'matchmaking.alertUnsubscribe.invalidText': 'Ce lien de désinscription est incomplet.',
+  'matchmaking.alertUnsubscribe.unknownTitle': 'Lien inconnu',
+  'matchmaking.alertUnsubscribe.unknownText': 'Ce lien de désinscription n’est pas reconnu.',
+  'matchmaking.alertUnsubscribe.errorTitle': 'Erreur',
+  'matchmaking.alertUnsubscribe.errorText':
+    'Une erreur est survenue lors de la désinscription. Réessayez dans un instant.',
+  'matchmaking.alertUnsubscribe.unavailableTitle': 'Service indisponible',
+  'matchmaking.alertUnsubscribe.unavailableText':
+    'La désinscription est momentanément indisponible.',
 }

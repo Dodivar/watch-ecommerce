@@ -23,6 +23,8 @@
  * servent pour vérifier les trois langues dans un même fichier.
  */
 
+import { getBraceletColorBySlug } from '@/constants/watchBraceletColors'
+import { getBraceletMaterialBySlug } from '@/constants/watchBraceletMaterials'
 import { resolveSpecKey, normalizeSpecText } from '@/constants/watchSpecVocabulary'
 import { t as defaultT, tc as defaultTc } from './index.js'
 
@@ -30,6 +32,37 @@ import { t as defaultT, tc as defaultTc } from './index.js'
 
 /** @type {SpecTranslator} */
 const DEFAULT_I18N = { t: defaultT, tc: defaultTc }
+
+/**
+ * Libellé traduit d'une matière de bracelet, depuis son slug (repli sur le slug brut si
+ * inconnu). Vit ici et non dans `constants/watchBraceletMaterials.js` : ce référentiel est
+ * de la donnée pure, chargée telle quelle par le backend (voir `utils/watchMatchCore.js`),
+ * et un `import { t } from '@/i18n'` y rendait le fichier introuvable hors Vite.
+ *
+ * Un seul paramètre, contrairement aux `translate*` de ce fichier : ces deux libellés
+ * s'appellent en point-libre (`slugs.map(getBraceletMaterialLabel)`), où `map` passe l'index
+ * en deuxième argument. Un traducteur injectable s'y ferait écraser par un nombre.
+ *
+ * @param {string} slug
+ * @returns {string}
+ */
+export function getBraceletMaterialLabel(slug) {
+  const material = getBraceletMaterialBySlug(slug)
+  return material ? defaultT(material.labelKey) : slug
+}
+
+/**
+ * Libellé traduit d'une couleur de bracelet, depuis son slug (repli sur le slug brut si
+ * inconnu). Même raison d'être ici, et même signature à un seul argument, que
+ * `getBraceletMaterialLabel`.
+ *
+ * @param {string} slug
+ * @returns {string}
+ */
+export function getBraceletColorLabel(slug) {
+  const color = getBraceletColorBySlug(slug)
+  return color ? defaultT(color.labelKey) : slug
+}
 
 /** Valeurs déjà signalées, pour n'avertir qu'une fois par formulation inconnue. */
 const reportedUnknown = new Set()

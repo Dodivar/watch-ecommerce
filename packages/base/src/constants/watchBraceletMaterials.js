@@ -1,5 +1,3 @@
-import { t } from '@/i18n'
-
 /**
  * Matières de bracelet sélectionnables (filtre collection + formulaire admin).
  *
@@ -94,16 +92,6 @@ export function isValidBraceletMaterialSlug(slug) {
  */
 export function getBraceletMaterialBySlug(slug) {
   return BRACELET_MATERIAL_BY_SLUG.get(slug) || null
-}
-
-/**
- * Libellé traduit d'un slug (repli sur le slug brut si inconnu).
- * @param {string} slug
- * @returns {string}
- */
-export function getBraceletMaterialLabel(slug) {
-  const material = BRACELET_MATERIAL_BY_SLUG.get(slug)
-  return material ? t(material.labelKey) : slug
 }
 
 /**

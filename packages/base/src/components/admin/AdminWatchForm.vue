@@ -5,16 +5,12 @@ import { createWatch, updateWatch, uploadWatchImage, deleteWatchImage, reorderWa
 import { getI18nConfig } from '@/i18n'
 import { getWatchAudiencesForAdminForm } from '@/services/watchService'
 import { DEFAULT_WATCH_AUDIENCE_SLUG, getStaticWatchAudienceAdminOptions } from '@/constants/watchAudiences'
-import {
-  WATCH_BRACELET_COLORS,
-  getBraceletColorLabel,
-  normalizeBraceletColors,
-} from '@/constants/watchBraceletColors'
+import { WATCH_BRACELET_COLORS, normalizeBraceletColors } from '@/constants/watchBraceletColors'
 import {
   WATCH_BRACELET_MATERIALS,
-  getBraceletMaterialLabel,
   normalizeBraceletMaterials,
 } from '@/constants/watchBraceletMaterials'
+import { getBraceletColorLabel, getBraceletMaterialLabel } from '@/i18n/watchSpecs.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import {
   computeDiscountPercentFromPrices,
