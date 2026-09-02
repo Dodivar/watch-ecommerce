@@ -74,6 +74,19 @@ export const DEFAULT_SITE_FEATURES = {
    * `20260701120000_newsletter.sql` et Mailjet configuré.
    */
   newsletter: false,
+  /**
+   * Expérience « coup de foudre » (`/coup-de-foudre`) : préférences guidées puis deck de
+   * montres à faire glisser (droite = coup de cœur, gauche = passer), shortlist locale.
+   * Ne se nourrit que du catalogue disponible : nécessite `collection` (désactivé sinon).
+   */
+  watchMatchmaking: false,
+  /**
+   * Phase 2 du coup de foudre : proposer d'enregistrer ses préférences pour être prévenu
+   * par e-mail d'une nouvelle montre. Nécessite `watchMatchmaking`, la migration
+   * `20260902120000_watch_match_alerts.sql` et une route backend encore à écrire — le CTA
+   * reste masqué tant que ce drapeau est faux.
+   */
+  watchMatchAlerts: false,
 }
 
 export function mergeSiteFeatures(partial = {}) {
@@ -83,6 +96,10 @@ export function mergeSiteFeatures(partial = {}) {
   }
   if (!merged.collection) {
     merged.soldArchive = false
+    merged.watchMatchmaking = false
+  }
+  if (!merged.watchMatchmaking) {
+    merged.watchMatchAlerts = false
   }
   return merged
 }

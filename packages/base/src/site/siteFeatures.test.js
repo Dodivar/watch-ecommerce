@@ -34,6 +34,22 @@ describe('mergeSiteFeatures', () => {
     const merged = mergeSiteFeatures({ soldArchive: true })
     expect(merged.soldArchive).toBe(true)
   })
+
+  it('laisse le coup de foudre éteint par défaut', () => {
+    expect(DEFAULT_SITE_FEATURES.watchMatchmaking).toBe(false)
+    expect(DEFAULT_SITE_FEATURES.watchMatchAlerts).toBe(false)
+  })
+
+  it('désactive watchMatchmaking quand collection est false', () => {
+    const merged = mergeSiteFeatures({ collection: false, watchMatchmaking: true })
+    expect(merged.watchMatchmaking).toBe(false)
+  })
+
+  it('désactive watchMatchAlerts sans watchMatchmaking', () => {
+    expect(mergeSiteFeatures({ watchMatchAlerts: true }).watchMatchAlerts).toBe(false)
+    const merged = mergeSiteFeatures({ watchMatchmaking: true, watchMatchAlerts: true })
+    expect(merged.watchMatchAlerts).toBe(true)
+  })
 })
 
 describe('getBrowsePath', () => {

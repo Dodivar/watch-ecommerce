@@ -12,6 +12,7 @@ export const SITEMAP_STATIC_ROUTE_DEFS = [
   { path: '/ventes', feature: 'soldArchive', priority: '0.6', changefreq: 'weekly' },
   { path: '/blog', feature: 'blog', priority: '0.8', changefreq: 'weekly' },
   { path: '/recherche', feature: 'recherche', priority: '0.7', changefreq: 'monthly' },
+  { path: '/coup-de-foudre', feature: 'watchMatchmaking', priority: '0.8', changefreq: 'weekly' },
   { path: '/estimation', feature: 'estimation', priority: '0.7', changefreq: 'monthly' },
   {
     path: '/estimation/processus',
