@@ -317,7 +317,7 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     "serviceLandings": false,
     "servicesPage": false,
     "soldArchive": true,
-    "watchMatchAlerts": false,
+    "watchMatchAlerts": true,
     "watchMatchmaking": true,
     "watchReference": true,
   },

@@ -986,7 +986,50 @@ export default {
   'matchmaking.cta.alert.emailLabel': 'Your email',
   'matchmaking.cta.alert.button': 'Notify me',
   'matchmaking.cta.alert.unavailable': 'This option is coming soon.',
+  'matchmaking.cta.alert.consent': 'I agree to receive an email when a watch matches my preferences. I can unsubscribe at any time.',
+  'matchmaking.cta.alert.success': 'Noted. We will write as soon as a watch looks like you.',
   'matchmaking.cta.sourcing.title': 'Very specific standards? We take them seriously.',
   'matchmaking.cta.sourcing.text': 'Our sourcing service starts from your criteria, however specific they are.',
   'matchmaking.cta.sourcing.button': 'Start a personalised search',
+
+  // — « Love at first sight » alert: new-arrival email and unsubscribe pages.
+  // Sent by the backend in the locale stored on the alert, through
+  // `i18n/watchMatchAlertEmail.js` — hence interface keys for texts that live outside it.
+  'matchmaking.alertEmail.subject': {
+    one: 'A watch for you at {brand}',
+    other: '{count} watches for you at {brand}',
+  },
+  'matchmaking.alertEmail.title': {
+    one: 'A new arrival looks like you.',
+    other: '{count} new arrivals look like you.',
+  },
+  'matchmaking.alertEmail.intro':
+    'It matches the preferences you left with us. Yours to see before anyone else.',
+  'matchmaking.alertEmail.seeWatch': 'View the watch',
+  'matchmaking.alertEmail.more': {
+    one: 'And one more watch matches your criteria.',
+    other: 'And {count} more watches match your criteria.',
+  },
+  'matchmaking.alertEmail.browse': 'Browse the whole collection',
+  'matchmaking.alertEmail.reason':
+    'You are receiving this email because you saved your preferences on our website.',
+  'matchmaking.alertEmail.unsubscribe': 'Stop these alerts',
+  'matchmaking.alertUnsubscribe.confirmTitle': 'Stop these alerts',
+  'matchmaking.alertUnsubscribe.confirmText':
+    'Confirm to stop being notified about watches matching your preferences.',
+  'matchmaking.alertUnsubscribe.confirmButton': 'Confirm unsubscribe',
+  'matchmaking.alertUnsubscribe.doneTitle': 'Unsubscribe confirmed',
+  'matchmaking.alertUnsubscribe.doneText':
+    'You will no longer receive these alerts. Your preferences have been erased. See you soon!',
+  'matchmaking.alertUnsubscribe.alreadyTitle': 'Already unsubscribed',
+  'matchmaking.alertUnsubscribe.alreadyText': 'You no longer receive these alerts.',
+  'matchmaking.alertUnsubscribe.invalidTitle': 'Invalid link',
+  'matchmaking.alertUnsubscribe.invalidText': 'This unsubscribe link is incomplete.',
+  'matchmaking.alertUnsubscribe.unknownTitle': 'Unknown link',
+  'matchmaking.alertUnsubscribe.unknownText': 'This unsubscribe link is not recognised.',
+  'matchmaking.alertUnsubscribe.errorTitle': 'Error',
+  'matchmaking.alertUnsubscribe.errorText':
+    'Something went wrong while unsubscribing. Please try again in a moment.',
+  'matchmaking.alertUnsubscribe.unavailableTitle': 'Service unavailable',
+  'matchmaking.alertUnsubscribe.unavailableText': 'Unsubscribing is temporarily unavailable.',
 }

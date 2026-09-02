@@ -262,21 +262,38 @@ create policy newsletter_settings_admin on public.newsletter_settings
   for all using (public.is_admin_user()) with check (public.is_admin_user());
 ```
 
-## Alertes « coup de foudre » (phase 2, architecture seule)
+## Alertes « coup de foudre »
 
-`20260902120000_watch_match_alerts.sql` — prépare `features.watchMatchAlerts` (encore éteint
-partout) : un visiteur qui n'a pas trouvé sa montre dans l'expérience `/coup-de-foudre` pourra
-laisser son e-mail et ses **préférences** pour être prévenu d'une nouvelle montre compatible.
+`20260902120000_watch_match_alerts.sql` — requis pour `features.watchMatchAlerts` : un visiteur
+qui n'a pas trouvé sa montre dans l'expérience `/coup-de-foudre` laisse son e-mail et ses
+**préférences**, et reçoit un e-mail dès qu'une montre nouvellement ajoutée y correspond.
 
 - Table `watch_match_alerts` : e-mail + préférences (`criteria`, JSON de la forme
-  `MatchPreferences` de `packages/base/src/utils/watchMatchmaking.js`), consentement horodaté,
+  `MatchPreferences` de `packages/base/src/utils/watchMatchCore.js`), consentement horodaté,
   jeton de désinscription unique — calquée sur `newsletter_subscribers`
-- Policy RLS admin (`is_admin_user()`) ; l'opt-in public passera par le backend (service role)
+- Table `watch_match_alert_notifications` : journal d'envoi à la ligne, une par couple
+  (alerte, montre) — l'équivalent de `newsletter_campaign_recipients`
+- Policies RLS admin (`is_admin_user()`) ; l'opt-in public et l'envoi passent par le backend
+  (service role)
 - **Ne stocke jamais** l'historique de swipe (montres vues, aimées, passées) : il reste dans le
-  navigateur du visiteur (`localStorage`), c'est une règle de la fonctionnalité
+  navigateur du visiteur (`localStorage`), c'est une règle de la fonctionnalité. La forme du
+  `criteria` accepté est celle que produit `sanitizePreferences`, rejoué côté backend
 - Prérequis : `20260525120000_admin_phase1.sql` (`is_admin_user()`)
-- Reste à écrire (phase 2) : route `POST /api/watch-match-alerts/subscribe`, rapprochement des
-  nouvelles montres avec `criteria`, envoi Mailjet, page de désinscription
+- Prérequis config : `backend.publicApiUrl` renseigné dans le manifest du site — sans lui les
+  liens de désinscription seraient morts, et la boucle d'envoi **se suspend** (warning dans les
+  logs), comme la planification newsletter
+
+### Pourquoi une table de journal plutôt que `last_notified_at`
+
+`last_notified_at` dit *quand* on a écrit à quelqu'un, pas *de quoi* on lui a parlé. Deux ticks
+qui se chevauchent, un redémarrage entre l'envoi et l'écriture, une montre qui reste dans la
+fenêtre de balayage : dans les trois cas la même montre repart vers la même personne. Le
+`unique (alert_id, watch_id)` du journal rend ce doublon impossible en base, et non par
+précaution applicative — le backend réclame ses lignes par un `upsert … ignoreDuplicates`
+avant d'envoyer, et n'écrit qu'à propos de ce qu'il a effectivement réclamé.
+
+`last_notified_at` reste utile pour l'admin (« quand cette personne a-t-elle été contactée pour
+la dernière fois ? ») mais ne porte aucune garantie.
 
 Les fichiers `*.sql` étant ignorés par git (voir `.gitignore`), le contenu complet
 de la migration est reproduit ci-dessous pour application via le SQL Editor.
@@ -307,11 +324,36 @@ create unique index if not exists watch_match_alerts_token_idx
 create index if not exists watch_match_alerts_site_status_idx
   on public.watch_match_alerts (site_id, status);
 
+-- Journal d'envoi : une ligne par couple (alerte, montre).
+-- Le unique() est la seule garantie anti-doublon ; il est réclamé AVANT l'envoi,
+-- de sorte qu'un plantage entre les deux fasse taire l'alerte plutôt que la répéter.
+create table if not exists public.watch_match_alert_notifications (
+  id uuid primary key default gen_random_uuid(),
+  alert_id uuid not null references public.watch_match_alerts (id) on delete cascade,
+  site_id text not null,
+  watch_id uuid not null references public.watches (id) on delete cascade,
+  status text not null default 'pending'
+    check (status in ('pending', 'sent', 'failed')),
+  error text,
+  sent_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique (alert_id, watch_id)
+);
+create index if not exists watch_match_alert_notifications_alert_idx
+  on public.watch_match_alert_notifications (alert_id);
+
 -- RLS — accès complet réservé aux admins ; le backend (service role) contourne.
 alter table public.watch_match_alerts enable row level security;
+alter table public.watch_match_alert_notifications enable row level security;
 
 drop policy if exists watch_match_alerts_admin on public.watch_match_alerts;
 create policy watch_match_alerts_admin on public.watch_match_alerts
+  for all using (public.is_admin_user()) with check (public.is_admin_user());
+
+drop policy if exists watch_match_alert_notifications_admin
+  on public.watch_match_alert_notifications;
+create policy watch_match_alert_notifications_admin
+  on public.watch_match_alert_notifications
   for all using (public.is_admin_user()) with check (public.is_admin_user());
 ```
 

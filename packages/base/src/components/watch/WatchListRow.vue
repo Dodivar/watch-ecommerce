@@ -113,10 +113,8 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
 import { formatPrice } from '@/utils/formatters.js'
 import { formatCaseSizeDisplay, normalizeCaseSizeValue } from '@/utils/caseSize'
-import { getBraceletColorLabel } from '@/constants/watchBraceletColors'
-import { getBraceletMaterialLabel } from '@/constants/watchBraceletMaterials'
 import { t } from '@/i18n'
-import { translateSpec } from '@/i18n/watchSpecs'
+import { getBraceletColorLabel, getBraceletMaterialLabel, translateSpec } from '@/i18n/watchSpecs'
 
 /** La vignette est bien plus étroite qu'une carte de grille — un seul palier suffit. */
 const WATCH_LIST_ROW_IMAGE_SIZES = '(max-width: 640px) 96px, 160px'

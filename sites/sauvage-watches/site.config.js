@@ -216,6 +216,12 @@ export default {
      * glisser, shortlist locale au navigateur. Exclusif à Sauvage.
      */
     watchMatchmaking: true,
+    /**
+     * Phase 2 : alerte e-mail quand une montre nouvellement ajoutée correspond aux préférences
+     * enregistrées. Nécessite la migration `20260902120000_watch_match_alerts.sql` et
+     * `backend.publicApiUrl` (les liens de désinscription en dépendent).
+     */
+    watchMatchAlerts: true,
   },
 
   /** Profil catalogue revente : année, état, contenu et référence visibles sur cartes et fiches. */
