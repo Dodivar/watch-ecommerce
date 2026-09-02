@@ -26,9 +26,12 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
   const COMMIT_RATIO = 0.25
   const COMMIT_MIN_VELOCITY = 0.35
   const MAX_ROTATE_DEG = 12
-  const EXIT_MS = 260
+  const EXIT_MS = 420
   const EXIT_REDUCED_MS = 120
   const SPRING_MS = 180
+  /** Repos : la carte qui passe devant glisse de sa place d'attente à sa place finale. */
+  const SETTLE_TRANSITION = 'transform 360ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 360ms ease'
+  const EXIT_EASING = 'cubic-bezier(0.22, 0.61, 0.36, 1)'
 
   const dx = ref(0)
   const dy = ref(0)
@@ -75,16 +78,19 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
   const passOpacity = computed(() => Math.max(0, -progress.value))
 
   const cardStyle = computed(() => {
-    const transition =
-      transitionMs.value > 0
-        ? `transform ${transitionMs.value}ms ease-out, opacity ${transitionMs.value}ms ease-out`
-        : 'none'
+    const easing = isLeaving.value ? EXIT_EASING : 'ease-out'
+    const transition = isDragging.value
+      ? 'none'
+      : transitionMs.value > 0
+        ? `transform ${transitionMs.value}ms ${easing}, opacity ${transitionMs.value}ms ${easing}`
+        : SETTLE_TRANSITION
     if (reducedMotion.value) {
       return {
         transform: 'none',
         opacity: isLeaving.value ? 0 : 1,
         transition,
         willChange: 'opacity',
+        zIndex: 40,
       }
     }
     const rotate = Math.max(
@@ -96,6 +102,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
       opacity: 1,
       transition,
       willChange: 'transform',
+      zIndex: 40,
     }
   })
 
@@ -125,14 +132,15 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
     const duration = reducedMotion.value ? EXIT_REDUCED_MS : EXIT_MS
     transitionMs.value = duration
     if (!reducedMotion.value) {
-      dx.value = direction * cardWidth() * 1.4
+      // 1,2 largeur en 420 ms : la carte quitte l'écran sans filer.
+      dx.value = direction * cardWidth() * 1.2
       dy.value = dy.value || 0
     }
 
     exitTimer = setTimeout(() => {
       exitTimer = null
       onCommit?.(direction)
-      // La carte suivante monte sans transition : elle n'a jamais bougé.
+      // La carte suivante, déjà remontée pendant la sortie, devient la carte du dessus.
       isLeaving.value = false
       leaveDirection.value = 0
       resetPosition({ animate: false })

@@ -14,52 +14,51 @@
       </p>
     </header>
 
-    <!-- Pile de cartes -->
+    <!-- Pile de cartes : une seule liste clé par id, pour que la carte suivante soit le même
+         nœud DOM quand elle passe devant et que sa montée soit interpolée. -->
     <div
+      ref="stackRef"
       class="matchmaking-stack relative mt-5"
       role="group"
       :aria-roledescription="t('matchmaking.deck.instruction')"
     >
       <div
-        v-for="(watch, index) in stackedUpcoming"
+        v-for="(watch, index) in stack"
         :key="watch.id"
-        class="absolute inset-0 origin-bottom transition-transform duration-300"
-        :style="upcomingStyle(index)"
-        aria-hidden="true"
+        :data-testid="index === 0 ? 'match-current-card' : undefined"
+        class="absolute inset-0 origin-bottom"
+        :class="
+          index === 0
+            ? 'cursor-grab touch-pan-y select-none active:cursor-grabbing'
+            : 'pointer-events-none'
+        "
+        :style="index === 0 ? cardStyle : depthStyle(index)"
+        :aria-hidden="index === 0 ? undefined : 'true'"
+        v-on="index === 0 ? topCardHandlers : {}"
       >
-        <MatchWatchCard :watch="watch" image-loading="eager" fetch-priority="low" />
-      </div>
-
-      <div
-        v-if="mm.currentWatch"
-        ref="cardRef"
-        data-testid="match-current-card"
-        class="absolute inset-0 cursor-grab touch-pan-y select-none active:cursor-grabbing"
-        :style="cardStyle"
-        @pointerdown="onPointerDown"
-        @pointermove="onPointerMove"
-        @pointerup="onPointerUp"
-        @pointercancel="onPointerCancel"
-        @click.capture="onClickCapture"
-        @click="emit('open-details', mm.currentWatch)"
-      >
-        <MatchWatchCard :watch="mm.currentWatch" image-loading="eager" fetch-priority="high" />
+        <MatchWatchCard
+          :watch="watch"
+          image-loading="eager"
+          :fetch-priority="index === 0 ? 'high' : 'low'"
+        />
 
         <!-- Voiles de décision -->
-        <div
-          class="pointer-events-none absolute left-4 top-4 rounded-lg border-2 border-emerald-500 px-3 py-1 text-lg font-bold uppercase tracking-widest text-emerald-500"
-          :style="{ opacity: likeOpacity, transform: 'rotate(-12deg)' }"
-          aria-hidden="true"
-        >
-          {{ t('matchmaking.deck.like') }}
-        </div>
-        <div
-          class="pointer-events-none absolute right-4 top-4 rounded-lg border-2 border-red-500 px-3 py-1 text-lg font-bold uppercase tracking-widest text-red-500"
-          :style="{ opacity: passOpacity, transform: 'rotate(12deg)' }"
-          aria-hidden="true"
-        >
-          {{ t('matchmaking.deck.pass') }}
-        </div>
+        <template v-if="index === 0">
+          <div
+            class="pointer-events-none absolute left-4 top-4 rounded-lg border-2 border-emerald-500 px-3 py-1 text-lg font-bold uppercase tracking-widest text-emerald-500"
+            :style="{ opacity: likeOpacity, transform: 'rotate(-12deg)' }"
+            aria-hidden="true"
+          >
+            {{ t('matchmaking.deck.like') }}
+          </div>
+          <div
+            class="pointer-events-none absolute right-4 top-4 rounded-lg border-2 border-red-500 px-3 py-1 text-lg font-bold uppercase tracking-widest text-red-500"
+            :style="{ opacity: passOpacity, transform: 'rotate(12deg)' }"
+            aria-hidden="true"
+          >
+            {{ t('matchmaking.deck.pass') }}
+          </div>
+        </template>
       </div>
     </div>
 
@@ -149,17 +148,27 @@ const props = defineProps({
 
 const emit = defineEmits(['open-details'])
 
-const cardRef = ref(null)
+const stackRef = ref(null)
 const announcement = ref('')
 
-/** Rendues de la plus lointaine à la plus proche pour que la plus proche recouvre. */
-const stackedUpcoming = computed(() => [...props.mm.upcomingWatches].reverse())
+/** Carte courante puis les deux suivantes, superposées par `z-index`. */
+const stack = computed(() =>
+  props.mm.currentWatch ? [props.mm.currentWatch, ...props.mm.upcomingWatches] : [],
+)
 
-function upcomingStyle(reversedIndex) {
-  const depth = stackedUpcoming.value.length - reversedIndex
+/**
+ * Position d'une carte en attente. Pendant la sortie de la carte du dessus, chacune
+ * remonte déjà d'un cran : la suivante arrive à sa place finale au moment où la
+ * carte sortie est retirée, sans saut.
+ */
+function depthStyle(index) {
+  const depth = Math.max(0, isLeaving.value ? index - 1 : index)
   return {
     transform: `translateY(${depth * 10}px) scale(${1 - depth * 0.04})`,
     opacity: 1 - depth * 0.15,
+    zIndex: 30 - index,
+    transition: 'transform 360ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 360ms ease',
+    willChange: 'transform',
   }
 }
 
@@ -190,11 +199,21 @@ const {
   onPointerCancel,
   onClickCapture,
 } = useSwipeDeck({
-  cardRef,
+  cardRef: stackRef,
   onCommit: commit,
   onTap: () => emit('open-details', props.mm.currentWatch),
   disabled: () => !props.mm.currentWatch,
 })
+
+/** Écouteurs de la seule carte du dessus (`clickCapture` étouffe le clic qui suit un glissement). */
+const topCardHandlers = {
+  pointerdown: onPointerDown,
+  pointermove: onPointerMove,
+  pointerup: onPointerUp,
+  pointercancel: onPointerCancel,
+  clickCapture: onClickCapture,
+  click: () => emit('open-details', props.mm.currentWatch),
+}
 
 function decide(direction) {
   swipe(direction)
