@@ -262,6 +262,59 @@ create policy newsletter_settings_admin on public.newsletter_settings
   for all using (public.is_admin_user()) with check (public.is_admin_user());
 ```
 
+## Alertes « coup de foudre » (phase 2, architecture seule)
+
+`20260902120000_watch_match_alerts.sql` — prépare `features.watchMatchAlerts` (encore éteint
+partout) : un visiteur qui n'a pas trouvé sa montre dans l'expérience `/coup-de-foudre` pourra
+laisser son e-mail et ses **préférences** pour être prévenu d'une nouvelle montre compatible.
+
+- Table `watch_match_alerts` : e-mail + préférences (`criteria`, JSON de la forme
+  `MatchPreferences` de `packages/base/src/utils/watchMatchmaking.js`), consentement horodaté,
+  jeton de désinscription unique — calquée sur `newsletter_subscribers`
+- Policy RLS admin (`is_admin_user()`) ; l'opt-in public passera par le backend (service role)
+- **Ne stocke jamais** l'historique de swipe (montres vues, aimées, passées) : il reste dans le
+  navigateur du visiteur (`localStorage`), c'est une règle de la fonctionnalité
+- Prérequis : `20260525120000_admin_phase1.sql` (`is_admin_user()`)
+- Reste à écrire (phase 2) : route `POST /api/watch-match-alerts/subscribe`, rapprochement des
+  nouvelles montres avec `criteria`, envoi Mailjet, page de désinscription
+
+Les fichiers `*.sql` étant ignorés par git (voir `.gitignore`), le contenu complet
+de la migration est reproduit ci-dessous pour application via le SQL Editor.
+
+```sql
+-- Alertes « coup de foudre » : e-mail + préférences, opt-in explicite
+create table if not exists public.watch_match_alerts (
+  id uuid primary key default gen_random_uuid(),
+  site_id text not null,
+  email text not null,
+  criteria jsonb not null default '{}'::jsonb,
+  locale text not null default 'fr'
+    check (locale in ('fr', 'en', 'de')),
+  status text not null default 'active'
+    check (status in ('active', 'unsubscribed')),
+  source text not null default 'matchmaking'
+    check (source in ('matchmaking', 'manual')),
+  consent_at timestamptz,
+  unsubscribed_at timestamptz,
+  last_notified_at timestamptz,
+  unsubscribe_token uuid not null default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (site_id, email)
+);
+create unique index if not exists watch_match_alerts_token_idx
+  on public.watch_match_alerts (unsubscribe_token);
+create index if not exists watch_match_alerts_site_status_idx
+  on public.watch_match_alerts (site_id, status);
+
+-- RLS — accès complet réservé aux admins ; le backend (service role) contourne.
+alter table public.watch_match_alerts enable row level security;
+
+drop policy if exists watch_match_alerts_admin on public.watch_match_alerts;
+create policy watch_match_alerts_admin on public.watch_match_alerts
+  for all using (public.is_admin_user()) with check (public.is_admin_user());
+```
+
 ## Newsletter — programmation des envois (planification)
 
 `20260701130000_newsletter_scheduling.sql` — requis pour l'envoi différé des
