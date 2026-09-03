@@ -12,10 +12,15 @@ import { computed, onBeforeUnmount, onMounted, ref, unref } from 'vue'
  * d'un quart de la largeur de carte, ou dès 20 px si la vitesse dépasse 0,35 px/ms.
  * `prefers-reduced-motion` remplace l'envol et la rotation par un fondu.
  *
- * L'axe, lui, ne se verrouille que sur une direction franche. Une souris part droit dès le
- * premier pixel, un doigt non : il décolle en arc, et le premier `pointermove` arrive déjà à
- * une dizaine de pixels, souvent plus vertical qu'horizontal. Trancher sur cette amorce
- * condamnait le geste entier — la carte ne bougeait pas d'un pixel sur téléphone.
+ * Le geste est libre : passé 8 px dans n'importe quelle direction, la carte suit le pointeur
+ * en deux dimensions, et seule l'horizontale décide. Monter puis filer sur le côté reste donc
+ * un seul et même glissement. Il n'y a pas de verrou d'axe : trancher sur l'amorce condamnait
+ * les gestes qui ne partent pas droit — un doigt décolle en arc, là où une souris part droit
+ * dès le premier pixel.
+ *
+ * En contrepartie la carte réclame le geste au navigateur (`touch-action: none` côté deck) :
+ * sans cela le défilement vertical de la page happe toute amorce vers le haut, et la carte ne
+ * la voit jamais. La page se fait donc défiler à côté de la carte, pas au travers.
  *
  * @param {object} options
  * @param {import('vue').Ref<HTMLElement | null>} options.cardRef
@@ -24,10 +29,8 @@ import { computed, onBeforeUnmount, onMounted, ref, unref } from 'vue'
  * @param {import('vue').MaybeRef<boolean> | (() => boolean)} [options.disabled]
  */
 export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
-  const AXIS_LOCK_PX = 8
-  /** Le verrou vertical est plus exigeant : il abandonne le geste, il doit être mérité. */
-  const AXIS_VERTICAL_LOCK_PX = 16
-  const AXIS_VERTICAL_RATIO = 1.5
+  /** Distance à partir de laquelle le pointeur emmène la carte, toutes directions confondues. */
+  const DRAG_START_PX = 8
   /** Tolérance d'appui : 6 px à la souris, la largeur du « slop » tactile au doigt. */
   const TAP_MAX_PX = 6
   const TAP_MAX_TOUCH_PX = 12
@@ -59,7 +62,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
   let lastX = 0
   let lastTime = 0
   let velocity = 0
-  let axis = null
+  let isEngaged = false
   let tapSlop = TAP_MAX_PX
   let movedBeyondTap = false
   let exitTimer = null
@@ -109,7 +112,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
       Math.min(MAX_ROTATE_DEG, (dx.value / cardWidth()) * MAX_ROTATE_DEG),
     )
     return {
-      transform: `translate3d(${dx.value}px, ${dy.value * 0.2}px, 0) rotate(${rotate.toFixed(2)}deg)`,
+      transform: `translate3d(${dx.value}px, ${dy.value}px, 0) rotate(${rotate.toFixed(2)}deg)`,
       opacity: 1,
       transition,
       willChange: 'transform',
@@ -122,7 +125,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
     dx.value = 0
     dy.value = 0
     isDragging.value = false
-    axis = null
+    isEngaged = false
     pointerId = null
     velocity = 0
   }
@@ -138,7 +141,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
     leaveDirection.value = direction
     isDragging.value = false
     pointerId = null
-    axis = null
+    isEngaged = false
 
     const duration = reducedMotion.value ? EXIT_REDUCED_MS : EXIT_MS
     transitionMs.value = duration
@@ -166,7 +169,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
     startY = event.clientY
     startTime = lastTime = performance.now()
     velocity = 0
-    axis = null
+    isEngaged = false
     tapSlop = event.pointerType === 'mouse' ? TAP_MAX_PX : TAP_MAX_TOUCH_PX
     movedBeyondTap = false
     transitionMs.value = 0
@@ -187,17 +190,12 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
       movedBeyondTap = true
     }
 
-    if (axis === null) {
-      const absX = Math.abs(deltaX)
-      const absY = Math.abs(deltaY)
-      // Tant qu'aucune direction ne domine, on ne verrouille rien et on attend le point
-      // suivant : le doigt se redresse en un ou deux événements. Le défilement vertical n'y
-      // perd rien, `touch-action: pan-y` le laissant au navigateur, qui annule alors le geste.
-      if (absX >= AXIS_LOCK_PX && absX > absY) axis = 'horizontal'
-      else if (absY >= AXIS_VERTICAL_LOCK_PX && absY > absX * AXIS_VERTICAL_RATIO) axis = 'vertical'
-      else return
+    // Aucun axe n'est verrouillé : la carte prend le geste dès qu'il dépasse le seuil, quelle
+    // que soit sa direction, et le suit ensuite partout où il va.
+    if (!isEngaged) {
+      if (Math.abs(deltaX) < DRAG_START_PX && Math.abs(deltaY) < DRAG_START_PX) return
+      isEngaged = true
     }
-    if (axis !== 'horizontal') return
 
     if (event.cancelable) event.preventDefault()
 
@@ -223,7 +221,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
       return
     }
 
-    if (axis !== 'horizontal') {
+    if (!isEngaged) {
       resetPosition()
       return
     }
