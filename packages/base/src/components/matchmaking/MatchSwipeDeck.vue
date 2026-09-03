@@ -22,6 +22,10 @@
       role="group"
       :aria-roledescription="t('matchmaking.deck.instruction')"
     >
+      <!-- `touch-none` sur la carte du dessus : elle prend le geste dans toutes les
+           directions, y compris vers le haut. Sans cela le défilement de la page happe
+           l'amorce verticale et le glissement n'a jamais lieu ; la page se fait donc
+           défiler à côté de la carte, pas au travers. -->
       <div
         v-for="(watch, index) in stack"
         :key="watch.id"
@@ -29,7 +33,7 @@
         class="absolute inset-0 origin-bottom"
         :class="
           index === 0
-            ? 'cursor-grab touch-pan-y select-none active:cursor-grabbing'
+            ? 'cursor-grab touch-none select-none active:cursor-grabbing'
             : 'pointer-events-none'
         "
         :style="index === 0 ? cardStyle : depthStyle(index)"

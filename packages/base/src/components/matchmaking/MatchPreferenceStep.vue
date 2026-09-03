@@ -6,7 +6,7 @@
     </legend>
 
     <!-- Budget : curseur + tranches suggérées + saisie fine -->
-    <div v-if="criterion.control === 'slider'" class="mt-6">
+    <div v-if="criterion.control === 'slider'" class="mt-5 sm:mt-6">
       <div
         v-if="facet.suggestions.length"
         class="flex flex-wrap gap-2"
@@ -25,7 +25,7 @@
         </button>
       </div>
 
-      <div class="matchmaking-slider mt-8 px-3 pt-8 sm:px-4">
+      <div class="matchmaking-slider mt-6 px-3 pt-8 sm:mt-8 sm:px-4">
         <Slider
           v-model="sliderRange"
           :min="facet.min"
@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <div class="mt-5 grid grid-cols-2 gap-3">
+      <div class="mt-4 grid grid-cols-2 gap-3 sm:mt-5">
         <label class="block">
           <span class="mb-1 block text-xs font-medium text-gray-600">
             {{ t('matchmaking.step.budget.min') }}
@@ -79,7 +79,7 @@
     <!-- Pastilles de couleur -->
     <div
       v-else-if="criterion.control === 'swatches'"
-      class="mt-6 flex flex-wrap gap-4"
+      class="mt-5 flex flex-wrap gap-4 sm:mt-6"
       role="group"
       :aria-label="t(criterion.titleKey)"
     >
@@ -116,7 +116,12 @@
     </div>
 
     <!-- Puces -->
-    <div v-else class="mt-6 flex flex-wrap gap-2" role="group" :aria-label="t(criterion.titleKey)">
+    <div
+      v-else
+      class="mt-5 flex flex-wrap gap-2 sm:mt-6"
+      role="group"
+      :aria-label="t(criterion.titleKey)"
+    >
       <button
         v-for="option in facet.options"
         :key="option.value"
