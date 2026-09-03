@@ -84,6 +84,72 @@ test.describe('Coup de foudre', () => {
     await expect(page.locator('article')).toHaveCount(1)
   })
 
+  /**
+   * Le geste au doigt, sur un contexte tactile (le deck n'écoutait que les Pointer Events,
+   * que Safari iOS coupe dès qu'il soupçonne un défilement : la carte restait figée sur
+   * iPhone). Les événements sont poussés par CDP, seule voie pour un vrai `touchmove`.
+   */
+  test.describe('au doigt', () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+    test('la carte suit le doigt puis part en coup de cœur', async ({ page }) => {
+      // Consentement déjà donné : sur un écran de téléphone, le bandeau cookies couvre
+      // toute la page et interceperait le geste.
+      await seedBrowser(page, { cartLines: [], consent: { analytics: false, marketing: false } })
+      await stubSupabaseCatalog(page, { watches: [SAMPLE_WATCH, SECOND_WATCH, THIRD_WATCH] })
+
+      await page.goto('/coup-de-foudre')
+
+      const start = page.getByRole('button', { name: 'Voir les montres' })
+      for (let guard = 0; guard < 6 && !(await start.isVisible()); guard += 1) {
+        await page.getByRole('button', { name: 'Continuer' }).click()
+      }
+      await start.click()
+
+      const currentCard = page.getByTestId('match-current-card')
+      await expect(currentCard).toContainText('Héritage')
+      const box = await currentCard.boundingBox()
+      const y = box.y + box.height / 2
+      const x = box.x + box.width / 2
+
+      const cdp = await page.context().newCDPSession(page)
+      const touch = (type, point) =>
+        cdp.send('Input.dispatchTouchEvent', {
+          type,
+          touchPoints: point ? [{ x: point.x, y: point.y, id: 1 }] : [],
+        })
+
+      // Le doigt décolle en arc, comme un vrai pouce.
+      await touch('touchStart', { x, y })
+      for (const [dx, dy] of [
+        [6, -10],
+        [40, -18],
+        [90, -16],
+      ]) {
+        await touch('touchMove', { x: x + dx, y: y + dy })
+      }
+
+      // La carte a bel et bien suivi le doigt, et la mention « coup de cœur » est apparue.
+      const transform = await currentCard.evaluate((el) => getComputedStyle(el).transform)
+      expect(transform).not.toBe('none')
+      const [, moved] = /matrix\(([^)]+)\)/.exec(transform) || []
+      expect(Number(moved.split(',')[4])).toBeGreaterThan(50)
+
+      await touch('touchMove', { x: x + 160, y })
+      await touch('touchEnd', null)
+
+      // Geste engagé : la montre est aimée et le deck avance, sans que le clic de fin de
+      // glissement n'ouvre le détail de la montre qu'on vient d'aimer.
+      await expect(page.getByText('2 sur 3')).toBeVisible()
+      await expect(page.getByRole('dialog', { name: /Détail/ })).toBeHidden()
+      const stored = await page.evaluate(
+        (key) => JSON.parse(localStorage.getItem(key)),
+        STORAGE_KEY,
+      )
+      expect(stored.liked).toEqual([SAMPLE_WATCH.watchId])
+    })
+  })
+
   test('un budget qui vide le pool propose de l’élargir', async ({ page }) => {
     await seedBrowser(page, { cartLines: [] })
     await stubSupabaseCatalog(page, { watches: [SAMPLE_WATCH, SECOND_WATCH, THIRD_WATCH] })

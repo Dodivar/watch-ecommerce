@@ -28,9 +28,14 @@ function mountDeck() {
         h('div', {
           ref: cardRef,
           style: deck.cardStyle.value,
+          onTouchstart: deck.onTouchStart,
+          onTouchmove: deck.onTouchMove,
+          onTouchend: deck.onTouchEnd,
+          onTouchcancel: deck.onTouchCancel,
           onPointerdown: deck.onPointerDown,
           onPointermove: deck.onPointerMove,
           onPointerup: deck.onPointerUp,
+          onPointercancel: deck.onPointerCancel,
         })
     },
   })
@@ -42,6 +47,22 @@ function mountDeck() {
 
 function pointer(wrapper, type, { x = 0, y = 0, pointerType = 'touch' } = {}) {
   return wrapper.trigger(type, { pointerId: 1, clientX: x, clientY: y, pointerType, button: 0 })
+}
+
+/** Un Touch Event à un doigt, tel que Safari iOS le livre. */
+function touch(wrapper, type, { x = 0, y = 0 } = {}) {
+  const point = { identifier: 1, clientX: x, clientY: y }
+  return wrapper.trigger(type, { changedTouches: [point], touches: [point] })
+}
+
+/** Rejoue un geste au doigt, en Touch Events. `points` sont des décalages en pixels. */
+async function touchDrag(wrapper, points, { stepMs = 16 } = {}) {
+  await touch(wrapper, 'touchstart', { x: 200, y: 300 })
+  for (const [dx, dy] of points) {
+    vi.advanceTimersByTime(stepMs)
+    await touch(wrapper, 'touchmove', { x: 200 + dx, y: 300 + dy })
+  }
+  return wrapper.element.style.transform
 }
 
 /**
@@ -57,11 +78,23 @@ async function drag(wrapper, points, { pointerType = 'touch', stepMs = 16 } = {}
   return wrapper.element.style.transform
 }
 
+/** Réponse de `prefers-reduced-motion: reduce`, réglable par test. */
+let matchMediaMatches = false
+
 describe('useSwipeDeck', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     // `performance.now()` doit suivre les timers pour que la vitesse soit calculable.
     vi.spyOn(performance, 'now').mockImplementation(() => Date.now())
+    matchMediaMatches = false
+    vi.spyOn(window, 'matchMedia').mockImplementation((query) => ({
+      media: query,
+      get matches() {
+        return matchMediaMatches
+      },
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
   })
 
   afterEach(() => {
@@ -202,5 +235,96 @@ describe('useSwipeDeck', () => {
     await pointer(wrapper, 'pointerup', { x: 207, y: 307, pointerType: 'mouse' })
     expect(taps).toHaveLength(0)
     wrapper.unmount()
+  })
+
+  /**
+   * Le doigt sur iPhone. Safari ouvre un `pointerdown` puis coupe le flux Pointer par un
+   * `pointercancel` dès qu'il soupçonne un défilement — souvent avant le premier
+   * `pointermove`. La carte restait donc figée sur iOS, là où la souris la faisait voler.
+   * Les `touchmove`, eux, continuent d'arriver : c'est eux qui portent le geste.
+   */
+  describe('au doigt (Touch Events)', () => {
+    it('suit le doigt sans le moindre Pointer Event', async () => {
+      const { wrapper } = mountDeck()
+      const transform = await touchDrag(wrapper, [
+        [10, -14],
+        [48, -20],
+        [120, -18],
+      ])
+      expect(transform).toContain('translate3d(120px, -18px, 0)')
+      wrapper.unmount()
+    })
+
+    it('poursuit le geste malgré le pointercancel de Safari iOS', async () => {
+      const { wrapper, commits } = mountDeck()
+      await pointer(wrapper, 'pointerdown', { x: 200, y: 300 })
+      await touch(wrapper, 'touchstart', { x: 200, y: 300 })
+      // Safari renonce au pointeur : la carte ne doit pas retomber à sa place pour autant.
+      await pointer(wrapper, 'pointercancel', { x: 200, y: 300 })
+      vi.advanceTimersByTime(16)
+      await touch(wrapper, 'touchmove', { x: 260, y: 292 })
+      expect(wrapper.element.style.transform).toContain('translate3d(60px')
+      vi.advanceTimersByTime(16)
+      await touch(wrapper, 'touchmove', { x: 350, y: 290 })
+      await touch(wrapper, 'touchend', { x: 350, y: 290 })
+      vi.advanceTimersByTime(500)
+      expect(commits).toEqual([1])
+      wrapper.unmount()
+    })
+
+    it('réclame le geste au navigateur une fois la carte engagée', async () => {
+      const { wrapper } = mountDeck()
+      await touch(wrapper, 'touchstart', { x: 200, y: 300 })
+      const held = []
+      for (const [dx, dy] of [
+        [3, 2],
+        [40, -6],
+      ]) {
+        vi.advanceTimersByTime(16)
+        const event = new Event('touchmove', { bubbles: true, cancelable: true })
+        const point = { identifier: 1, clientX: 200 + dx, clientY: 300 + dy }
+        Object.assign(event, { changedTouches: [point], touches: [point] })
+        wrapper.element.dispatchEvent(event)
+        held.push(event.defaultPrevented)
+      }
+      // Sous le seuil, la page garde la main ; au-delà, la carte la prend.
+      expect(held).toEqual([false, true])
+      wrapper.unmount()
+    })
+
+    it("n'ouvre pas le détail quand le doigt a glissé", async () => {
+      const { wrapper, taps } = mountDeck()
+      await touchDrag(wrapper, [
+        [20, 4],
+        [90, 6],
+      ])
+      await touch(wrapper, 'touchend', { x: 290, y: 306 })
+      vi.advanceTimersByTime(500)
+      expect(taps).toHaveLength(0)
+      wrapper.unmount()
+    })
+
+    it('ouvre le détail sur un appui posé', async () => {
+      const { wrapper, taps, commits } = mountDeck()
+      await touchDrag(wrapper, [[5, 5]])
+      await touch(wrapper, 'touchend', { x: 205, y: 305 })
+      expect(taps).toHaveLength(1)
+      expect(commits).toHaveLength(0)
+      wrapper.unmount()
+    })
+
+    it('suit encore le doigt quand le système réclame moins de mouvement', async () => {
+      matchMediaMatches = true
+      const { wrapper } = mountDeck()
+      const transform = await touchDrag(wrapper, [
+        [12, -8],
+        [110, -10],
+      ])
+      // Le suivi du doigt n'est pas une animation : c'est l'objet touché qui se déplace.
+      expect(transform).toContain('translate3d(110px, -10px, 0)')
+      // La rotation, elle, disparaît.
+      expect(transform).toContain('rotate(0.00deg)')
+      wrapper.unmount()
+    })
   })
 })
