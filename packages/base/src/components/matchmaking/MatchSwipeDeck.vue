@@ -25,7 +25,10 @@
       <!-- `touch-none` sur la carte du dessus : elle prend le geste dans toutes les
            directions, y compris vers le haut. Sans cela le défilement de la page happe
            l'amorce verticale et le glissement n'a jamais lieu ; la page se fait donc
-           défiler à côté de la carte, pas au travers. -->
+           défiler à côté de la carte, pas au travers. `matchmaking-card` ajoute ce que
+           Safari iOS exige en plus pour ne pas confisquer le geste (voir le style).
+           Le clic de fin de glissement est étouffé en phase de capture : un objet
+           `v-on` ne sait pas déclarer cette phase, il lui faut sa propre directive. -->
       <div
         v-for="(watch, index) in stack"
         :key="watch.id"
@@ -33,12 +36,13 @@
         class="absolute inset-0 origin-bottom"
         :class="
           index === 0
-            ? 'cursor-grab touch-none select-none active:cursor-grabbing'
+            ? 'matchmaking-card cursor-grab touch-none select-none active:cursor-grabbing'
             : 'pointer-events-none'
         "
         :style="index === 0 ? cardStyle : depthStyle(index)"
         :aria-hidden="index === 0 ? undefined : 'true'"
         v-on="index === 0 ? topCardHandlers : {}"
+        @click.capture="index === 0 && onClickCapture($event)"
       >
         <MatchWatchCard
           :watch="watch"
@@ -197,6 +201,10 @@ const {
   passOpacity,
   isLeaving,
   swipe,
+  onTouchStart,
+  onTouchMove,
+  onTouchEnd,
+  onTouchCancel,
   onPointerDown,
   onPointerMove,
   onPointerUp,
@@ -209,13 +217,21 @@ const {
   disabled: () => !props.mm.currentWatch,
 })
 
-/** Écouteurs de la seule carte du dessus (`clickCapture` étouffe le clic qui suit un glissement). */
+/**
+ * Écouteurs de la seule carte du dessus. Le doigt passe par les Touch Events — Safari iOS
+ * annule le flux Pointer dès qu'il soupçonne un défilement —, la souris par les Pointer
+ * Events ; `useSwipeDeck` n'en retient qu'un par geste. `touchmove` reste non passif : c'est
+ * son `preventDefault` qui garde le geste dans la carte sur iPhone.
+ */
 const topCardHandlers = {
+  touchstart: onTouchStart,
+  touchmove: onTouchMove,
+  touchend: onTouchEnd,
+  touchcancel: onTouchCancel,
   pointerdown: onPointerDown,
   pointermove: onPointerMove,
   pointerup: onPointerUp,
   pointercancel: onPointerCancel,
-  clickCapture: onClickCapture,
   click: () => emit('open-details', props.mm.currentWatch),
 }
 
@@ -282,6 +298,19 @@ onBeforeUnmount(() => {
     height: min(64vh, 640px);
     height: min(64dvh, 640px);
   }
+}
+
+/* Ce que Safari iOS demande en plus de `touch-action: none` pour laisser la carte prendre
+   le geste : sans cela, l'appui long ouvre le menu du système ou fait décoller l'image, et
+   le glissement est annulé en cours de route. */
+.matchmaking-card {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+}
+
+.matchmaking-card :deep(img) {
+  -webkit-user-drag: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
