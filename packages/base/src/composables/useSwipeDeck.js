@@ -8,9 +8,14 @@ import { computed, onBeforeUnmount, onMounted, ref, unref } from 'vue'
  * engagé, et le desktop compte autant que le mobile : on écoute les Pointer Events, qui
  * couvrent souris, doigt et stylet d'un seul jeu d'écouteurs.
  *
- * Les seuils reprennent ceux éprouvés par le carrousel : verrouillage d'axe à 8 px, geste
- * engagé au-delà de 40 px ou d'un quart de la largeur de carte, ou dès 20 px si la vitesse
- * dépasse 0,35 px/ms. `prefers-reduced-motion` remplace l'envol et la rotation par un fondu.
+ * Les seuils reprennent ceux éprouvés par le carrousel : geste engagé au-delà de 40 px ou
+ * d'un quart de la largeur de carte, ou dès 20 px si la vitesse dépasse 0,35 px/ms.
+ * `prefers-reduced-motion` remplace l'envol et la rotation par un fondu.
+ *
+ * L'axe, lui, ne se verrouille que sur une direction franche. Une souris part droit dès le
+ * premier pixel, un doigt non : il décolle en arc, et le premier `pointermove` arrive déjà à
+ * une dizaine de pixels, souvent plus vertical qu'horizontal. Trancher sur cette amorce
+ * condamnait le geste entier — la carte ne bougeait pas d'un pixel sur téléphone.
  *
  * @param {object} options
  * @param {import('vue').Ref<HTMLElement | null>} options.cardRef
@@ -20,7 +25,12 @@ import { computed, onBeforeUnmount, onMounted, ref, unref } from 'vue'
  */
 export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
   const AXIS_LOCK_PX = 8
+  /** Le verrou vertical est plus exigeant : il abandonne le geste, il doit être mérité. */
+  const AXIS_VERTICAL_LOCK_PX = 16
+  const AXIS_VERTICAL_RATIO = 1.5
+  /** Tolérance d'appui : 6 px à la souris, la largeur du « slop » tactile au doigt. */
   const TAP_MAX_PX = 6
+  const TAP_MAX_TOUCH_PX = 12
   const TAP_MAX_MS = 350
   const COMMIT_MIN_PX = 40
   const COMMIT_RATIO = 0.25
@@ -50,6 +60,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
   let lastTime = 0
   let velocity = 0
   let axis = null
+  let tapSlop = TAP_MAX_PX
   let movedBeyondTap = false
   let exitTimer = null
   let motionQuery = null
@@ -156,6 +167,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
     startTime = lastTime = performance.now()
     velocity = 0
     axis = null
+    tapSlop = event.pointerType === 'mouse' ? TAP_MAX_PX : TAP_MAX_TOUCH_PX
     movedBeyondTap = false
     transitionMs.value = 0
     isDragging.value = true
@@ -171,13 +183,19 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
     const deltaX = event.clientX - startX
     const deltaY = event.clientY - startY
 
-    if (!movedBeyondTap && (Math.abs(deltaX) > TAP_MAX_PX || Math.abs(deltaY) > TAP_MAX_PX)) {
+    if (!movedBeyondTap && (Math.abs(deltaX) > tapSlop || Math.abs(deltaY) > tapSlop)) {
       movedBeyondTap = true
     }
 
     if (axis === null) {
-      if (Math.abs(deltaX) < AXIS_LOCK_PX && Math.abs(deltaY) < AXIS_LOCK_PX) return
-      axis = Math.abs(deltaX) > Math.abs(deltaY) ? 'horizontal' : 'vertical'
+      const absX = Math.abs(deltaX)
+      const absY = Math.abs(deltaY)
+      // Tant qu'aucune direction ne domine, on ne verrouille rien et on attend le point
+      // suivant : le doigt se redresse en un ou deux événements. Le défilement vertical n'y
+      // perd rien, `touch-action: pan-y` le laissant au navigateur, qui annule alors le geste.
+      if (absX >= AXIS_LOCK_PX && absX > absY) axis = 'horizontal'
+      else if (absY >= AXIS_VERTICAL_LOCK_PX && absY > absX * AXIS_VERTICAL_RATIO) axis = 'vertical'
+      else return
     }
     if (axis !== 'horizontal') return
 
@@ -197,8 +215,10 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
     if (pointerId === null || event.pointerId !== pointerId) return
     const elapsed = performance.now() - startTime
 
+    // Un appui au doigt tremble : la carte a pu suivre de quelques pixels, on la repose en
+    // douceur plutôt que de la faire sauter à sa place sous le détail qui s'ouvre.
     if (!movedBeyondTap && elapsed < TAP_MAX_MS) {
-      resetPosition({ animate: false })
+      resetPosition()
       onTap?.()
       return
     }
