@@ -86,8 +86,9 @@ describe('useSwipeDeck', () => {
 
   /**
    * Le doigt ne part pas droit. Ces amorces — arc du pouce, bruit vertical, premier
-   * événement déjà loin — verrouillaient l'axe sur « vertical » et figeaient la carte
-   * pour tout le geste : aucune animation sur téléphone, là où la souris passait.
+   * événement déjà loin, montée franche avant de filer sur le côté — verrouillaient l'axe
+   * sur « vertical » et figeaient la carte pour tout le geste : aucune animation sur
+   * téléphone, là où la souris passait.
    */
   it.each([
     [
@@ -116,7 +117,16 @@ describe('useSwipeDeck', () => {
         [150, 20],
       ],
     ],
-  ])('suit le doigt malgré une amorce %s', async (_name, points) => {
+    [
+      'montée franche',
+      [
+        [0, -60],
+        [2, -120],
+        [40, -130],
+        [140, -125],
+      ],
+    ],
+  ])('suit le pointeur malgré une amorce %s', async (_name, points) => {
     const { wrapper } = mountDeck()
     const transform = await drag(wrapper, points)
     const [, moved] = /translate3d\((-?\d+(?:\.\d+)?)px/.exec(transform) || []
@@ -138,14 +148,42 @@ describe('useSwipeDeck', () => {
     wrapper.unmount()
   })
 
-  it('laisse le défilement vertical au navigateur', async () => {
+  it('suit le pointeur en hauteur aussi, sans le brider', async () => {
     const { wrapper } = mountDeck()
     const transform = await drag(wrapper, [
-      [2, 20],
-      [4, 80],
-      [30, 140],
+      [10, -40],
+      [30, -90],
     ])
-    expect(transform).toContain('translate3d(0px, 0px, 0)')
+    expect(transform).toContain('translate3d(30px, -90px, 0)')
+    wrapper.unmount()
+  })
+
+  it('monter puis filer sur le côté engage la décision', async () => {
+    const { wrapper, commits } = mountDeck()
+    await drag(wrapper, [
+      [0, -60],
+      [4, -140],
+      [50, -150],
+      [150, -140],
+    ])
+    await pointer(wrapper, 'pointerup', { x: 350, y: 160 })
+    vi.advanceTimersByTime(500)
+    expect(commits).toEqual([1])
+    wrapper.unmount()
+  })
+
+  it('ne décide rien sur un geste purement vertical', async () => {
+    const { wrapper, commits } = mountDeck()
+    await drag(wrapper, [
+      [2, 40],
+      [4, 120],
+      [6, 200],
+    ])
+    await pointer(wrapper, 'pointerup', { x: 206, y: 500 })
+    vi.advanceTimersByTime(500)
+    expect(commits).toHaveLength(0)
+    // La carte revient à sa place au lieu de sortir.
+    expect(wrapper.element.style.transform).toContain('translate3d(0px, 0px, 0)')
     wrapper.unmount()
   })
 
