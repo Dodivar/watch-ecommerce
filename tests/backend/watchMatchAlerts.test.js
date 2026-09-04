@@ -603,6 +603,31 @@ describe('runMatchAlerts', () => {
     expect(supabase.db.watch_match_alert_notifications).toHaveLength(0)
   })
 
+  it('annonce une montre plus chère que tout le stock du jour de l’inscription', async () => {
+    // Non-régression : le curseur de budget poussé à fond enregistre `max: null`, et non le
+    // prix de la montre la plus chère du moment. L'alerte est relue des mois plus tard, face à
+    // un catalogue que ce plafond ne décrirait plus — c'est tout l'intérêt de la borne ouverte.
+    const supabase = makeSupabase()
+    const sender = makeSender()
+    const sent = await run(supabase, sender, {
+      alerts: [makeAlert({ criteria: { brand: ['rolex'], budget: { min: 8000, max: null } } })],
+      watches: [makeWatch({ id: 'grande-complication', price: 250000 })],
+    })
+    expect(sent).toBe(1)
+    expect(sender.calls[0].watches).toHaveLength(1)
+  })
+
+  it('respecte encore un plafond que le visiteur a réellement fixé', async () => {
+    const supabase = makeSupabase()
+    const sender = makeSender()
+    const sent = await run(supabase, sender, {
+      alerts: [makeAlert({ criteria: { brand: ['rolex'], budget: { min: 1000, max: 5000 } } })],
+      watches: [makeWatch({ price: 12000 })],
+    })
+    expect(sent).toBe(0)
+    expect(supabase.db.watch_match_alert_notifications).toHaveLength(0)
+  })
+
   it('ignore une nouveauté qui ne correspond pas aux critères', async () => {
     const supabase = makeSupabase()
     const sender = makeSender()

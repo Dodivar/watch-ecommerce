@@ -166,4 +166,23 @@ test.describe('Coup de foudre', () => {
     await expect(page.getByText(/Aucune montre dans ce budget/)).toBeVisible()
     await expect(page.getByRole('button', { name: 'Continuer' })).toBeDisabled()
   })
+
+  test('un budget poussé au maximum s’enregistre sans plafond', async ({ page }) => {
+    await seedBrowser(page, { cartLines: [] })
+    await stubSupabaseCatalog(page, { watches: [SAMPLE_WATCH, SECOND_WATCH, THIRD_WATCH] })
+
+    await page.goto('/coup-de-foudre')
+
+    // Seule la borne basse est relevée : la haute reste au bout du curseur.
+    await page.getByLabel('Minimum').fill('11000')
+    await page.getByLabel('Minimum').blur()
+
+    await expect(
+      page.getByText(/nous vous prévenons aussi pour les montres plus chères/),
+    ).toBeVisible()
+    const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STORAGE_KEY)
+    // `max: null` et non 12 000 € : ce qui part vers l'alerte ne doit pas être plafonné au prix
+    // de la montre la plus chère en stock le jour de l'inscription.
+    expect(stored.preferences.budget).toEqual({ min: 11000, max: null })
+  })
 })

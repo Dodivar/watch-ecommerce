@@ -38,7 +38,8 @@
         />
         <div class="mt-2 flex justify-between text-xs text-gray-500">
           <span>{{ formatPrice(facet.min) }}</span>
-          <span>{{ formatPrice(facet.max) }}</span>
+          <!-- « et plus » : au bout du curseur, le budget n'a pas de plafond (voir emitBudget). -->
+          <span>{{ t('matchmaking.step.budget.andUp', { max: formatPrice(facet.max) }) }}</span>
         </div>
       </div>
 
@@ -74,6 +75,10 @@
           />
         </label>
       </div>
+
+      <p v-if="isMaxOpen" class="mt-2 text-xs text-gray-500">
+        {{ t('matchmaking.step.budget.openHint') }}
+      </p>
     </div>
 
     <!-- Pastilles de couleur -->
@@ -165,12 +170,23 @@ const tooltipMergeDistance = computed(() =>
 
 /* ------------------------------------------------------------------ Budget */
 
+/**
+ * Position des deux poignées. Une borne haute ouverte (`max: null`, voir `emitBudget`) se
+ * représente par le maximum du curseur : c'est la même chose à l'écran, la nuance ne vit que
+ * dans ce qui est enregistré.
+ */
 function currentRange() {
   const budget = props.modelValue && !Array.isArray(props.modelValue) ? props.modelValue : null
   const min = Math.max(props.facet.min, Math.min(props.facet.max, budget?.min ?? props.facet.min))
   const max = Math.max(min, Math.min(props.facet.max, budget?.max ?? props.facet.max))
   return [min, max]
 }
+
+/** Budget exprimé dont la borne haute est ouverte — sert le rappel sous la saisie fine. */
+const isMaxOpen = computed(() => {
+  const budget = props.modelValue && !Array.isArray(props.modelValue) ? props.modelValue : null
+  return Boolean(budget) && (budget.max === null || budget.max === undefined)
+})
 
 const minInput = ref(currentRange()[0])
 const maxInput = ref(currentRange()[1])
@@ -198,7 +214,10 @@ function emitBudget(min, max) {
     emit('update:modelValue', null)
     return
   }
-  emit('update:modelValue', { min: lo, max: hi })
+  // Poignée haute au bout = « à partir de », pas « jusqu'au prix de la montre la plus chère
+  // en stock aujourd'hui ». Enregistrer ce plafond figerait l'alerte sur le catalogue du jour
+  // et lui ferait manquer toute montre plus chère mise en vente ensuite.
+  emit('update:modelValue', { min: lo, max: hi >= props.facet.max ? null : hi })
 }
 
 function commitInputs() {

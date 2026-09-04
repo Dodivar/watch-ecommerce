@@ -941,6 +941,9 @@ export default {
   'matchmaking.step.budget.hint': 'Le seul critère que nous prenons au pied de la lettre.',
   'matchmaking.step.budget.min': 'Minimum',
   'matchmaking.step.budget.max': 'Maximum',
+  'matchmaking.step.budget.andUp': '{max} et plus',
+  'matchmaking.step.budget.openHint':
+    'Curseur au maximum : nous vous prévenons aussi pour les montres plus chères à venir.',
   'matchmaking.step.budget.upTo': 'Jusqu’à {max}',
   'matchmaking.step.budget.between': 'De {min} à {max}',
   'matchmaking.step.budget.from': 'À partir de {min}',
