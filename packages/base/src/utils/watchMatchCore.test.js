@@ -126,6 +126,17 @@ describe('matchesPreferences — cas limites', () => {
     const budgetOnly = prefs({ budget: { min: 1000, max: 4000 } })
     expect(matchesPreferences(makeWatch({ price: null }), budgetOnly)).toBe(true)
   })
+
+  it('ne plafonne pas une borne haute ouverte : « à partir de » vaut aussi pour plus cher', () => {
+    // Régression : le curseur poussé à fond enregistrait le prix de la montre la plus chère du
+    // stock du jour. Des mois plus tard, l'alerte manquait toute montre au-dessus de ce prix —
+    // exactement celles que le visiteur avait demandées en poussant le curseur au bout.
+    const openTop = prefs({ budget: { min: 8000, max: null } })
+    expect(matchesPreferences(makeWatch({ price: 9000 }), openTop)).toBe(true)
+    expect(matchesPreferences(makeWatch({ price: 120000 }), openTop)).toBe(true)
+    // La borne basse, elle, reste un plancher.
+    expect(matchesPreferences(makeWatch({ price: 3000 }), openTop)).toBe(false)
+  })
 })
 
 describe('matchesPreferences — critères exprimés', () => {
@@ -214,6 +225,18 @@ describe('sanitizePreferences', () => {
   it('ignore un budget incohérent plutôt que de le propager', () => {
     expect(sanitizePreferences({ budget: { min: 5000, max: 1000 } }).budget).toBeNull()
     expect(sanitizePreferences({ budget: 'cher' }).budget).toBeNull()
+    expect(sanitizePreferences({ budget: { min: 1000, max: 'cher' } }).budget).toBeNull()
+    expect(sanitizePreferences({ budget: { max: 5000 } }).budget).toBeNull()
+  })
+
+  it('conserve une borne haute ouverte au lieu de la prendre pour une erreur', () => {
+    // C'est la forme que produit le curseur au maximum, et celle que le backend relit des mois
+    // plus tard : la traiter comme un budget invalide rendrait le plancher muet lui aussi.
+    expect(sanitizePreferences({ budget: { min: 8000, max: null } }).budget).toEqual({
+      min: 8000,
+      max: null,
+    })
+    expect(sanitizePreferences({ budget: { min: 8000 } }).budget).toEqual({ min: 8000, max: null })
   })
 
   it('déduplique et rejette les valeurs non textuelles', () => {

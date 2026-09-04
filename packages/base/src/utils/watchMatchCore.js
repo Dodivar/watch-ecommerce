@@ -30,7 +30,8 @@ import { getEffectiveWatchPrice } from './watchPricing.js'
  * @typedef {'budget' | 'brand' | 'bracelet' | 'caseMaterial' | 'color' | 'movement'} MatchCriterionId
  *
  * @typedef {object} MatchPreferences
- * @property {{ min: number, max: number } | null} budget
+ * @property {{ min: number, max: number | null } | null} budget
+ *   `max: null` = borne haute ouverte (« X € et plus »), voir `isWatchInBudget`.
  * @property {string[]} brand        Clés normalisées (`normalizeSpecText`)
  * @property {string[]} bracelet     Slugs de `WATCH_BRACELET_MATERIALS`
  * @property {string[]} caseMaterial Clés `watchSpec.material.*`
@@ -261,8 +262,13 @@ export function sanitizePreferences(raw) {
   const budget = /** @type {any} */ (raw).budget
   if (budget && typeof budget === 'object') {
     const min = Number(budget.min)
-    const max = Number(budget.max)
-    if (Number.isFinite(min) && Number.isFinite(max) && min >= 0 && max >= min) {
+    // `max` absent, `null` ou non fini = borne haute ouverte, et non budget invalide : c'est
+    // ce qu'émet le curseur poussé à fond (voir `MatchPreferenceStep.vue`). La distinction
+    // compte pour les alertes, qui survivent au catalogue sur lequel elles ont été réglées.
+    const hasMax = budget.max !== null && budget.max !== undefined && budget.max !== ''
+    const max = hasMax ? Number(budget.max) : null
+    const maxIsValid = max === null || (Number.isFinite(max) && max >= min)
+    if (Number.isFinite(min) && min >= 0 && maxIsValid) {
       prefs.budget = { min, max }
     }
   }
@@ -291,15 +297,25 @@ export function hasAnyPreference(preferences) {
 /* ------------------------------------------------------------------ Affinité */
 
 /**
+ * La borne haute est **ouverte** quand `budget.max` vaut `null` : le visiteur a poussé le
+ * curseur au bout, il a dit « à partir de X », pas « entre X et le prix de la montre la plus
+ * chère du stock d'aujourd'hui ».
+ *
+ * C'est sans effet sur le deck — le plafond y valait de toute façon le prix maximal du pool —
+ * mais décisif pour une alerte, qui est relue des mois plus tard face à un catalogue que ce
+ * plafond ne décrit plus. Sans cela, une montre deux fois plus chère mise en stock demain
+ * serait écartée en silence pour quelqu'un qui avait justement demandé le haut du panier.
+ *
  * @param {any} watch
- * @param {{ min: number, max: number } | null | undefined} budget
+ * @param {{ min: number, max: number | null } | null | undefined} budget
  * @returns {boolean} Une montre sans prix reste neutre : elle n'est pas écartée.
  */
 export function isWatchInBudget(watch, budget) {
   if (!budget) return true
   const price = getEffectiveWatchPrice(watch)
   if (!(price > 0)) return true
-  return price >= budget.min && price <= budget.max
+  if (price < budget.min) return false
+  return budget.max === null || budget.max === undefined || price <= budget.max
 }
 
 /**
