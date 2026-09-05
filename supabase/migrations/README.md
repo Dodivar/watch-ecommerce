@@ -271,6 +271,12 @@ qui n'a pas trouvé sa montre dans l'expérience `/coup-de-foudre` laisse son e-
 - Table `watch_match_alerts` : e-mail + préférences (`criteria`, JSON de la forme
   `MatchPreferences` de `packages/base/src/utils/watchMatchCore.js`), consentement horodaté,
   jeton de désinscription unique — calquée sur `newsletter_subscribers`
+- `criteria.budget.max` vaut `null` quand la borne haute est **ouverte** (« à partir de X ») :
+  c'est ce qu'enregistre le curseur poussé au bout. Les bornes du curseur sont recalculées à
+  chaque visite depuis le stock du moment, alors qu'une alerte est relue des mois plus tard :
+  figer le prix de la montre la plus chère du jour lui ferait manquer, en silence, toute montre
+  plus chère mise en vente ensuite. Les alertes créées avant cette règle gardent leur plafond
+  chiffré — il n'est pas reconstituable, et rien ne le corrige rétroactivement
 - Table `watch_match_alert_notifications` : journal d'envoi à la ligne, une par couple
   (alerte, montre) — l'équivalent de `newsletter_campaign_recipients`
 - Policies RLS admin (`is_admin_user()`) ; l'opt-in public et l'envoi passent par le backend

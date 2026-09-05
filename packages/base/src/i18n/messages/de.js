@@ -934,6 +934,9 @@ export default {
   'matchmaking.step.budget.hint': 'Das einzige Kriterium, das wir wörtlich nehmen.',
   'matchmaking.step.budget.min': 'Minimum',
   'matchmaking.step.budget.max': 'Maximum',
+  'matchmaking.step.budget.andUp': 'Ab {max}',
+  'matchmaking.step.budget.openHint':
+    'Regler am Maximum: Wir benachrichtigen Sie auch über künftige teurere Uhren.',
   'matchmaking.step.budget.upTo': 'Bis {max}',
   'matchmaking.step.budget.between': '{min} bis {max}',
   'matchmaking.step.budget.from': 'Ab {min}',
