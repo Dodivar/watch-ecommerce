@@ -1,4 +1,12 @@
-const { escapeHtml, emailShell, resolveEmailBranding } = require('./emailCommon')
+const {
+  escapeHtml,
+  emailShell,
+  section,
+  paragraph,
+  button,
+  buttonRow,
+  resolveEmailBranding,
+} = require('./emailCommon')
 
 function formatEur(cents) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
@@ -18,15 +26,17 @@ function formatEur(cents) {
  * @returns {string} HTML
  */
 function createAbandonedCheckoutEmail(site, order, lines, resumeUrl) {
-  const { accentColor, brandName } = resolveEmailBranding(site)
+  const branding = resolveEmailBranding(site)
+  const font = branding.fonts.bodyStack
 
+  const cell = `padding:9px 0;border-bottom:1px solid ${branding.borderColor};font-family:${font};font-size:14px;color:${branding.textColor};`
   const linesHtml = (lines || [])
     .map(
       (l) => `
       <tr>
-        <td style="padding:8px 0;border-bottom:1px solid #eee;">${escapeHtml(l.name)}</td>
-        <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:right;">×${Number(l.quantity) || 1}</td>
-        <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:right;">${formatEur(l.unit_price_cents * (Number(l.quantity) || 1))}</td>
+        <td style="${cell}">${escapeHtml(l.name)}</td>
+        <td style="${cell}text-align:right;color:${branding.mutedColor};">×${Number(l.quantity) || 1}</td>
+        <td style="${cell}text-align:right;white-space:nowrap;">${formatEur(l.unit_price_cents * (Number(l.quantity) || 1))}</td>
       </tr>`,
     )
     .join('')
@@ -36,36 +46,38 @@ function createAbandonedCheckoutEmail(site, order, lines, resumeUrl) {
     0,
   )
 
+  const totalCell = `padding:12px 0 0;font-family:${font};font-size:15px;font-weight:700;color:${branding.textColor};`
+  const selectionHtml = `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">
+      ${linesHtml}
+      <tr>
+        <td style="${totalCell}" colspan="2">Sous-total</td>
+        <td style="${totalCell}text-align:right;white-space:nowrap;">${formatEur(subtotalCents)}</td>
+      </tr>
+    </table>`
+
   const body = `
-    <p class="message-text">Bonjour,</p>
-    <p class="message-text">
-      Vous avez commencé une commande sur ${escapeHtml(brandName)} sans la finaliser.
-      Votre sélection vous attend — vous pouvez reprendre votre commande là où vous
-      l'aviez laissée, en un clic.
-    </p>
-    <div class="section">
-      <div class="section-title">Votre sélection</div>
-      <table style="width:100%;border-collapse:collapse;font-size:14px;">
-        ${linesHtml}
-        <tr style="font-weight:bold;">
-          <td style="padding:10px 0 0;" colspan="2">Sous-total</td>
-          <td style="padding:10px 0 0;text-align:right;">${formatEur(subtotalCents)}</td>
-        </tr>
-      </table>
-    </div>
-    <div style="text-align:center;margin:24px 0;">
-      <a class="cta" href="${escapeHtml(resumeUrl)}" style="background-color:${accentColor};color:#ffffff;">
-        Reprendre ma commande
-      </a>
-    </div>
-    <p class="message-text" style="font-size:13px;color:#777;">
-      Ce lien est valable 48 heures. La disponibilité des montres n'est pas garantie
-      jusqu'à la finalisation du paiement. Si vous avez déjà finalisé votre commande
-      ou si vous ne souhaitez pas donner suite, vous pouvez ignorer cet email.
-    </p>
+    ${paragraph(branding, 'Bonjour,')}
+    ${paragraph(
+      branding,
+      `Vous avez commencé une commande sur ${escapeHtml(branding.brandName)} sans la finaliser.
+       Votre sélection vous attend — vous pouvez reprendre votre commande là où vous l'aviez
+       laissée, en un clic.`,
+    )}
+    ${section(branding, 'Votre sélection', selectionHtml)}
+    ${buttonRow([button(branding, resumeUrl, 'Reprendre ma commande')])}
+    ${paragraph(
+      branding,
+      `Ce lien est valable 48 heures. La disponibilité des montres n'est pas garantie jusqu'à la
+       finalisation du paiement. Si vous avez déjà finalisé votre commande ou si vous ne souhaitez
+       pas donner suite, vous pouvez ignorer cet email.`,
+      { muted: true, small: true },
+    )}
   `
 
-  return emailShell(site, 'Votre commande vous attend', body)
+  return emailShell(site, 'Votre commande vous attend', body, {
+    preheader: `Votre sélection vous attend — ${formatEur(subtotalCents)}`,
+  })
 }
 
 module.exports = {

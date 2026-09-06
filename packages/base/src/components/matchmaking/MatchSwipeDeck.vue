@@ -1,15 +1,25 @@
 <template>
-  <section class="mx-auto max-w-md" aria-labelledby="matchmaking-deck-title">
-    <header class="flex items-end justify-between gap-4">
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+  <!--
+    Sur téléphone, l'écran entier tient dans la hauteur disponible (`--mm-fill`) : consigne,
+    carte et boutons, sans défilement. C'est la pile de cartes qui absorbe la différence d'un
+    format à l'autre — la photo se règle donc sur l'écran plutôt que l'inverse, et les trois
+    boutons de décision restent atteignables au pouce, toujours au même endroit.
+  -->
+  <section
+    ref="root"
+    class="matchmaking-deck mx-auto flex max-w-md flex-col"
+    aria-labelledby="matchmaking-deck-title"
+  >
+    <header class="flex shrink-0 items-baseline justify-between gap-3">
+      <div class="min-w-0">
+        <p class="hidden text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 sm:block">
           {{ t('matchmaking.eyebrow') }}
         </p>
-        <h1 id="matchmaking-deck-title" class="mt-1 text-lg font-bold text-text-main">
+        <h1 id="matchmaking-deck-title" class="text-sm font-bold text-text-main sm:mt-1 sm:text-lg">
           {{ t('matchmaking.deck.instruction') }}
         </h1>
       </div>
-      <p class="shrink-0 text-sm tabular-nums text-gray-500" aria-live="off">
+      <p class="shrink-0 text-xs tabular-nums text-gray-500 sm:text-sm" aria-live="off">
         {{ t('matchmaking.deck.counter', { seen: mm.seenInBudget + 1, total: mm.totalInBudget }) }}
       </p>
     </header>
@@ -18,7 +28,7 @@
          nœud DOM quand elle passe devant et que sa montée soit interpolée. -->
     <div
       ref="stackRef"
-      class="matchmaking-stack relative mt-5"
+      class="matchmaking-stack relative mt-4 sm:mt-5"
       role="group"
       :aria-roledescription="t('matchmaking.deck.instruction')"
     >
@@ -76,7 +86,7 @@
       les faisait pâlir à chaque glissement — un clignotement à chaque montre, là où la
       transparence ne doit dire qu'une chose : il n'y a plus de montre à décider.
     -->
-    <div class="mt-6 flex items-center justify-center gap-5">
+    <div class="mt-4 flex shrink-0 items-center justify-center gap-5 sm:mt-6">
       <button
         type="button"
         class="matchmaking-action flex h-14 w-14 items-center justify-center rounded-full border-2 border-red-500 bg-white text-red-500 shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
@@ -117,7 +127,9 @@
 
     <p class="sr-only" role="status" aria-live="polite">{{ announcement }}</p>
 
-    <footer class="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
+    <footer
+      class="mt-4 flex shrink-0 flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs sm:mt-8 sm:gap-x-6 sm:text-sm"
+    >
       <button
         type="button"
         class="inline-flex items-center gap-1.5 font-medium text-text-main underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-primary"
@@ -150,6 +162,7 @@ import { Heart, Info, SlidersHorizontal, X } from '@lucide/vue'
 
 import { t } from '@/i18n'
 import { useSwipeDeck } from '@/composables/useSwipeDeck.js'
+import { useViewportFill } from '@/composables/useViewportFill.js'
 import { canPreloadWatchImages, watchCardImageUrl } from '@/utils/watchImageUrl.js'
 
 import MatchWatchCard from './MatchWatchCard.vue'
@@ -163,8 +176,12 @@ const props = defineProps({
 
 const emit = defineEmits(['open-details'])
 
+const root = ref(null)
 const stackRef = ref(null)
 const announcement = ref('')
+
+/** `--mm-fill` : hauteur restante sous le titre du deck (voir la feuille de style). */
+useViewportFill(root)
 
 /** Carte courante puis les deux suivantes, superposées par `z-index`. */
 const stack = computed(() =>
@@ -300,10 +317,31 @@ onBeforeUnmount(() => {
   min-height: 360px;
 }
 
+/* Grand écran : la pile laisse la place aux deux liens de bas de page — à 64 % de la hauteur,
+   « Mes coups de cœur » passait sous la ligne de flottaison d'un portable 800 px. */
 @media (min-width: 640px) {
   .matchmaking-stack {
-    height: min(64vh, 640px);
-    height: min(64dvh, 640px);
+    height: min(55vh, 620px);
+    height: min(55dvh, 620px);
+  }
+}
+
+/*
+ * Écran étroit ou peu haut : plutôt qu'une fraction de la hauteur d'écran — qui laissait les
+ * boutons sous la ligne de flottaison sur un iPhone SE, et n'y était pour rien sur un grand
+ * téléphone —, la pile prend exactement ce qui reste une fois la consigne, les boutons et les
+ * deux liens posés. La photo suit donc le format de l'appareil. Le plancher évite qu'elle ne
+ * se réduise à rien sur un téléphone en paysage ; la page se laisse alors défiler.
+ */
+@media (max-width: 639px), (max-height: 699px) {
+  .matchmaking-deck {
+    min-height: var(--mm-fill, auto);
+  }
+
+  .matchmaking-stack {
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 14rem;
   }
 }
 

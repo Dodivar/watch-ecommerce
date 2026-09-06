@@ -135,14 +135,15 @@
           </div>
         </div>
 
-        <!-- Décision -->
+        <!-- Décision. Deux colonnes égales : « Coup de cœur », plus long que « Passer »,
+             débordait de sa moitié et rendait les deux boutons inégaux. -->
         <footer
-          class="matchmaking-lightbox-footer flex shrink-0 items-center gap-3 border-t border-gray-100 bg-white px-5 py-4"
+          class="matchmaking-lightbox-footer grid shrink-0 grid-cols-2 items-center gap-3 border-t border-gray-100 bg-white px-5 py-4"
         >
           <template v-if="mode === 'deck'">
             <button
               type="button"
-              class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-red-500 bg-white py-3 text-sm font-semibold uppercase tracking-wide text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              class="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-red-500 bg-white py-3 text-sm font-semibold uppercase tracking-wide text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               @click="emit('pass', watch)"
             >
               <X class="h-5 w-5" :stroke-width="2.5" />
@@ -150,7 +151,7 @@
             </button>
             <button
               type="button"
-              class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               @click="emit('like', watch)"
             >
               <Heart class="h-5 w-5" :stroke-width="2.5" />
@@ -160,7 +161,7 @@
           <template v-else>
             <button
               type="button"
-              class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white py-3 text-sm font-semibold uppercase tracking-wide text-gray-700 hover:border-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary"
+              class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white py-3 text-sm font-semibold uppercase tracking-wide text-gray-700 hover:border-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary"
               @click="emit('remove', watch)"
             >
               <Trash2 class="h-4 w-4" :stroke-width="2" />
@@ -168,7 +169,7 @@
             </button>
             <button
               type="button"
-              class="inline-flex flex-1 items-center justify-center rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              class="inline-flex items-center justify-center rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               @click="emit('close')"
             >
               {{ t('common.close') }}

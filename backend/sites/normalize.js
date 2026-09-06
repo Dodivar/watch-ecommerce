@@ -240,6 +240,11 @@ function normalizeSiteConfig(rawConfig) {
     (brand.displayName ? String(brand.displayName).toUpperCase() : id.toUpperCase())
   const accentColor =
     backendRaw?.email?.template?.accentColor || themeColors.primary || '#d4af37'
+  // Logo d'en-tête des e-mails : chemin dans `sites/<id>/public/`, ou URL absolue. Déclaration
+  // explicite uniquement — `resolveEmailBranding` refuse de retomber sur une icône générique,
+  // qui est souvent restée celle du site modèle.
+  const logoPath = backendRaw?.email?.template?.logoPath || ''
+  const logoUrl = backendRaw?.email?.template?.logoUrl || ''
 
   const corsAllowedOrigins = deriveAllowedOrigins(rawConfig)
   const allowedHosts = deriveAllowedHosts(rawConfig)
@@ -257,6 +262,8 @@ function normalizeSiteConfig(rawConfig) {
       template: {
         logoText,
         accentColor,
+        logoPath,
+        logoUrl,
       },
     },
     n8n: {
