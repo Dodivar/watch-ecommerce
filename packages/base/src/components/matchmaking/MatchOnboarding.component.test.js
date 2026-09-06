@@ -69,8 +69,46 @@ describe('MatchOnboarding', () => {
 
     const actions = wrapper.get('.matchmaking-actions')
     expect(actions.text()).toContain('3')
-    // Passer + Continuer au premier écran, Retour n'apparaît qu'ensuite.
-    expect(actions.findAll('button')).toHaveLength(2)
+    // Retour + Passer + Continuer : les trois cases sont là dès le premier écran.
+    expect(actions.findAll('button')).toHaveLength(3)
+
+    wrapper.unmount()
+  })
+
+  /**
+   * Rien ne doit bouger d'une étape à l'autre : au premier écran « Retour » n'a nulle part où
+   * revenir, mais il garde sa place — masqué, désactivé — au lieu d'apparaître ensuite et de
+   * décaler les deux autres.
+   */
+  it('garde la place de « Retour » au premier écran sans le proposer', async () => {
+    const mm = makeMm()
+    const wrapper = mount(MatchOnboarding, { props: { mm } })
+
+    const back = wrapper.get('.matchmaking-nav-back')
+    expect(back.classes()).toContain('invisible')
+    expect(back.attributes('disabled')).toBeDefined()
+
+    mm.currentStepIndex = 1
+    await wrapper.vm.$nextTick()
+
+    expect(back.classes()).not.toContain('invisible')
+    expect(back.attributes('disabled')).toBeUndefined()
+
+    wrapper.unmount()
+  })
+
+  /**
+   * Le bouton principal réserve la largeur de ses deux libellés : « Voir les montres », au
+   * dernier écran, est plus large que « Continuer » et le laisser grandir déplaçait toute la
+   * barre. Les deux sont donc rendus, l'inutilisé masqué.
+   */
+  it('réserve dans le bouton principal la largeur du plus long libellé', () => {
+    const wrapper = mount(MatchOnboarding, { props: { mm: makeMm() } })
+
+    const label = wrapper.get('.matchmaking-nav-next .matchmaking-cta-label')
+    expect(label.text()).toContain('Continuer')
+    expect(label.text()).toContain('Voir les montres')
+    expect(label.findAll('.matchmaking-cta-ghost')).toHaveLength(2)
 
     wrapper.unmount()
   })

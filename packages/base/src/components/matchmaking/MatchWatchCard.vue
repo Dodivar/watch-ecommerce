@@ -36,21 +36,25 @@
       </div>
     </div>
 
-    <div class="shrink-0 border-t border-gray-100 px-5 py-4">
+    <!-- Bandeau d'identité au plus juste sur petit écran : ce qu'il ne prend pas, la photo
+         l'a (la carte est bornée par la hauteur d'écran dans le deck). -->
+    <div class="shrink-0 border-t border-gray-100 px-4 py-3 sm:px-5 sm:py-4">
       <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
         {{ watch.brand }}
       </p>
       <h3
-        class="mt-0.5 truncate text-lg font-semibold leading-tight text-gray-900"
+        class="mt-0.5 truncate text-base font-semibold leading-tight text-gray-900 sm:text-lg"
         :title="watch.name"
       >
         {{ watch.model || watch.name }}
       </h3>
-      <div class="mt-2 flex items-baseline gap-2">
+      <div class="mt-1.5 flex items-baseline gap-2 sm:mt-2">
         <span v-if="watch.isOnPromotion" class="text-sm text-gray-400 line-through">
           {{ formatPrice(watch.price) }}
         </span>
-        <span class="text-xl font-bold text-primary">{{ formatPrice(effectivePrice) }}</span>
+        <span class="text-lg font-bold text-primary sm:text-xl">
+          {{ formatPrice(effectivePrice) }}
+        </span>
       </div>
     </div>
   </article>

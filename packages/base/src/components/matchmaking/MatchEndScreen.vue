@@ -11,7 +11,7 @@
           {{ t('matchmaking.end.noBudgetTitle') }}
         </h1>
         <p class="mt-4 text-gray-600">{{ t('matchmaking.end.noBudgetText') }}</p>
-        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <div class="matchmaking-end-actions mt-8">
           <button type="button" :class="primaryClass" @click="widenBudget">
             {{ t('matchmaking.end.widenBudget') }}
           </button>
@@ -28,7 +28,7 @@
           {{ t('matchmaking.end.title') }}
         </h1>
         <p class="mt-4 text-gray-600">{{ tc('matchmaking.end.likedText', likedCount) }}</p>
-        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <div class="matchmaking-end-actions mt-8">
           <button type="button" :class="primaryClass" @click="mm.showShortlist()">
             {{ t('matchmaking.end.viewMatches') }}
             <span class="ml-1 opacity-80">({{ likedCount }})</span>
@@ -45,7 +45,7 @@
           {{ t('matchmaking.end.noLikesTitle') }}
         </h1>
         <p class="mt-4 text-gray-600">{{ t('matchmaking.end.noLikesText') }}</p>
-        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <div class="matchmaking-end-actions mt-8">
           <button type="button" :class="primaryClass" @click="mm.editPreferences()">
             {{ t('matchmaking.end.editPreferences') }}
           </button>
@@ -90,7 +90,30 @@ function widenBudget() {
 }
 
 const primaryClass =
-  'inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
+  'inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-center text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
 const secondaryClass =
-  'inline-flex items-center justify-center rounded-lg border border-primary bg-white px-6 py-3 text-sm font-semibold uppercase tracking-wide text-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary'
+  'inline-flex items-center justify-center rounded-lg border border-primary bg-white px-6 py-3 text-center text-sm font-semibold uppercase tracking-wide text-primary hover:bg-cream-100 focus:outline-none focus:ring-2 focus:ring-primary'
 </script>
+
+<style scoped>
+/*
+ * Les deux boutons ont la même largeur — celle du plus long — plutôt que chacun la sienne :
+ * empilés sur téléphone comme côte à côte sur grand écran, ils forment un bloc, et l'œil n'a
+ * pas à recalculer sa cible quand le libellé change d'un cas à l'autre (« Élargir mon
+ * budget », « Voir mes coups de cœur (3) »).
+ */
+.matchmaking-end-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .matchmaking-end-actions {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    justify-content: center;
+    width: fit-content;
+    margin-inline: auto;
+  }
+}
+</style>

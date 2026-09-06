@@ -17,7 +17,10 @@
       </p>
     </header>
 
-    <ul v-if="entries.length" class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <!-- Deux colonnes dès le téléphone, comme les collections du site : une seule donnait des
+         vignettes hautes d'un demi-écran, et comparer ses coups de cœur demandait de faire
+         défiler la page entre deux montres. -->
+    <ul v-if="entries.length" class="mt-8 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
       <li v-for="entry in entries" :key="entry.id" class="flex flex-col">
         <!-- Montre encore au catalogue -->
         <template v-if="entry.watch">
@@ -29,42 +32,46 @@
           >
             <MatchWatchCard :watch="entry.watch" image-loading="lazy" />
           </button>
-          <div class="mt-3 flex items-center gap-2">
+          <!-- Colonne étroite : les trois actions s'empilent en deux rangées plutôt que de se
+               serrer sur une seule. La flèche disparaît, elle n'a plus la place. -->
+          <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
             <RouterLink
               v-if="entry.watch.slug"
               :to="`/montre/${entry.watch.slug}`"
-              class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:flex-1 sm:px-3 sm:text-xs"
             >
               {{ t('matchmaking.shortlist.viewPage') }}
-              <ArrowRight class="h-4 w-4" :stroke-width="2" />
+              <ArrowRight class="hidden h-4 w-4 sm:block" :stroke-width="2" />
             </RouterLink>
-            <button
-              type="button"
-              class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-700 hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
-              @click="emit('open-details', entry.watch)"
-            >
-              {{ t('matchmaking.shortlist.details') }}
-            </button>
-            <button
-              type="button"
-              class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 hover:border-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-              :aria-label="
-                t('matchmaking.shortlist.removeLabel', {
-                  name: entry.watch.model || entry.watch.name,
-                })
-              "
-              :title="t('matchmaking.shortlist.remove')"
-              @click="mm.removeLiked(entry.id)"
-            >
-              <Trash2 class="h-4 w-4" :stroke-width="2" />
-            </button>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="inline-flex flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-700 hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary sm:flex-none sm:px-3 sm:text-xs"
+                @click="emit('open-details', entry.watch)"
+              >
+                {{ t('matchmaking.shortlist.details') }}
+              </button>
+              <button
+                type="button"
+                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 hover:border-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                :aria-label="
+                  t('matchmaking.shortlist.removeLabel', {
+                    name: entry.watch.model || entry.watch.name,
+                  })
+                "
+                :title="t('matchmaking.shortlist.remove')"
+                @click="mm.removeLiked(entry.id)"
+              >
+                <Trash2 class="h-4 w-4" :stroke-width="2" />
+              </button>
+            </div>
           </div>
         </template>
 
         <!-- Coup de cœur disparu du catalogue -->
         <template v-else>
           <div
-            class="flex aspect-[4/5] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white/60 p-6 text-center"
+            class="flex aspect-[4/5] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white/60 p-3 text-center sm:p-6"
           >
             <HeartCrack class="h-8 w-8 text-gray-400" :stroke-width="1.5" />
             <p class="mt-3 text-sm font-semibold text-gray-700">
