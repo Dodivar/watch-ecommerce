@@ -501,6 +501,12 @@ export default {
         logoText: 'SAUVAGE WATCHES',
         /** Couleur d'accent du template email (bordures, titres). Sinon theme.colors.primary. */
         accentColor: '#d4af37',
+        /**
+         * Logo d'en-tête des e-mails, depuis `public/`. Déclaration explicite exigée : sans elle
+         * l'e-mail est signé du nom de la marque en toutes lettres, jamais d'une icône générique
+         * (favicon, icône de manifeste) qui peut être restée celle du site modèle.
+         */
+        logoPath: '/web-app-manifest-512x512.png',
       },
     },
     n8n: {
