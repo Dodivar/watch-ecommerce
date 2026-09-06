@@ -70,11 +70,17 @@
       </div>
     </div>
 
-    <!-- Contrôles -->
+    <!--
+      Contrôles. Les deux boutons de décision restent pleins pendant la sortie de la carte :
+      ils sont bien inertes le temps de l'envol (`isLeaving`), mais un `disabled:opacity-40`
+      les faisait pâlir à chaque glissement — un clignotement à chaque montre, là où la
+      transparence ne doit dire qu'une chose : il n'y a plus de montre à décider.
+    -->
     <div class="mt-6 flex items-center justify-center gap-5">
       <button
         type="button"
-        class="matchmaking-action flex h-14 w-14 items-center justify-center rounded-full border-2 border-red-500 bg-white text-red-500 shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-40"
+        class="matchmaking-action flex h-14 w-14 items-center justify-center rounded-full border-2 border-red-500 bg-white text-red-500 shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        :class="{ 'opacity-40': !mm.currentWatch }"
         :title="t('matchmaking.deck.passHint')"
         :aria-label="t('matchmaking.deck.pass')"
         :disabled="isLeaving || !mm.currentWatch"
@@ -94,7 +100,8 @@
       </button>
       <button
         type="button"
-        class="matchmaking-action flex h-14 w-14 items-center justify-center rounded-full border-2 border-emerald-500 bg-white text-emerald-500 shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-40"
+        class="matchmaking-action flex h-14 w-14 items-center justify-center rounded-full border-2 border-emerald-500 bg-white text-emerald-500 shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+        :class="{ 'opacity-40': !mm.currentWatch }"
         :title="t('matchmaking.deck.likeHint')"
         :aria-label="t('matchmaking.deck.like')"
         :disabled="isLeaving || !mm.currentWatch"
