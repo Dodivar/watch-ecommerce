@@ -552,6 +552,11 @@ export default {
       fromAddress: 'sa@jackned.com',
       toAddress: 'sa@jackned.com',
       template: {
+        /**
+         * Pas de `logoPath` : le client n'a pas encore fourni de logo image, et les icônes
+         * livrées dans `public/` sont celles du site modèle. L'e-mail signe donc du nom de la
+         * marque composé dans sa typographie — noir sur blanc, comme la vitrine.
+         */
         logoText: "Jack'N'Ed",
         accentColor: '#111111',
       },

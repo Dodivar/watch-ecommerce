@@ -1,8 +1,15 @@
 const {
   escapeHtml,
   emailShell,
+  section,
   fieldRow,
+  fieldTable,
   optionalFieldRow,
+  linkFieldRow,
+  paragraph,
+  button,
+  buttonRow,
+  resolveEmailBranding,
 } = require('./emailCommon')
 
 const SLOT_LABELS = {
@@ -28,62 +35,99 @@ function formatDateLabel(dateStr) {
 }
 
 function createAppointmentVendorEmail(site, formData) {
-  const f = (v) => escapeHtml(v)
+  const branding = resolveEmailBranding(site)
+  const email = String(formData.email || '').trim()
+  const tel = String(formData.tel || '').trim()
+
+  const actionsHtml = buttonRow([
+    email
+      ? button(
+          branding,
+          `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Votre demande de rendez-vous')}`,
+          `Répondre à ${formData.name || email}`,
+        )
+      : '',
+    tel ? button(branding, `tel:${encodeURIComponent(tel)}`, 'Appeler', { variant: 'secondary' }) : '',
+    formData.watch_url
+      ? button(branding, formData.watch_url, 'Voir la fiche produit', { variant: 'secondary' })
+      : '',
+  ])
+
   const bodyHtml = `
-    <div class="section">
-        <div class="section-title">Client</div>
-        ${fieldRow('Nom', formData.name)}
-        ${fieldRow('Email', formData.email)}
-        ${fieldRow('Téléphone', formData.tel || 'Non renseigné')}
-    </div>
-    <div class="section">
-        <div class="section-title">Rendez-vous</div>
-        ${fieldRow('Date', formatDateLabel(formData.date))}
-        ${optionalFieldRow('Créneau', formatSlotLabel(formData.time_slot))}
-    </div>
-    <div class="section">
-        <div class="section-title">Montre concernée</div>
-        ${fieldRow('Modèle', formData.watch_name)}
-        ${fieldRow('Prix affiché', formData.watch_price ? `${formData.watch_price} €` : 'Non renseigné')}
-        ${
-          formData.watch_url
-            ? `<p><a class="cta" href="${f(formData.watch_url)}">Voir la fiche produit</a></p>`
-            : ''
-        }
-    </div>
+    ${section(
+      branding,
+      'Client',
+      fieldTable(`
+        ${fieldRow(branding, 'Nom', formData.name)}
+        ${linkFieldRow(branding, 'Email', formData.email, 'mailto:')}
+        ${linkFieldRow(branding, 'Téléphone', formData.tel, 'tel:')}
+      `),
+    )}
+    ${section(
+      branding,
+      'Rendez-vous',
+      fieldTable(`
+        ${fieldRow(branding, 'Date', formatDateLabel(formData.date))}
+        ${optionalFieldRow(branding, 'Créneau', formatSlotLabel(formData.time_slot))}
+      `),
+    )}
+    ${section(
+      branding,
+      'Montre concernée',
+      fieldTable(`
+        ${fieldRow(branding, 'Modèle', formData.watch_name)}
+        ${fieldRow(branding, 'Prix affiché', formData.watch_price ? `${formData.watch_price} €` : '')}
+      `),
+    )}
+    ${actionsHtml}
   `
-  return emailShell(site, 'Nouvelle demande de rendez-vous', bodyHtml, { badge: 'Rendez-vous' })
+
+  return emailShell(site, 'Nouvelle demande de rendez-vous', bodyHtml, {
+    badge: 'Rendez-vous',
+    preheader: [formData.name, formatDateLabel(formData.date), formData.watch_name]
+      .filter(Boolean)
+      .join(' · '),
+  })
 }
 
 function createAppointmentCustomerEmail(site, formData) {
-  const storeAddress =
+  const branding = resolveEmailBranding(site)
+  const storeAddress = (
     site.config.contact?.footerAddressHtml?.replace(/<br\s*\/?>/gi, ', ') ||
     site.config.legal?.address ||
     ''
+  ).replace(/<[^>]+>/g, '')
   const directionsUrl = formData.directions_url || ''
 
   const bodyHtml = `
-    <div class="section">
-        <p>Bonjour ${escapeHtml(formData.name || '')},</p>
-        <p>Nous avons bien reçu votre demande de rendez-vous pour découvrir la montre suivante en boutique :</p>
-        ${fieldRow('Montre', formData.watch_name)}
-    </div>
-    <div class="section">
-        <div class="section-title">Votre rendez-vous</div>
-        ${fieldRow('Date', formatDateLabel(formData.date))}
-        ${optionalFieldRow('Créneau', formatSlotLabel(formData.time_slot))}
-        ${fieldRow('Adresse', storeAddress.replace(/<[^>]+>/g, ''))}
-        ${
-          directionsUrl
-            ? `<p><a class="cta" href="${escapeHtml(directionsUrl)}">Itinéraire GPS vers la boutique</a></p>`
-            : ''
-        }
-    </div>
-    <div class="section">
-        <p>Notre équipe vous contactera si nécessaire pour confirmer ce rendez-vous. À très bientôt en boutique !</p>
-    </div>
+    ${paragraph(branding, `Bonjour ${escapeHtml(formData.name || '')},`)}
+    ${paragraph(
+      branding,
+      'Nous avons bien reçu votre demande de rendez-vous pour découvrir cette montre en boutique.',
+    )}
+    ${section(
+      branding,
+      'Votre rendez-vous',
+      fieldTable(`
+        ${fieldRow(branding, 'Montre', formData.watch_name)}
+        ${fieldRow(branding, 'Date', formatDateLabel(formData.date))}
+        ${optionalFieldRow(branding, 'Créneau', formatSlotLabel(formData.time_slot))}
+        ${optionalFieldRow(branding, 'Adresse', storeAddress)}
+      `),
+    )}
+    ${buttonRow([
+      directionsUrl ? button(branding, directionsUrl, 'Itinéraire vers la boutique') : '',
+    ])}
+    ${paragraph(
+      branding,
+      'Notre équipe vous contactera si nécessaire pour confirmer ce rendez-vous. À très bientôt en boutique !',
+      { muted: true, small: true },
+    )}
   `
-  return emailShell(site, 'Confirmation de votre rendez-vous', bodyHtml)
+
+  return emailShell(site, 'Confirmation de votre rendez-vous', bodyHtml, {
+    preheader: [formData.watch_name, formatDateLabel(formData.date)].filter(Boolean).join(' · '),
+  })
 }
 
 function formatAppointmentVendorText(formData) {

@@ -10,9 +10,16 @@
 const {
   escapeHtml,
   emailShell,
+  section,
   fieldRow,
+  fieldTable,
   optionalFieldRow,
   linkFieldRow,
+  heroBlock,
+  messageBlock,
+  paragraph,
+  button,
+  buttonRow,
   resolveEmailBranding,
 } = require('./emailCommon')
 
@@ -45,52 +52,59 @@ function watchLabel(formData) {
  */
 function createRepairVendorEmail(site, formData, files = []) {
   const branding = resolveEmailBranding(site)
-  const accent = branding.accentColor
   const service = String(formData.service_type || '').trim()
   const handling = formatHandling(formData.handling)
   const title = watchLabel(formData)
 
-  const heroHtml = title
-    ? `
-    <div class="watch-hero">
-        <div class="watch-hero-label">Montre concernée</div>
-        <div class="watch-hero-title">${escapeHtml(title)}</div>
-    </div>
-  `
-    : ''
+  const email = String(formData.email || '').trim()
+  const tel = String(formData.tel || '').trim()
+  const actionsHtml = buttonRow([
+    email
+      ? button(
+          branding,
+          `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(`Votre demande de prise en charge${service ? ` — ${service}` : ''}`)}`,
+          `Répondre à ${formData.name || email}`,
+        )
+      : '',
+    tel ? button(branding, `tel:${encodeURIComponent(tel)}`, 'Appeler', { variant: 'secondary' }) : '',
+  ])
 
   const attachmentsHtml = files.length
-    ? `
-    <div class="section">
-        <div class="section-title">Photos jointes</div>
-        ${fieldRow('Fichiers', files.map((file) => file.name).join(', '), { accentColor: accent })}
-    </div>
-  `
+    ? section(
+        branding,
+        'Photos jointes',
+        fieldTable(fieldRow(branding, 'Fichiers', files.map((file) => file.name).join(', '))),
+      )
     : ''
 
   const bodyHtml = `
-    ${heroHtml}
-    <div class="section">
-        <div class="section-title">Prestation demandée</div>
-        ${fieldRow('Prestation', service, { accentColor: accent })}
-        ${optionalFieldRow('Prise en charge', handling, { accentColor: accent })}
-        ${optionalFieldRow('Page d’origine', formData.source, { accentColor: accent })}
-    </div>
-    <div class="section">
-        <div class="section-title">Client</div>
-        ${fieldRow('Nom', formData.name, { accentColor: accent })}
-        ${linkFieldRow('Email', formData.email, 'mailto:', accent)}
-        ${linkFieldRow('Téléphone', formData.tel, 'tel:', accent)}
-    </div>
-    <div class="section">
-        <div class="section-title">Problème décrit</div>
-        <div class="message-text">${escapeHtml(formData.message || '')}</div>
-    </div>
+    ${heroBlock(branding, 'Montre concernée', title)}
+    ${section(
+      branding,
+      'Prestation demandée',
+      fieldTable(`
+        ${fieldRow(branding, 'Prestation', service)}
+        ${optionalFieldRow(branding, 'Prise en charge', handling)}
+        ${optionalFieldRow(branding, 'Page d’origine', formData.source)}
+      `),
+    )}
+    ${section(
+      branding,
+      'Client',
+      fieldTable(`
+        ${fieldRow(branding, 'Nom', formData.name)}
+        ${linkFieldRow(branding, 'Email', formData.email, 'mailto:')}
+        ${linkFieldRow(branding, 'Téléphone', formData.tel, 'tel:')}
+      `),
+    )}
+    ${actionsHtml}
+    ${section(branding, 'Problème décrit', messageBlock(branding, formData.message || ''))}
     ${attachmentsHtml}
   `
 
   return emailShell(site, 'Nouvelle demande de prise en charge', bodyHtml, {
     badge: 'Atelier',
+    preheader: [formData.name, service, title].filter(Boolean).join(' · '),
   })
 }
 
@@ -102,7 +116,6 @@ function createRepairVendorEmail(site, formData, files = []) {
  */
 function createRepairCustomerEmail(site, formData) {
   const branding = resolveEmailBranding(site)
-  const accent = branding.accentColor
   const service = String(formData.service_type || '').trim()
   const title = watchLabel(formData)
   const handling = formatHandling(formData.handling)
@@ -119,28 +132,29 @@ function createRepairCustomerEmail(site, formData) {
     handling === HANDLING_LABELS.dropoff && site.config.storeMap?.enabled && storeAddress
 
   const bodyHtml = `
-    <div class="section">
-        <p>Bonjour ${escapeHtml(formData.name || '')},</p>
-        <p>
-          Nous avons bien reçu votre demande de prise en charge. Notre horloger l’examine et revient
-          vers vous sous 48 h ouvrées avec un délai et un ordre de prix. Aucune intervention n’est
-          lancée sans votre accord.
-        </p>
-    </div>
-    <div class="section">
-        <div class="section-title">Votre demande</div>
-        ${fieldRow('Prestation', service, { accentColor: accent })}
-        ${optionalFieldRow('Montre', title, { accentColor: accent })}
-        ${optionalFieldRow('Prise en charge', handling, { accentColor: accent })}
-        ${showAddress ? fieldRow('Adresse', storeAddress, { accentColor: accent }) : ''}
-    </div>
-    <div class="section">
-        <div class="section-title">Ce que vous nous avez écrit</div>
-        <div class="message-text">${escapeHtml(formData.message || '')}</div>
-    </div>
+    ${paragraph(branding, `Bonjour ${escapeHtml(formData.name || '')},`)}
+    ${paragraph(
+      branding,
+      `Nous avons bien reçu votre demande de prise en charge. Notre horloger l’examine et revient
+       vers vous sous 48 h ouvrées avec un délai et un ordre de prix. Aucune intervention n’est
+       lancée sans votre accord.`,
+    )}
+    ${section(
+      branding,
+      'Votre demande',
+      fieldTable(`
+        ${fieldRow(branding, 'Prestation', service)}
+        ${optionalFieldRow(branding, 'Montre', title)}
+        ${optionalFieldRow(branding, 'Prise en charge', handling)}
+        ${showAddress ? fieldRow(branding, 'Adresse', storeAddress) : ''}
+      `),
+    )}
+    ${section(branding, 'Ce que vous nous avez écrit', messageBlock(branding, formData.message || ''))}
   `
 
-  return emailShell(site, 'Votre demande a bien été reçue', bodyHtml)
+  return emailShell(site, 'Votre demande a bien été reçue', bodyHtml, {
+    preheader: `Votre demande${service ? ` — ${service}` : ''} est bien arrivée chez notre horloger.`,
+  })
 }
 
 /** Pendant texte du mail atelier. @param {Record<string, any>} formData */
