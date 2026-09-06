@@ -372,17 +372,36 @@ describe('useSwipeDeck', () => {
       wrapper.unmount()
     })
 
-    it('suit encore le doigt quand le système réclame moins de mouvement', async () => {
+    it('suit encore le doigt, penche et bascule quand le système réclame moins de mouvement', async () => {
       matchMediaMatches = true
       const { wrapper } = mountDeck()
       const transform = await touchDrag(wrapper, [
         [12, -8],
         [110, -10],
       ])
-      // Le suivi du doigt n'est pas une animation : c'est l'objet touché qui se déplace.
+      // Rien de tout cela n'est une animation : la carte va où va le doigt, et son
+      // inclinaison comme sa bascule sont indexées sur l'écart parcouru.
       expect(transform).toContain('translate3d(110px, -10px, 0)')
-      // La rotation et la bascule en profondeur, elles, disparaissent.
-      expect(transform).toContain('rotate(0.00deg) rotateY(0.00deg)')
+      const [, rotate] = /rotate\((-?\d+(?:\.\d+)?)deg\)/.exec(transform) || []
+      expect(Number(rotate)).toBeGreaterThan(0)
+      const [, tilt] = /rotateY\((-?\d+(?:\.\d+)?)deg\)/.exec(transform) || []
+      expect(Number(tilt)).toBeGreaterThan(0)
+      wrapper.unmount()
+    })
+
+    it("s'efface à plat au lieu de s'envoler quand le système réclame moins de mouvement", async () => {
+      matchMediaMatches = true
+      const { wrapper } = mountDeck()
+      await touchDrag(wrapper, [
+        [12, -8],
+        [140, -10],
+      ])
+      await touch(wrapper, 'touchend', { x: 340, y: 290 })
+      // La sortie, elle, est bien une animation autonome : la carte reste où le doigt l'a
+      // laissée, à plat, et s'efface au lieu de traverser l'écran.
+      expect(wrapper.element.style.transform).toContain('translate3d(140px')
+      expect(wrapper.element.style.transform).toContain('rotate(0.00deg) rotateY(0.00deg)')
+      expect(wrapper.element.style.opacity).toBe('0')
       wrapper.unmount()
     })
   })

@@ -19,6 +19,21 @@ const THIRD_WATCH = {
 const STORAGE_KEY = 'watch-ecommerce:matchmaking:sauvage-watches'
 
 /**
+ * Décalage horizontal lu dans un `transform` calculé. La carte bascule en profondeur
+ * (`perspective` + `rotateY`) : le navigateur rend alors une `matrix3d`, où la translation
+ * en x est le 13ᵉ terme et non le 5ᵉ.
+ *
+ * @param {string} transform
+ * @returns {number}
+ */
+function translateXOf(transform) {
+  const [, kind, values] = /(matrix3d|matrix)\(([^)]+)\)/.exec(transform) || []
+  if (!values) return Number.NaN
+  const terms = values.split(',').map((term) => Number(term))
+  return kind === 'matrix3d' ? terms[12] : terms[4]
+}
+
+/**
  * « Coup de foudre » : préférences guidées → deck → détail → fin → shortlist,
  * puis reprise de la session après rechargement (localStorage).
  */
@@ -132,8 +147,7 @@ test.describe('Coup de foudre', () => {
       // La carte a bel et bien suivi le doigt, et la mention « coup de cœur » est apparue.
       const transform = await currentCard.evaluate((el) => getComputedStyle(el).transform)
       expect(transform).not.toBe('none')
-      const [, moved] = /matrix\(([^)]+)\)/.exec(transform) || []
-      expect(Number(moved.split(',')[4])).toBeGreaterThan(50)
+      expect(translateXOf(transform)).toBeGreaterThan(50)
 
       await touch('touchMove', { x: x + 160, y })
       await touch('touchEnd', null)
