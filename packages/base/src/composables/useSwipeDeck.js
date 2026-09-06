@@ -21,8 +21,10 @@ import { computed, onBeforeUnmount, onMounted, ref, unref } from 'vue'
  * le `pointercancel` de Safari est alors ignoré au lieu de reposer la carte en plein
  * glissement.
  *
- * Les seuils reprennent ceux éprouvés par le carrousel : geste engagé au-delà de 40 px ou
- * d'un quart de la largeur de carte, ou dès 20 px si la vitesse dépasse 0,35 px/ms.
+ * Le glissement doit être franc pour décider : la carte ne part qu'au-delà de 72 px ou d'un
+ * tiers de la largeur de carte, ou dès 48 px si la vitesse dépasse 0,6 px/ms. En deçà elle
+ * revient à sa place, d'un ressort assez long (320 ms) pour se lire comme un refus : un geste
+ * hésitant rend la montre au lieu de la classer.
  *
  * Le geste est libre : passé 8 px dans n'importe quelle direction, la carte suit le pointeur
  * en deux dimensions, et seule l'horizontale décide. Monter puis filer sur le côté reste donc
@@ -34,6 +36,11 @@ import { computed, onBeforeUnmount, onMounted, ref, unref } from 'vue'
  * doublé du `preventDefault()` sur `touchmove` pour iOS) : sans cela le défilement vertical de
  * la page happe toute amorce vers le haut. La page se fait donc défiler à côté de la carte,
  * pas au travers.
+ *
+ * Pendant le glissement la carte ne se contente pas de s'incliner dans le plan : elle
+ * bascule aussi en profondeur (`perspective` + `rotateY`), le bord vers lequel elle part
+ * s'éloignant tandis que l'autre vient vers l'utilisateur. À droite elle penche à droite, à
+ * gauche à gauche, et le plein d'inclinaison tombe sur le seuil de décision.
  *
  * `prefers-reduced-motion` retire l'envol, la rotation et le ressort — mais pas le suivi du
  * doigt : une carte collée au doigt n'est pas une animation, c'est la manipulation directe de
@@ -52,13 +59,34 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
   const TAP_MAX_PX = 6
   const TAP_MAX_TOUCH_PX = 12
   const TAP_MAX_MS = 350
-  const COMMIT_MIN_PX = 40
-  const COMMIT_RATIO = 0.25
-  const COMMIT_MIN_VELOCITY = 0.35
+  /**
+   * Seuils d'engagement. Un glissement hésitant doit rendre la montre, pas la décider :
+   * la carte ne part qu'au-delà d'un tiers de sa largeur (~120 px sur un téléphone), et le
+   * raccourci du geste vif réclame lui aussi une vraie distance parcourue à vraie vitesse.
+   * Volontairement plus exigeant que le carrousel d'images, dont un faux pas ne coûte
+   * qu'une photo à revenir en arrière — ici il classe la montre.
+   */
+  const COMMIT_MIN_PX = 72
+  const COMMIT_RATIO = 0.34
+  /** Distance minimale d'un geste vif : en deçà, la vitesse ne suffit pas à décider. */
+  const FLICK_MIN_PX = 48
+  const COMMIT_MIN_VELOCITY = 0.6
   const MAX_ROTATE_DEG = 12
+  /**
+   * Bascule en profondeur, autour de l'axe vertical qui pointe vers l'utilisateur : le bord
+   * vers lequel part la carte s'éloigne, l'autre vient vers lui. Indexée sur la progression
+   * du geste — pas sur la largeur — pour que le plein d'inclinaison coïncide avec le seuil
+   * de décision : la carte penche à mesure qu'elle bascule d'un côté.
+   */
+  const MAX_TILT_DEG = 10
+  /** Distance de l'œil à la carte. Court, l'effet caricature ; long, il disparaît. */
+  const PERSPECTIVE_PX = 1100
   const EXIT_MS = 420
   const EXIT_REDUCED_MS = 120
-  const SPRING_MS = 180
+  /** Retour au repos : assez long pour se voir, avec le léger dépassement d'un ressort. */
+  const SPRING_MS = 320
+  const SPRING_REDUCED_MS = 120
+  const SPRING_EASING = 'cubic-bezier(0.22, 1.35, 0.4, 1)'
   /** Repos : la carte qui passe devant glisse de sa place d'attente à sa place finale. */
   const SETTLE_TRANSITION = 'transform 360ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 360ms ease'
   const EXIT_EASING = 'cubic-bezier(0.22, 0.61, 0.36, 1)'
@@ -112,7 +140,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
   const passOpacity = computed(() => Math.max(0, -progress.value))
 
   const cardStyle = computed(() => {
-    const easing = isLeaving.value ? EXIT_EASING : 'ease-out'
+    const easing = isLeaving.value ? EXIT_EASING : reducedMotion.value ? 'ease-out' : SPRING_EASING
     const transition = isDragging.value
       ? 'none'
       : transitionMs.value > 0
@@ -126,8 +154,12 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
           -MAX_ROTATE_DEG,
           Math.min(MAX_ROTATE_DEG, (dx.value / cardWidth()) * MAX_ROTATE_DEG),
         )
+    const tilt = reducedMotion.value ? 0 : progress.value * MAX_TILT_DEG
     return {
-      transform: `translate3d(${dx.value}px, ${dy.value}px, 0) rotate(${rotate.toFixed(2)}deg)`,
+      transform:
+        `perspective(${PERSPECTIVE_PX}px) ` +
+        `translate3d(${dx.value}px, ${dy.value}px, 0) ` +
+        `rotate(${rotate.toFixed(2)}deg) rotateY(${tilt.toFixed(2)}deg)`,
       opacity: reducedMotion.value && isLeaving.value ? 0 : 1,
       transition,
       willChange: 'transform',
@@ -136,7 +168,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
   })
 
   function resetPosition({ animate } = { animate: true }) {
-    transitionMs.value = animate ? SPRING_MS : 0
+    transitionMs.value = animate ? (reducedMotion.value ? SPRING_REDUCED_MS : SPRING_MS) : 0
     dx.value = 0
     dy.value = 0
     isDragging.value = false
@@ -245,7 +277,7 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
     }
 
     const distance = Math.abs(dx.value)
-    const fast = distance > 20 && Math.abs(velocity) > COMMIT_MIN_VELOCITY
+    const fast = distance > FLICK_MIN_PX && Math.abs(velocity) > COMMIT_MIN_VELOCITY
     const shouldCommit = distance > commitThreshold() || fast
     if (shouldCommit) {
       fly(Math.sign(dx.value) || (velocity > 0 ? 1 : -1))

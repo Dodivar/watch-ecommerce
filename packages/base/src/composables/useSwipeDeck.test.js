@@ -168,6 +168,25 @@ describe('useSwipeDeck', () => {
     wrapper.unmount()
   })
 
+  /**
+   * La carte ne glisse pas à plat : elle bascule aussi en profondeur, du côté où elle part.
+   * `rotateY` positif éloigne le bord droit et amène le gauche vers l'utilisateur.
+   */
+  it('penche du côté où part la carte', async () => {
+    const { wrapper } = mountDeck()
+    const right = await drag(wrapper, [[60, 0]], { pointerType: 'mouse' })
+    expect(right).toContain('perspective(1100px)')
+    const [, rightTilt] = /rotateY\((-?\d+(?:\.\d+)?)deg\)/.exec(right) || []
+    expect(Number(rightTilt)).toBeGreaterThan(0)
+    await pointer(wrapper, 'pointerup', { x: 260, y: 300, pointerType: 'mouse' })
+    vi.advanceTimersByTime(500)
+
+    const left = await drag(wrapper, [[-60, 0]], { pointerType: 'mouse' })
+    const [, leftTilt] = /rotateY\((-?\d+(?:\.\d+)?)deg\)/.exec(left) || []
+    expect(Number(leftTilt)).toBeLessThan(0)
+    wrapper.unmount()
+  })
+
   it('engage la décision quand le doigt a franchi le seuil', async () => {
     const { wrapper, commits } = mountDeck()
     await drag(wrapper, [
@@ -217,6 +236,46 @@ describe('useSwipeDeck', () => {
     expect(commits).toHaveLength(0)
     // La carte revient à sa place au lieu de sortir.
     expect(wrapper.element.style.transform).toContain('translate3d(0px, 0px, 0)')
+    wrapper.unmount()
+  })
+
+  /**
+   * Un glissement mou ne classe pas la montre. Sur une carte de 360 px il faut dépasser
+   * 122 px (un tiers de la largeur) ; en deçà, la carte revient à sa place.
+   */
+  it('rend la montre quand le glissement n’est pas franc', async () => {
+    const { wrapper, commits } = mountDeck()
+    // 90 px parcourus, mais lentement : ni la distance ni la vitesse ne décident.
+    await drag(
+      wrapper,
+      [
+        [20, 4],
+        [55, 6],
+        [90, 8],
+      ],
+      { pointerType: 'mouse', stepMs: 200 },
+    )
+    await pointer(wrapper, 'pointerup', { x: 290, y: 308, pointerType: 'mouse' })
+    vi.advanceTimersByTime(500)
+    expect(commits).toHaveLength(0)
+    expect(wrapper.element.style.transform).toContain('translate3d(0px, 0px, 0)')
+    wrapper.unmount()
+  })
+
+  it('ne prend pas un frémissement rapide pour une décision', async () => {
+    const { wrapper, commits } = mountDeck()
+    // Vif, mais sur 30 px seulement : sous la distance minimale d'un geste vif.
+    await drag(
+      wrapper,
+      [
+        [12, 2],
+        [30, 3],
+      ],
+      { pointerType: 'mouse', stepMs: 8 },
+    )
+    await pointer(wrapper, 'pointerup', { x: 230, y: 303, pointerType: 'mouse' })
+    vi.advanceTimersByTime(500)
+    expect(commits).toHaveLength(0)
     wrapper.unmount()
   })
 
@@ -322,8 +381,8 @@ describe('useSwipeDeck', () => {
       ])
       // Le suivi du doigt n'est pas une animation : c'est l'objet touché qui se déplace.
       expect(transform).toContain('translate3d(110px, -10px, 0)')
-      // La rotation, elle, disparaît.
-      expect(transform).toContain('rotate(0.00deg)')
+      // La rotation et la bascule en profondeur, elles, disparaissent.
+      expect(transform).toContain('rotate(0.00deg) rotateY(0.00deg)')
       wrapper.unmount()
     })
   })
