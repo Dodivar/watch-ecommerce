@@ -27,44 +27,51 @@
           <button
             type="button"
             class="block aspect-[4/5] w-full text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            :aria-label="t('matchmaking.shortlist.details')"
+            :aria-label="
+              t('matchmaking.shortlist.detailsLabel', {
+                name: entry.watch.model || entry.watch.name,
+              })
+            "
             @click="emit('open-details', entry.watch)"
           >
             <MatchWatchCard :watch="entry.watch" image-loading="lazy" />
           </button>
-          <!-- Colonne étroite : les trois actions s'empilent en deux rangées plutôt que de se
-               serrer sur une seule. La flèche disparaît, elle n'a plus la place. -->
-          <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <!-- Une seule rangée sous la vignette. « Revoir » n'y est plus : la vignette elle-même
+               ouvre le détail, et les deux rangées qu'il fallait pour tenir trois boutons dans
+               une colonne étroite reviennent à la photo. Reste la fiche — le seul chemin vers
+               l'achat, donc le seul bouton en couleur de marque, sur toute la largeur libre — et
+               le retrait, réduit à son icône. -->
+          <div class="mt-2 flex items-center gap-2 sm:mt-3">
             <RouterLink
               v-if="entry.watch.slug"
               :to="`/montre/${entry.watch.slug}`"
-              class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:flex-1 sm:px-3 sm:text-xs"
+              class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:px-3 sm:text-xs"
             >
               {{ t('matchmaking.shortlist.viewPage') }}
-              <ArrowRight class="hidden h-4 w-4 sm:block" :stroke-width="2" />
+              <ArrowRight class="h-4 w-4 shrink-0" :stroke-width="2" />
             </RouterLink>
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                class="inline-flex flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-700 hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary sm:flex-none sm:px-3 sm:text-xs"
-                @click="emit('open-details', entry.watch)"
-              >
-                {{ t('matchmaking.shortlist.details') }}
-              </button>
-              <button
-                type="button"
-                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 hover:border-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                :aria-label="
-                  t('matchmaking.shortlist.removeLabel', {
-                    name: entry.watch.model || entry.watch.name,
-                  })
-                "
-                :title="t('matchmaking.shortlist.remove')"
-                @click="mm.removeLiked(entry.id)"
-              >
-                <Trash2 class="h-4 w-4" :stroke-width="2" />
-              </button>
-            </div>
+            <!-- Montre sans slug : pas de fiche à ouvrir, le détail reprend la place du bouton. -->
+            <button
+              v-else
+              type="button"
+              class="inline-flex flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-700 hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary sm:px-3 sm:text-xs"
+              @click="emit('open-details', entry.watch)"
+            >
+              {{ t('matchmaking.shortlist.details') }}
+            </button>
+            <button
+              type="button"
+              class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 hover:border-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+              :aria-label="
+                t('matchmaking.shortlist.removeLabel', {
+                  name: entry.watch.model || entry.watch.name,
+                })
+              "
+              :title="t('matchmaking.shortlist.remove')"
+              @click="mm.removeLiked(entry.id)"
+            >
+              <Trash2 class="h-4 w-4" :stroke-width="2" />
+            </button>
           </div>
         </template>
 

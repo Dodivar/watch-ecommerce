@@ -123,27 +123,18 @@
                 </li>
               </ul>
             </template>
-
-            <RouterLink
-              v-if="mode === 'shortlist' && watch.slug"
-              :to="`/montre/${watch.slug}`"
-              class="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
-            >
-              {{ t('matchmaking.lightbox.fullPage') }}
-              <ArrowRight class="h-4 w-4" :stroke-width="2" />
-            </RouterLink>
           </div>
         </div>
 
-        <!-- Décision. Deux colonnes égales : « Coup de cœur », plus long que « Passer »,
+        <!-- Décision. En pile, chacun sa case : « Coup de cœur », plus long que « Passer »,
              débordait de sa moitié et rendait les deux boutons inégaux. -->
         <footer
-          class="matchmaking-lightbox-footer grid shrink-0 grid-cols-2 items-center gap-3 border-t border-gray-100 bg-white px-5 py-4"
+          class="matchmaking-lightbox-footer flex shrink-0 items-center gap-3 border-t border-gray-100 bg-white px-5 py-4"
         >
           <template v-if="mode === 'deck'">
             <button
               type="button"
-              class="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-red-500 bg-white py-3 text-sm font-semibold uppercase tracking-wide text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              class="inline-flex flex-1 basis-0 items-center justify-center gap-2 rounded-lg border-2 border-red-500 bg-white py-3 text-sm font-semibold uppercase tracking-wide text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               @click="emit('pass', watch)"
             >
               <X class="h-5 w-5" :stroke-width="2.5" />
@@ -151,25 +142,45 @@
             </button>
             <button
               type="button"
-              class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              class="inline-flex flex-1 basis-0 items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               @click="emit('like', watch)"
             >
               <Heart class="h-5 w-5" :stroke-width="2.5" />
               {{ t('matchmaking.deck.like') }}
             </button>
           </template>
+          <!--
+            Coup de cœur déjà donné : la décision est prise, ce qui reste à faire est d'aller
+            acheter. La fiche complète prend donc toute la place — c'est de là que part l'achat
+            — et « Retirer » se replie sur son icône. « Fermer » a quitté la barre : la croix de
+            l'en-tête, l'appui hors du panneau et Échap ferment déjà, et le bouton disputait une
+            moitié de barre au seul chemin qui mène quelque part.
+          -->
           <template v-else>
             <button
               type="button"
-              class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white py-3 text-sm font-semibold uppercase tracking-wide text-gray-700 hover:border-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary"
+              class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 hover:border-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+              :aria-label="
+                t('matchmaking.shortlist.removeLabel', { name: watch.model || watch.name })
+              "
+              :title="t('matchmaking.shortlist.remove')"
               @click="emit('remove', watch)"
             >
-              <Trash2 class="h-4 w-4" :stroke-width="2" />
-              {{ t('matchmaking.shortlist.remove') }}
+              <Trash2 class="h-5 w-5" :stroke-width="2" />
             </button>
+            <RouterLink
+              v-if="watch.slug"
+              :to="`/montre/${watch.slug}`"
+              class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            >
+              {{ t('matchmaking.lightbox.fullPage') }}
+              <ArrowRight class="h-5 w-5 shrink-0" :stroke-width="2" />
+            </RouterLink>
+            <!-- Montre sans fiche à ouvrir : la fermeture reprend la place du bouton. -->
             <button
+              v-else
               type="button"
-              class="inline-flex items-center justify-center rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              class="inline-flex flex-1 items-center justify-center rounded-lg bg-primary py-3 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               @click="emit('close')"
             >
               {{ t('common.close') }}

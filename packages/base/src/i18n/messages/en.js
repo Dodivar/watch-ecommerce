@@ -980,6 +980,7 @@ export default {
   'matchmaking.shortlist.remove': 'Remove',
   'matchmaking.shortlist.removeLabel': 'Remove {name} from my matches',
   'matchmaking.shortlist.details': 'Look again',
+  'matchmaking.shortlist.detailsLabel': 'Look at {name} again',
   'matchmaking.shortlist.viewPage': 'See the watch',
   'matchmaking.shortlist.resume': 'Keep discovering',
   'matchmaking.shortlist.unavailable': 'No longer available',
