@@ -115,8 +115,13 @@ onMounted(async () => {
         >
           <span class="vitrine-halo" aria-hidden="true" />
 
+          <!--
+            `items-baseline` et non `items-start` : la pastille « En stock » porte
+            une hauteur de fond propre, l'aligner par le haut ferait descendre son
+            texte d'un cran sous celui de l'étiquette d'en face.
+          -->
           <div
-            class="relative z-10 flex items-start justify-between gap-4 px-5 pt-5 sm:px-6 sm:pt-6"
+            class="relative z-10 flex items-baseline justify-between gap-4 px-5 pt-5 sm:px-6 sm:pt-6"
           >
             <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
               {{ t('home.vitrineShowcase') }}
