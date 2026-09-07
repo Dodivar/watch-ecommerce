@@ -27,9 +27,9 @@
  *   --out <dir>       Dossier de sortie du --dry-run (défaut : reports/email-previews).
  *   --list            Affiche les variantes disponibles et sort.
  *
- * Secrets Mailjet : mêmes conventions que le backend
- * (`SITE_<ID>__MAILJET_API_KEY` / `_SECRET_KEY`), avec repli sur
- * `MAILJET_API_KEY` / `MAILJET_SECRET_KEY` pour tous les sites.
+ * Secrets Mailjet : résolus par `backend/sites/secrets.js`, donc
+ * `SITE_<ID>__MAILJET_API_KEY` / `_SECRET_KEY` si la vitrine a ses propres clés,
+ * sinon le compte partagé `MAILJET_API_KEY` / `MAILJET_SECRET_KEY`.
  */
 
 const fs = require('fs')
@@ -545,17 +545,6 @@ const VARIANTS = [
 // Envoi
 // ---------------------------------------------------------------------------
 
-/**
- * Clés Mailjet du site, avec repli sur les variables globales pour permettre
- * un envoi de test multi-sites depuis un seul compte.
- * @param {object} site
- */
-function resolveMailjetKeys(site) {
-  const apiKey = site.secrets?.mailjet?.apiKey || process.env.MAILJET_API_KEY || null
-  const secretKey = site.secrets?.mailjet?.secretKey || process.env.MAILJET_SECRET_KEY || null
-  return { apiKey, secretKey }
-}
-
 /** Un message Mailjet v3.1, destinataire forcé sur l'adresse de test. */
 function toMailjetMessage(site, variant, built, { recipient, fromOverride }) {
   const emailCfg = site.config.backend.email
@@ -654,7 +643,9 @@ async function main() {
       continue
     }
 
-    const { apiKey, secretKey } = resolveMailjetKeys(site)
+    // `getSiteSecrets` retombe déjà sur le compte Mailjet partagé (`MAILJET_API_KEY`)
+    // quand la vitrine n'a pas de clé dédiée : rien à rattraper ici.
+    const { apiKey, secretKey } = site.secrets.mailjet
     if (!apiKey || !secretKey) {
       console.log(
         `   ❌ clés Mailjet absentes (SITE_${site.id.toUpperCase().replace(/[^A-Z0-9]+/g, '_')}__MAILJET_API_KEY ou MAILJET_API_KEY)`,
