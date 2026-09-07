@@ -249,6 +249,27 @@ describe('AdminWatchesList — promotions', () => {
     expect(row).toContain('Promo directe')
   })
 
+  it('loge la remise dans la cellule du prix, sans colonne dédiée', async () => {
+    listWatchesForAdminMock.mockResolvedValue(
+      promotedPage({ promotion_price: 4000, discount_percent: 20 }),
+    )
+
+    const wrapper = await mountList()
+    const headers = wrapper.findAll('thead th').map((th) => th.text())
+    expect(headers).not.toContain('Promotion')
+
+    const priceIndex = headers.findIndex((header) => header.startsWith('Prix'))
+    const priceCell = wrapper
+      .findAll('tbody tr td')
+      [priceIndex].text()
+      .replace(/\u202f|\u00a0/g, ' ')
+
+    expect(priceCell).toContain('5 000,00 €')
+    expect(priceCell).toContain('4 000,00 €')
+    expect(priceCell).toContain('−20 %')
+    expect(priceCell).toContain('Promo directe')
+  })
+
   it('nomme la campagne en cours à l’origine de la remise', async () => {
     listWatchesForAdminMock.mockResolvedValue(
       promotedPage({ promotion_price: 4000, discount_percent: 20 }),

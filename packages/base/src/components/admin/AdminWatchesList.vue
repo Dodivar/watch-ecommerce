@@ -834,9 +834,6 @@ onMounted(async () => {
                   </div>
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Promotion
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Statut
                 </th>
                 <!-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -968,15 +965,36 @@ onMounted(async () => {
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                  <template v-if="promotionOf(watch).isOnPromotion">
-                    <div class="text-xs font-normal text-gray-400 line-through">
-                      {{ formatPrice(watch.price) }}
-                    </div>
-                    <div class="text-primary">
-                      {{ formatPrice(promotionOf(watch).promotionPrice) }}
-                    </div>
-                  </template>
-                  <template v-else>{{ formatPrice(watch.price) }}</template>
+                  <div class="flex flex-col items-start gap-0.5">
+                    <template v-if="promotionOf(watch).isOnPromotion">
+                      <div class="text-xs font-normal text-gray-400 line-through">
+                        {{ formatPrice(watch.price) }}
+                      </div>
+                      <div class="text-primary">
+                        {{ formatPrice(promotionOf(watch).promotionPrice) }}
+                      </div>
+                    </template>
+                    <template v-else>
+                      <div>{{ formatPrice(watch.price) }}</div>
+                    </template>
+                    <template v-if="promotionOf(watch).source">
+                      <span
+                        class="mt-0.5 px-2 py-0.5 text-xs font-semibold rounded-full"
+                        :class="getPromotionSourceClass(promotionOf(watch).source)"
+                      >
+                        <template v-if="promotionOf(watch).discountPercent">
+                          −{{ promotionOf(watch).discountPercent }} %
+                        </template>
+                        <template v-else>Programmée</template>
+                      </span>
+                      <div
+                        class="max-w-[9rem] truncate text-xs font-normal text-gray-500"
+                        :title="promotionOf(watch).label"
+                      >
+                        {{ promotionOf(watch).label }}
+                      </div>
+                    </template>
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <div class="text-gray-500">
@@ -995,26 +1013,6 @@ onMounted(async () => {
                     {{ watch.is_available !== false ? 'En stock' : 'Hors stock' }}
                   </span>
                 </td> -->
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div v-if="promotionOf(watch).source" class="flex flex-col items-start gap-1">
-                    <span
-                      class="px-2 py-1 text-xs font-semibold rounded-full"
-                      :class="getPromotionSourceClass(promotionOf(watch).source)"
-                    >
-                      <template v-if="promotionOf(watch).discountPercent">
-                        −{{ promotionOf(watch).discountPercent }} %
-                      </template>
-                      <template v-else>Programmée</template>
-                    </span>
-                    <div
-                      class="max-w-[11rem] truncate text-xs text-gray-500"
-                      :title="promotionOf(watch).label"
-                    >
-                      {{ promotionOf(watch).label }}
-                    </div>
-                  </div>
-                  <span v-else class="text-gray-300">—</span>
-                </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
                     v-if="isRetailCatalog"

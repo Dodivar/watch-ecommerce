@@ -11,11 +11,12 @@ Interface back-office accessible après authentification Supabase.
   gestion des articles, y compris la génération assistée et l’aperçu.
 - `AdminWatchForm.vue` / `AdminWatchArticleSelector.vue` : création de fiches
   montres et association aux articles de blog.
-- `AdminWatchesList.vue` : catalogue paginé côté base. La colonne « Prix » barre le
-  prix catalogue dès qu'une remise s'applique, et la colonne « Promotion » en donne
-  l'origine : campagne en cours (nom de l'événement), promo directe posée sur la fiche,
-  ou campagne à venir (montre engagée, prix pas encore modifié). La case « En promotion
-  uniquement » filtre côté base sur `promotion_price`. Le rattachement montre ↔ campagne
+- `AdminWatchesList.vue` : catalogue paginé côté base. La colonne « Prix » porte toute
+  la remise — prix catalogue barré, prix promo, taux et origine empilés sous le prix,
+  la hauteur de ligne (vignette 96 px) suffisant à les loger sans colonne dédiée.
+  L'origine est : campagne en cours (nom de l'événement), promo directe posée sur la
+  fiche, ou campagne à venir (montre engagée, prix pas encore modifié). La case
+  « En promotion uniquement » filtre côté base sur `promotion_price`. Le rattachement montre ↔ campagne
   n'est chargé que si `features.adminWatchPromotions` est actif, et son échec ne prive
   pas l'admin du catalogue.
 - `AdminPromotedWatchesList.vue` : page dédiée `/admin/watch-promotions/watches`
