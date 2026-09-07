@@ -17,30 +17,44 @@
       </p>
     </header>
 
-    <ul v-if="entries.length" class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <!-- Deux colonnes dès le téléphone, comme les collections du site : une seule donnait des
+         vignettes hautes d'un demi-écran, et comparer ses coups de cœur demandait de faire
+         défiler la page entre deux montres. -->
+    <ul v-if="entries.length" class="mt-8 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
       <li v-for="entry in entries" :key="entry.id" class="flex flex-col">
         <!-- Montre encore au catalogue -->
         <template v-if="entry.watch">
           <button
             type="button"
             class="block aspect-[4/5] w-full text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            :aria-label="t('matchmaking.shortlist.details')"
+            :aria-label="
+              t('matchmaking.shortlist.detailsLabel', {
+                name: entry.watch.model || entry.watch.name,
+              })
+            "
             @click="emit('open-details', entry.watch)"
           >
             <MatchWatchCard :watch="entry.watch" image-loading="lazy" />
           </button>
-          <div class="mt-3 flex items-center gap-2">
+          <!-- Une seule rangée sous la vignette. « Revoir » n'y est plus : la vignette elle-même
+               ouvre le détail, et les deux rangées qu'il fallait pour tenir trois boutons dans
+               une colonne étroite reviennent à la photo. Reste la fiche — le seul chemin vers
+               l'achat, donc le seul bouton en couleur de marque, sur toute la largeur libre — et
+               le retrait, réduit à son icône. -->
+          <div class="mt-2 flex items-center gap-2 sm:mt-3">
             <RouterLink
               v-if="entry.watch.slug"
               :to="`/montre/${entry.watch.slug}`"
-              class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:px-3 sm:text-xs"
             >
               {{ t('matchmaking.shortlist.viewPage') }}
-              <ArrowRight class="h-4 w-4" :stroke-width="2" />
+              <ArrowRight class="h-4 w-4 shrink-0" :stroke-width="2" />
             </RouterLink>
+            <!-- Montre sans slug : pas de fiche à ouvrir, le détail reprend la place du bouton. -->
             <button
+              v-else
               type="button"
-              class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-700 hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+              class="inline-flex flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-2 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-700 hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary sm:px-3 sm:text-xs"
               @click="emit('open-details', entry.watch)"
             >
               {{ t('matchmaking.shortlist.details') }}
@@ -64,7 +78,7 @@
         <!-- Coup de cœur disparu du catalogue -->
         <template v-else>
           <div
-            class="flex aspect-[4/5] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white/60 p-6 text-center"
+            class="flex aspect-[4/5] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white/60 p-3 text-center sm:p-6"
           >
             <HeartCrack class="h-8 w-8 text-gray-400" :stroke-width="1.5" />
             <p class="mt-3 text-sm font-semibold text-gray-700">

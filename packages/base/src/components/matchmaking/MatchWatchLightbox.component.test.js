@@ -56,7 +56,7 @@ function mountLightbox(props = {}) {
     global: {
       stubs: {
         WatchImageSwipeCarousel: true,
-        RouterLink: { template: '<a><slot /></a>' },
+        RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' },
         Teleport: true,
       },
     },
@@ -112,11 +112,22 @@ describe('MatchWatchLightbox', () => {
     wrapper.unmount()
   })
 
-  it('propose « retirer » et le lien vers la fiche en mode shortlist', async () => {
+  /**
+   * Coup de cœur déjà donné : la barre du bas mène à l'achat. La fiche complète y tient la
+   * pleine largeur, « Retirer » se replie sur son icône, et « Fermer » n'y est plus — la croix
+   * de l'en-tête, l'appui hors du panneau et Échap s'en chargent.
+   */
+  it('mène à la fiche et garde le retrait en mode shortlist', async () => {
     const wrapper = mountLightbox({ mode: 'shortlist' })
-    expect(wrapper.text()).toContain('Retirer')
-    expect(wrapper.text()).toContain('Voir la fiche complète')
-    await wrapper.findAll('footer button')[0].trigger('click')
+    const cta = wrapper.find('footer a')
+    expect(cta.text()).toContain('Voir la fiche complète')
+    expect(cta.attributes('href')).toContain('/montre/rolex-explorer')
+    expect(wrapper.text()).not.toContain('Fermer')
+
+    const remove = wrapper.findAll('footer button')
+    expect(remove).toHaveLength(1)
+    expect(remove[0].attributes('aria-label')).toContain('Retirer')
+    await remove[0].trigger('click')
     expect(wrapper.emitted('remove')?.[0]?.[0]).toMatchObject({ id: 'w1' })
     wrapper.unmount()
   })

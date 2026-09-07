@@ -77,6 +77,23 @@ describe('MatchSwipeDeck', () => {
     wrapper.unmount()
   })
 
+  /**
+   * La pile prend la hauteur laissée libre sous la consigne (voir la feuille de style) : c'est
+   * ce qui garde les trois boutons de décision à l'écran sans défiler, du petit téléphone au
+   * grand. Sans la mesure, la pile retomberait sur une fraction de la hauteur d'écran.
+   */
+  it('mesure la hauteur disponible pour la pile de cartes', () => {
+    const wrapper = mount(MatchSwipeDeck, {
+      props: { mm: makeMm() },
+      attachTo: document.body,
+    })
+
+    const fill = wrapper.get('.matchmaking-deck').element.style.getPropertyValue('--mm-fill')
+    expect(fill).toMatch(/^\d+px$/)
+
+    wrapper.unmount()
+  })
+
   it('le bouton cœur envoie la décision une fois la carte sortie', async () => {
     const mm = makeMm()
     const wrapper = mount(MatchSwipeDeck, { props: { mm } })

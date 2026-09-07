@@ -1626,6 +1626,8 @@ export default {
       template: {
         logoText: 'PLACE DES MONTRES',
         accentColor: '#7c6300',
+        /** Logo d'en-tête des e-mails (déjà utilisé pour les reçus). */
+        logoPath: '/brand-logo.jpg',
       },
     },
     n8n: {

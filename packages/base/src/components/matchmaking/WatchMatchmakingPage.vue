@@ -1,5 +1,7 @@
 <template>
-  <div class="matchmaking-page mx-auto w-full max-w-5xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+  <!-- `pb` réduite sur téléphone : cette marge est retranchée de la hauteur laissée aux
+       écrans qui remplissent l'écran (onboarding, deck), et 4 rem y coûtaient une photo. -->
+  <div class="matchmaking-page mx-auto w-full max-w-5xl px-4 pb-10 pt-6 sm:px-6 sm:pb-16 lg:px-8">
     <!-- Chargement -->
     <div
       v-if="mm.phase === 'loading'"
