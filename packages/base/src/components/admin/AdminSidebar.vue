@@ -58,6 +58,38 @@ const withAccess = (item) => ({
 
 const roleLabel = computed(() => (role.value ? ROLE_LABELS[role.value] : ''))
 
+// Trois écrans traitent de remises : les codes promo du tunnel de paiement, les
+// événements promotionnels et le récapitulatif des montres remisées. Ils tiennent dans
+// une sous-catégorie plutôt que dans trois entrées de premier niveau.
+const promotionLinks = computed(() => {
+  const items = [
+    {
+      to: '/admin/promo',
+      label: 'Codes promo checkout',
+      icon: Tag,
+      match: (p) => p.startsWith('/admin/promo') && !p.startsWith('/admin/watch-promotions'),
+    },
+  ]
+  if (features.adminWatchPromotions) {
+    items.push(
+      {
+        to: '/admin/watch-promotions',
+        label: 'Promotions montres',
+        icon: Percent,
+        match: (p) =>
+          p.startsWith('/admin/watch-promotions') && p !== '/admin/watch-promotions/watches',
+      },
+      {
+        to: '/admin/watch-promotions/watches',
+        label: 'Montres en promo',
+        icon: BadgePercent,
+        match: (p) => p === '/admin/watch-promotions/watches',
+      },
+    )
+  }
+  return items
+})
+
 const carouselLinks = computed(() => {
   const items = []
   if (features.homeCarousel) {
@@ -93,25 +125,7 @@ const navItems = computed(() => {
     { type: 'link', to: '/admin/watches', label: 'Montres', icon: Watch, match: (p) => p.startsWith('/admin/watches') },
     { type: 'link', to: '/admin/orders', label: 'Commandes', icon: ShoppingBag, match: (p) => p.startsWith('/admin/orders') },
     { type: 'link', to: '/admin/leads', label: 'Messages', icon: MessageSquare, match: (p) => p.startsWith('/admin/leads') },
-    { type: 'link', to: '/admin/promo', label: 'Codes promo checkout', icon: Tag, match: (p) => p.startsWith('/admin/promo') && !p.startsWith('/admin/watch-promotions') },
   ]
-  if (features.adminWatchPromotions) {
-    items.push({
-      type: 'link',
-      to: '/admin/watch-promotions',
-      label: 'Promotions montres',
-      icon: Percent,
-      match: (p) =>
-        p.startsWith('/admin/watch-promotions') && p !== '/admin/watch-promotions/watches',
-    })
-    items.push({
-      type: 'link',
-      to: '/admin/watch-promotions/watches',
-      label: 'Montres en promo',
-      icon: BadgePercent,
-      match: (p) => p === '/admin/watch-promotions/watches',
-    })
-  }
   if (features.newsletter) {
     items.push({
       type: 'link',
@@ -134,6 +148,13 @@ const navItems = computed(() => {
     { type: 'link', to: '/admin/stats', label: 'Statistiques', icon: ChartColumn, match: (p) => p === '/admin/stats' },
     { type: 'link', to: '/admin/users', label: 'Utilisateurs', icon: Users, match: (p) => p === '/admin/users' },
   )
+  // Les sections groupées ferment le menu : tout ce qui suit un intitulé de groupe lui
+  // appartient, il n'y a donc pas de lien de premier niveau après elles.
+  items.push({
+    type: 'group',
+    label: 'Promotions',
+    items: promotionLinks.value.map(withAccess),
+  })
   if (carouselLinks.value.length > 0) {
     items.push({
       type: 'group',
