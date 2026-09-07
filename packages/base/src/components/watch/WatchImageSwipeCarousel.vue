@@ -8,7 +8,7 @@
     @touchend="onTouchEnd"
     @touchcancel="onTouchEnd"
   >
-    <div class="flex h-full" :class="trackClass" :style="trackStyle">
+    <div class="flex h-full" :class="effectiveTrackClass" :style="trackStyle">
       <div
         v-for="(image, index) in images"
         :key="slideKey(image, index)"
@@ -122,6 +122,15 @@ const props = defineProps({
     type: String,
     default: 'touch-pan-y',
   },
+  /**
+   * Piste qui n'a aucun geste horizontal à jouer (une seule image) : elle rend la
+   * main au navigateur. La visionneuse, qui pilote le zoom au doigt même sur une
+   * photo unique, repasse `touch-none`.
+   */
+  idleTrackClass: {
+    type: String,
+    default: 'touch-auto',
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'index-change'])
@@ -129,6 +138,16 @@ const emit = defineEmits(['update:modelValue', 'index-change'])
 const containerRef = ref(null)
 const currentIndex = ref(Number.isFinite(props.modelValue) ? props.modelValue : 0)
 const imageCount = computed(() => props.images.length)
+
+/**
+ * `touch-pan-y` confisque le défilement horizontal au profit du glissement d'images.
+ * Sur une carte à une seule image, il n'y avait rien à confisquer : le doigt posé sur
+ * la photo bloquait le défilement du carrousel parent (bande « Dernières transactions »
+ * de l'accueil, dont les cartes n'ont qu'un visuel).
+ */
+const effectiveTrackClass = computed(() =>
+  props.images.length > 1 ? props.trackClass : props.idleTrackClass,
+)
 
 watch(
   () => props.modelValue,

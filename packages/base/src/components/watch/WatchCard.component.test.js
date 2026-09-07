@@ -181,4 +181,32 @@ describe('WatchCard', () => {
     expect(loadings[2]).toBe('lazy')
     expect(loadings[3]).toBe('lazy')
   })
+
+  it('rend le geste horizontal au navigateur quand la carte n’a qu’une image', () => {
+    getSiteConfigMock.mockReturnValue({
+      watchCatalog: { display: { showReference: false, showSoldBadge: false } },
+    })
+
+    const wrapper = mount(WatchCard, {
+      props: { watch: { ...baseWatch, images: ['a.webp'] } },
+    })
+
+    // Sans ce relâchement, le doigt posé sur la photo bloquait le défilement du
+    // carrousel parent (bande « Dernières transactions » de l’accueil).
+    const track = wrapper.find('.flex.h-full')
+    expect(track.classes()).toContain('touch-auto')
+    expect(track.classes()).not.toContain('touch-pan-y')
+  })
+
+  it('garde le geste horizontal quand la carte a plusieurs images', () => {
+    getSiteConfigMock.mockReturnValue({
+      watchCatalog: { display: { showReference: false, showSoldBadge: false } },
+    })
+
+    const wrapper = mount(WatchCard, {
+      props: { watch: { ...baseWatch, images: ['a.webp', 'b.webp'] } },
+    })
+
+    expect(wrapper.find('.flex.h-full').classes()).toContain('touch-pan-y')
+  })
 })
