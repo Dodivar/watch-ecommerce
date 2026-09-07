@@ -427,6 +427,10 @@ export default {
   'checkout.completeMyDetails': 'Meine Angaben vervollständigen',
   'checkout.preparingPayment': 'Sichere Zahlung wird vorbereitet…',
   'checkout.cancelAndReturn': 'Abbrechen und weiter einkaufen',
+  'checkout.cartLinesRemovedUnavailable': {
+    one: '{names} ist nicht mehr verfügbar und wurde aus Ihrem Warenkorb entfernt.',
+    other: '{names} sind nicht mehr verfügbar und wurden aus Ihrem Warenkorb entfernt.',
+  },
   'checkout.adminPreview': 'Admin-Vorschau',
   'checkout.orderCancelledTitle': 'Bestellung storniert',
   'checkout.noAmountCharged': 'Es wurde kein Betrag abgebucht.',

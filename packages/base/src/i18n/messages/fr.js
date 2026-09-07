@@ -436,6 +436,10 @@ export default {
   'checkout.completeMyDetails': 'Compléter mes informations',
   'checkout.preparingPayment': 'Préparation du paiement sécurisé…',
   'checkout.cancelAndReturn': 'Annuler et continuer mes achats',
+  'checkout.cartLinesRemovedUnavailable': {
+    one: '{names} n’est plus disponible : elle a été retirée de votre panier.',
+    other: '{names} ne sont plus disponibles : elles ont été retirées de votre panier.',
+  },
   'checkout.adminPreview': 'Aperçu admin',
   'checkout.orderCancelledTitle': 'Commande annulée',
   'checkout.noAmountCharged': "Aucun montant n'a été débité.",

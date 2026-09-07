@@ -427,6 +427,10 @@ export default {
   'checkout.completeMyDetails': 'Complete my details',
   'checkout.preparingPayment': 'Preparing secure payment…',
   'checkout.cancelAndReturn': 'Cancel and continue shopping',
+  'checkout.cartLinesRemovedUnavailable': {
+    one: '{names} is no longer available and has been removed from your cart.',
+    other: '{names} are no longer available and have been removed from your cart.',
+  },
   'checkout.adminPreview': 'Admin preview',
   'checkout.orderCancelledTitle': 'Order cancelled',
   'checkout.noAmountCharged': 'No amount has been charged.',
