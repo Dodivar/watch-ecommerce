@@ -21,6 +21,7 @@ import {
   Plus,
   ChartColumn,
   Globe,
+  BadgePercent,
   CalendarDays,
   CreditCard,
   RotateCcw,
@@ -44,6 +45,7 @@ import {
   getLeadSummary,
   formatLeadDateTime,
 } from '@/utils/leadDisplay'
+import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import AdminShell from './AdminShell.vue'
 import AdminKpiCard from './AdminKpiCard.vue'
 
@@ -51,6 +53,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, LineCont
 
 const router = useRouter()
 const site = getSiteConfig()
+const { canAccessPath } = useAdminPermissions()
 
 const inventoryStats = ref(null)
 const orderKpis = ref({
@@ -234,8 +237,19 @@ const inventorySummary = computed(() => {
     soldCount: s.soldCount,
     totalCount: s.totalCount,
     sellThrough,
+    promotedCount: s.promotedCount ?? 0,
+    promotedAverageDiscount: s.promotedAverageDiscount ?? null,
   }
 })
+
+// Le détail des remises (origine campagne ou fiche montre) vit sur son propre écran, qui
+// n'existe que si le site gère les campagnes et n'est ouvert qu'au rôle admin : sinon, le
+// catalogue, où la colonne « Promotion » dit déjà l'essentiel.
+const promotionsLink = computed(() =>
+  site.features?.adminWatchPromotions && canAccessPath('/admin/watch-promotions/watches')
+    ? '/admin/watch-promotions/watches'
+    : '/admin/watches',
+)
 
 function formatPrice(amount) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount || 0)
@@ -494,6 +508,23 @@ onMounted(() => {
             <div class="rounded-lg bg-cream/60 px-3 py-2">
               <dt class="text-gray-500">Vendues</dt>
               <dd class="font-semibold text-text-main">{{ inventorySummary.soldCount }}</dd>
+            </div>
+            <div class="col-span-2 rounded-lg bg-cream/60 px-3 py-2 transition-colors hover:bg-cream">
+              <dt class="flex items-center gap-1.5 text-gray-500">
+                <BadgePercent class="h-3.5 w-3.5" :stroke-width="1.75" />
+                En promotion
+              </dt>
+              <dd class="font-semibold text-text-main">
+                <RouterLink :to="promotionsLink" class="hover:underline">
+                  {{ inventorySummary.promotedCount }}
+                  <span
+                    v-if="inventorySummary.promotedAverageDiscount"
+                    class="font-normal text-gray-500"
+                  >
+                    · −{{ inventorySummary.promotedAverageDiscount }} % en moyenne
+                  </span>
+                </RouterLink>
+              </dd>
             </div>
           </dl>
           <div>

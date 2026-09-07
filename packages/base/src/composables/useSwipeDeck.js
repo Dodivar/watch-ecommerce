@@ -42,9 +42,12 @@ import { computed, onBeforeUnmount, onMounted, ref, unref } from 'vue'
  * s'éloignant tandis que l'autre vient vers l'utilisateur. À droite elle penche à droite, à
  * gauche à gauche, et le plein d'inclinaison tombe sur le seuil de décision.
  *
- * `prefers-reduced-motion` retire l'envol, la rotation et le ressort — mais pas le suivi du
- * doigt : une carte collée au doigt n'est pas une animation, c'est la manipulation directe de
- * l'objet touché, et la supprimer laissait l'écran sans la moindre réponse au geste.
+ * `prefers-reduced-motion` retire l'envol et raccourcit le ressort — mais pas ce que la carte
+ * fait sous le doigt : suivi, inclinaison et bascule sont indexés sur l'écart parcouru, donc
+ * pilotés par la main de l'utilisateur. Ce n'est pas une animation autonome, c'est la
+ * manipulation directe de l'objet touché, et la règle ne vise que la première. Les retirer
+ * laissait un iPhone réglé sur « Réduire les animations » sans la moindre réponse au geste :
+ * la carte glissait à plat, comme figée, là où la souris la faisait basculer.
  *
  * @param {object} options
  * @param {import('vue').Ref<HTMLElement | null>} options.cardRef
@@ -146,15 +149,20 @@ export function useSwipeDeck({ cardRef, onCommit, onTap, disabled }) {
       : transitionMs.value > 0
         ? `transform ${transitionMs.value}ms ${easing}, opacity ${transitionMs.value}ms ${easing}`
         : SETTLE_TRANSITION
-    // Mouvement réduit : la carte suit toujours le doigt (manipulation directe), mais sans
-    // rotation, et elle s'efface au lieu de s'envoler.
-    const rotate = reducedMotion.value
-      ? 0
-      : Math.max(
+    // Mouvement réduit : seul l'envol est retiré (la carte s'efface au lieu de partir).
+    // L'inclinaison et la bascule restent tant que la carte est encore au geste : elles sont
+    // indexées sur l'écart parcouru, donc entièrement sous la main de l'utilisateur — de la
+    // manipulation directe, pas une animation autonome, et c'est la seconde que la règle
+    // vise. Sans cela un iPhone réglé sur « Réduire les animations » ne rendait plus rien du
+    // geste : la carte glissait à plat, comme figée, alors que la souris la faisait basculer.
+    const expressive = !reducedMotion.value || !isLeaving.value
+    const rotate = expressive
+      ? Math.max(
           -MAX_ROTATE_DEG,
           Math.min(MAX_ROTATE_DEG, (dx.value / cardWidth()) * MAX_ROTATE_DEG),
         )
-    const tilt = reducedMotion.value ? 0 : progress.value * MAX_TILT_DEG
+      : 0
+    const tilt = expressive ? progress.value * MAX_TILT_DEG : 0
     return {
       transform:
         `perspective(${PERSPECTIVE_PX}px) ` +

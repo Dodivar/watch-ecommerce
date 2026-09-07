@@ -990,6 +990,7 @@ export default {
   'matchmaking.shortlist.remove': 'Retirer',
   'matchmaking.shortlist.removeLabel': 'Retirer {name} de mes coups de cœur',
   'matchmaking.shortlist.details': 'Revoir',
+  'matchmaking.shortlist.detailsLabel': 'Revoir {name} en détail',
   'matchmaking.shortlist.viewPage': 'Voir la fiche',
   'matchmaking.shortlist.resume': 'Reprendre la découverte',
   'matchmaking.shortlist.unavailable': 'Plus disponible',

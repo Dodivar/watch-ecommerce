@@ -1,8 +1,8 @@
 /**
  * Templates d'email du formulaire « demande de prise en charge » de l'atelier (type `repair`).
  *
- * Deux messages : la demande vers l'atelier (avec les photos en pièces jointes) et un accusé de
- * réception au client. Sans cet accusé, une demande de devis envoyée le samedi soir ressemble à
+ * Deux messages : la demande vers l'atelier (les photos du client s'affichent dans le corps du
+ * message, transportées en pièces jointes inline) et un accusé de réception au client. Sans cet accusé, une demande de devis envoyée le samedi soir ressemble à
  * un formulaire qui n'a rien fait — c'est exactement là qu'on perd le client au profit d'un appel
  * chez le concurrent.
  */
@@ -17,6 +17,7 @@ const {
   linkFieldRow,
   heroBlock,
   messageBlock,
+  photoGrid,
   paragraph,
   button,
   buttonRow,
@@ -47,10 +48,11 @@ function watchLabel(formData) {
 /**
  * @param {object} site Site normalisé (registry.byId).
  * @param {Record<string, any>} formData
- * @param {{ name: string }[]} [files]
+ * @param {{ name: string }[]} [files] Toutes les pièces reçues, images comprises
+ * @param {{ cid: string, name: string }[]} [photos] Images transportées en pièces jointes inline
  * @returns {string} HTML
  */
-function createRepairVendorEmail(site, formData, files = []) {
+function createRepairVendorEmail(site, formData, files = [], photos = []) {
   const branding = resolveEmailBranding(site)
   const service = String(formData.service_type || '').trim()
   const handling = formatHandling(formData.handling)
@@ -69,13 +71,22 @@ function createRepairVendorEmail(site, formData, files = []) {
     tel ? button(branding, `tel:${encodeURIComponent(tel)}`, 'Appeler', { variant: 'secondary' }) : '',
   ])
 
-  const attachmentsHtml = files.length
-    ? section(
-        branding,
-        'Photos jointes',
-        fieldTable(fieldRow(branding, 'Fichiers', files.map((file) => file.name).join(', '))),
-      )
+  // Les images arrivent en pièces jointes inline et s'affichent ici ; le reste (des PDF) ne se
+  // montre pas dans un corps d'e-mail et reste annoncé par son nom de fichier.
+  const photosHtml = photoGrid(
+    branding,
+    (photos || []).map((photo) => ({ src: `cid:${photo.cid}`, alt: photo.name })),
+  )
+  const inlinedNames = new Set((photos || []).map((photo) => photo.name))
+  const otherFiles = files.filter((file) => !inlinedNames.has(file.name))
+  const otherFilesHtml = otherFiles.length
+    ? fieldTable(fieldRow(branding, 'Fichiers', otherFiles.map((file) => file.name).join(', ')))
     : ''
+
+  const attachmentsHtml =
+    photosHtml || otherFilesHtml
+      ? section(branding, 'Photos jointes', photosHtml + otherFilesHtml)
+      : ''
 
   const bodyHtml = `
     ${heroBlock(branding, 'Montre concernée', title)}

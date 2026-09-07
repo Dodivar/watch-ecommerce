@@ -32,7 +32,7 @@ export default defineConfig([
 
   // Configuration Node pour tooling Vite / scripts (évite globals navigateur sur import.meta Vite)
   {
-    files: ['vite/**/*.{js,mjs}', 'scripts/**/*.{js,mjs}'],
+    files: ['vite/**/*.{js,mjs}', 'scripts/**/*.{js,mjs,cjs}'],
     languageOptions: {
       globals: {
         ...globals.node,

@@ -223,6 +223,13 @@ onMounted(load)
     <template #actions>
       <button
         type="button"
+        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-cream text-sm font-medium"
+        @click="router.push('/admin/watch-promotions/watches')"
+      >
+        Montres en promotion
+      </button>
+      <button
+        type="button"
         class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-hover"
         @click="router.push('/admin/watch-promotions/new')"
       >

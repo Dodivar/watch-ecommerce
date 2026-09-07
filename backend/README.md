@@ -91,7 +91,8 @@ backend: {
     fromName: 'Sauvage Watches',
     fromAddress: 'contact@sauvage-watches.fr',
     toAddress: 'contact@sauvage-watches.fr',
-    template: { logoText: 'SAUVAGE WATCHES', accentColor: '#d4af37' },
+    // accentColor omis : l'accent retombe sur theme.colors.primary (recommandé).
+    template: { logoText: 'SAUVAGE WATCHES' },
   },
   n8n: {
     productionWorkflowUrl: 'https://n8n.exemple.com/webhook/...',

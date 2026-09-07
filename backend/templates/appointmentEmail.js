@@ -9,6 +9,7 @@ const {
   paragraph,
   button,
   buttonRow,
+  photoGrid,
   resolveEmailBranding,
 } = require('./emailCommon')
 
@@ -32,6 +33,18 @@ function formatDateLabel(dateStr) {
     month: 'long',
     year: 'numeric',
   })
+}
+
+/**
+ * Photo catalogue de la montre du rendez-vous, quand la route a su la résoudre
+ * (`watch_image_url`, posé par `routes/mailjet.js` depuis `watch_images`).
+ *
+ * @param {object} branding
+ * @param {Record<string, string>} formData
+ * @returns {string}
+ */
+function watchPhotoHtml(branding, formData) {
+  return photoGrid(branding, [{ src: formData.watch_image_url, alt: formData.watch_name }])
 }
 
 function createAppointmentVendorEmail(site, formData) {
@@ -74,7 +87,8 @@ function createAppointmentVendorEmail(site, formData) {
     ${section(
       branding,
       'Montre concernée',
-      fieldTable(`
+      watchPhotoHtml(branding, formData) +
+        fieldTable(`
         ${fieldRow(branding, 'Modèle', formData.watch_name)}
         ${fieldRow(branding, 'Prix affiché', formData.watch_price ? `${formData.watch_price} €` : '')}
       `),
@@ -108,7 +122,8 @@ function createAppointmentCustomerEmail(site, formData) {
     ${section(
       branding,
       'Votre rendez-vous',
-      fieldTable(`
+      watchPhotoHtml(branding, formData) +
+        fieldTable(`
         ${fieldRow(branding, 'Montre', formData.watch_name)}
         ${fieldRow(branding, 'Date', formatDateLabel(formData.date))}
         ${optionalFieldRow(branding, 'Créneau', formatSlotLabel(formData.time_slot))}

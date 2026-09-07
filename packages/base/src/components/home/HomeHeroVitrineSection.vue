@@ -9,12 +9,17 @@ import { t } from '@/i18n'
  * toute seule. Sans catalogue joignable, le panneau disparaît et le discours
  * occupe toute la largeur.
  *
+ * Le panneau est réglé pour que la montre, et non le blanc autour, occupe le
+ * regard : les deux étiquettes tiennent sur une ligne haut et bas, et la photo
+ * prend tout ce qui reste, jusqu'aux bords. Un halo l'éclaire comme un spot de
+ * vitrine — il suit l'inclinaison, sinon la montre paraîtrait posée sur du vide.
+ *
  * Le panneau s'oriente vers le pointeur (ou suit l'inclinaison du téléphone) :
  * la mécanique vit dans `useTiltMotion`, le rendu 3D dans le style ci-dessous.
  */
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { BadgeCheck, MapPin, ShieldCheck } from '@lucide/vue'
+import { ArrowRight, BadgeCheck, MapPin, ShieldCheck } from '@lucide/vue'
 
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isHomeHeroCtaVisible } from '@/site/homeHero.js'
@@ -25,6 +30,12 @@ import { buildWatchPath } from '@/utils/watchSlug.js'
 
 /** Une icône par point de réassurance, dans l'ordre déclaré par la config. */
 const HIGHLIGHT_ICONS = [ShieldCheck, BadgeCheck, MapPin]
+
+/**
+ * La montre couvre jusqu'à ~520 px de large sur grand écran : en dessous de
+ * cette largeur de rendu, elle serait molle sur un écran à densité double.
+ */
+const PIECE_IMAGE_WIDTH = 1100
 
 const site = getSiteConfig()
 const hero = computed(() => site.home?.hero ?? {})
@@ -41,7 +52,7 @@ const isLoadingPiece = ref(true)
 const pieceImage = computed(() => {
   const url = piece.value?.images?.[0]
   if (!url) return null
-  return watchCardImageUrl(url, { width: 800 }) ?? url
+  return watchCardImageUrl(url, { width: PIECE_IMAGE_WIDTH }) ?? url
 })
 
 const piecePath = computed(() =>
@@ -100,47 +111,65 @@ onMounted(async () => {
         <component
           :is="piecePath ? RouterLink : 'div'"
           :to="piecePath"
-          class="vitrine-panel flex h-full flex-col bg-white p-7 sm:p-10"
+          class="vitrine-panel relative flex h-full flex-col bg-white"
         >
-          <div class="flex items-baseline justify-between gap-4 border-b border-gray-200 pb-5">
+          <span class="vitrine-halo" aria-hidden="true" />
+
+          <div
+            class="relative z-10 flex items-start justify-between gap-4 px-5 pt-5 sm:px-6 sm:pt-6"
+          >
             <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
               {{ t('home.vitrineShowcase') }}
             </p>
             <p
               v-if="showPiece"
-              class="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary"
+              class="bg-primary/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary"
             >
               {{ t('home.vitrineInStock') }}
             </p>
           </div>
 
-          <div class="vitrine-stage flex flex-1 items-center justify-center py-8 sm:py-10">
-            <div class="vitrine-piece aspect-square w-full max-w-[19rem] lg:max-w-[24rem]">
+          <!--
+            La scène est un carré calé sur la largeur du panneau, et non un reste
+            de place : c'est ce qui garantit une montre grande sur tous les écrans
+            plutôt qu'écrasée par la hauteur de la colonne de gauche. `flex-auto`
+            lui laisse absorber la hauteur en trop quand le discours est plus long,
+            et `object-contain` met la photo à l'échelle sans jamais la recadrer.
+          -->
+          <div class="vitrine-stage relative aspect-square flex-auto">
+            <div v-if="showPiece" class="vitrine-piece absolute inset-3 sm:inset-4">
               <img
-                v-if="showPiece"
                 :src="pieceImage"
                 :alt="piece.name"
                 class="h-full w-full object-contain"
-                width="800"
-                height="800"
+                :width="PIECE_IMAGE_WIDTH"
+                :height="PIECE_IMAGE_WIDTH"
                 fetchpriority="high"
                 decoding="async"
               />
             </div>
           </div>
 
-          <div class="border-t border-gray-200 pt-5">
-            <template v-if="showPiece">
+          <div
+            class="relative z-10 flex items-end justify-between gap-4 px-5 pb-5 sm:px-6 sm:pb-6"
+          >
+            <div v-if="showPiece" class="min-w-0">
               <p
                 v-if="piece.brand"
                 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500"
               >
                 {{ piece.brand }}
               </p>
-              <p v-if="piece.model" class="mt-1.5 text-lg font-semibold text-text-main">
+              <p v-if="piece.model" class="mt-1 truncate text-lg font-semibold text-text-main">
                 {{ piece.model }}
               </p>
-            </template>
+            </div>
+            <ArrowRight
+              v-if="showPiece && piecePath"
+              class="vitrine-arrow mb-1.5 h-5 w-5 shrink-0 text-primary"
+              :stroke-width="1.5"
+              aria-hidden="true"
+            />
           </div>
         </component>
       </div>
@@ -225,6 +254,9 @@ onMounted(async () => {
  * Le `transform` (perspective + rotations) est posé en style inline par
  * `useTiltMotion`, qui publie aussi `--tilt-x` / `--tilt-y` (-1 → 1). Ici on ne
  * fait qu'en tirer les conséquences : profondeur des calques et ombre portée.
+ *
+ * Pas d'`overflow` sur cette chaîne : une valeur autre que `visible` aplatirait
+ * le `preserve-3d` et recollerait la montre au panneau.
  */
 .vitrine-tilt {
   /* La chaîne complète doit rester en 3D pour que la montre décolle du panneau. */
@@ -244,9 +276,25 @@ onMounted(async () => {
     rgba(15, 42, 29, 0.4);
 }
 
+/*
+ * Le spot de vitrine : sans lui, une photo détourée sur fond blanc se dissout
+ * dans le panneau. Son centre suit l'inclinaison, à contre-sens du regard, pour
+ * que la lumière paraisse fixe pendant que la carte tourne.
+ */
+.vitrine-halo {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    62% 52% at calc(50% - var(--tilt-x, 0) * 7%) calc(45% - var(--tilt-y, 0) * 5%),
+    rgba(15, 42, 29, 0.1),
+    rgba(15, 42, 29, 0.035) 55%,
+    rgba(15, 42, 29, 0) 74%
+  );
+}
+
 /* La montre flotte au-dessus du panneau : la perspective en fait un parallaxe. */
 .vitrine-piece {
-  transform: translateZ(46px);
+  transform: translateZ(34px);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -254,9 +302,21 @@ onMounted(async () => {
     transition: scale 320ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
+  .vitrine-arrow {
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   /* `scale` est une propriété à part : elle n'écrase pas le `transform` inline. */
   .vitrine-tilt:hover {
     scale: 1.015;
+  }
+
+  /*
+   * Zoom du panneau entier, jamais de la seule photo : la montre affleure déjà
+   * les bords, un agrandissement à elle seule la ferait déborder de la vitrine.
+   */
+  .vitrine-panel:hover .vitrine-arrow {
+    transform: translateX(4px);
   }
 }
 
@@ -267,8 +327,11 @@ onMounted(async () => {
     transition: none;
   }
 
-  .vitrine-piece {
+  .vitrine-piece,
+  .vitrine-arrow {
     transform: none;
+    scale: 1;
+    transition: none;
   }
 }
 </style>

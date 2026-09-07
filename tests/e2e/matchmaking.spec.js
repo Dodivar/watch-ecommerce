@@ -19,6 +19,35 @@ const THIRD_WATCH = {
 const STORAGE_KEY = 'watch-ecommerce:matchmaking:sauvage-watches'
 
 /**
+ * Décalage horizontal lu dans un `transform` calculé. La carte bascule en profondeur
+ * (`perspective` + `rotateY`) : le navigateur rend alors une `matrix3d`, où la translation
+ * en x est le 13ᵉ terme et non le 5ᵉ.
+ *
+ * @param {string} transform
+ * @returns {number}
+ */
+function translateXOf(transform) {
+  const [, kind, values] = /(matrix3d|matrix)\(([^)]+)\)/.exec(transform) || []
+  if (!values) return Number.NaN
+  const terms = values.split(',').map((term) => Number(term))
+  return kind === 'matrix3d' ? terms[12] : terms[4]
+}
+
+/**
+ * Vrai quand la carte ne glisse pas à plat : le second terme de la matrice porte le sinus de
+ * l'inclinaison, nul pour une translation pure. Ce qu'on veut lire est justement la
+ * différence entre « la carte se déplace » et « la carte se déplace **en penchant** ».
+ *
+ * @param {string} transform
+ * @returns {boolean}
+ */
+function isTilted(transform) {
+  const [, , values] = /(matrix3d|matrix)\(([^)]+)\)/.exec(transform) || []
+  if (!values) return false
+  return Math.abs(Number(values.split(',')[1])) > 0.01
+}
+
+/**
  * « Coup de foudre » : préférences guidées → deck → détail → fin → shortlist,
  * puis reprise de la session après rechargement (localStorage).
  */
@@ -132,8 +161,7 @@ test.describe('Coup de foudre', () => {
       // La carte a bel et bien suivi le doigt, et la mention « coup de cœur » est apparue.
       const transform = await currentCard.evaluate((el) => getComputedStyle(el).transform)
       expect(transform).not.toBe('none')
-      const [, moved] = /matrix\(([^)]+)\)/.exec(transform) || []
-      expect(Number(moved.split(',')[4])).toBeGreaterThan(50)
+      expect(translateXOf(transform)).toBeGreaterThan(50)
 
       await touch('touchMove', { x: x + 160, y })
       await touch('touchEnd', null)
@@ -147,6 +175,65 @@ test.describe('Coup de foudre', () => {
         STORAGE_KEY,
       )
       expect(stored.liked).toEqual([SAMPLE_WATCH.watchId])
+    })
+
+    /**
+     * Le même geste sur un téléphone réglé sur « Réduire les animations » (Réglages →
+     * Accessibilité → Mouvement, très répandu sur iPhone). La carte y glissait à plat :
+     * inclinaison et bascule en profondeur étaient retirées avec l'envol, et le geste ne
+     * rendait plus rien — l'écran donnait le sentiment que rien n'avait été livré, alors que
+     * le même appareil émulé au bureau, lui, ne porte pas le réglage et montrait tout.
+     *
+     * Ce qui suit le doigt n'est pas une animation : ça reste.
+     */
+    test('la carte penche encore sous le doigt, animations réduites', async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await seedBrowser(page, { cartLines: [], consent: { analytics: false, marketing: false } })
+      await stubSupabaseCatalog(page, { watches: [SAMPLE_WATCH, SECOND_WATCH, THIRD_WATCH] })
+
+      await page.goto('/coup-de-foudre')
+
+      const start = page.getByRole('button', { name: 'Voir les montres' })
+      for (let guard = 0; guard < 6 && !(await start.isVisible()); guard += 1) {
+        await page.getByRole('button', { name: 'Continuer' }).click()
+      }
+      await start.click()
+
+      // Le réglage est bien vu par la page : sans quoi le test ne prouverait rien.
+      expect(
+        await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches),
+      ).toBe(true)
+
+      const currentCard = page.getByTestId('match-current-card')
+      await expect(currentCard).toContainText('Héritage')
+      const box = await currentCard.boundingBox()
+      const y = box.y + box.height / 2
+      const x = box.x + box.width / 2
+
+      const cdp = await page.context().newCDPSession(page)
+      const touch = (type, point) =>
+        cdp.send('Input.dispatchTouchEvent', {
+          type,
+          touchPoints: point ? [{ x: point.x, y: point.y, id: 1 }] : [],
+        })
+
+      await touch('touchStart', { x, y })
+      for (const [dx, dy] of [
+        [6, -10],
+        [40, -18],
+        [90, -16],
+      ]) {
+        await touch('touchMove', { x: x + dx, y: y + dy })
+      }
+
+      const transform = await currentCard.evaluate((el) => getComputedStyle(el).transform)
+      expect(translateXOf(transform)).toBeGreaterThan(50)
+      expect(isTilted(transform)).toBe(true)
+
+      // La sortie, elle, est bien une animation : elle reste retirée.
+      await touch('touchMove', { x: x + 160, y })
+      await touch('touchEnd', null)
+      await expect(page.getByText('2 sur 3')).toBeVisible()
     })
   })
 

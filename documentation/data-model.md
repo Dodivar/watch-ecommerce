@@ -19,7 +19,7 @@ migration correspondante.
 
 | Table | Rôle | Colonnes clés observées |
 | --- | --- | --- |
-| `watches` | Fiche montre — table centrale | `id`, `watch_id`, `site_id`, `brand`, `name`, `reference`, `slug`, `price`, `year`, `condition`, `movement`, `audience`, `status`, `is_visible`, `is_available`, `is_sold`, `sale_date`, `stock_quantity`, `display_order`, `ad_code`, `prestashop_product_id`, `created_at`, `updated_at` |
+| `watches` | Fiche montre — table centrale | `id`, `watch_id`, `site_id`, `brand`, `name`, `reference`, `slug`, `price`, `promotion_price`, `discount_percent`, `year`, `condition`, `movement`, `audience`, `status`, `is_visible`, `is_available`, `is_sold`, `sale_date`, `stock_quantity`, `display_order`, `ad_code`, `prestashop_product_id`, `created_at`, `updated_at` |
 | `watch_details` | Caractéristiques détaillées (paires nom/valeur ordonnées) | `id`, `watch_id`, `name`, `case_size`, `display_order` |
 | `watch_images` | Visuels d'une montre (Supabase Storage) | `id`, `watch_id`, `image_path`, `image_url`, `display_order` |
 | `watch_translations` | Traductions par langue | `watch_id`, `locale`, `description`, `display_order` |
@@ -55,10 +55,17 @@ l'archive `/ventes` (feature `soldArchive`). Le tri catalogue passe par `display
 | `promo_redemptions` | Utilisations d'un code, par client | `id`, `promo_code_id`, `customer_email` |
 | `stripe_processed_events` | Idempotence des webhooks Stripe | `event_id` |
 | `watch_promotion_campaigns` | Campagnes promotionnelles groupées (feature `adminWatchPromotions`) | `id`, `campaign_id`, `site_id`, `name`, `slug`, `status`, `default_discount_percent`, `starts_at`, `ends_at`, `show_in_menu`, `menu_label`, `menu_order` |
-| `watch_promotion_campaign_items` | Montres rattachées à une campagne | `id`, `campaign_id` |
+| `watch_promotion_campaign_items` | Montres rattachées à une campagne | `id`, `campaign_id`, `watch_id`, `discount_percent`, `promotion_price`, `previous_promotion_price`, `previous_discount_percent` |
 
 Les montants sont stockés **en centimes** (`*_cents`) côté commande, alors que `watches.price` est
 un montant nominal : ne pas mélanger les deux.
+
+Une remise vit toujours dans `watches.promotion_price` / `watches.discount_percent`, que le prix
+promo ait été saisi sur la fiche montre ou écrit par l'application d'une campagne ; les colonnes
+`previous_*` de `watch_promotion_campaign_items` gardent la remise d'origine pour la restaurer à
+la fin de l'événement. Conséquence côté admin : une campagne **à venir** n'a encore touché à aucun
+prix — ses montres ne se lisent que dans `watch_promotion_campaign_items`, ce que recompose l'écran
+« Montres en promotion » (`/admin/watch-promotions/watches`).
 
 `stripe_processed_events` garantit qu'un webhook rejoué n'est pas traité deux fois — ne jamais
 court-circuiter cette table dans le flux paiement.

@@ -453,6 +453,150 @@ function heroBlock(branding, label, title) {
     </table>`
 }
 
+/** Photo seule : assez grande pour juger d'un cadran sans écraser le reste du message. */
+const PHOTO_SOLO_WIDTH = 280
+/** Deux photos côte à côte dans la largeur d'un panneau. */
+const PHOTO_PAIR_WIDTH = 224
+
+/**
+ * Photos posées dans le corps du message : une seule centrée, sinon deux par rangée.
+ *
+ * Sert aussi bien à la photo catalogue d'une montre (rendez-vous) qu'aux clichés joints par un
+ * visiteur (estimation, atelier), que Mailjet transporte en pièces jointes *inline* — l'appelant
+ * passe alors `cid:<ContentID>` comme source.
+ *
+ * @param {object} branding
+ * @param {{ src: string, alt?: string }[]} photos
+ * @returns {string}
+ */
+function photoGrid(branding, photos) {
+  const items = (photos || []).filter((photo) => photo && photo.src)
+  if (items.length === 0) return ''
+
+  const img = (photo, width) =>
+    `<img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt || '')}" width="${width}" style="display:block;margin:0 auto;width:100%;max-width:${width}px;height:auto;border:0;border-radius:${branding.radius.image};" />`
+
+  if (items.length === 1) {
+    return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 14px;">
+      <tr><td align="center">${img(items[0], PHOTO_SOLO_WIDTH)}</td></tr>
+    </table>`
+  }
+
+  // Deux colonnes fixes : un `float` ou un `flex-wrap` ne survit pas au moteur Word d'Outlook.
+  const rows = []
+  for (let i = 0; i < items.length; i += 2) {
+    const left = items[i]
+    const right = items[i + 1]
+    rows.push(`
+      <tr>
+        <td width="50%" align="center" valign="top" style="width:50%;padding:0 6px 12px 0;">${img(left, PHOTO_PAIR_WIDTH)}</td>
+        <td width="50%" align="center" valign="top" style="width:50%;padding:0 0 12px 6px;">${right ? img(right, PHOTO_PAIR_WIDTH) : '&nbsp;'}</td>
+      </tr>`)
+  }
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 4px;">
+      ${rows.join('')}
+    </table>`
+}
+
+/** Vignette d'une ligne de commande : côté de l'image, puis largeur de la colonne qui la porte. */
+const LINE_THUMB_SIZE = 64
+const LINE_THUMB_CELL = LINE_THUMB_SIZE + 12
+
+/** Vert des montants économisés — une réduction ne se lit pas dans l'accent de la marque. */
+const DISCOUNT_COLOR = '#15803d'
+
+/**
+ * Vignette d'une ligne de commande. Sans image, une case vide de même largeur : la colonne
+ * reste alignée d'une ligne à l'autre plutôt que de se décaler sur les montres sans photo.
+ *
+ * @param {object} branding
+ * @param {EmailLineItem} item
+ * @returns {string}
+ */
+function lineThumbCell(branding, item) {
+  const cell = `padding:12px 12px 12px 0;border-bottom:1px solid ${branding.borderColor};`
+  if (!item.imageUrl) {
+    return `<td class="li-thumb" valign="top" width="${LINE_THUMB_CELL}" style="${cell}width:${LINE_THUMB_CELL}px;">&nbsp;</td>`
+  }
+  // `alt` reprend le nom de la montre : Gmail et Outlook masquent les images distantes tant que
+  // le lecteur ne les a pas autorisées, et c'est ce texte qui tient la place en attendant.
+  return `
+        <td class="li-thumb" valign="top" width="${LINE_THUMB_CELL}" style="${cell}width:${LINE_THUMB_CELL}px;">
+          <img class="li-img" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name || '')}" width="${LINE_THUMB_SIZE}" style="display:block;width:${LINE_THUMB_SIZE}px;height:auto;border:0;border-radius:${branding.radius.image};" />
+        </td>`
+}
+
+/**
+ * Tableau des montres d'une commande : vignette, désignation, quantité, montant, puis les
+ * totaux. Partagé par la confirmation de commande et la relance de panier, pour qu'un client
+ * qui reçoit les deux voie deux fois la même chose.
+ *
+ * La colonne de vignettes n'apparaît que si au moins une ligne porte une image : un catalogue
+ * sans photos garde un tableau à trois colonnes, sans gouttière vide.
+ *
+ * @typedef {{ name: string, reference?: string, imageUrl?: string|null, quantity?: number,
+ *   amountLabel?: string }} EmailLineItem
+ * @typedef {{ label: string, amountLabel: string, strong?: boolean, tone?: 'positive' }} EmailLineTotal
+ *
+ * @param {object} branding
+ * @param {EmailLineItem[]} items
+ * @param {{ totals?: EmailLineTotal[] }} [options]
+ * @returns {string}
+ */
+function lineItemsTable(branding, items, options = {}) {
+  const rows = (items || []).filter(Boolean)
+  if (rows.length === 0) return ''
+
+  const font = branding.fonts.bodyStack
+  const withThumbs = rows.some((item) => Boolean(item.imageUrl))
+  const border = `border-bottom:1px solid ${branding.borderColor};`
+  const base = `font-family:${font};font-size:14px;line-height:1.45;padding:12px 0;`
+
+  const bodyHtml = rows
+    .map((item) => {
+      const quantity = Number(item.quantity) || 1
+      const referenceHtml = item.reference
+        ? `<div style="font-size:12px;color:${branding.mutedColor};margin:3px 0 0;">${escapeHtml(item.reference)}</div>`
+        : ''
+      return `
+      <tr>
+        ${withThumbs ? lineThumbCell(branding, item) : ''}
+        <td valign="top" style="${base}${border}color:${branding.textColor};">
+          <div style="font-weight:600;">${escapeHtml(item.name || '')}</div>${referenceHtml}
+        </td>
+        <td valign="top" align="right" style="${base}${border}color:${branding.mutedColor};padding-left:10px;white-space:nowrap;">×${quantity}</td>
+        <td valign="top" align="right" style="${base}${border}color:${branding.textColor};padding-left:10px;white-space:nowrap;">${escapeHtml(item.amountLabel || '')}</td>
+      </tr>`
+    })
+    .join('')
+
+  // Le libellé du total s'étale sur toutes les colonnes sauf celle des montants.
+  const labelSpan = withThumbs ? 3 : 2
+  const totalsHtml = (options.totals || [])
+    .filter((total) => total && total.label)
+    .map((total, index) => {
+      const color = total.tone === 'positive' ? DISCOUNT_COLOR : branding.textColor
+      const weight = total.strong ? '700' : '400'
+      const size = total.strong ? '15px' : '14px'
+      const cell = `font-family:${font};font-size:${size};font-weight:${weight};color:${color};padding:${index === 0 ? '12px' : '4px'} 0 0;`
+      return `
+      <tr>
+        <td colspan="${labelSpan}" style="${cell}">${escapeHtml(total.label)}</td>
+        <td align="right" style="${cell}padding-left:10px;white-space:nowrap;">${escapeHtml(total.amountLabel)}</td>
+      </tr>`
+    })
+    .join('')
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">
+      <tbody>${bodyHtml}${totalsHtml}
+      </tbody>
+    </table>`
+}
+
 /**
  * Bouton d'action. Construit en tableau : un `<a>` seul perd ses marges intérieures sur Outlook.
  *
@@ -621,6 +765,8 @@ function emailShell(site, title, bodyHtml, options = {}) {
       .hero-title{font-size:20px!important;}
       .stack{display:block!important;width:100%!important;padding:0 0 14px 0!important;}
       .stack img{width:100%!important;max-width:260px!important;}
+      .li-thumb{width:60px!important;}
+      .li-img{width:52px!important;}
     }
   </style>
 </head>
@@ -656,6 +802,8 @@ module.exports = {
   linkFieldRow,
   fieldTable,
   heroBlock,
+  lineItemsTable,
+  photoGrid,
   messageBlock,
   paragraph,
   button,

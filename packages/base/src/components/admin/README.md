@@ -11,6 +11,20 @@ Interface back-office accessible après authentification Supabase.
   gestion des articles, y compris la génération assistée et l’aperçu.
 - `AdminWatchForm.vue` / `AdminWatchArticleSelector.vue` : création de fiches
   montres et association aux articles de blog.
+- `AdminWatchesList.vue` : catalogue paginé côté base. La colonne « Prix » porte toute
+  la remise — prix catalogue barré, prix promo, taux et origine empilés sous le prix,
+  la hauteur de ligne (vignette 96 px) suffisant à les loger sans colonne dédiée.
+  L'origine est : campagne en cours (nom de l'événement), promo directe posée sur la
+  fiche, ou campagne à venir (montre engagée, prix pas encore modifié). La case
+  « En promotion uniquement » filtre côté base sur `promotion_price`. Le rattachement montre ↔ campagne
+  n'est chargé que si `features.adminWatchPromotions` est actif, et son échec ne prive
+  pas l'admin du catalogue.
+- `AdminPromotedWatchesList.vue` : page dédiée `/admin/watch-promotions/watches`
+  (« Montres en promo », dans la section « Promotions » du menu). Récapitule toutes les
+  montres remisées quelle que soit l'origine de la remise, avec la synthèse chiffrée
+  (nombre, remise moyenne, écart prix catalogue / prix promo), le détail par événement,
+  un filtre par origine et une recherche montre ou campagne. Réservée au rôle `admin`
+  comme le reste de `/admin/watch-promotions` (voir `adminPermissions.js`).
 - `AdminWatchStats.vue` : page dédiée `/admin/stats` (accessible depuis le menu).
   KPIs métier (valeur du stock, taux d'écoulement, prix de vente moyen, délai
   moyen de vente), chiffre d'affaires réel issu des commandes payées, séries
@@ -33,6 +47,11 @@ Interface back-office accessible après authentification Supabase.
   paiement dans le dashboard Stripe, où l'opération est faite à la main, puis
   enregistre le montant et l'identifiant `re_…` obtenus.
 - `AdminLogin.vue`, `AdminShell.vue` + `AdminSidebar.vue` : enveloppe d’authentification et navigation.
+  Le menu mélange liens de premier niveau et sections groupées (`type: 'group'`) : « Promotions »
+  (codes promo checkout, événements promotionnels, montres en promo) et « Carrousels ». Une section
+  ferme le menu — tout ce qui suit son intitulé lui appartient visuellement — d'où leur place en fin
+  de liste. Le contenu d'une section suit les feature flags du site, et chaque entrée est grisée
+  plutôt que masquée quand le rôle n'y a pas accès (`adminPermissions.js`).
 
 ## Flux de données
 
