@@ -7,6 +7,7 @@ import { normalizeBraceletColors } from '@/constants/watchBraceletColors'
 import { normalizeBraceletMaterials } from '@/constants/watchBraceletMaterials'
 import { getI18nConfig } from '@/i18n'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { getDisplayDiscountPercent, isWatchOnPromotion } from '@/utils/watchPricing.js'
 
 function isRetailCatalog() {
   return getSiteConfig().watchCatalog?.mode !== 'resale'
@@ -997,7 +998,7 @@ async function attachFirstImagesToWatches(watches) {
  * c'est la colonne la plus lourde de la table et le tableau ne la montre pas.
  */
 const ADMIN_LIST_COLUMNS =
-  'id, ad_code, name, brand, model, reference, price, created_at, display_order, is_available, is_sold, stock_quantity'
+  'id, ad_code, name, brand, model, reference, price, promotion_price, discount_percent, created_at, display_order, is_available, is_sold, stock_quantity'
 
 /** Colonnes triables depuis l'en-tête du tableau, indexées par la clé utilisée côté UI. */
 const ADMIN_LIST_SORT_COLUMNS = {
@@ -1047,6 +1048,7 @@ function applyAdminStatusFilter(query, status) {
  *   brand?: string,
  *   sortColumn?: string|null,
  *   sortDirection?: 'asc'|'desc',
+ *   onPromotionOnly?: boolean,
  *   page?: number,
  *   pageSize?: number,
  * }} [options]
@@ -1058,6 +1060,7 @@ export async function listWatchesForAdmin({
   brand = '',
   sortColumn = null,
   sortDirection = 'desc',
+  onPromotionOnly = false,
   page = 1,
   pageSize = 25,
 } = {}) {
@@ -1084,6 +1087,14 @@ export async function listWatchesForAdmin({
 
   if (brand) {
     query = query.eq('brand', brand)
+  }
+
+  if (onPromotionOnly) {
+    // Une remise en base, c'est un `promotion_price` renseigné : les campagnes appliquées
+    // écrivent cette colonne comme le fait la fiche montre. Les campagnes à venir n'y
+    // figurent donc pas — elles n'ont pas encore modifié le prix (voir l'écran
+    // « Montres en promotion » pour la vue complète).
+    query = query.not('promotion_price', 'is', null)
   }
 
   const column = ADMIN_LIST_SORT_COLUMNS[sortColumn] || 'display_order'
@@ -1418,7 +1429,9 @@ export async function getWatchInventoryStats() {
   try {
     const { data, error } = await supabase
       .from('watches')
-      .select('price, brand, audience, condition, is_available, is_sold, sale_date, created_at, stock_quantity')
+      .select(
+        'price, promotion_price, discount_percent, brand, audience, condition, is_available, is_sold, sale_date, created_at, stock_quantity',
+      )
 
     if (error) {
       throw new Error(`Erreur lors de la récupération des statistiques d'inventaire: ${error.message}`)
@@ -1469,6 +1482,28 @@ export async function getWatchInventoryStats() {
       sellDurations.length > 0
         ? sellDurations.reduce((sum, d) => sum + d, 0) / sellDurations.length
         : null
+
+    // Montres remisées, toutes origines confondues (prix promo posé sur la fiche ou
+    // campagne appliquée : les deux écrivent `promotion_price`). Compté sur le catalogue
+    // en vente : une remise sur une montre déjà vendue n'a plus d'effet commercial.
+    const isDiscounted = (w) =>
+      isWatchOnPromotion({ price: w.price, promotion_price: w.promotion_price })
+    const promotedWatches = inStock.filter(isDiscounted)
+    const promotedCount = promotedWatches.length
+    const promotedDiscounts = promotedWatches
+      .map((w) =>
+        getDisplayDiscountPercent({
+          price: w.price,
+          promotion_price: w.promotion_price,
+          discount_percent: w.discount_percent,
+        }),
+      )
+      .filter((percent) => Number.isFinite(percent))
+    const promotedAverageDiscount = promotedDiscounts.length
+      ? Math.round(
+          promotedDiscounts.reduce((sum, percent) => sum + percent, 0) / promotedDiscounts.length,
+        )
+      : null
 
     // Répartition par marque (top 8)
     const brandMap = new Map()
@@ -1533,6 +1568,8 @@ export async function getWatchInventoryStats() {
       soldCount,
       soldValue,
       totalCount,
+      promotedCount,
+      promotedAverageDiscount,
       sellThroughRate,
       avgSellingPrice,
       avgTimeToSellDays,

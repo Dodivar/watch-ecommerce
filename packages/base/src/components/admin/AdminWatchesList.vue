@@ -11,12 +11,21 @@ import {
   reorderWatches,
   moveWatchToCatalogEdge,
 } from '@/services/admin/adminWatchService'
+import { getCampaignByWatchIdForAdmin } from '@/services/admin/adminWatchPromotionService'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import {
+  describeWatchPromotion,
+  getPromotionSourceClass,
+} from '@/utils/watchPromotionSummary.js'
 import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import AdminShell from './AdminShell.vue'
 
 const router = useRouter()
-const { canWrite } = useAdminPermissions()
+const { canWrite, canAccessPath } = useAdminPermissions()
+
+// Les campagnes ne sont chargées que là où elles existent : sans la feature, une montre
+// remisée l'est forcément depuis sa fiche.
+const hasCampaigns = computed(() => getSiteConfig().features?.adminWatchPromotions === true)
 
 // Catalogue retail (gestion de stock) : statut base sur le stock ("Hors stock"),
 // pas sur "Vendue" (reserve au mode resale / pieces uniques).
@@ -41,6 +50,12 @@ const selectedBrand = ref('')
 const showDeleteConfirm = ref(false)
 const watchToDelete = ref(null)
 const activeTab = ref('available') // 'available', 'unavailable', 'sold', ou 'all'
+const onPromotionOnly = ref(false)
+
+// Campagne (en cours ou à venir) par montre : dit d'où vient la remise affichée sur une
+// ligne. Chargée une fois, en dehors de la pagination — le catalogue remisé tient dans
+// une poignée d'événements.
+const campaignByWatchId = ref(new Map())
 
 // Pagination state (résolue côté serveur)
 const currentPage = ref(1)
@@ -88,6 +103,7 @@ const loadWatches = async ({ silent = false } = {}) => {
       brand: selectedBrand.value,
       sortColumn: sortColumn.value,
       sortDirection: sortDirection.value,
+      onPromotionOnly: onPromotionOnly.value,
       page: currentPage.value,
       pageSize: pageSize.value,
     })
@@ -119,6 +135,35 @@ const loadStatusCounts = async () => {
   }
 }
 
+const loadCampaignMemberships = async () => {
+  if (!hasCampaigns.value) return
+  try {
+    campaignByWatchId.value = await getCampaignByWatchIdForAdmin()
+  } catch (err) {
+    // L'origine d'une remise est un confort d'affichage : son échec ne doit pas priver
+    // l'admin du catalogue. La remise elle-même reste lisible (prix barré + %).
+    console.error('Erreur lors du chargement des campagnes promotionnelles:', err)
+    campaignByWatchId.value = new Map()
+  }
+}
+
+// Remise de chaque ligne affichée, et son origine (campagne en cours, promo directe,
+// campagne à venir). Calculée une fois par page plutôt qu'à chaque lecture du template.
+const promotionByWatchId = computed(() => {
+  const map = new Map()
+  for (const row of watches.value) {
+    map.set(row.id, describeWatchPromotion(row, campaignByWatchId.value.get(row.id) || null))
+  }
+  return map
+})
+
+/**
+ * @param {object} watch
+ * @returns {ReturnType<typeof describeWatchPromotion>}
+ */
+const promotionOf = (watch) =>
+  promotionByWatchId.value.get(watch.id) || describeWatchPromotion(watch, null)
+
 const loadBrands = async () => {
   try {
     brandOptions.value = await getAdminWatchBrands()
@@ -148,9 +193,12 @@ vueWatch(searchQuery, (value) => {
   }, 300)
 })
 
-vueWatch([activeTab, debouncedSearch, selectedBrand, sortColumn, sortDirection, pageSize], () => {
-  goToFirstPage()
-})
+vueWatch(
+  [activeTab, debouncedSearch, selectedBrand, sortColumn, sortDirection, pageSize, onPromotionOnly],
+  () => {
+    goToFirstPage()
+  },
+)
 
 vueWatch(currentPage, () => {
   loadWatches()
@@ -476,7 +524,12 @@ const handleDragEnd = (event) => {
 }
 
 onMounted(async () => {
-  await Promise.all([loadWatches(), loadStatusCounts(), loadBrands()])
+  await Promise.all([
+    loadWatches(),
+    loadStatusCounts(),
+    loadBrands(),
+    loadCampaignMemberships(),
+  ])
 })
 </script>
 
@@ -565,9 +618,28 @@ onMounted(async () => {
                 {{ brand }}
               </option>
             </select>
+            <label
+              class="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 cursor-pointer whitespace-nowrap hover:bg-cream"
+              title="N'afficher que les montres dont le prix est actuellement remisé"
+            >
+              <input
+                v-model="onPromotionOnly"
+                type="checkbox"
+                class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+              />
+              <span>En promotion uniquement</span>
+            </label>
           </div>
-          <div v-if="canWrite" class="flex flex-col w-full gap-3 sm:w-auto sm:flex-row">
+          <div class="flex flex-col w-full gap-3 sm:w-auto sm:flex-row">
             <button
+              v-if="hasCampaigns && canAccessPath('/admin/watch-promotions/watches')"
+              @click="router.push('/admin/watch-promotions/watches')"
+              class="w-full px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-cream transition-colors whitespace-nowrap sm:w-auto"
+            >
+              Voir les promotions
+            </button>
+            <button
+              v-if="canWrite"
               @click="router.push('/admin/watches/new')"
               class="w-full px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors whitespace-nowrap sm:w-auto"
             >
@@ -762,6 +834,9 @@ onMounted(async () => {
                   </div>
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Promotion
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Statut
                 </th>
                 <!-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -893,7 +968,15 @@ onMounted(async () => {
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                  {{ formatPrice(watch.price) }}
+                  <template v-if="promotionOf(watch).isOnPromotion">
+                    <div class="text-xs font-normal text-gray-400 line-through">
+                      {{ formatPrice(watch.price) }}
+                    </div>
+                    <div class="text-primary">
+                      {{ formatPrice(promotionOf(watch).promotionPrice) }}
+                    </div>
+                  </template>
+                  <template v-else>{{ formatPrice(watch.price) }}</template>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <div class="text-gray-500">
@@ -912,6 +995,26 @@ onMounted(async () => {
                     {{ watch.is_available !== false ? 'En stock' : 'Hors stock' }}
                   </span>
                 </td> -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div v-if="promotionOf(watch).source" class="flex flex-col items-start gap-1">
+                    <span
+                      class="px-2 py-1 text-xs font-semibold rounded-full"
+                      :class="getPromotionSourceClass(promotionOf(watch).source)"
+                    >
+                      <template v-if="promotionOf(watch).discountPercent">
+                        −{{ promotionOf(watch).discountPercent }} %
+                      </template>
+                      <template v-else>Programmée</template>
+                    </span>
+                    <div
+                      class="max-w-[11rem] truncate text-xs text-gray-500"
+                      :title="promotionOf(watch).label"
+                    >
+                      {{ promotionOf(watch).label }}
+                    </div>
+                  </div>
+                  <span v-else class="text-gray-300">—</span>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
                     v-if="isRetailCatalog"
@@ -1114,10 +1217,15 @@ onMounted(async () => {
         </div>
         <h3 class="text-xl text-gray-600 mb-2">Aucune montre trouvée</h3>
         <p class="text-gray-500 mb-6">
-          {{ searchQuery || selectedBrand ? 'Essayez de modifier vos critères de recherche' : 'Commencez par ajouter une montre' }}
+          <template v-if="onPromotionOnly">
+            Aucune montre remisée dans cette sélection.
+          </template>
+          <template v-else>
+            {{ searchQuery || selectedBrand ? 'Essayez de modifier vos critères de recherche' : 'Commencez par ajouter une montre' }}
+          </template>
         </p>
         <button
-          v-if="canWrite && !searchQuery && !selectedBrand"
+          v-if="canWrite && !searchQuery && !selectedBrand && !onPromotionOnly"
           @click="router.push('/admin/watches/new')"
           class="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors"
         >

@@ -12,6 +12,10 @@ const getAdminWatchStatusCountsMock = vi.hoisted(() => vi.fn())
 const getAdminWatchBrandsMock = vi.hoisted(() => vi.fn())
 const reorderWatchesMock = vi.hoisted(() => vi.fn())
 const moveWatchToCatalogEdgeMock = vi.hoisted(() => vi.fn())
+const getCampaignByWatchIdForAdminMock = vi.hoisted(() => vi.fn())
+const siteConfigMock = vi.hoisted(() => ({
+  value: { watchCatalog: { mode: 'resale' }, features: { adminWatchPromotions: true } },
+}))
 
 vi.mock('./AdminShell.vue', () => ({
   default: { name: 'AdminShell', template: '<div><slot /></div>' },
@@ -39,8 +43,12 @@ vi.mock('@/services/admin/useAdminPermissions', () => ({
   }),
 }))
 
+vi.mock('@/services/admin/adminWatchPromotionService', () => ({
+  getCampaignByWatchIdForAdmin: getCampaignByWatchIdForAdminMock,
+}))
+
 vi.mock('@/site/getSiteConfig.js', () => ({
-  getSiteConfig: () => ({ watchCatalog: { mode: 'resale' } }),
+  getSiteConfig: () => siteConfigMock.value,
 }))
 
 vi.mock('vue-router', () => ({
@@ -105,6 +113,11 @@ beforeEach(() => {
   getAdminWatchBrandsMock.mockResolvedValue(['ROLEX', 'OMEGA'])
   reorderWatchesMock.mockResolvedValue({ success: true })
   moveWatchToCatalogEdgeMock.mockResolvedValue({ success: true, displayOrder: 3001 })
+  getCampaignByWatchIdForAdminMock.mockResolvedValue(new Map())
+  siteConfigMock.value = {
+    watchCatalog: { mode: 'resale' },
+    features: { adminWatchPromotions: true },
+  }
 })
 
 describe('AdminWatchesList — pagination serveur', () => {
@@ -212,5 +225,95 @@ describe('AdminWatchesList — réordonnancement', () => {
 
     await dragRow(wrapper, 4, 0)
     expect(reorderWatchesMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('AdminWatchesList — promotions', () => {
+  /** Une page d'une seule montre, remisée ou non. */
+  function promotedPage(overrides = {}) {
+    const watch = { ...watchAt(0), ...overrides }
+    return { watches: [watch], total: 1, page: 1, pageSize: PAGE_SIZE }
+  }
+
+  it('affiche le prix barré, le prix promo et la remise d’une promotion directe', async () => {
+    listWatchesForAdminMock.mockResolvedValue(
+      promotedPage({ promotion_price: 4000, discount_percent: 20 }),
+    )
+
+    const wrapper = await mountList()
+    const row = wrapper.find('tbody tr').text().replace(/\u202f|\u00a0/g, ' ')
+
+    expect(row).toContain('5 000,00 €')
+    expect(row).toContain('4 000,00 €')
+    expect(row).toContain('−20 %')
+    expect(row).toContain('Promo directe')
+  })
+
+  it('nomme la campagne en cours à l’origine de la remise', async () => {
+    listWatchesForAdminMock.mockResolvedValue(
+      promotedPage({ promotion_price: 4000, discount_percent: 20 }),
+    )
+    getCampaignByWatchIdForAdminMock.mockResolvedValue(
+      new Map([
+        [
+          'watch-0',
+          {
+            id: 'camp-1',
+            name: 'Soldes été',
+            status: 'active',
+            startsAt: '2020-01-01T00:00:00.000Z',
+            endsAt: null,
+          },
+        ],
+      ]),
+    )
+
+    const wrapper = await mountList()
+    expect(wrapper.find('tbody tr').text()).toContain('Campagne · Soldes été')
+  })
+
+  it('signale une montre engagée dans une campagne à venir, encore au prix catalogue', async () => {
+    listWatchesForAdminMock.mockResolvedValue(promotedPage())
+    getCampaignByWatchIdForAdminMock.mockResolvedValue(
+      new Map([
+        [
+          'watch-0',
+          {
+            id: 'camp-2',
+            name: 'Black Friday',
+            status: 'scheduled',
+            startsAt: '2099-01-01T00:00:00.000Z',
+            endsAt: null,
+          },
+        ],
+      ]),
+    )
+
+    const wrapper = await mountList()
+    const row = wrapper.find('tbody tr').text()
+
+    expect(row).toContain('Campagne à venir · Black Friday')
+    expect(row).toContain('Programmée')
+  })
+
+  it('renvoie le filtre « en promotion » au serveur', async () => {
+    const wrapper = await mountList()
+    listWatchesForAdminMock.mockClear()
+
+    await wrapper.find('input[type="checkbox"]').setValue(true)
+    await flushPromises()
+
+    expect(listWatchesForAdminMock.mock.calls.at(-1)[0]).toMatchObject({
+      onPromotionOnly: true,
+      page: 1,
+    })
+  })
+
+  it('ne charge pas les campagnes quand le site n’a pas la feature', async () => {
+    siteConfigMock.value = { watchCatalog: { mode: 'resale' }, features: {} }
+
+    await mountList()
+
+    expect(getCampaignByWatchIdForAdminMock).not.toHaveBeenCalled()
   })
 })

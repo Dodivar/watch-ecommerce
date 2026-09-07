@@ -52,6 +52,7 @@ export const APP_ROUTE_META = [
   { path: '/admin/promo/:id/edit', feature: 'admin' },
   { path: '/admin/watch-promotions', feature: 'admin', requiresFeatures: ['adminWatchPromotions'] },
   { path: '/admin/watch-promotions/new', feature: 'admin', requiresFeatures: ['adminWatchPromotions'] },
+  { path: '/admin/watch-promotions/watches', feature: 'admin', requiresFeatures: ['adminWatchPromotions'] },
   { path: '/admin/watch-promotions/:id/edit', feature: 'admin', requiresFeatures: ['adminWatchPromotions'] },
   { path: '/admin/watch-promotions/:id/review', feature: 'admin', requiresFeatures: ['adminWatchPromotions'] },
   { path: '/admin/home-featured', feature: 'admin', requiresFeatures: ['homeNouvelles'] },

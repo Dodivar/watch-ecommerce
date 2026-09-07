@@ -7,6 +7,7 @@ import {
   normalizeCampaignSchedule,
   resolveEarlyCampaignTermination,
 } from '@/utils/watchPromotionCampaign.js'
+import { pickPrimaryCampaign } from '@/utils/watchPromotionSummary.js'
 import { slugifyCampaignName, appendCampaignSlugSuffix } from '@/utils/campaignSlug.js'
 import { invalidateMenuCampaignsCache } from '@/composables/useMenuCampaigns.js'
 
@@ -657,4 +658,134 @@ export async function getWatchPromotionDraftsForAdmin() {
     campaign.itemCount = row.watch_promotion_campaign_items?.[0]?.count ?? 0
     return campaign
   })
+}
+
+/**
+ * Colonnes suffisantes pour identifier et chiffrer une montre remisée, sans transporter
+ * `description` (voir `ADMIN_LIST_COLUMNS` dans `adminWatchService.js`).
+ */
+const PROMOTED_WATCH_COLUMNS =
+  'id, ad_code, name, brand, model, reference, price, promotion_price, discount_percent, is_available, is_sold, stock_quantity'
+
+/**
+ * Rattachements montre ↔ campagne pour les événements en cours ou à venir.
+ *
+ * Le statut stocké peut être en retard sur l'horloge (une campagne « active » dont la
+ * date de fin est passée reste `active` en base jusqu'à sa prochaine écriture) : on
+ * recalcule donc le statut vivant et on écarte les campagnes terminées.
+ *
+ * @returns {Promise<Array<{ watchId: string, campaign: object, item: object, watch: object | null }>>}
+ */
+export async function getActiveCampaignMembershipsForAdmin() {
+  const siteId = getAdminSiteId()
+  const { data, error } = await supabase
+    .from('watch_promotion_campaigns')
+    .select(
+      `
+      id,
+      site_id,
+      name,
+      slug,
+      status,
+      default_discount_percent,
+      starts_at,
+      ends_at,
+      watch_promotion_campaign_items (
+        id,
+        watch_id,
+        discount_percent,
+        promotion_price,
+        watches (${PROMOTED_WATCH_COLUMNS})
+      )
+    `,
+    )
+    .eq('site_id', siteId)
+    .in('status', ['scheduled', 'active'])
+
+  if (error) throw new Error(error.message)
+
+  const memberships = []
+  for (const row of data || []) {
+    const campaign = mapCampaignRow(row)
+    const liveStatus = resolveLiveCampaignStatus(campaign)
+    if (liveStatus !== 'active' && liveStatus !== 'scheduled') continue
+    campaign.status = liveStatus
+
+    for (const item of row.watch_promotion_campaign_items || []) {
+      if (!item?.watch_id) continue
+      memberships.push({
+        watchId: item.watch_id,
+        campaign,
+        item: {
+          id: item.id,
+          discountPercent: item.discount_percent,
+          promotionPrice: item.promotion_price,
+        },
+        watch: item.watches || null,
+      })
+    }
+  }
+
+  return memberships
+}
+
+/**
+ * Campagne à afficher pour chaque montre engagée dans un événement en cours ou à venir.
+ * @param {Array<{ watchId: string, campaign: object }>} [memberships]
+ * @returns {Promise<Map<string, object>>}
+ */
+export async function getCampaignByWatchIdForAdmin(memberships = null) {
+  const rows = memberships ?? (await getActiveCampaignMembershipsForAdmin())
+  const grouped = new Map()
+
+  for (const row of rows) {
+    if (!grouped.has(row.watchId)) grouped.set(row.watchId, [])
+    grouped.get(row.watchId).push(row)
+  }
+
+  const byWatchId = new Map()
+  for (const [watchId, entries] of grouped) {
+    const campaign = pickPrimaryCampaign(entries)
+    if (campaign) byWatchId.set(watchId, campaign)
+  }
+
+  return byWatchId
+}
+
+/**
+ * Toutes les montres remisées du catalogue, quelle que soit l'origine de la remise :
+ * prix promo posé sur la fiche, campagne en cours, ou campagne à venir (la montre est
+ * alors engagée mais encore au prix catalogue).
+ *
+ * @returns {Promise<Array<{ watch: object, campaign: object | null }>>}
+ */
+export async function getPromotedWatchesForAdmin() {
+  const memberships = await getActiveCampaignMembershipsForAdmin()
+  const campaignByWatchId = await getCampaignByWatchIdForAdmin(memberships)
+
+  const { data, error } = await supabase
+    .from('watches')
+    .select(PROMOTED_WATCH_COLUMNS)
+    .not('promotion_price', 'is', null)
+
+  if (error) throw new Error(error.message)
+
+  const watchesById = new Map((data || []).map((row) => [row.id, row]))
+
+  // Les campagnes à venir n'ont pas encore touché aux prix : leurs montres sont absentes
+  // de la requête ci-dessus alors qu'elles sont bien engagées dans une promotion.
+  for (const membership of memberships) {
+    if (!membership.watch || watchesById.has(membership.watchId)) continue
+    watchesById.set(membership.watchId, membership.watch)
+  }
+
+  // Tri final en JS : les montres ajoutées ci-dessus ne passent pas par le tri de la base,
+  // et `localeCompare` classe correctement les marques accentuées.
+  return Array.from(watchesById.values())
+    .sort(
+      (a, b) =>
+        String(a.brand || '').localeCompare(String(b.brand || ''), 'fr') ||
+        String(a.name || '').localeCompare(String(b.name || ''), 'fr'),
+    )
+    .map((watch) => ({ watch, campaign: campaignByWatchId.get(watch.id) || null }))
 }

@@ -16,6 +16,7 @@ import {
   Globe,
   X,
   Percent,
+  BadgePercent,
   Send,
 } from '@lucide/vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -100,7 +101,15 @@ const navItems = computed(() => {
       to: '/admin/watch-promotions',
       label: 'Promotions montres',
       icon: Percent,
-      match: (p) => p.startsWith('/admin/watch-promotions'),
+      match: (p) =>
+        p.startsWith('/admin/watch-promotions') && p !== '/admin/watch-promotions/watches',
+    })
+    items.push({
+      type: 'link',
+      to: '/admin/watch-promotions/watches',
+      label: 'Montres en promo',
+      icon: BadgePercent,
+      match: (p) => p === '/admin/watch-promotions/watches',
     })
   }
   if (features.newsletter) {

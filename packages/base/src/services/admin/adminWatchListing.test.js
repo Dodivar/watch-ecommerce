@@ -9,6 +9,7 @@ import {
   listWatchesForAdmin,
   getAdminWatchStatusCounts,
   getAdminWatchBrands,
+  getWatchInventoryStats,
   moveWatchToCatalogEdge,
   reorderWatches,
 } from './adminWatchService.js'
@@ -156,6 +157,32 @@ describe('listWatchesForAdmin', () => {
     expect(filter.startsWith('name.ilike.%seadweller 50x%')).toBe(true)
   })
 
+  it('sélectionne les colonnes de remise, pour afficher la promo sans requête de plus', async () => {
+    const query = stubList([row], 1)
+
+    await listWatchesForAdmin()
+
+    const columns = query.select.mock.calls[0][0]
+    expect(columns).toContain('promotion_price')
+    expect(columns).toContain('discount_percent')
+  })
+
+  it('ne garde que les montres remisées quand le filtre promo est actif', async () => {
+    const query = stubList([row], 1)
+
+    await listWatchesForAdmin({ status: 'all', onPromotionOnly: true })
+
+    expect(callsTo(query, 'not')).toEqual([['promotion_price', 'is', null]])
+  })
+
+  it('ne touche pas au filtre promo par défaut', async () => {
+    const query = stubList([row], 1)
+
+    await listWatchesForAdmin({ status: 'all' })
+
+    expect(callsTo(query, 'not')).toEqual([])
+  })
+
   it('remonte l’erreur PostgREST plutôt que de rendre une liste vide', async () => {
     supabase.from.mockReturnValueOnce(createQuery({ data: null, error: { message: 'boom' }, count: null }))
 
@@ -235,5 +262,57 @@ describe('moveWatchToCatalogEdge', () => {
       p_watch_id: 'w1',
       p_edge: 'top',
     })
+  })
+})
+
+describe('getWatchInventoryStats — remises', () => {
+  /** Une seule requête sur `watches`, sans filtre : la synthèse est calculée en JS. */
+  function stubInventory(rows) {
+    supabase.from.mockReturnValueOnce(createQuery({ data: rows, error: null }))
+  }
+
+  const onSale = { is_available: true, is_sold: false, stock_quantity: 1 }
+
+  it('compte les montres remisées du catalogue en vente et leur remise moyenne', async () => {
+    stubInventory([
+      { price: 10000, promotion_price: 8000, discount_percent: 20, ...onSale },
+      { price: 5000, promotion_price: 4500, discount_percent: null, ...onSale },
+      { price: 3000, promotion_price: null, discount_percent: null, ...onSale },
+    ])
+
+    const stats = await getWatchInventoryStats()
+
+    expect(stats.promotedCount).toBe(2)
+    // 20 % et 10 % (déduit des prix quand la colonne est vide).
+    expect(stats.promotedAverageDiscount).toBe(15)
+  })
+
+  it('ignore les remises restées sur une montre sortie du catalogue', async () => {
+    // Vendue en mode resale, en rupture et dépubliée en mode retail : hors catalogue
+    // quel que soit le mode du site.
+    stubInventory([
+      {
+        price: 10000,
+        promotion_price: 8000,
+        discount_percent: 20,
+        is_available: false,
+        is_sold: true,
+        stock_quantity: 0,
+      },
+      { price: 5000, promotion_price: 4000, discount_percent: 20, ...onSale },
+    ])
+
+    const stats = await getWatchInventoryStats()
+
+    expect(stats.promotedCount).toBe(1)
+  })
+
+  it('ne voit pas de remise dans un prix promo incohérent', async () => {
+    stubInventory([{ price: 5000, promotion_price: 6000, discount_percent: null, ...onSale }])
+
+    const stats = await getWatchInventoryStats()
+
+    expect(stats.promotedCount).toBe(0)
+    expect(stats.promotedAverageDiscount).toBeNull()
   })
 })
