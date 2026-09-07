@@ -18,6 +18,7 @@ const {
   linkFieldRow,
   heroBlock,
   messageBlock,
+  photoGrid,
   button,
   buttonRow,
   resolveEmailBranding,
@@ -172,11 +173,23 @@ function createEmailTemplate(site, formData) {
     ? section(branding, 'Message du client', messageBlock(branding, formData.message))
     : ''
 
+  // Les clichés joints par le visiteur sont ce qu'un horloger regarde en premier pour estimer :
+  // ils passent en pièces jointes inline (`routes/mailjet.js`) et s'affichent ici, au lieu
+  // d'attendre au fond de la liste des pièces jointes.
+  const photosHtml = photoGrid(
+    branding,
+    (formData.photos || []).map((photo) => ({ src: `cid:${photo.cid}`, alt: photo.name })),
+  )
+  const photosSectionHtml = photosHtml
+    ? section(branding, 'Photos envoyées par le client', photosHtml)
+    : ''
+
   const bodyHtml = `
     ${watchHeroHtml}
     ${section(branding, 'Informations de contact', fieldTable(contactRows))}
     ${actionsHtml}
     ${watchDetailsHtml}
+    ${photosSectionHtml}
     ${messageHtml}
   `
 

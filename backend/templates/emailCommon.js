@@ -453,6 +453,54 @@ function heroBlock(branding, label, title) {
     </table>`
 }
 
+/** Photo seule : assez grande pour juger d'un cadran sans écraser le reste du message. */
+const PHOTO_SOLO_WIDTH = 280
+/** Deux photos côte à côte dans la largeur d'un panneau. */
+const PHOTO_PAIR_WIDTH = 224
+
+/**
+ * Photos posées dans le corps du message : une seule centrée, sinon deux par rangée.
+ *
+ * Sert aussi bien à la photo catalogue d'une montre (rendez-vous) qu'aux clichés joints par un
+ * visiteur (estimation, atelier), que Mailjet transporte en pièces jointes *inline* — l'appelant
+ * passe alors `cid:<ContentID>` comme source.
+ *
+ * @param {object} branding
+ * @param {{ src: string, alt?: string }[]} photos
+ * @returns {string}
+ */
+function photoGrid(branding, photos) {
+  const items = (photos || []).filter((photo) => photo && photo.src)
+  if (items.length === 0) return ''
+
+  const img = (photo, width) =>
+    `<img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt || '')}" width="${width}" style="display:block;margin:0 auto;width:100%;max-width:${width}px;height:auto;border:0;border-radius:${branding.radius.image};" />`
+
+  if (items.length === 1) {
+    return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 14px;">
+      <tr><td align="center">${img(items[0], PHOTO_SOLO_WIDTH)}</td></tr>
+    </table>`
+  }
+
+  // Deux colonnes fixes : un `float` ou un `flex-wrap` ne survit pas au moteur Word d'Outlook.
+  const rows = []
+  for (let i = 0; i < items.length; i += 2) {
+    const left = items[i]
+    const right = items[i + 1]
+    rows.push(`
+      <tr>
+        <td width="50%" align="center" valign="top" style="width:50%;padding:0 6px 12px 0;">${img(left, PHOTO_PAIR_WIDTH)}</td>
+        <td width="50%" align="center" valign="top" style="width:50%;padding:0 0 12px 6px;">${right ? img(right, PHOTO_PAIR_WIDTH) : '&nbsp;'}</td>
+      </tr>`)
+  }
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 4px;">
+      ${rows.join('')}
+    </table>`
+}
+
 /** Vignette d'une ligne de commande : côté de l'image, puis largeur de la colonne qui la porte. */
 const LINE_THUMB_SIZE = 64
 const LINE_THUMB_CELL = LINE_THUMB_SIZE + 12
@@ -755,6 +803,7 @@ module.exports = {
   fieldTable,
   heroBlock,
   lineItemsTable,
+  photoGrid,
   messageBlock,
   paragraph,
   button,

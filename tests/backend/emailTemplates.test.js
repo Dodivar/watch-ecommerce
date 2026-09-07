@@ -6,7 +6,12 @@ const {
   resolveEmailBranding,
   contrastRatio,
   lineItemsTable,
+  photoGrid,
 } = require('../../backend/templates/emailCommon.js')
+const {
+  createAppointmentVendorEmail,
+  createAppointmentCustomerEmail,
+} = require('../../backend/templates/appointmentEmail.js')
 const {
   createOrderConfirmationEmail,
 } = require('../../backend/templates/orderConfirmationEmail.js')
@@ -459,5 +464,146 @@ describe("photos des montres dans les e-mails de commande", () => {
     expect(html).not.toContain('VOTRE COMMANDE')
     expect(html).not.toContain('Votre commande</div>')
     expect(html).toContain('CMD-1')
+  })
+})
+
+describe('photos jointes et photo catalogue', () => {
+  describe('photoGrid', () => {
+    it('centre une photo seule', () => {
+      const branding = resolveEmailBranding(mockSite())
+      const html = photoGrid(branding, [{ src: 'cid:photo1', alt: 'cadran.jpg' }])
+
+      expect(html).toContain('src="cid:photo1"')
+      expect(html).toContain('alt="cadran.jpg"')
+      expect(html.match(/<img/g)).toHaveLength(1)
+    })
+
+    it('range les photos deux par rangée, dernière case comprise', () => {
+      const branding = resolveEmailBranding(mockSite())
+      const html = photoGrid(branding, [
+        { src: 'cid:photo1' },
+        { src: 'cid:photo2' },
+        { src: 'cid:photo3' },
+      ])
+
+      expect(html.match(/<img/g)).toHaveLength(3)
+      // Trois photos tiennent en deux rangées : la case orpheline reste vide, sans image.
+      expect(html.match(/<tr>/g)).toHaveLength(2)
+    })
+
+    it('ne rend rien sans photo exploitable', () => {
+      const branding = resolveEmailBranding(mockSite())
+      expect(photoGrid(branding, [])).toBe('')
+      expect(photoGrid(branding, undefined)).toBe('')
+      expect(photoGrid(branding, [{ alt: 'sans source' }, null])).toBe('')
+    })
+
+    it("échappe une source hostile plutôt que de fermer l'attribut", () => {
+      const branding = resolveEmailBranding(mockSite())
+      const html = photoGrid(branding, [{ src: 'cid:x" onerror="alert(1)', alt: 'x' }])
+
+      expect(html).not.toContain('onerror="alert(1)"')
+      expect(html).toContain('&quot; onerror=&quot;')
+    })
+  })
+
+  describe('rendez-vous', () => {
+    const appointment = {
+      name: 'Jean Dupont',
+      email: 'jean@example.com',
+      tel: '0600000000',
+      date: '2026-09-19',
+      time_slot: 'morning',
+      watch_id: 'w1',
+      watch_name: 'Rolex Submariner',
+      watch_price: '8500',
+      watch_image_url: 'https://cdn.example.com/watch-images/submariner.jpg',
+    }
+
+    it('montre la photo catalogue au commerçant comme au client', () => {
+      const site = mockSite()
+
+      for (const html of [
+        createAppointmentVendorEmail(site, appointment),
+        createAppointmentCustomerEmail(site, appointment),
+      ]) {
+        expect(html).toContain('https://cdn.example.com/watch-images/submariner.jpg')
+        expect(html).toContain('alt="Rolex Submariner"')
+      }
+    })
+
+    it("part sans image quand la montre n'a pas de photo", () => {
+      const site = mockSite()
+      const sansPhoto = { ...appointment, watch_image_url: '' }
+      const html = createAppointmentVendorEmail(site, sansPhoto)
+
+      expect(html).not.toContain('<img src="cid:')
+      expect(html).toContain('Rolex Submariner')
+      expect(html).toContain('Nouvelle demande de rendez-vous')
+    })
+  })
+
+  describe('estimation', () => {
+    const estimation = {
+      type: 'estimation',
+      nickname: 'Jean',
+      name: 'Dupont',
+      email: 'jean@example.com',
+      brand: 'Omega',
+      model: 'Speedmaster',
+    }
+
+    it('affiche les clichés du client dans le corps du message', () => {
+      const html = createEmailTemplate(mockSite(), {
+        ...estimation,
+        photos: [
+          { cid: 'photo1', name: 'cadran.jpg' },
+          { cid: 'photo2', name: 'dos.jpg' },
+        ],
+      })
+
+      expect(html).toContain('Photos envoyées par le client')
+      expect(html).toContain('src="cid:photo1"')
+      expect(html).toContain('src="cid:photo2"')
+    })
+
+    it("n'ouvre pas de panneau quand le client n'a rien joint", () => {
+      const html = createEmailTemplate(mockSite(), estimation)
+
+      expect(html).not.toContain('Photos envoyées par le client')
+      expect(html).toContain('Speedmaster')
+    })
+  })
+
+  describe('atelier', () => {
+    const repair = {
+      name: 'Dupont',
+      email: 'jean@example.com',
+      service_type: 'Changement de pile',
+      message: 'La montre retarde.',
+      brand: 'Tissot',
+      model: 'PRX',
+    }
+
+    it('affiche les photos et ne garde en liste que les fichiers non affichables', () => {
+      const html = createRepairVendorEmail(
+        mockSite(),
+        repair,
+        [{ name: 'cadran.jpg' }, { name: 'facture.pdf' }],
+        [{ cid: 'photo1', name: 'cadran.jpg' }],
+      )
+
+      expect(html).toContain('src="cid:photo1"')
+      // Le PDF ne s'affiche pas dans un corps d'e-mail : il reste annoncé par son nom.
+      expect(html).toContain('facture.pdf')
+      expect(html).not.toContain('cadran.jpg, facture.pdf')
+    })
+
+    it('reste compatible avec un appel sans photos inline', () => {
+      const html = createRepairVendorEmail(mockSite(), repair, [{ name: 'facture.pdf' }])
+
+      expect(html).toContain('facture.pdf')
+      expect(html).not.toContain('cid:')
+    })
   })
 })

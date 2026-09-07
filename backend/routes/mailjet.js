@@ -22,6 +22,7 @@ const {
 } = require('../templates/repairEmail')
 const { validateAppointmentSubmission } = require('../utils/appointmentSlots')
 const { buildGoogleMapsDirectionsUrl } = require('../utils/googleMapsLinks')
+const { fetchWatchImageUrl } = require('../utils/watchImages')
 
 // Limites d'upload : le formulaire d'estimation accepte images + PDF uniquement
 // (accept="image/*,application/pdf" côté front). Sans `limits`, multer accepte
@@ -159,14 +160,31 @@ router.post('/send-email', sendEmailRateLimiter, uploadAttachments, async (req, 
       throw e
     }
 
-    const attachments = files.map((file) => {
-      const fileContent = fs.readFileSync(file.path)
-      return {
+    // Les images partent en pièces jointes *inline* : le gabarit les affiche dans le corps du
+    // message (`cid:<ContentID>`) au lieu de les laisser au fond de la liste des pièces jointes,
+    // là où un commerçant qui lit sur son téléphone ne les ouvre jamais. Les PDF, qu'aucun corps
+    // d'e-mail ne sait afficher, restent des pièces jointes ordinaires.
+    const attachments = []
+    const inlinedPhotos = []
+    for (const file of files) {
+      const part = {
         ContentType: file.mimetype || 'application/octet-stream',
         Filename: file.originalname,
-        Base64Content: fileContent.toString('base64'),
+        Base64Content: fs.readFileSync(file.path).toString('base64'),
       }
-    })
+      if (String(file.mimetype || '').startsWith('image/')) {
+        // Identifiant interne au message : jamais le nom du fichier, qui peut contenir des
+        // espaces, des accents ou deux fois la même valeur.
+        inlinedPhotos.push({ ...part, ContentID: `photo${inlinedPhotos.length + 1}` })
+      } else {
+        attachments.push(part)
+      }
+    }
+    /** Photos telles que les gabarits les attendent : une source `cid:` et un nom de fichier. */
+    const photos = inlinedPhotos.map((photo) => ({
+      cid: photo.ContentID,
+      name: photo.Filename,
+    }))
 
     const emailCfg = site.config.backend.email
     const fromAddress = site.secrets.emailFrom || emailCfg.fromAddress
@@ -196,7 +214,23 @@ router.post('/send-email', sendEmailRateLimiter, uploadAttachments, async (req, 
           query: storeMap.googlePlaceQuery,
         }) || ''
 
-      const appointmentData = { type, ...formData, directions_url: directionsUrl }
+      // Photo de la fiche : le formulaire n'envoie que `watch_id`. Résolution au mieux — une
+      // base injoignable ou une montre sans photo laisse partir l'e-mail sans image.
+      let watchImageUrl = ''
+      if (formData.watch_id) {
+        try {
+          watchImageUrl = (await fetchWatchImageUrl(getSupabaseClient(site), formData.watch_id)) || ''
+        } catch (imageErr) {
+          console.error(`[${site.id}] photo montre (rendez-vous):`, imageErr.message)
+        }
+      }
+
+      const appointmentData = {
+        type,
+        ...formData,
+        directions_url: directionsUrl,
+        watch_image_url: watchImageUrl,
+      }
       const vendorSubject = `Nouvelle demande de rendez-vous — ${formData.watch_name}`.trim()
       const customerSubject = `Confirmation de votre rendez-vous — ${emailCfg.fromName}`
 
@@ -274,8 +308,9 @@ router.post('/send-email', sendEmailRateLimiter, uploadAttachments, async (req, 
             To: [{ Email: emailCfg.toAddress, Name: emailCfg.fromName }],
             Subject: vendorSubject,
             TextPart: formatRepairVendorText(formData, attachmentNames),
-            HTMLPart: createRepairVendorEmail(site, formData, attachmentNames),
+            HTMLPart: createRepairVendorEmail(site, formData, attachmentNames, photos),
             Attachments: attachments,
+            InlinedAttachments: inlinedPhotos,
           },
           {
             From: { Email: fromAddress, Name: emailCfg.fromName },
@@ -338,8 +373,9 @@ router.post('/send-email', sendEmailRateLimiter, uploadAttachments, async (req, 
                   ? `Nouvelle recherche personnalisée — ${watchSubjectLabel}`
                   : 'Nouvelle recherche personnalisée',
           TextPart: formatEmailContent({ type, ...formData }),
-          HTMLPart: createEmailTemplate(site, { type, ...formData }),
+          HTMLPart: createEmailTemplate(site, { type, ...formData, photos }),
           Attachments: attachments,
+          InlinedAttachments: inlinedPhotos,
         },
       ],
     }

@@ -27,6 +27,7 @@ const { splitMailjetResults } = require('../routes/newsletter')
 const { buildAlertUnsubscribeUrl, alertUnsubscribeHeaders } = require('../routes/watchMatchAlerts')
 const { resolveStorefrontBase } = require('../orders/orderLinks')
 const { createWatchMatchAlertEmail, MAX_WATCH_CARDS } = require('../templates/watchMatchAlertEmail')
+const { publicWatchImageUrl } = require('../utils/watchImages')
 const { loadMatchCore, isMatchAlertsEnabled } = require('./core')
 
 const TICK_MS = 5 * 60 * 1000
@@ -37,22 +38,6 @@ const TICK_MS = 5 * 60 * 1000
  * salve de rattrapage.
  */
 const ALERT_WINDOW_HOURS = 48
-
-/**
- * URL publique d'une image de montre (colonne directe, sinon chemin dans le bucket).
- * @param {import('@supabase/supabase-js').SupabaseClient} supabase
- * @param {{ image_url?: string | null, image_path?: string | null }} record
- * @returns {string | null}
- */
-function resolveImageUrl(supabase, record) {
-  if (!record) return null
-  if (record.image_url) return record.image_url
-  if (record.image_path) {
-    const { data } = supabase.storage.from('watch-images').getPublicUrl(record.image_path)
-    return data?.publicUrl || null
-  }
-  return null
-}
 
 /**
  * Montres nouvellement mises en ligne et encore disponibles, dans la fenêtre de balayage.
@@ -101,7 +86,7 @@ async function findRecentWatches({ supabase, storefrontBase, now = new Date() })
     return {
       ...watch,
       url: `${storefrontBase}/montre/${watch.slug || watch.id}`,
-      imageUrl: resolveImageUrl(supabase, imageByWatch.get(row.id)),
+      imageUrl: publicWatchImageUrl(supabase, imageByWatch.get(row.id)),
     }
   })
 }
