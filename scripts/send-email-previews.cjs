@@ -594,6 +594,43 @@ const VARIANTS = [
 // Envoi
 // ---------------------------------------------------------------------------
 
+/**
+ * Messageries grand public : un `From` chez elles part d'un serveur Mailjet que
+ * leur SPF/DKIM n'autorise pas. Gmail range alors le message en spam — voire ne
+ * l'affiche jamais — même quand l'adresse est validée côté Mailjet, la validation
+ * n'ayant rien à voir avec l'alignement DMARC. Un domaine qu'on possède et qu'on
+ * a signé dans Mailjet est la seule adresse d'expédition fiable.
+ */
+const CONSUMER_MAIL_DOMAINS = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'hotmail.com',
+  'hotmail.fr',
+  'outlook.com',
+  'outlook.fr',
+  'live.fr',
+  'live.com',
+  'msn.com',
+  'yahoo.com',
+  'yahoo.fr',
+  'orange.fr',
+  'wanadoo.fr',
+  'free.fr',
+  'sfr.fr',
+  'laposte.net',
+  'icloud.com',
+  'me.com',
+])
+
+/** @param {string} address */
+function isConsumerMailDomain(address) {
+  const domain = String(address || '')
+    .split('@')
+    .pop()
+    .toLowerCase()
+  return CONSUMER_MAIL_DOMAINS.has(domain)
+}
+
 /** Un message Mailjet v3.1, destinataire forcé sur l'adresse de test. */
 function toMailjetMessage(site, variant, built, { recipient, fromOverride }) {
   const emailCfg = site.config.backend.email
@@ -640,6 +677,16 @@ async function main() {
 
   const outDir = path.resolve(ROOT, args.out || 'reports/email-previews')
   if (args.dryRun) fs.mkdirSync(outDir, { recursive: true })
+
+  if (!args.dryRun && args.from && isConsumerMailDomain(args.from)) {
+    console.log(
+      `⚠️  Expéditeur forcé sur "${args.from}", une adresse de messagerie grand public.\n` +
+        `   Mailjet acceptera les messages, mais le destinataire les rangera très\n` +
+        `   probablement en spam : le serveur d'envoi n'est pas autorisé par le SPF/DKIM\n` +
+        `   de ce domaine. Préférer une adresse d'un domaine signé dans Mailjet\n` +
+        `   (celle de chaque vitrine, en omettant --from).\n`,
+    )
+  }
 
   if (!args.dryRun) {
     console.log(
@@ -745,8 +792,12 @@ async function main() {
       batch.forEach(({ variant }, idx) => {
         const result = results[idx]
         if (result?.Status === 'success') {
-          console.log(`   ✅ ${variant.id}`)
-          summary.push({ site: site.id, variant: variant.id, status: 'sent' })
+          // `success` = Mailjet a mis le message en file, pas qu'il est arrivé. Le
+          // sort réel (envoyé, bloqué, spam, bounce) se lit dans le journal Mailjet,
+          // d'où l'UUID : c'est la clé de recherche de ce message précis.
+          const uuid = result?.To?.[0]?.MessageUUID || '—'
+          console.log(`   ✅ ${variant.id.padEnd(22)} ${uuid}`)
+          summary.push({ site: site.id, variant: variant.id, status: 'accepted', uuid })
         } else {
           const detail = (result?.Errors || [])
             .map((err) => err.ErrorMessage || err.ErrorCode)
@@ -765,7 +816,19 @@ async function main() {
   }, {})
   console.log('Bilan :', counts)
 
-  const failed = summary.filter((r) => !['sent', 'rendered'].includes(r.status))
+  // « accepté » n'est pas « reçu » : un message pris par l'API peut encore être
+  // bloqué, mis en spam ou rejeté par le destinataire. Sans ce rappel, un bilan
+  // tout vert laisse croire à une boîte de réception qui reste vide.
+  const accepted = summary.filter((r) => r.status === 'accepted')
+  if (accepted.length > 0) {
+    console.log(
+      `\n${accepted.length} message(s) acceptés par Mailjet — mis en file, pas encore remis.\n` +
+        `Si la boîte reste vide : vérifier le dossier spam, puis le journal Mailjet\n` +
+        `(Statistiques → Messages) qui donne le sort réel de chaque UUID ci-dessus.`,
+    )
+  }
+
+  const failed = summary.filter((r) => !['accepted', 'rendered'].includes(r.status))
   if (failed.length > 0) {
     console.log('\nÉchecs :')
     for (const row of failed) {
