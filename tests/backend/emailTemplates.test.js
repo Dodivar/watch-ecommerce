@@ -2,7 +2,10 @@ import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { resolveEmailBranding } = require('../../backend/templates/emailCommon.js')
+const {
+  resolveEmailBranding,
+  contrastRatio,
+} = require('../../backend/templates/emailCommon.js')
 const { createEmailTemplate } = require('../../backend/templates/estimationEmail.js')
 const {
   createRepairVendorEmail,
@@ -68,6 +71,95 @@ describe('resolveEmailBranding', () => {
   })
 })
 
+describe("resolveEmailBranding — identité de marque", () => {
+  it('reprend les coins droits du site (theme.radius: sharp)', () => {
+    const sharp = resolveEmailBranding(
+      mockSite({ raw: { theme: { colors: { primary: '#111111' }, radius: 'sharp' } } }),
+    )
+    expect(sharp.radius).toEqual({ card: '0', panel: '0', button: '0', image: '0' })
+
+    const rounded = resolveEmailBranding(mockSite())
+    expect(rounded.radius.card).not.toBe('0')
+  })
+
+  it('reprend la typographie du site, avec une pile de repli pour les clients mail', () => {
+    const branding = resolveEmailBranding(
+      mockSite({
+        raw: {
+          theme: {
+            colors: { primary: '#7c6300' },
+            typography: {
+              sans: { family: 'Tahoma', faces: [{ weight: 400, file: 'tahoma.ttf' }] },
+              heading: {
+                family: 'FjallaOne-Regular',
+                faces: [{ weight: 400, file: 'FjallaOne-Regular.ttf' }],
+              },
+            },
+          },
+        },
+      }),
+    )
+
+    expect(branding.fonts.bodyStack).toContain('Tahoma')
+    expect(branding.fonts.bodyStack).toContain('Arial')
+    expect(branding.fonts.headingStack).toContain('FjallaOne-Regular')
+    // Tahoma est déjà installée chez le destinataire : inutile de la télécharger.
+    expect(branding.fonts.fontFaceCss).not.toContain('tahoma.ttf')
+    expect(branding.fonts.fontFaceCss).toContain(
+      "src:url('https://www.placedesmontres.fr/fonts/FjallaOne-Regular.ttf') format('truetype')",
+    )
+  })
+
+  it("pose le contenu sur une page de marque quand le site est en thème sombre", () => {
+    const branding = resolveEmailBranding(
+      mockSite({
+        raw: {
+          theme: {
+            colorScheme: 'dark',
+            colors: { primary: '#0f2a1d', textOnDark: '#ffffff', cream: '#f7ede0' },
+            surfaces: { page: '#0f2a1d' },
+          },
+        },
+      }),
+    )
+
+    expect(branding.pageColor).toBe('#0f2a1d')
+    expect(branding.headerColor).toBe('#0f2a1d')
+    expect(branding.headerTextColor).toBe('#ffffff')
+    // La carte reste blanche : un e-mail sombre est mal rendu par les webmails.
+    expect(branding.cardColor).toBe('#ffffff')
+  })
+
+  it('calcule des contrastes lisibles au lieu de supposer du blanc sur accent', () => {
+    const gold = resolveEmailBranding(
+      mockSite({ emailTemplate: { accentColor: '#d4af37' }, raw: {} }),
+    )
+    // Blanc sur or : 1,9:1. Le texte du bouton passe donc au sombre.
+    expect(contrastRatio('#d4af37', gold.accentContrast)).toBeGreaterThanOrEqual(4.5)
+    // Et l'or en texte sur blanc est assombri juste ce qu'il faut, sans changer de teinte.
+    expect(contrastRatio(gold.accentText, '#ffffff')).toBeGreaterThanOrEqual(4.5)
+
+    const black = resolveEmailBranding(
+      mockSite({ emailTemplate: { accentColor: '#111111' }, raw: {} }),
+    )
+    expect(black.accentContrast).toBe('#ffffff')
+    expect(black.accentText).toBe('#111111')
+  })
+
+  it("ne signe jamais d'un logo non déclaré par le client", () => {
+    // Les icônes livrées dans `public/` (favicon, manifeste) sont souvent restées celles du
+    // site modèle : sans déclaration explicite, l'e-mail signe du nom de la marque.
+    const branding = resolveEmailBranding(mockSite({ raw: { receipt: {} } }))
+    expect(branding.logoImageUrl).toBeNull()
+    expect(branding.logoText).toBe('PLACE DES MONTRES')
+
+    const declared = resolveEmailBranding(
+      mockSite({ raw: { receipt: {} }, emailTemplate: { logoPath: '/brand-logo.jpg' } }),
+    )
+    expect(declared.logoImageUrl).toBe('https://www.placedesmontres.fr/brand-logo.jpg')
+  })
+})
+
 describe('createEmailTemplate', () => {
   it('renders estimation email with brand colors and watch hero', () => {
     const html = createEmailTemplate(mockSite(), {
@@ -113,6 +205,62 @@ describe('createEmailTemplate', () => {
     expect(html).toContain('5')
     expect(html).toContain('8')
     expect(html).toContain('Délai souhaité')
+  })
+
+  it('donne au commerçant de quoi répondre et appeler en un geste', () => {
+    const html = createEmailTemplate(mockSite(), {
+      type: 'search',
+      nickname: 'Marie',
+      name: 'Martin',
+      email: 'marie@example.com',
+      tel: '0700000000',
+      brand: 'Omega',
+      model: 'Speedmaster',
+      budget_min: '5000',
+      message: 'Recherche urgente',
+    })
+
+    expect(html).toContain('Répondre à Marie Martin')
+    expect(html).toContain('subject=Votre%20recherche%20personnalis%C3%A9e')
+    expect(html).toContain('href="tel:0700000000"')
+  })
+
+  it('résume la demande dans l’aperçu de la boîte de réception', () => {
+    const html = createEmailTemplate(mockSite(), {
+      type: 'search',
+      nickname: 'Marie',
+      name: 'Martin',
+      email: 'marie@example.com',
+      brand: 'Omega',
+      model: 'Speedmaster',
+      budget_min: '5000',
+      budget_max: '8000',
+    })
+    expect(html).toMatch(/mso-hide:all[^>]*>Marie Martin · Omega Speedmaster ·/)
+  })
+
+  it('habille le message aux couleurs et aux formes du site, en styles en ligne', () => {
+    const site = mockSite({
+      raw: {
+        theme: {
+          colors: { primary: '#7c6300', textMain: '#2c2412', cream: '#f9f7f1' },
+          radius: 'sharp',
+        },
+      },
+    })
+    const html = createEmailTemplate(site, {
+      type: 'contact',
+      name: 'Paul',
+      email: 'paul@example.com',
+      message: 'Bonjour',
+    })
+
+    expect(html).toContain('background-color:#f9f7f1')
+    expect(html).toContain('border-radius:0')
+    // Outlook ignore `display:flex` et les feuilles `<style>` : la mise en page tient en tableaux.
+    expect(html).not.toContain('display:flex')
+    expect(html).not.toContain('class="section"')
+    expect(html).toContain('role="presentation"')
   })
 })
 

@@ -983,6 +983,7 @@ export default {
   'matchmaking.shortlist.remove': 'Entfernen',
   'matchmaking.shortlist.removeLabel': '{name} aus meinen Favoriten entfernen',
   'matchmaking.shortlist.details': 'Nochmal ansehen',
+  'matchmaking.shortlist.detailsLabel': '{name} nochmal ansehen',
   'matchmaking.shortlist.viewPage': 'Zur Uhr',
   'matchmaking.shortlist.resume': 'Weiter entdecken',
   'matchmaking.shortlist.unavailable': 'Nicht mehr verfügbar',

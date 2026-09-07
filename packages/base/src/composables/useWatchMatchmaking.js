@@ -25,13 +25,17 @@ import {
  * conserve que des identifiants : les montres elles-mêmes sont rechargées à chaque visite,
  * puis la session est rapprochée du stock du moment.
  *
- * Le pool est chargé en une fois, délibérément : le catalogue disponible se compte en
- * dizaines de références, et le deck a besoin de tout connaître pour classer.
+ * Le catalogue arrive par pages (`getAllWatchesForListing`, 60 montres puis 300), comme sur la
+ * page collection : le parcours s'ouvre sur la première, le reste se range derrière sans que
+ * rien n'attende. Le deck a bien besoin de tout connaître pour classer — mais il n'en a besoin
+ * qu'au moment de classer, pas pour afficher la première question.
  */
 export function useWatchMatchmaking() {
   /** @type {import('vue').Ref<any[]>} */
   const pool = ref([])
   const isLoading = ref(true)
+  /** Vrai tant que des pages de catalogue arrivent derrière celle déjà affichée. */
+  const isLoadingMore = ref(false)
   const error = ref(null)
   const session = reactive(createEmptyMatchSession())
   /** Coups de cœur d'une visite précédente qui ne sont plus au catalogue. */
@@ -69,7 +73,9 @@ export function useWatchMatchmaking() {
   const phase = computed(() => {
     if (isLoading.value) return 'loading'
     if (error.value) return 'error'
-    if (pool.value.length === 0) return 'empty'
+    // Une première page entièrement vendue ne fait pas un catalogue vide : tant que des pages
+    // arrivent, on attend plutôt que d'annoncer qu'il n'y a rien à voir.
+    if (pool.value.length === 0) return isLoadingMore.value ? 'loading' : 'empty'
     return session.step
   })
 
@@ -82,38 +88,68 @@ export function useWatchMatchmaking() {
 
   async function load() {
     isLoading.value = true
+    isLoadingMore.value = true
     error.value = null
+    pool.value = []
+    unavailableLikedIds.value = []
+    hydrated = false
     try {
+      // Les deux requêtes partent ensemble ; chaque page attend le tarif promo avant enrichissement.
       const campaignPricing = getActiveCampaignWatchPricingPublic()
-      const watches = await getAllWatchesForListing()
-      const pricing = await campaignPricing
-      // Même verdict que la fiche produit : disponible ET non vendue.
-      pool.value = enrichWatchesWithActiveCampaignPricing(watches, pricing).filter(
-        (w) => w.isAvailable !== false && !w.isSold,
-      )
-      hydrateSession()
+      await getAllWatchesForListing({
+        onPage: async (page) => {
+          const pricing = await campaignPricing
+          // Même verdict que la fiche produit : disponible ET non vendue.
+          pool.value = pool.value.concat(
+            enrichWatchesWithActiveCampaignPricing(page, pricing).filter(
+              (w) => w.isAvailable !== false && !w.isSold,
+            ),
+          )
+          if (!hydrated) adoptStoredSession()
+          // Le parcours s'ouvre dès qu'il a de quoi montrer ; le reste arrive derrière.
+          if (pool.value.length > 0) isLoading.value = false
+        },
+      })
+      // Catalogue vide : aucune page n'est passée, la session n'a pas encore été reprise.
+      if (!hydrated) adoptStoredSession()
+      settleAgainstPool()
     } catch (err) {
       console.error('Erreur lors du chargement du coup de foudre :', err)
       error.value = err?.message || 'Une erreur est survenue lors du chargement des montres'
     } finally {
       isLoading.value = false
+      isLoadingMore.value = false
     }
   }
 
-  /** Reprend la session stockée et la rapproche du stock chargé. */
-  function hydrateSession() {
-    const stored = loadMatchSession()
-    const { session: next, unavailableLikedIds: gone } = reconcileMatchSession(
-      stored ?? createEmptyMatchSession(),
-      pool.value,
-    )
-    Object.assign(session, next)
-    unavailableLikedIds.value = gone
-
+  /** Reprend la session stockée, sans encore rien conclure du stock. */
+  function adoptStoredSession() {
+    Object.assign(session, loadMatchSession() ?? createEmptyMatchSession())
     // Le compteur d'écrans est toujours recalculé sur les facettes du jour.
     if (session.step === 'onboarding') {
       session.stepIndex = Math.min(session.stepIndex, Math.max(0, activeCriteria.value.length - 1))
     }
+    hydrated = true
+  }
+
+  /**
+   * Rapproche la session du stock, une fois le catalogue entier chargé. Le rapprochement
+   * attend la dernière page : tant qu'elles arrivent, un identifiant absent du pool n'est pas
+   * un identifiant disparu — le faire plus tôt remettrait dans le deck des montres déjà vues
+   * et annoncerait « plus disponibles » des coups de cœur qui n'ont pas encore été livrés.
+   *
+   * Ne réécrit que ce qui dépend du stock : les décisions prises pendant le chargement,
+   * elles, sont gardées telles quelles.
+   */
+  function settleAgainstPool() {
+    const { session: reconciled, unavailableLikedIds: gone } = reconcileMatchSession(
+      session,
+      pool.value,
+    )
+    session.seen = reconciled.seen
+    session.passed = reconciled.passed
+    unavailableLikedIds.value = gone
+
     // Deck vidé entre deux visites (montres vendues) : on passe directement à la fin.
     if (session.step === 'swipe' && deck.value.length === 0) {
       session.step = 'end'
@@ -122,7 +158,6 @@ export function useWatchMatchmaking() {
     if (session.step === 'end' && deck.value.length > 0) {
       session.step = 'swipe'
     }
-    hydrated = true
   }
 
   /* --------------------------------------------------------------- Onboarding */
@@ -237,6 +272,7 @@ export function useWatchMatchmaking() {
     // état
     pool,
     isLoading,
+    isLoadingMore,
     error,
     phase,
     session,
