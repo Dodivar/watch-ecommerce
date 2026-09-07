@@ -27,15 +27,62 @@
  *   --out <dir>       Dossier de sortie du --dry-run (défaut : reports/email-previews).
  *   --list            Affiche les variantes disponibles et sort.
  *
+ *   --env <fichier>   Fichier .env supplémentaire à charger, avant les emplacements
+ *                     habituels (`backend/.env` puis `.env` à la racine).
+ *
  * Secrets Mailjet : résolus par `backend/sites/secrets.js`, donc
  * `SITE_<ID>__MAILJET_API_KEY` / `_SECRET_KEY` si la vitrine a ses propres clés,
  * sinon le compte partagé `MAILJET_API_KEY` / `MAILJET_SECRET_KEY`.
+ *
+ * Ces variables viennent de l'environnement du shell **ou** d'un fichier `.env` :
+ * `server.js` lit `backend/.env`, les autres scripts du dépôt lisent `.env` à la
+ * racine. Ce script charge les deux (sans jamais écraser une variable déjà posée
+ * dans l'environnement) et affiche lesquels il a trouvés — sans quoi un `.env`
+ * correctement rempli mais rangé ailleurs ressemble à des clés absentes.
  */
 
 const fs = require('fs')
 const path = require('path')
 
 const ROOT = path.resolve(__dirname, '..')
+
+/**
+ * Charge les `.env` du dépôt AVANT tout require lisant `process.env` — `registry.js`
+ * résout les secrets de chaque site au chargement. `dotenv` n'écrase jamais une
+ * variable déjà définie : le shell garde le dernier mot, et `backend/.env` (celui
+ * du serveur) prime sur le `.env` de la racine.
+ *
+ * @returns {{ loaded: string[], missing: string[] }} chemins relatifs à la racine
+ */
+function loadEnvFiles() {
+  const dotenv = require('dotenv')
+  const explicit = []
+  const flagIndex = process.argv.indexOf('--env')
+  if (flagIndex !== -1 && process.argv[flagIndex + 1]) {
+    explicit.push(path.resolve(process.cwd(), process.argv[flagIndex + 1]))
+  }
+
+  // Un `--env` hors du dépôt s'afficherait en `../../../tmp/…` : garder l'absolu.
+  const label = (file) => {
+    const relative = path.relative(ROOT, file)
+    return relative.startsWith('..') ? file : relative
+  }
+
+  const candidates = [...explicit, path.join(ROOT, 'backend/.env'), path.join(ROOT, '.env')]
+  const loaded = []
+  const missing = []
+  for (const file of candidates) {
+    if (fs.existsSync(file)) {
+      dotenv.config({ path: file })
+      loaded.push(label(file))
+    } else {
+      missing.push(label(file))
+    }
+  }
+  return { loaded, missing }
+}
+
+const ENV_FILES = loadEnvFiles()
 
 const { buildRegistry } = require(path.join(ROOT, 'backend/sites/registry'))
 const { createEmailTemplate, formatEmailContent } = require(
@@ -88,6 +135,8 @@ function parseArgs(argv) {
     else if (arg === '--out') args.out = argv[++i]
     else if (arg === '--sites') args.sites = argv[++i]
     else if (arg === '--types') args.types = argv[++i]
+    else if (arg === '--env')
+      args.env = argv[++i] // déjà consommé par loadEnvFiles
     else throw new Error(`Option inconnue : ${arg}`)
   }
   return args
@@ -592,6 +641,14 @@ async function main() {
   const outDir = path.resolve(ROOT, args.out || 'reports/email-previews')
   if (args.dryRun) fs.mkdirSync(outDir, { recursive: true })
 
+  if (!args.dryRun) {
+    console.log(
+      ENV_FILES.loaded.length
+        ? `Fichiers .env chargés : ${ENV_FILES.loaded.join(', ')}`
+        : `Aucun fichier .env trouvé (cherchés : ${ENV_FILES.missing.join(', ')}) — les clés doivent venir du shell.`,
+    )
+  }
+
   console.log(
     args.dryRun
       ? `Rendu de ${sites.length} site(s) × ${variants.length} variante(s) → ${outDir}\n`
@@ -647,8 +704,15 @@ async function main() {
     // quand la vitrine n'a pas de clé dédiée : rien à rattraper ici.
     const { apiKey, secretKey } = site.secrets.mailjet
     if (!apiKey || !secretKey) {
+      const segment = site.id.toUpperCase().replace(/[^A-Z0-9]+/g, '_')
       console.log(
-        `   ❌ clés Mailjet absentes (SITE_${site.id.toUpperCase().replace(/[^A-Z0-9]+/g, '_')}__MAILJET_API_KEY ou MAILJET_API_KEY)`,
+        `   ❌ clés Mailjet absentes : ni SITE_${segment}__MAILJET_API_KEY/_SECRET_KEY, ` +
+          `ni le compte partagé MAILJET_API_KEY/MAILJET_SECRET_KEY.`,
+      )
+      console.log(
+        ENV_FILES.loaded.length
+          ? `      Lu depuis : ${ENV_FILES.loaded.join(', ')} — vérifier que les deux clés y figurent, sans guillemets ni espace autour du "=".`
+          : `      Aucun .env chargé. Le placer en ${ENV_FILES.missing.join(' ou ')}, ou le désigner avec --env <fichier>.`,
       )
       for (const { variant } of messages) {
         summary.push({ site: site.id, variant: variant.id, status: 'no-credentials' })
