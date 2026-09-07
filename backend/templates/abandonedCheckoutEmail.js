@@ -5,6 +5,7 @@ const {
   paragraph,
   button,
   buttonRow,
+  lineItemsTable,
   resolveEmailBranding,
 } = require('./emailCommon')
 
@@ -27,34 +28,26 @@ function formatEur(cents) {
  */
 function createAbandonedCheckoutEmail(site, order, lines, resumeUrl) {
   const branding = resolveEmailBranding(site)
-  const font = branding.fonts.bodyStack
-
-  const cell = `padding:9px 0;border-bottom:1px solid ${branding.borderColor};font-family:${font};font-size:14px;color:${branding.textColor};`
-  const linesHtml = (lines || [])
-    .map(
-      (l) => `
-      <tr>
-        <td style="${cell}">${escapeHtml(l.name)}</td>
-        <td style="${cell}text-align:right;color:${branding.mutedColor};">×${Number(l.quantity) || 1}</td>
-        <td style="${cell}text-align:right;white-space:nowrap;">${formatEur(l.unit_price_cents * (Number(l.quantity) || 1))}</td>
-      </tr>`,
-    )
-    .join('')
 
   const subtotalCents = (lines || []).reduce(
     (sum, l) => sum + (l.unit_price_cents || 0) * (Number(l.quantity) || 1),
     0,
   )
 
-  const totalCell = `padding:12px 0 0;font-family:${font};font-size:15px;font-weight:700;color:${branding.textColor};`
-  const selectionHtml = `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">
-      ${linesHtml}
-      <tr>
-        <td style="${totalCell}" colspan="2">Sous-total</td>
-        <td style="${totalCell}text-align:right;white-space:nowrap;">${formatEur(subtotalCents)}</td>
-      </tr>
-    </table>`
+  // `image_url` est l'instantané pris sur la fiche au moment de la commande : `order_lines` le
+  // porte déjà, chargé par `orders/recovery.js`. Une relance de panier se regarde plus qu'elle
+  // ne se lit — c'est la photo de la montre qui rappelle au client ce qu'il a laissé.
+  const selectionHtml = lineItemsTable(
+    branding,
+    (lines || []).map((l) => ({
+      name: l.name,
+      reference: l.reference,
+      imageUrl: l.image_url,
+      quantity: Number(l.quantity) || 1,
+      amountLabel: formatEur(l.unit_price_cents * (Number(l.quantity) || 1)),
+    })),
+    { totals: [{ label: 'Sous-total', amountLabel: formatEur(subtotalCents), strong: true }] },
+  )
 
   const body = `
     ${paragraph(branding, 'Bonjour,')}
