@@ -3,7 +3,9 @@
     class="flex h-full w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
     :aria-label="cardLabel"
   >
-    <!-- Plaque blanche : les visuels montres gardent leur fond clair quel que soit le thème. -->
+    <!-- Plaque blanche : les visuels montres gardent leur fond clair quel que soit le thème.
+         Elle prend toute la hauteur que le bandeau d'identité lui laisse — d'où la hauteur
+         fixe de celui-ci, sans quoi la boîte image varie d'une carte à l'autre. -->
     <div class="relative min-h-0 flex-1 bg-white">
       <span
         v-if="watch.isOnPromotion"
@@ -37,18 +39,23 @@
     </div>
 
     <!-- Bandeau d'identité au plus juste sur petit écran : ce qu'il ne prend pas, la photo
-         l'a (la carte est bornée par la hauteur d'écran dans le deck). -->
+         l'a (la carte est bornée par la hauteur d'écran dans le deck). Chaque ligne est bornée
+         à sa propre hauteur, exprimée en `em` pour suivre les tailles responsives : sans cela
+         une marque assez longue passe sur deux lignes, rogne d'autant la plaque au-dessus, et
+         l'image de cette carte ne s'aligne plus sur celle de ses voisines. -->
     <div class="shrink-0 border-t border-gray-100 px-4 py-3 sm:px-5 sm:py-4">
-      <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
+      <p
+        class="min-h-[1.5em] truncate text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500"
+      >
         {{ watch.brand }}
       </p>
       <h3
-        class="mt-0.5 truncate text-base font-semibold leading-tight text-gray-900 sm:text-lg"
+        class="mt-0.5 min-h-[1.25em] truncate text-base font-semibold leading-tight text-gray-900 sm:text-lg"
         :title="watch.name"
       >
         {{ watch.model || watch.name }}
       </h3>
-      <div class="mt-1.5 flex items-baseline gap-2 sm:mt-2">
+      <div class="mt-1.5 flex min-h-[1.75rem] items-baseline gap-2 sm:mt-2">
         <span v-if="watch.isOnPromotion" class="text-sm text-gray-400 line-through">
           {{ formatPrice(watch.price) }}
         </span>

@@ -64,6 +64,24 @@ describe('MatchWatchCard', () => {
     expect(wrapper.text()).toContain('Image non disponible')
   })
 
+  it('borne le bloc texte pour que la boîte image reste la même d’une carte à l’autre', () => {
+    const long = mount(MatchWatchCard, {
+      props: { watch: { ...baseWatch, brand: 'OMEGA CONSTELLATION MANUFACTURE GENEVE' } },
+    })
+    const short = mount(MatchWatchCard, { props: { watch: baseWatch } })
+
+    // Marque, modèle et prix tiennent chacun sur une ligne de hauteur fixe : sans cela une
+    // marque longue passe sur deux lignes, rogne la plaque et désaligne l'image de la carte.
+    for (const wrapper of [long, short]) {
+      expect(wrapper.find('p').classes()).toEqual(
+        expect.arrayContaining(['truncate', 'min-h-[1.5em]']),
+      )
+      expect(wrapper.find('h3').classes()).toEqual(
+        expect.arrayContaining(['truncate', 'min-h-[1.25em]']),
+      )
+    }
+  })
+
   it('porte un libellé accessible complet', () => {
     const wrapper = mount(MatchWatchCard, { props: { watch: baseWatch } })
     const label = wrapper.find('article').attributes('aria-label')
