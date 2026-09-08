@@ -55,7 +55,7 @@ describe('describeWatchPromotion', () => {
     expect(promotion.campaign).toBeNull()
   })
 
-  it('classe en promo directe une remise portée par une montre engagée dans un événement à venir', () => {
+  it('classe en promo directe une remise portée par une montre engagée dans une campagne à venir', () => {
     // La campagne n'a pas encore appliqué ses prix : la remise visible aujourd'hui
     // ne peut venir que de la fiche montre.
     const promotion = describeWatchPromotion(
@@ -68,7 +68,7 @@ describe('describeWatchPromotion', () => {
     expect(promotion.campaign).toBeNull()
   })
 
-  it('signale une montre engagée dans un événement à venir mais encore au prix catalogue', () => {
+  it('signale une montre engagée dans une campagne à venir mais encore au prix catalogue', () => {
     const promotion = describeWatchPromotion({ price: 5000 }, scheduledCampaign, NOW)
 
     expect(promotion.source).toBe('scheduled')

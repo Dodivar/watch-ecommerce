@@ -65,7 +65,7 @@ const roleLabel = computed(() => (role.value ? ROLE_LABELS[role.value] : ''))
 const appVersion = APP_VERSION
 
 // Trois écrans traitent de remises : les codes promo du tunnel de paiement, les
-// événements promotionnels et le récapitulatif des montres remisées. Ils tiennent dans
+// campagnes de promotion et le récapitulatif des montres remisées. Ils tiennent dans
 // une sous-catégorie plutôt que dans trois entrées de premier niveau.
 const promotionLinks = computed(() => {
   const items = [
@@ -80,7 +80,7 @@ const promotionLinks = computed(() => {
     items.push(
       {
         to: '/admin/watch-promotions',
-        label: 'Promotions montres',
+        label: 'Campagnes de promotion',
         icon: Percent,
         match: (p) =>
           p.startsWith('/admin/watch-promotions') && p !== '/admin/watch-promotions/watches',

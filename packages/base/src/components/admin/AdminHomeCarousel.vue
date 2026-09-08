@@ -68,7 +68,7 @@ function setLinkMode(slide, mode) {
 
 function campaignLabel(campaignId) {
   const campaign = campaigns.value.find((entry) => entry.id === campaignId)
-  return campaign?.name || 'Événement sélectionné'
+  return campaign?.name || 'Campagne sélectionnée'
 }
 
 function watchLabel(watchId) {
@@ -314,13 +314,13 @@ async function saveChanges() {
 
   if (!hasValidCampaignLinks.value) {
     error.value =
-      'Chaque slide liée à un événement promotionnel doit pointer vers un événement en cours.'
+      'Chaque slide liée à une campagne de promotion doit pointer vers une campagne en cours.'
     return
   }
 
   if (!hasCompleteLinkTargets.value) {
     error.value =
-      'Chaque slide avec une redirection doit avoir une destination sélectionnée (marque, montre ou événement).'
+      'Chaque slide avec une redirection doit avoir une destination sélectionnée (marque, montre ou campagne).'
     return
   }
 
@@ -437,8 +437,8 @@ onUnmounted(() => {
       class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
       role="alert"
     >
-      Une ou plusieurs slides pointent vers un événement promotionnel inactif ou non sélectionné.
-      Choisissez un événement en cours ou retirez la redirection.
+      Une ou plusieurs slides pointent vers une campagne de promotion inactive ou non sélectionnée.
+      Choisissez une campagne en cours ou retirez la redirection.
     </div>
 
     <div
@@ -449,7 +449,7 @@ onUnmounted(() => {
       Redirection sans destination sur
       {{ slidesWithIncompleteLink.length > 1 ? 'les images' : "l'image" }}
       {{ slidesWithIncompleteLink.map(({ index }) => index + 1).join(', ') }}.
-      Choisissez une marque, une montre ou un événement, ou repassez sur « Aucune redirection ».
+      Choisissez une marque, une montre ou une campagne, ou repassez sur « Aucune redirection ».
     </div>
 
     <div
@@ -485,7 +485,7 @@ onUnmounted(() => {
             <option value="none">Aucune redirection</option>
             <option value="brand">Collection marque</option>
             <option value="watch">Fiche montre</option>
-            <option value="campaign">Événement promotionnel (actif)</option>
+            <option value="campaign">Campagne de promotion (active)</option>
           </select>
         </label>
         <label v-if="uploadMeta.linkMode === 'brand'" class="block text-sm">
@@ -505,18 +505,18 @@ onUnmounted(() => {
           </select>
         </label>
         <label v-else-if="uploadMeta.linkMode === 'campaign'" class="block text-sm sm:col-span-2">
-          <span class="mb-1 block text-gray-600">Événement en cours</span>
+          <span class="mb-1 block text-gray-600">Campagne en cours</span>
           <select
             v-model="uploadMeta.promotionCampaignId"
             class="w-full rounded-lg border px-3 py-2"
           >
-            <option value="">Choisir un événement…</option>
+            <option value="">Choisir une campagne…</option>
             <option v-for="campaign in campaigns" :key="campaign.id" :value="campaign.id">
               {{ campaign.name }}
             </option>
           </select>
           <p v-if="campaigns.length === 0" class="mt-1 text-xs text-amber-700">
-            Aucun événement promotionnel actif pour le moment.
+            Aucune campagne de promotion active pour le moment.
           </p>
         </label>
       </div>
@@ -604,7 +604,7 @@ onUnmounted(() => {
                   <option value="none">Aucune redirection</option>
                   <option value="brand">Collection marque</option>
                   <option value="watch">Fiche montre</option>
-                  <option value="campaign">Événement promotionnel (actif)</option>
+                  <option value="campaign">Campagne de promotion (active)</option>
                 </select>
               </label>
               <label v-if="getLinkMode(slide) === 'brand'" class="block text-sm">
@@ -630,7 +630,7 @@ onUnmounted(() => {
                 </p>
               </label>
               <label v-else-if="getLinkMode(slide) === 'campaign'" class="block text-sm">
-                <span class="mb-1 block text-gray-600">Événement en cours</span>
+                <span class="mb-1 block text-gray-600">Campagne en cours</span>
                 <select
                   v-model="slide.promotion_campaign_id"
                   class="w-full rounded-lg border px-3 py-2"
@@ -640,7 +640,7 @@ onUnmounted(() => {
                       && !campaigns.some((entry) => entry.id === slide.promotion_campaign_id),
                   }"
                 >
-                  <option value="">Choisir un événement…</option>
+                  <option value="">Choisir une campagne…</option>
                   <option v-for="campaign in campaigns" :key="campaign.id" :value="campaign.id">
                     {{ campaign.name }}
                   </option>
@@ -650,10 +650,10 @@ onUnmounted(() => {
                   class="mt-1 text-xs text-red-600"
                   role="alert"
                 >
-                  Événement lié : {{ campaignLabel(slide.promotion_campaign_id) }} (inactif ou expiré).
+                  Campagne liée : {{ campaignLabel(slide.promotion_campaign_id) }} (inactive ou expirée).
                 </p>
                 <p v-else-if="campaigns.length === 0" class="mt-1 text-xs text-amber-700">
-                  Aucun événement promotionnel actif pour le moment.
+                  Aucune campagne de promotion active pour le moment.
                 </p>
               </label>
             </div>

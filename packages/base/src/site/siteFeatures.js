@@ -66,7 +66,7 @@ export const DEFAULT_SITE_FEATURES = {
    * Dérivé de `watchCatalog.mode === 'resale'` dans getSiteConfig() — ne pas surcharger sauf cas exceptionnel.
    */
   watchReference: false,
-  /** Campagnes promotionnelles groupées dans l'admin (événements soldes, etc.). */
+  /** Campagnes de promotion groupées dans l'admin (soldes, ventes flash, etc.). */
   adminWatchPromotions: false,
   /**
    * Archive publique des montres vendues : page `/ventes`, fiches montre

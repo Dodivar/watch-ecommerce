@@ -8,9 +8,9 @@ import { resolveLiveCampaignStatus } from '@/utils/watchPromotionCampaign.js'
 /**
  * Origine d'une remise, telle qu'affichée dans le back-office.
  *
- * - `campaign`  : la remise appliquée vient d'un événement promotionnel en cours.
+ * - `campaign`  : la remise appliquée vient d'une campagne de promotion en cours.
  * - `direct`    : la remise est portée par la fiche montre (case « En promotion »).
- * - `scheduled` : la montre est engagée dans un événement à venir ; son prix n'a pas
+ * - `scheduled` : la montre est engagée dans une campagne à venir ; son prix n'a pas
  *                 encore bougé (les prix ne sont écrits qu'au démarrage de la campagne,
  *                 voir `applyWatchPromotionCampaign`).
  */
@@ -92,7 +92,7 @@ export function describeWatchPromotion(watch, campaign = null, now = new Date())
 }
 
 /**
- * Choisit la campagne à afficher quand une montre appartient à plusieurs événements :
+ * Choisit la campagne à afficher quand une montre appartient à plusieurs campagnes :
  * celle en cours l'emporte sur celle à venir (c'est elle qui fixe le prix affiché),
  * puis la plus proche de sa fin.
  * @param {Array<object>} memberships lignes `{ campaign }` ou campagnes directement
