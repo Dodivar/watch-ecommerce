@@ -1051,4 +1051,8 @@ export default {
   'matchmaking.alertUnsubscribe.unavailableTitle': 'Service indisponible',
   'matchmaking.alertUnsubscribe.unavailableText':
     'La désinscription est momentanément indisponible.',
+  // — Mise à jour du site (bandeau « nouvelle version »)
+  'update.available': 'Une nouvelle version du site est disponible.',
+  'update.reload': 'Recharger',
+  'update.dismiss': 'Fermer',
 }

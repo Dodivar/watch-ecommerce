@@ -53,6 +53,7 @@ describe('canAccessPath', () => {
     ['moderator', '/admin/promo', false],
     ['moderator', '/admin/watch-promotions/x/review', false],
     ['moderator', '/admin/home-carousel', false],
+    ['moderator', '/admin/home-vitrine', false],
     ['visitor', '/admin', true],
     ['visitor', '/admin/watches', true],
     ['visitor', '/admin/orders', true],

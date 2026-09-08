@@ -1040,4 +1040,8 @@ export default {
     'Something went wrong while unsubscribing. Please try again in a moment.',
   'matchmaking.alertUnsubscribe.unavailableTitle': 'Service unavailable',
   'matchmaking.alertUnsubscribe.unavailableText': 'Unsubscribing is temporarily unavailable.',
+  // — Mise à jour du site (bandeau « nouvelle version »)
+  'update.available': 'A new version of the site is available.',
+  'update.reload': 'Reload',
+  'update.dismiss': 'Dismiss',
 }

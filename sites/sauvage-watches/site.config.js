@@ -304,8 +304,9 @@ export default {
   home: {
     /**
      * Hero d'accueil « vitrine » : discours à gauche, panneau blanc à droite.
-     * La montre exposée n'est pas configurée ici — c'est la première du catalogue
-     * encore en vente, chargée à l'affichage (voir `HomeHeroVitrineSection.vue`).
+     * La montre exposée n'est pas configurée ici — elle se choisit dans l'admin
+     * « Carrousels → Montre en vitrine », et à défaut c'est la première du catalogue
+     * encore en vente (voir `services/homeVitrineService.js`).
      * `variant: 'parallax'` remet le hero historique au cadran animé.
      */
     hero: {

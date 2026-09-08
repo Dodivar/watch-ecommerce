@@ -7,6 +7,7 @@ import {
 } from '@/services/admin/adminFeaturedService'
 import { resetNouvellesWatchesCache } from '@/services/nouvellesWatchesService'
 import { resetCollectionHighlightCache } from '@/services/collectionHighlightService'
+import { resetVitrineWatchCache } from '@/services/homeVitrineService'
 import WatchCard from '@/components/watch/WatchCard.vue'
 import { WATCH_CARD_CATALOG_PROPS } from '@/constants/watchCardDefaults.js'
 import AdminShell from './AdminShell.vue'
@@ -28,6 +29,11 @@ const props = defineProps({
     default:
       'Si la sélection est vide, le carrousel affiche automatiquement les dernières montres disponibles.',
   },
+  /** Titre de la section d'aperçu — tous les contextes ne rendent pas un carrousel. */
+  previewTitle: {
+    type: String,
+    default: 'Aperçu du carrousel',
+  },
   /** Libellé de l'état vide / aperçu. */
   emptyHint: {
     type: String,
@@ -40,6 +46,7 @@ const props = defineProps({
 const CACHE_RESET_BY_CONTEXT = {
   nouvelles: resetNouvellesWatchesCache,
   collection: resetCollectionHighlightCache,
+  vitrine: resetVitrineWatchCache,
 }
 
 const PAGE_SIZE = 24
@@ -420,9 +427,9 @@ onMounted(load)
         </template>
       </section>
 
-      <!-- Aperçu fidèle du carrousel -->
+      <!-- Aperçu fidèle du rendu public -->
       <section class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
-        <h2 class="text-sm font-semibold text-gray-700 mb-3">Aperçu du carrousel</h2>
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">{{ previewTitle }}</h2>
         <div
           v-if="selectedWatches.length > 0"
           class="overflow-x-auto custom-scrollbar-carrousel scroll-smooth -mx-2 px-2"

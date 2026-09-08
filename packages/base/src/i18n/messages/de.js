@@ -1044,4 +1044,8 @@ export default {
   'matchmaking.alertUnsubscribe.unavailableTitle': 'Dienst nicht verfügbar',
   'matchmaking.alertUnsubscribe.unavailableText':
     'Die Abmeldung ist vorübergehend nicht möglich.',
+  // — Mise à jour du site (bandeau « nouvelle version »)
+  'update.available': 'Eine neue Version der Website ist verfügbar.',
+  'update.reload': 'Neu laden',
+  'update.dismiss': 'Schließen',
 }

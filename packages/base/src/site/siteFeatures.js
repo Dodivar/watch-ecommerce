@@ -56,6 +56,12 @@ export const DEFAULT_SITE_FEATURES = {
    */
   homeNouvelles: false,
   /**
+   * Hero « vitrine » sur l'accueil — dérivé de `home.hero.variant` et de `home.sections`
+   * (voir resolveSiteConfig). Commande l'écran admin « Montre en vitrine » : inutile de le
+   * poser à la main dans un manifest, il suit le variant de hero réellement rendu.
+   */
+  homeVitrine: false,
+  /**
    * Afficher la référence montre sur les cartes catalogue et fiches produit.
    * Dérivé de `watchCatalog.mode === 'resale'` dans getSiteConfig() — ne pas surcharger sauf cas exceptionnel.
    */

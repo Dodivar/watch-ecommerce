@@ -5,9 +5,11 @@ import { t } from '@/i18n'
  * panneau blanc à droite, comme une devanture.
  *
  * Le texte vient de `home.hero` (voir `site/homeHero.js`) ; la montre exposée
- * est la première du catalogue encore en vente, donc la vitrine se renouvelle
- * toute seule. Sans catalogue joignable, le panneau disparaît et le discours
- * occupe toute la largeur.
+ * est celle choisie dans l'admin « Montre en vitrine », et à défaut la première
+ * du catalogue encore en vente — la vitrine se renouvelle donc toute seule tant
+ * que personne n'y a posé de choix (voir `services/homeVitrineService.js`).
+ * Sans catalogue joignable, le panneau disparaît et le discours occupe toute la
+ * largeur.
  *
  * Le panneau est réglé pour que la montre, et non le blanc autour, occupe le
  * regard : les deux étiquettes tiennent sur une ligne haut et bas, et la photo
@@ -23,7 +25,7 @@ import { ArrowRight, BadgeCheck, MapPin, ShieldCheck } from '@lucide/vue'
 
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isHomeHeroCtaVisible } from '@/site/homeHero.js'
-import { getLatestAvailableWatches } from '@/services/watchService.js'
+import { loadVitrineWatch } from '@/services/homeVitrineService.js'
 import { useTiltMotion } from '@/composables/useTiltMotion.js'
 import { watchCardImageUrl } from '@/utils/watchImageUrl.js'
 import { buildWatchPath } from '@/utils/watchSlug.js'
@@ -74,8 +76,7 @@ const showSecondaryCta = computed(() =>
 
 onMounted(async () => {
   try {
-    const [latest] = await getLatestAvailableWatches(1)
-    piece.value = latest ?? null
+    piece.value = await loadVitrineWatch()
   } catch {
     // Catalogue injoignable : le hero reste lisible sans son panneau.
     piece.value = null
