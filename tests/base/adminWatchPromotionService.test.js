@@ -27,7 +27,7 @@ describe('adminWatchPromotionService', () => {
     it('requires a campaign title', async () => {
       await expect(
         saveWatchPromotionCampaignDraft({ ...validPayload, name: '   ' }),
-      ).rejects.toThrow(/titre de l'événement est requis/)
+      ).rejects.toThrow(/titre de la campagne est requis/)
     })
 
     it('requires default discount between 1 and 99', async () => {
@@ -60,7 +60,7 @@ describe('adminWatchPromotionService', () => {
     it('rejects missing campaign title', async () => {
       await expect(
         updateWatchPromotionCampaign('campaign-1', { ...validPayload, name: '   ' }),
-      ).rejects.toThrow(/titre de l'événement est requis/)
+      ).rejects.toThrow(/titre de la campagne est requis/)
     })
 
     it('rejects empty watch selection', async () => {

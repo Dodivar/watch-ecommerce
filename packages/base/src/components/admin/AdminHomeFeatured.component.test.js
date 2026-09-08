@@ -6,6 +6,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 
 import AdminHomeFeatured from './AdminHomeFeatured.vue'
 import CarouselNouvelles from '@/components/CarouselNouvelles.vue'
+import HomeHeroVitrineSection from '@/components/home/HomeHeroVitrineSection.vue'
 
 const getFeaturedWatchesForAdminMock = vi.hoisted(() => vi.fn())
 const getWatchesByIdsForAdminMock = vi.hoisted(() => vi.fn())
@@ -52,6 +53,7 @@ const siteConfig = {
   features: { collection: true },
   home: {
     sections: ['hero', 'nouvelles'],
+    hero: { variant: 'vitrine', title: 'Des montres authentifiées.' },
     nouvelles: { title: 'Nos dernières montres', subtitle: '' },
   },
   watchCatalog: { display: { showReference: true, showSoldBadge: true } },
@@ -85,8 +87,8 @@ const fallbackWatch = {
   images: ['https://cdn.test/auto-1.jpg'],
 }
 
-function mountScreen() {
-  return mount(AdminHomeFeatured, { props: { context: 'nouvelles' } })
+function mountScreen(context = 'nouvelles') {
+  return mount(AdminHomeFeatured, { props: { context } })
 }
 
 beforeEach(() => {
@@ -140,5 +142,54 @@ describe('AdminHomeFeatured — aperçu', () => {
 
     const card = wrapper.findComponent(CarouselNouvelles).find('.cursor-pointer')
     expect(card.exists()).toBe(false)
+  })
+})
+
+describe('AdminHomeFeatured — aperçu de la vitrine', () => {
+  it('rend le hero « vitrine » de l’accueil avec la montre choisie', async () => {
+    const wrapper = mountScreen('vitrine')
+    await flushPromises()
+
+    const preview = wrapper.findComponent(HomeHeroVitrineSection)
+    expect(preview.exists()).toBe(true)
+    // Le panneau de la vitrine, et non une carte de catalogue : la photo y est
+    // posée entière (`object-contain`) sur fond blanc, comme sur l'accueil.
+    const piece = preview.find('.vitrine-piece img')
+    expect(piece.exists()).toBe(true)
+    expect(piece.attributes('src')).toBe('https://cdn.test/accueil-1.jpg')
+    expect(preview.html()).not.toContain('https://cdn.test/vignette-admin.jpg')
+  })
+
+  it('expose la remplaçante quand la montre de tête est vendue', async () => {
+    getFeaturedWatchesForAdminMock.mockResolvedValue([
+      { watch_id: 'sold' },
+      { watch_id: 'w1' },
+    ])
+    getWatchesByIdsForAdminMock.mockResolvedValue([
+      { id: 'sold', name: 'TUDOR BLACK BAY', is_sold: true, images: [] },
+      adminRow,
+    ])
+    getWatchByIdMock.mockImplementation(async (id) =>
+      id === 'w1' ? publicWatch : { id, name: 'TUDOR BLACK BAY', brand: 'TUDOR', images: [] },
+    )
+
+    const wrapper = mountScreen('vitrine')
+    await flushPromises()
+
+    // La montre vendue n'est même pas chargée : la ligne admin porte `is_sold`.
+    expect(getWatchByIdMock).not.toHaveBeenCalledWith('sold')
+    const preview = wrapper.findComponent(HomeHeroVitrineSection)
+    expect(preview.find('.vitrine-piece img').attributes('src')).toBe(
+      'https://cdn.test/accueil-1.jpg',
+    )
+  })
+
+  it('n’ouvre pas la fiche montre depuis l’aperçu', async () => {
+    const wrapper = mountScreen('vitrine')
+    await flushPromises()
+
+    const panel = wrapper.findComponent(HomeHeroVitrineSection).find('.vitrine-panel')
+    expect(panel.exists()).toBe(true)
+    expect(panel.element.tagName).toBe('DIV')
   })
 })

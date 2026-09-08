@@ -87,7 +87,7 @@ describe('AdminSidebar — sous-catégorie Promotions', () => {
     expect(groupLabels(wrapper)).toContain('Promotions')
     expect(groupItems(wrapper, 'Promotions')).toEqual([
       'Codes promo checkout',
-      'Promotions montres',
+      'Campagnes de promotion',
       'Montres en promo',
     ])
   })
@@ -98,7 +98,7 @@ describe('AdminSidebar — sous-catégorie Promotions', () => {
     const topLevel = wrapper.findAll('nav > a').map((node) => node.text())
     expect(topLevel).toContain('Montres')
     expect(topLevel).not.toContain('Codes promo checkout')
-    expect(topLevel).not.toContain('Promotions montres')
+    expect(topLevel).not.toContain('Campagnes de promotion')
     expect(topLevel).not.toContain('Montres en promo')
   })
 
@@ -125,10 +125,23 @@ describe('AdminSidebar — sous-catégorie Promotions', () => {
   })
 
   it('laisse la section Carrousels intacte', async () => {
-    siteConfigMock.value = siteConfig({ homeCarousel: true, collection: true })
+    siteConfigMock.value = siteConfig({ homeCarousel: true, homeCollectionHighlight: true })
     const wrapper = await mountSidebar()
 
     expect(groupLabels(wrapper)).toEqual(['Promotions', 'Carrousels'])
     expect(groupItems(wrapper, 'Carrousels')).toEqual(['Carrousel accueil', 'Aperçu collection'])
+  })
+
+  // Un catalogue ne suffit pas : sans `collectionHighlight` dans `home.sections`, le bloc
+  // n'est pas rendu sur l'accueil et l'écran qui le pilote n'aurait rien à piloter.
+  it('masque « Aperçu collection » quand l’accueil ne rend pas ce bloc', async () => {
+    siteConfigMock.value = siteConfig({
+      homeCarousel: true,
+      collection: true,
+      homeCollectionHighlight: false,
+    })
+    const wrapper = await mountSidebar()
+
+    expect(groupItems(wrapper, 'Carrousels')).toEqual(['Carrousel accueil'])
   })
 })

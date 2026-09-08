@@ -101,7 +101,7 @@ Montrer dans l'ordre :
 1. **Tableau de bord** — CA, commandes en attente, leads
 2. **Montres** — liste, édition, images, disponibilité
 3. **Commandes** — détail, traitement, reçu PDF
-4. **Promotions montres** — campagne -10 % sur sélection
+4. **Campagnes de promotion** — campagne -10 % sur sélection
 5. **Carrousel accueil** — upload visuel sans code
 6. **Sélections accueil** — cartes homme / femme / marques
 7. **Statistiques** — valeur stock, écoulement

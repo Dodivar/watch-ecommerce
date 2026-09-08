@@ -14,8 +14,10 @@ import {
   assembleCollectionHighlightWatches,
   resetCollectionHighlightCache,
 } from '@/services/collectionHighlightService'
+import { assembleVitrineWatch, resetVitrineWatchCache } from '@/services/homeVitrineService'
 import CarouselNouvelles from '@/components/CarouselNouvelles.vue'
 import HomeCollectionHighlightSection from '@/components/home/HomeCollectionHighlightSection.vue'
+import HomeHeroVitrineSection from '@/components/home/HomeHeroVitrineSection.vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { filterHomeSectionsByFeatures } from '@/site/homeSections.js'
 import { homeBandClass, resolveHomeBands } from '@/site/homeBands.js'
@@ -38,6 +40,11 @@ const props = defineProps({
     default:
       'Si la sélection est vide, le carrousel affiche automatiquement les dernières montres disponibles.',
   },
+  /** Titre de la section d'aperçu — tous les contextes ne rendent pas un carrousel. */
+  previewTitle: {
+    type: String,
+    default: 'Aperçu du carrousel',
+  },
   /** Libellé de l'état vide / aperçu. */
   emptyHint: {
     type: String,
@@ -50,6 +57,7 @@ const props = defineProps({
 const CACHE_RESET_BY_CONTEXT = {
   nouvelles: resetNouvellesWatchesCache,
   collection: resetCollectionHighlightCache,
+  vitrine: resetVitrineWatchCache,
 }
 
 /**
@@ -61,12 +69,31 @@ const PREVIEW_BY_CONTEXT = {
   nouvelles: {
     sectionId: 'nouvelles',
     component: CarouselNouvelles,
-    assemble: assembleNouvellesWatches,
+    async buildProps(ids, { loadWatch }) {
+      return { watches: await assembleNouvellesWatches(ids, { loadWatch }) }
+    },
+    hasContent: (previewProps) => previewProps.watches?.length > 0,
   },
   collection: {
     sectionId: 'collectionHighlight',
     component: HomeCollectionHighlightSection,
-    assemble: assembleCollectionHighlightWatches,
+    async buildProps(ids, { loadWatch }) {
+      return { watches: await assembleCollectionHighlightWatches(ids, { loadWatch }) }
+    },
+    hasContent: (previewProps) => previewProps.watches?.length > 0,
+  },
+  vitrine: {
+    sectionId: 'hero',
+    component: HomeHeroVitrineSection,
+    async buildProps(ids, { loadWatch, rowById }) {
+      // La vitrine passe à la remplaçante dès qu'une montre part à la vente :
+      // `is_sold` est porté par la ligne admin, pas par l'identifiant seul.
+      const candidates = ids.map((id) => rowById.get(id) ?? { id })
+      return { watch: await assembleVitrineWatch(candidates, { loadWatch }) }
+    },
+    // Le hero se rend même sans pièce à exposer — le discours prend alors toute
+    // la largeur, exactement comme sur l'accueil.
+    hasContent: () => true,
   },
 }
 
@@ -136,7 +163,8 @@ const previewBandClass = computed(() =>
   homeBandClass(resolveHomeBands(homeSectionIds.value)[previewSectionIndex.value] ?? 'light'),
 )
 
-const previewWatches = ref([])
+const previewProps = ref({})
+const hasPreviewContent = computed(() => previewSection.value.hasContent(previewProps.value))
 const isPreviewLoading = ref(true)
 const previewError = ref(null)
 /** Montres déjà montées pour l'aperçu : réordonner le brouillon ne recharge rien. */
@@ -157,15 +185,16 @@ async function refreshPreview() {
   const requestId = (previewRequestId += 1)
   isPreviewLoading.value = true
   try {
-    const watches = await previewSection.value.assemble(selectedIds.value, {
+    const built = await previewSection.value.buildProps(selectedIds.value, {
       loadWatch: loadPreviewWatch,
+      rowById: watchById.value,
     })
     if (requestId !== previewRequestId) return
-    previewWatches.value = watches
+    previewProps.value = built
     previewError.value = null
   } catch (err) {
     if (requestId !== previewRequestId) return
-    previewWatches.value = []
+    previewProps.value = {}
     previewError.value = err.message
   } finally {
     if (requestId === previewRequestId) isPreviewLoading.value = false
@@ -537,7 +566,7 @@ onUnmounted(() => {
       -->
       <section class="mb-6">
         <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2 class="text-sm font-semibold text-gray-700">Aperçu de la page d'accueil</h2>
+          <h2 class="text-sm font-semibold text-gray-700">{{ previewTitle }}</h2>
           <p class="text-xs text-gray-400">
             Rendu réel de la section, à la largeur de cet écran.
           </p>
@@ -556,13 +585,6 @@ onUnmounted(() => {
         >
           {{ emptyHint }}
         </p>
-        <p
-          v-if="previewError"
-          class="mb-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
-        >
-          Aperçu indisponible : {{ previewError }}
-        </p>
-
         <div
           v-if="isPreviewLoading"
           class="rounded-lg bg-white p-8 text-center text-sm text-gray-500 shadow"
@@ -570,7 +592,14 @@ onUnmounted(() => {
           Chargement de l'aperçu…
         </div>
         <div
-          v-else-if="previewWatches.length === 0"
+          v-else-if="previewError"
+          class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
+          Aperçu indisponible : {{ previewError }}
+        </div>
+        <div
+          v-else-if="!hasPreviewContent"
           class="rounded-lg bg-white p-8 text-center text-sm text-gray-500 shadow"
         >
           Aucune montre à afficher : l'accueil n'affichera pas cette section.
@@ -579,7 +608,7 @@ onUnmounted(() => {
           <component
             :is="previewSection.component"
             :key="previewSection.sectionId"
-            :watches="previewWatches"
+            v-bind="previewProps"
             preview
             :class="previewBandClass"
           />

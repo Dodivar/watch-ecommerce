@@ -45,6 +45,11 @@ describe('mergeSiteFeatures', () => {
     expect(merged.watchMatchmaking).toBe(false)
   })
 
+  it('désactive homeCollectionHighlight sans collection', () => {
+    const merged = mergeSiteFeatures({ collection: false, homeCollectionHighlight: true })
+    expect(merged.homeCollectionHighlight).toBe(false)
+  })
+
   it('désactive watchMatchAlerts sans watchMatchmaking', () => {
     expect(mergeSiteFeatures({ watchMatchAlerts: true }).watchMatchAlerts).toBe(false)
     const merged = mergeSiteFeatures({ watchMatchmaking: true, watchMatchAlerts: true })

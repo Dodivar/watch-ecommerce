@@ -418,6 +418,23 @@ alter table public.home_featured_watches
   check (context in ('nouvelles', 'selection', 'collection'));
 ```
 
+## Montre en vitrine (hero d'accueil)
+
+`20260908120000_home_featured_vitrine_context.sql` — requis pour l'admin « Montre en vitrine » et le hero `variant: 'vitrine'` de l'accueil :
+
+- Étend la contrainte CHECK de `home_featured_watches.context` pour autoriser la valeur `vitrine` (en plus de `nouvelles`, `selection` et `collection`)
+- Sans ce fichier, l'écran admin s'ouvre et se laisse remplir, mais l'enregistrement échoue sur `new row for relation "home_featured_watches" violates check constraint "home_featured_watches_context_check"` — le hero, lui, continue d'exposer la dernière montre disponible, son comportement d'origine
+- Prérequis : `20260525120000_admin_phase1.sql`, et `20260630120000_home_featured_collection_context.sql` si le tenant l'a déjà appliqué (la contrainte est réécrite en entier, les quatre valeurs sont donc reprises ici)
+
+```sql
+alter table public.home_featured_watches
+  drop constraint if exists home_featured_watches_context_check;
+
+alter table public.home_featured_watches
+  add constraint home_featured_watches_context_check
+  check (context in ('nouvelles', 'selection', 'collection', 'vitrine'));
+```
+
 ## Relance panier abandonné (checkout)
 
 `20260710120000_abandoned_checkout_recovery.sql` — requis pour les clients avec `checkout.abandonedCart.enabled` (relance email des commandes draft non finalisées, voir `backend/orders/recovery.js`) :

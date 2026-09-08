@@ -28,6 +28,7 @@ const ADMIN_ONLY_PREFIXES = [
   '/admin/home-carousel',
   '/admin/home-featured',
   '/admin/home-collection',
+  '/admin/home-vitrine',
 ]
 
 /** Routes d'écriture (création/édition), interdites au rôle visiteur. */

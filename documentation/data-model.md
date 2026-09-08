@@ -63,7 +63,7 @@ un montant nominal : ne pas mélanger les deux.
 Une remise vit toujours dans `watches.promotion_price` / `watches.discount_percent`, que le prix
 promo ait été saisi sur la fiche montre ou écrit par l'application d'une campagne ; les colonnes
 `previous_*` de `watch_promotion_campaign_items` gardent la remise d'origine pour la restaurer à
-la fin de l'événement. Conséquence côté admin : une campagne **à venir** n'a encore touché à aucun
+la fin de la campagne. Conséquence côté admin : une campagne **à venir** n'a encore touché à aucun
 prix — ses montres ne se lisent que dans `watch_promotion_campaign_items`, ce que recompose l'écran
 « Montres en promotion » (`/admin/watch-promotions/watches`).
 

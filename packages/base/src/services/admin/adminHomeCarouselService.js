@@ -234,7 +234,7 @@ async function assertActiveCarouselCampaignLinks(slides) {
 
   if (invalidId) {
     throw new Error(
-      'Une slide pointe vers un événement promotionnel inactif ou expiré. Choisissez un événement en cours ou retirez le lien.',
+      'Une slide pointe vers une campagne de promotion inactive ou expirée. Choisissez une campagne en cours ou retirez le lien.',
     )
   }
 }

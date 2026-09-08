@@ -5,9 +5,11 @@ import { t } from '@/i18n'
  * panneau blanc à droite, comme une devanture.
  *
  * Le texte vient de `home.hero` (voir `site/homeHero.js`) ; la montre exposée
- * est la première du catalogue encore en vente, donc la vitrine se renouvelle
- * toute seule. Sans catalogue joignable, le panneau disparaît et le discours
- * occupe toute la largeur.
+ * est celle choisie dans l'admin « Montre en vitrine », et à défaut la première
+ * du catalogue encore en vente — la vitrine se renouvelle donc toute seule tant
+ * que personne n'y a posé de choix (voir `services/homeVitrineService.js`).
+ * Sans catalogue joignable, le panneau disparaît et le discours occupe toute la
+ * largeur.
  *
  * Le panneau est réglé pour que la montre, et non le blanc autour, occupe le
  * regard : les deux étiquettes tiennent sur une ligne haut et bas, et la photo
@@ -23,7 +25,7 @@ import { ArrowRight, BadgeCheck, MapPin, ShieldCheck } from '@lucide/vue'
 
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isHomeHeroCtaVisible } from '@/site/homeHero.js'
-import { getLatestAvailableWatches } from '@/services/watchService.js'
+import { loadVitrineWatch } from '@/services/homeVitrineService.js'
 import { useTiltMotion } from '@/composables/useTiltMotion.js'
 import { watchCardImageUrl } from '@/utils/watchImageUrl.js'
 import { buildWatchPath } from '@/utils/watchSlug.js'
@@ -37,6 +39,27 @@ const HIGHLIGHT_ICONS = [ShieldCheck, BadgeCheck, MapPin]
  */
 const PIECE_IMAGE_WIDTH = 1100
 
+const props = defineProps({
+  /**
+   * Montre imposée de l'extérieur — l'aperçu de l'écran d'administration passe
+   * son brouillon ici. Prop absente (défaut) : la vitrine charge la sélection
+   * publiée elle-même, comme sur l'accueil. `null` est une valeur : c'est la
+   * vitrine sans pièce à montrer, discours pleine largeur.
+   */
+  watch: {
+    type: Object,
+    default: undefined,
+  },
+  /**
+   * Aperçu : rendu identique à l'accueil, mais le panneau ne mène pas à la
+   * fiche montre — l'administrateur perdrait son écran d'édition.
+   */
+  preview: {
+    type: Boolean,
+    default: false,
+  },
+})
+
 const site = getSiteConfig()
 const hero = computed(() => site.home?.hero ?? {})
 const features = computed(() => site.features ?? {})
@@ -45,9 +68,15 @@ const highlights = computed(() =>
   (hero.value.highlights ?? []).slice(0, HIGHLIGHT_ICONS.length),
 )
 
-/** Montre exposée : chargée au montage, `null` tant qu'elle n'est pas connue. */
-const piece = ref(null)
-const isLoadingPiece = ref(true)
+/**
+ * Montre exposée : chargée au montage, `null` tant qu'elle n'est pas connue —
+ * sauf quand elle est imposée, l'aperçu admin rendant un brouillon que le
+ * service ne connaît pas encore.
+ */
+const isControlled = computed(() => props.watch !== undefined)
+const loadedPiece = ref(null)
+const piece = computed(() => (isControlled.value ? props.watch : loadedPiece.value))
+const isLoadingPiece = ref(!isControlled.value)
 
 const pieceImage = computed(() => {
   const url = piece.value?.images?.[0]
@@ -58,6 +87,13 @@ const pieceImage = computed(() => {
 const piecePath = computed(() =>
   features.value.collection && piece.value ? buildWatchPath(piece.value) : null,
 )
+
+/**
+ * L'aperçu garde le panneau et sa flèche — c'est le rendu de l'accueil — mais
+ * pose un `div` : un lien y emmènerait l'administrateur hors de son écran.
+ */
+const panelTag = computed(() => (piecePath.value && !props.preview ? RouterLink : 'div'))
+const panelTo = computed(() => (panelTag.value === RouterLink ? piecePath.value : undefined))
 
 /** Le panneau n'existe que s'il a une vraie pièce et une vraie photo à montrer. */
 const showPiece = computed(() => Boolean(piece.value && pieceImage.value))
@@ -73,12 +109,12 @@ const showSecondaryCta = computed(() =>
 )
 
 onMounted(async () => {
+  if (isControlled.value) return
   try {
-    const [latest] = await getLatestAvailableWatches(1)
-    piece.value = latest ?? null
+    loadedPiece.value = await loadVitrineWatch()
   } catch {
     // Catalogue injoignable : le hero reste lisible sans son panneau.
-    piece.value = null
+    loadedPiece.value = null
   } finally {
     isLoadingPiece.value = false
   }
@@ -109,8 +145,8 @@ onMounted(async () => {
 
       <div v-if="showPanel" ref="tiltRef" class="vitrine-col-panel vitrine-tilt" :style="tiltStyle">
         <component
-          :is="piecePath ? RouterLink : 'div'"
-          :to="piecePath"
+          :is="panelTag"
+          :to="panelTo"
           class="vitrine-panel relative flex h-full flex-col bg-white"
         >
           <span class="vitrine-halo" aria-hidden="true" />
