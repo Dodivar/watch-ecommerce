@@ -9,6 +9,7 @@ import App from './App.vue'
 import router from './router'
 import { initAnalytics, trackPageView } from '@/services/analytics'
 import { getActiveLocale, getActiveLocalePrefix } from '@/i18n/activeLocale.js'
+import { ensureReviewToolbar } from '@/services/review/vercelToolbar.js'
 
 // Pose les signaux Consent Mode et rejoue le choix mémorisé, avant tout chargement de traceur.
 initAnalytics()
@@ -24,6 +25,10 @@ const app = createApp(App)
 app.use(router)
 app.use(head)
 app.mount('#app')
+
+// Relecture client : barre de commentaires Vercel, uniquement sur `?relecture=1` et pour un
+// compte Vercel ayant accès au projet. Voir documentation/relecture-client.md.
+ensureReviewToolbar()
 
 // Pages vues des navigations SPA (les consentements sont vérifiés par la couche analytics).
 router.afterEach((to) => {

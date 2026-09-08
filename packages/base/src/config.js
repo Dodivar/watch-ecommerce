@@ -51,6 +51,21 @@ export const GOOGLE_ADS_PURCHASE_LABEL = import.meta.env.VITE_GOOGLE_ADS_PURCHAS
 /** Meta (Facebook / Instagram) — `VITE_META_PIXEL_ID`, identifiant numérique du pixel. */
 export const META_PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID || ''
 
+/**
+ * Relecture client : barre de commentaires Vercel injectée en production sur `?relecture=1`.
+ *
+ * Identifiants publics du projet Vercel qui sert le site — `VITE_VERCEL_TOOLBAR_OWNER_ID`
+ * (identifiant d'équipe ou de compte) et `VITE_VERCEL_TOOLBAR_PROJECT_ID`. Tant que les deux
+ * ne sont pas renseignés, rien n'est chargé. `VITE_VERCEL_TOOLBAR_BRANCH` (optionnel) range
+ * les fils de commentaires sous une branche donnée.
+ * Voir `packages/base/src/services/review/vercelToolbar.js`.
+ */
+export const VERCEL_TOOLBAR_OWNER_ID = import.meta.env.VITE_VERCEL_TOOLBAR_OWNER_ID || ''
+
+export const VERCEL_TOOLBAR_PROJECT_ID = import.meta.env.VITE_VERCEL_TOOLBAR_PROJECT_ID || ''
+
+export const VERCEL_TOOLBAR_BRANCH = import.meta.env.VITE_VERCEL_TOOLBAR_BRANCH || ''
+
 const urlProduction = site.urls.production
 const urlStaging = site.urls.staging
 const urlDevelopment = site.urls.development

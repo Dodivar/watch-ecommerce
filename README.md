@@ -15,6 +15,7 @@ Documentation détaillée : [documentation/multi-client.md](documentation/multi-
 | [documentation/data-model.md](documentation/data-model.md) | Tables Supabase et colonnes exposées |
 | [documentation/testing.md](documentation/testing.md) | Vitest, contrats de manifest, Playwright |
 | [documentation/screenshots/README.md](documentation/screenshots/README.md) | Captures de référence des vitrines |
+| [documentation/relecture-client.md](documentation/relecture-client.md) | Relecture client : commentaires Vercel dans la page (`?relecture=1`) |
 | [documentation/i18n/README.md](documentation/i18n/README.md) | Multilingue fr / en / de |
 | [documentation/google-reviews/README.md](documentation/google-reviews/README.md) | Avis Google |
 | [backend/README.md](backend/README.md) | Backend Express multi-tenant |
