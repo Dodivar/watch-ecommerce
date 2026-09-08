@@ -114,7 +114,7 @@ const carouselLinks = computed(() => {
       match: (p) => p === '/admin/home-featured',
     })
   }
-  if (features.collection) {
+  if (features.homeCollectionHighlight) {
     items.push({
       to: '/admin/home-collection',
       label: 'Aperçu collection',

@@ -62,6 +62,13 @@ export const DEFAULT_SITE_FEATURES = {
    */
   homeVitrine: false,
   /**
+   * Bloc « aperçu collection » sur l'accueil (et l'écran d'admin qui choisit les montres
+   * mises en avant) — dérivé de `home.sections` contenant `collectionHighlight`, comme
+   * `homeNouvelles`. À ne pas confondre avec `collection`, qui n'ouvre que la page
+   * catalogue : un site peut avoir un catalogue sans exposer ce bloc sur son accueil.
+   */
+  homeCollectionHighlight: false,
+  /**
    * Afficher la référence montre sur les cartes catalogue et fiches produit.
    * Dérivé de `watchCatalog.mode === 'resale'` dans getSiteConfig() — ne pas surcharger sauf cas exceptionnel.
    */
@@ -103,6 +110,7 @@ export function mergeSiteFeatures(partial = {}) {
   if (!merged.collection) {
     merged.soldArchive = false
     merged.watchMatchmaking = false
+    merged.homeCollectionHighlight = false
   }
   if (!merged.watchMatchmaking) {
     merged.watchMatchAlerts = false
