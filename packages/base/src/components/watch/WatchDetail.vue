@@ -838,7 +838,14 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { scrollAnimation } from '@/animation'
-import { WHATSAPP_NUMBER, EMAIL_CONTACT, BASE_URL, PURCHASE_ENABLED, localizedUrl } from '@/config'
+import {
+  WHATSAPP_NUMBER,
+  EMAIL_CONTACT,
+  BASE_URL,
+  DEFAULT_OG_IMAGE_URL,
+  PURCHASE_ENABLED,
+  localizedUrl,
+} from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
 import { resolveRetailTrustHighlights, resolveWatchGuarantees, isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
@@ -1370,7 +1377,7 @@ const pageDescription = computed(() => {
 
 const ogImage = computed(() => {
   if (!watchItem.value || !watchItem.value.images || watchItem.value.images.length === 0) {
-    return `${BASE_URL}/logo500x500.png`
+    return DEFAULT_OG_IMAGE_URL
   }
   return watchItem.value.images[0]
 })

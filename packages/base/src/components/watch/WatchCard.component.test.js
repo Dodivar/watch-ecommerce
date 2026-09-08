@@ -2,9 +2,16 @@
  * @vitest-environment happy-dom
  */
 import { describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { RouterLinkStub, config, mount } from '@vue/test-utils'
 
 import WatchCard from './WatchCard.vue'
+
+/**
+ * `WatchCard` et `WatchListRow` posent un vrai `<a href>` sur le titre (maillage interne
+ * suivable par les crawlers) : sans routeur monté, `RouterLink` échoue. Le stub de VTU rend
+ * une ancre et expose la cible via `props('to')`.
+ */
+config.global.stubs.RouterLink = RouterLinkStub
 
 const getSiteConfigMock = vi.hoisted(() => vi.fn())
 
@@ -208,5 +215,37 @@ describe('WatchCard', () => {
     })
 
     expect(wrapper.find('.flex.h-full').classes()).toContain('touch-pan-y')
+  })
+  /**
+   * Le conteneur de la carte navigue par `router.push` : pratique pour un humain, invisible
+   * pour un crawler, qui ne suit que les `<a href>`. Sans cette ancre, les fiches produit ne
+   * sont découvertes que par le sitemap et ne reçoivent aucun maillage interne.
+   */
+  it('pose un lien suivable vers la fiche sur le titre', () => {
+    getSiteConfigMock.mockReturnValue({
+      watchCatalog: { display: { showReference: false, showSoldBadge: false } },
+    })
+
+    const wrapper = mount(WatchCard, {
+      props: { watch: { ...baseWatch, brand: 'Rolex' } },
+    })
+
+    const link = wrapper.findComponent(RouterLinkStub)
+    expect(link.exists()).toBe(true)
+    expect(link.props('to')).toBe('/montre/rolex-test-watch-ref-001')
+    expect(link.text()).toBe('Test Watch')
+  })
+
+  it('n’expose pas de lien quand la carte n’est pas cliquable', () => {
+    getSiteConfigMock.mockReturnValue({
+      watchCatalog: { display: { showReference: false, showSoldBadge: false } },
+    })
+
+    const wrapper = mount(WatchCard, {
+      props: { watch: baseWatch, clickable: false },
+    })
+
+    expect(wrapper.findComponent(RouterLinkStub).exists()).toBe(false)
+    expect(wrapper.text()).toContain('Test Watch')
   })
 })

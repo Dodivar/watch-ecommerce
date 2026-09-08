@@ -584,7 +584,8 @@ export default {
       ogLocale: 'fr_FR',
       ogSiteName: 'Sauvage',
       appleMobileWebAppTitle: 'Sauvage Watches',
-      ogImagePath: '/logo500x500.png',
+      /** Icône applicative, à remplacer par une bannière 1200×630 dédiée au partage. */
+      ogImagePath: '/web-app-manifest-512x512.png',
     },
     home: {
       title: t({
@@ -593,9 +594,9 @@ export default {
         de: 'Sauvage - Ankauf von Luxusuhren | Kollektion mit Garantie',
       }),
       metaDescription: t({
-        fr: 'Découvrez notre collection de montres de luxe garanties 1 an. Rolex, Breitling, Tag Heuer, Cartier et plus. Estimation gratuite, recherche personnalisée et accompagnement expert.',
-        en: 'Discover our collection of luxury watches with a 1-year warranty. Rolex, Breitling, Tag Heuer, Cartier and more. Free valuation, personalised sourcing and expert guidance.',
-        de: 'Entdecken Sie unsere Kollektion von Luxusuhren mit 1 Jahr Garantie. Rolex, Breitling, Tag Heuer, Cartier und mehr. Kostenlose Schätzung, persönliche Suche und fachkundige Beratung.',
+        fr: 'Montres de luxe garanties 1 an : Rolex, Breitling, Tag Heuer, Cartier. Estimation gratuite, recherche personnalisée et accompagnement expert.',
+        en: 'Luxury watches with a 1-year warranty: Rolex, Breitling, Tag Heuer, Cartier. Free valuation, personalised sourcing and expert guidance.',
+        de: 'Luxusuhren mit 1 Jahr Garantie: Rolex, Breitling, Tag Heuer, Cartier. Kostenlose Schätzung, persönliche Suche und fachkundige Beratung.',
       }),
       ogTitle: t({
         fr: 'Sauvage - Rachat de Montres de Luxe | Collection Garantie',
@@ -773,9 +774,9 @@ export default {
         de: 'Ihre Traumuhr | Die Uhr, die zu Ihnen passt | Sauvage',
       }),
       metaDescription: t({
-        fr: 'Dites-nous ce que vous cherchez, nous vous présentons les montres disponibles chez Sauvage une par une. Un geste pour passer, un autre pour garder — et une shortlist à la fin.',
-        en: 'Tell us what you are looking for and we will introduce you to the watches available at Sauvage, one at a time. Swipe to pass or keep — and end with your shortlist.',
-        de: 'Sagen Sie uns, was Sie suchen, und wir stellen Ihnen die bei Sauvage verfügbaren Uhren einzeln vor. Wischen zum Weitergehen oder Behalten — am Ende steht Ihre Auswahl.',
+        fr: 'Dites-nous ce que vous cherchez : les montres Sauvage défilent une par une. Un geste pour passer, un autre pour garder, une shortlist à la fin.',
+        en: 'Tell us what you are looking for and browse the watches at Sauvage one at a time. Swipe to pass or keep, and end with your shortlist.',
+        de: 'Sagen Sie uns, was Sie suchen: die Uhren von Sauvage einzeln durchsehen. Wischen zum Weitergehen oder Behalten, am Ende Ihre Auswahl.',
       }),
       ogTitle: t({
         fr: 'Coup de foudre | Sauvage Watches',
@@ -822,14 +823,14 @@ export default {
     },
     aPropos: {
       title: t({
-        fr: 'À propos de Sauvage - Votre partenaire de confiance pour les montres de luxe',
-        en: 'About Sauvage - Your trusted partner for luxury watches',
-        de: 'Über Sauvage - Ihr vertrauensvoller Partner für Luxusuhren',
+        fr: 'À propos de Sauvage — Spécialiste de la montre de luxe',
+        en: 'About Sauvage — Luxury watch specialists',
+        de: 'Über Sauvage — Spezialist für Luxusuhren',
       }),
       metaDescription: t({
-        fr: 'Découvrez Sauvage, une entreprise spécialisée dans le rachat et la vente de montres de luxe. Nous possédons directement notre stock, garantissant authenticité, qualité et disponibilité immédiate.',
-        en: 'Discover Sauvage, a company specialising in buying and selling luxury watches. We own our stock outright, which guarantees authenticity, quality and immediate availability.',
-        de: 'Lernen Sie Sauvage kennen, ein Unternehmen für An- und Verkauf von Luxusuhren. Unser Bestand gehört uns selbst — das sichert Echtheit, Qualität und sofortige Verfügbarkeit.',
+        fr: 'Sauvage, spécialiste du rachat et de la vente de montres de luxe. Notre stock nous appartient : authenticité, qualité et disponibilité immédiate.',
+        en: 'Sauvage specialises in buying and selling luxury watches. We own our stock outright: authenticity, quality and immediate availability.',
+        de: 'Sauvage kauft und verkauft Luxusuhren. Unser Bestand gehört uns selbst: Echtheit, Qualität und sofortige Verfügbarkeit.',
       }),
       ogTitle: t({
         fr: 'À propos de Sauvage - Votre partenaire de confiance',

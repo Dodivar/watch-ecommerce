@@ -1666,9 +1666,9 @@ export default {
         de: 'Place des Montres — Uhren in Straßburg seit 1995',
       }),
       metaDescription: t({
-        fr: 'Spécialiste montres à Strasbourg (Place des Halles) : homme, femme, enfant. Large choix, livraison Colissimo offerte dès 80 € en France métropolitaine, service client du lundi au samedi (9h–20h).',
-        en: 'Watch specialists in Strasbourg (Place des Halles): men, women, children. Wide choice, free Colissimo delivery from €80 in mainland France, customer service Monday to Saturday (9am–8pm).',
-        de: 'Uhrenspezialist in Straßburg (Place des Halles): Herren, Damen, Kinder. Große Auswahl, kostenlose Colissimo-Lieferung ab 80 € im französischen Mutterland, Kundenservice Montag bis Samstag (9–20 Uhr).',
+        fr: 'Spécialiste montres à Strasbourg, Place des Halles : homme, femme, enfant. Colissimo offert dès 80 € en France métropolitaine.',
+        en: 'Watch specialists in Strasbourg, Place des Halles: men, women, children. Free Colissimo delivery from €80 in mainland France.',
+        de: 'Uhrenspezialist in Straßburg, Place des Halles: Herren, Damen, Kinder. Kostenloses Colissimo ab 80 € im französischen Mutterland.',
       }),
       keywords: t({
         fr: 'montres Strasbourg, Place des Halles, horlogerie, montre homme, femme, enfant, Swiss Made, Colissimo, Place des Montres',
@@ -1700,18 +1700,22 @@ export default {
       ogLocale: 'fr_FR',
       ogSiteName: 'Place des Montres',
       appleMobileWebAppTitle: 'Place des Montres',
-      ogImagePath: '/brand-logo.jpg',
+      /**
+       * `brand-logo.jpg` fait 223×94 : sous le minimum des scrapers sociaux (200 px de côté),
+       * il n'était pas rendu. Icône applicative en attendant une bannière 1200×630.
+       */
+      ogImagePath: '/web-app-manifest-512x512.png',
     },
     home: {
       title: t({
-        fr: 'Place des Montres — Montres de marque à Strasbourg & en ligne',
+        fr: 'Place des Montres — Montres de marque, Strasbourg & en ligne',
         en: 'Place des Montres — Branded watches in Strasbourg & online',
         de: 'Place des Montres — Markenuhren in Straßburg & online',
       }),
       metaDescription: t({
-        fr: "Plus de 3 000 montres en stock, une trentaine de marques : découvrez l'offre Place des Montres. Retrait au centre commercial Place des Halles ou livraison Colissimo offerte dès 80 € (France métropolitaine).",
-        en: 'Over 3,000 watches in stock across some thirty brands: discover the Place des Montres range. Collect at the Place des Halles shopping centre or get free Colissimo delivery from €80 (mainland France).',
-        de: 'Über 3.000 Uhren am Lager, rund dreißig Marken: Entdecken Sie das Angebot von Place des Montres. Abholung im Einkaufszentrum Place des Halles oder kostenlose Colissimo-Lieferung ab 80 € (französisches Mutterland).',
+        fr: 'Plus de 3 000 montres en stock, une trentaine de marques. Retrait à Place des Halles ou Colissimo offert dès 80 € (France métropolitaine).',
+        en: 'Over 3,000 watches in stock across some thirty brands. Collect at Place des Halles or free Colissimo delivery from €80 (mainland France).',
+        de: 'Über 3.000 Uhren am Lager, rund dreißig Marken. Abholung an der Place des Halles oder Colissimo gratis ab 80 € (frz. Mutterland).',
       }),
       ogTitle: t({
         fr: 'Place des Montres — Strasbourg & e-commerce',
@@ -1884,14 +1888,14 @@ export default {
     },
     aPropos: {
       title: t({
-        fr: 'Qui sommes-nous ? — Place des Montres, spécialiste depuis 1995',
+        fr: 'Qui sommes-nous ? — Place des Montres, depuis 1995',
         en: 'About us — Place des Montres, specialists since 1995',
         de: 'Über uns — Place des Montres, Spezialist seit 1995',
       }),
       metaDescription: t({
-        fr: 'Place des Montres à Strasbourg (Place des Halles) : près de 3 000 montres, une trentaine de marques, conseils experts depuis 1995. Sport, élégance, mécanique — venez découvrir notre univers.',
-        en: 'Place des Montres in Strasbourg (Place des Halles): close to 3,000 watches, some thirty brands and expert advice since 1995. Sport, elegance, mechanical — come and explore our world.',
-        de: 'Place des Montres in Straßburg (Place des Halles): rund 3.000 Uhren, etwa dreißig Marken und fachkundige Beratung seit 1995. Sport, Eleganz, Mechanik — entdecken Sie unsere Welt.',
+        fr: 'Place des Montres, Strasbourg (Place des Halles) : près de 3 000 montres, une trentaine de marques et des conseils experts depuis 1995.',
+        en: 'Place des Montres, Strasbourg (Place des Halles): close to 3,000 watches, some thirty brands and expert advice since 1995.',
+        de: 'Place des Montres, Straßburg (Place des Halles): rund 3.000 Uhren, etwa dreißig Marken und fachkundige Beratung seit 1995.',
       }),
       ogTitle: t({
         fr: 'Qui sommes-nous | Place des Montres',
@@ -1922,8 +1926,8 @@ export default {
       }),
       metaDescription: t({
         fr: 'Pile RENATA 9 €, étanchéité en 1 h (21 €), réparation toutes marques, bracelets et financement 3/4x sans frais — horloger sur place aux Place des Halles.',
-        en: 'RENATA battery €9, water-resistance testing in 1 hour (€21), repairs for all brands, straps and interest-free payment in 3 or 4 instalments — watchmaker on site at Place des Halles.',
-        de: 'RENATA-Batterie 9 €, Dichtheitsprüfung in 1 Stunde (21 €), Reparatur aller Marken, Armbänder und zinsfreie Ratenzahlung in 3 oder 4 Raten — Uhrmacher vor Ort in der Place des Halles.',
+        en: 'RENATA battery €9, water-resistance test in 1 hour (€21), repairs for all brands and straps — watchmaker on site at Place des Halles.',
+        de: 'RENATA-Batterie 9 €, Dichtheitsprüfung in 1 Stunde (21 €), Reparatur aller Marken und Armbänder — Uhrmacher vor Ort an der Place des Halles.',
       }),
       ogTitle: t({
         fr: 'Services horlogerie | Place des Montres',
@@ -1982,12 +1986,12 @@ export default {
       title: t({
         fr: 'FAQ | Place des Montres — Commande, livraison et garanties',
         en: 'FAQ | Place des Montres — Ordering, delivery and warranties',
-        de: 'FAQ | Place des Montres — Bestellung, Lieferung und Garantien',
+        de: 'FAQ | Place des Montres — Bestellung, Lieferung, Garantie',
       }),
       metaDescription: t({
-        fr: 'Réponses aux questions fréquentes : stock, paiement sécurisé, Colissimo offert dès 80 €, retrait aux Halles, retour sous 30 jours, garantie 2 ans et service client.',
+        fr: 'Réponses aux questions fréquentes : stock, paiement sécurisé, Colissimo offert dès 80 €, retrait aux Halles, retour 30 jours et garantie 2 ans.',
         en: 'Answers to common questions: stock, secure payment, free Colissimo from €80, collection at Les Halles, 30-day returns, 2-year warranty and customer service.',
-        de: 'Antworten auf häufige Fragen: Bestand, sichere Zahlung, kostenloses Colissimo ab 80 €, Abholung in Les Halles, 30 Tage Rückgabe, 2 Jahre Garantie und Kundenservice.',
+        de: 'Antworten auf häufige Fragen: Bestand, sichere Zahlung, Colissimo gratis ab 80 €, Abholung in Les Halles, 30 Tage Rückgabe, 2 Jahre Garantie.',
       }),
       ogTitle: t({
         fr: 'FAQ | Place des Montres',

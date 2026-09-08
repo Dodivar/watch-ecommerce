@@ -108,6 +108,22 @@ function getBaseUrl() {
 export const BASE_URL = getBaseUrl()
 
 /**
+ * Image de partage par défaut, en absolu.
+ *
+ * Même source que la coquille `index.html` (`seo.indexHtml.ogImagePath`, appliqué par
+ * `vite/site-from-config.mjs`) : les balises posées à l'exécution ne peuvent pas diverger de
+ * celles du HTML statique, et une vitrine qui change de visuel n'a qu'un seul endroit à mettre
+ * à jour. Chaîne vide si le manifest n'en déclare pas — les appelants retombent alors sur leur
+ * propre visuel plutôt que d'émettre une URL morte.
+ */
+export const DEFAULT_OG_IMAGE_URL = (() => {
+  const configured = site.seo?.indexHtml?.ogImagePath
+  if (typeof configured !== 'string' || !configured.trim()) return ''
+  const path = configured.trim()
+  return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`
+})()
+
+/**
  * Origine de la page **dans la langue active** : `https://…` ou `https://…/en`.
  *
  * À utiliser pour tout ce qui désigne la page courante — `canonical`, `og:url`, fil d'Ariane,
