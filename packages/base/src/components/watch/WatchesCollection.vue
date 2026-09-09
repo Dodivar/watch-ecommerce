@@ -834,9 +834,13 @@ function fillBrand(template, brand) {
 const seoBrand = computed(() => siteConfig.seo?.brandCollection || {})
 
 const collectionHead = computed(() => {
-  if (listing.isLoading || listing.error) return {}
+  // Pendant le chargement, la page annonce la collection générique plutôt que rien : une entrée
+  // vide laisse remonter le titre et la canonique de la coquille, c'est-à-dire ceux de l'accueil.
+  // La variante par marque, elle, a besoin des données ; elle prend le relais une fois chargées.
+  const isBrandView =
+    !listing.isLoading && !listing.error && singleBrandLabel.value && listing.selectedBrands.length === 1
 
-  if (!singleBrandLabel.value || listing.selectedBrands.length !== 1) {
+  if (!isBrandView) {
     return {
       title: seoCollection.title,
       meta: [
