@@ -96,6 +96,9 @@ vers `main` dont la source n'est pas `staging` reste non mergeable.
 
 ## Ajouter un client
 
+> Procédure d'onboarding complète, documents à envoyer au client compris (compte Stripe,
+> informations à fournir, recette paiement) : [onboarding/](onboarding/README.md).
+
 1. Copier `sites/_template/` vers `sites/<SITE_ID>/` (voir [son README](../sites/_template/README.md)) ;
    renommer `index.html.example` et `main.js.example`, créer `src/` et `public/`.
 2. Écrire `site.config.js` : `siteId`, `brand`, `contact`, `urls`, `theme`, `features`, `home`,

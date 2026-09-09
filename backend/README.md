@@ -133,6 +133,10 @@ Les variables historiques (`STRIPE_SECRET_KEY`, `MAILJET_API_KEY`, `BASE_URL`, e
 
 ## ➕ Ajouter un nouveau client
 
+> Cette section couvre le branchement technique. Le parcours complet — ce que le client
+> fait seul dans Stripe, ce qu'il nous transmet, où chaque valeur atterrit — est dans
+> [documentation/onboarding/](../documentation/onboarding/README.md).
+
 1. **Créer le manifest front** : `sites/<nouveau-client>/site.config.js` (le front Vite l'utilise déjà). Compléter le bloc `backend` (cf. exemple ci-dessus).
 2. **Configurer les secrets** dans le dashboard Render : ajouter toutes les variables `SITE_<UPPER_ID>__`* correspondantes (Stripe, Supabase, Mailjet, PaymentCancel).
 3. **Configurer le webhook Stripe** : dans le dashboard Stripe du nouveau client, pointer le webhook vers :
