@@ -89,6 +89,7 @@
                     :src="image"
                     :alt="watchItem.name"
                     :loading="index <= currentImageIndex + 1 ? 'eager' : 'lazy'"
+                    :fetchpriority="isActive ? 'high' : 'auto'"
                     decoding="async"
                     class="h-full w-full object-cover object-center"
                     :class="isActive ? 'cursor-zoom-in' : ''"
