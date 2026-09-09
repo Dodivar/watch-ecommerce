@@ -777,6 +777,23 @@ export default {
       }),
       structuredDataSellerName: 'Sauvage',
     },
+    /**
+     * Page « Nos dernières ventes ». Les mêmes textes que les défauts de
+     * `SoldWatchesArchivePage.vue`, mais déclarés ici : le pré-rendu ne peut pas atteindre les
+     * replis d'un composant, et servait donc la copie de l'accueil sur cette route.
+     */
+    soldArchive: {
+      title: t({
+        fr: 'Montres vendues | Sauvage',
+        en: 'Sold watches | Sauvage',
+        de: 'Verkaufte Uhren | Sauvage',
+      }),
+      metaDescription: t({
+        fr: 'Les montres qui ont trouvé preneur. Un modèle vous intéresse ? Nous pouvons trouver le même pour vous.',
+        en: 'The watches that have found a buyer. A model catches your eye? We can source the same for you.',
+        de: 'Die Uhren, die einen Käufer gefunden haben. Ein Modell gefällt Ihnen? Wir finden dasselbe für Sie.',
+      }),
+    },
     matchmaking: {
       title: t({
         fr: 'Coup de foudre | Trouvez la montre faite pour vous | Sauvage',

@@ -10,6 +10,11 @@ import {
   MIN_WATCH_GUARANTEES,
 } from '@/site/watchCatalogDisplay.js'
 import { KNOWN_HOME_SECTION_IDS } from '@/site/homeSections.js'
+import { buildSitemapStaticRoutes } from '@/site/buildSitemapStaticRoutes.js'
+import {
+  STATIC_ROUTES_WITHOUT_OWN_COPY,
+  STATIC_ROUTE_SEO_SECTIONS,
+} from '@/site/staticRouteHead.js'
 import {
   resolveFooterNavigation,
   resolveMainNavigation,
@@ -175,6 +180,48 @@ describe.each(siteIds)('site contract: %s', (siteId) => {
     }
 
     expect(tooLong, 'raccourcir ces textes, ils seront tronqués dans les résultats').toEqual([])
+  })
+
+  /**
+   * Le pré-rendu écrit un `index.html` par route statique et y injecte le titre, la description
+   * et la canonique de la route. La correspondance route → bloc `seo` est une table
+   * (`staticRouteHead.js`) : une route ajoutée au sitemap sans y être déclarée reprendrait en
+   * silence la copie de l'accueil, ce qui est précisément le défaut corrigé.
+   *
+   * Les pages de prestation (`/services/<slug>`) varient par vitrine et tirent leur copie du
+   * manifest à l'exécution ; elles sont hors table par construction.
+   */
+  it('déclare chaque route pré-rendue dans la table des métadonnées', async () => {
+    const resolved = resolveSiteConfig(await loadRawSiteConfig(siteId))
+    const routes = buildSitemapStaticRoutes(resolved.features, resolved)
+
+    const unaccounted = routes
+      .map((route) => route.path)
+      .filter(
+        (routePath) =>
+          !(routePath in STATIC_ROUTE_SEO_SECTIONS) &&
+          !STATIC_ROUTES_WITHOUT_OWN_COPY.includes(routePath) &&
+          !routePath.startsWith('/services/'),
+      )
+
+    expect(
+      unaccounted,
+      'ajouter ces routes à STATIC_ROUTE_SEO_SECTIONS ou à STATIC_ROUTES_WITHOUT_OWN_COPY',
+    ).toEqual([])
+  })
+
+  /** Une section pointée par la table mais absente du manifest retomberait sur la coquille. */
+  it('ne pointe la table que vers des sections seo existantes', async () => {
+    const resolved = resolveSiteConfig(await loadRawSiteConfig(siteId))
+    const routes = new Set(buildSitemapStaticRoutes(resolved.features, resolved).map((r) => r.path))
+    const seo = resolved.seo ?? {}
+
+    const missing = Object.entries(STATIC_ROUTE_SEO_SECTIONS)
+      .filter(([routePath]) => routes.has(routePath))
+      .filter(([, section]) => !seo[section])
+      .map(([routePath, section]) => `${routePath} → seo.${section}`)
+
+    expect(missing, 'route active dont le bloc seo manque au manifest').toEqual([])
   })
 
   it('respecte le nombre de garanties fiche montre si configurées', async () => {

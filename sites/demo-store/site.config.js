@@ -316,6 +316,12 @@ export default {
       descriptionFallback: 'Découvrez cette montre de luxe sur Demo Store',
       structuredDataSellerName: 'Demo Store',
     },
+    /** Reprend `heading` / `subheading` de `faq.config.js`, pour que le pré-rendu les voie. */
+    faq: {
+      title: 'Questions fréquentes | Demo Store',
+      metaDescription:
+        'Exemple de structure pour la FAQ (textes génériques — à adapter par marque).',
+    },
     aPropos: {
       title: 'À propos de Demo Store — Spécialiste de la montre de luxe',
       metaDescription:
