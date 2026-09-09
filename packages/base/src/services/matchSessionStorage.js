@@ -12,7 +12,11 @@
  */
 
 import { getSiteConfig } from '@/site/getSiteConfig.js'
-import { createEmptyPreferences, sanitizePreferences } from '@/utils/watchMatchmaking.js'
+import {
+  MATCH_ROUND_SIZE,
+  createEmptyPreferences,
+  sanitizePreferences,
+} from '@/utils/watchMatchmaking.js'
 
 export const MATCH_SESSION_VERSION = 1
 
@@ -34,6 +38,7 @@ export const MATCH_STEPS = ['onboarding', 'swipe', 'end', 'shortlist']
  * @property {string[]} seen           Ids déjà présentés, dans l'ordre
  * @property {string[]} liked          Ids aimés, dans l'ordre du coup de cœur
  * @property {string[]} passed         Ids passés
+ * @property {number} deckLimit        Montres présentables au total, manches cumulées
  */
 
 /** Clé par site, comme `watch-ecommerce:catalog-brands:${siteId}` dans `watchService.js`. */
@@ -53,6 +58,7 @@ export function createEmptyMatchSession() {
     seen: [],
     liked: [],
     passed: [],
+    deckLimit: MATCH_ROUND_SIZE,
   }
 }
 
@@ -70,6 +76,17 @@ function idList(value) {
     out.push(id)
   }
   return out
+}
+
+/**
+ * Une limite de deck absente, absurde ou rognée sous une manche redonne la manche par défaut :
+ * une session reprise doit toujours avoir de quoi présenter quelque chose.
+ *
+ * @param {unknown} value
+ * @returns {number}
+ */
+function deckLimit(value) {
+  return Number.isInteger(value) && value >= MATCH_ROUND_SIZE ? value : MATCH_ROUND_SIZE
 }
 
 /**
@@ -102,6 +119,9 @@ export function parseMatchSession(raw, now = Date.now()) {
     seen: idList(data.seen),
     liked: idList(data.liked),
     passed: idList(data.passed),
+    // Champ ajouté après coup : une session écrite avant lui reprend le défaut plutôt que
+    // d'être jetée. Pas de bump de version, la reprise est exactement celle qu'on veut.
+    deckLimit: deckLimit(data.deckLimit),
   }
 }
 
@@ -136,6 +156,7 @@ export function saveMatchSession(session) {
     seen: idList(session?.seen),
     liked: idList(session?.liked),
     passed: idList(session?.passed),
+    deckLimit: deckLimit(session?.deckLimit),
   }
   if (typeof localStorage !== 'undefined') {
     try {

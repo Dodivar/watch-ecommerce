@@ -21,6 +21,31 @@
         </div>
       </template>
 
+      <!-- Manche terminée, le catalogue en garde d'autres -->
+      <template v-else-if="remaining > 0">
+        <h1 id="matchmaking-end-title" class="mt-3 text-2xl font-bold text-text-main sm:text-3xl">
+          {{ t('matchmaking.end.roundTitle') }}
+        </h1>
+        <p class="mt-4 text-gray-600">{{ tc('matchmaking.end.roundText', remaining) }}</p>
+        <div class="matchmaking-end-actions mt-8">
+          <button type="button" :class="primaryClass" @click="mm.showMoreWatches()">
+            {{ t('matchmaking.end.showMore', { count: nextRoundSize }) }}
+          </button>
+          <button
+            v-if="likedCount > 0"
+            type="button"
+            :class="secondaryClass"
+            @click="mm.showShortlist()"
+          >
+            {{ t('matchmaking.end.viewMatches') }}
+            <span class="ml-1 opacity-80">({{ likedCount }})</span>
+          </button>
+          <button v-else type="button" :class="secondaryClass" @click="mm.editPreferences()">
+            {{ t('matchmaking.end.editPreferences') }}
+          </button>
+        </div>
+      </template>
+
       <!-- Tout vu, au moins un coup de cœur -->
       <template v-else-if="likedCount > 0">
         <Heart class="mx-auto mt-4 h-10 w-10 text-primary" :stroke-width="1.5" />
@@ -80,6 +105,12 @@ const props = defineProps({
 })
 
 const likedCount = computed(() => props.mm.session.liked.length)
+
+/** Montres du budget qu'aucune manche n'a encore présentées. */
+const remaining = computed(() => props.mm.remainingBeyondRound)
+
+/** Taille réelle de la manche suivante (voir `useWatchMatchmaking`). */
+const nextRoundSize = computed(() => props.mm.nextRoundSize)
 
 /** Aucune montre dans le budget alors qu'il en existe : le budget est le seul filtre dur. */
 const isBudgetEmpty = computed(() => props.mm.totalInBudget === 0 && props.mm.excludedByBudget > 0)

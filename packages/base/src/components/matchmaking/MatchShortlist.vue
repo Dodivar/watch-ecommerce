@@ -120,6 +120,16 @@
         {{ t('matchmaking.shortlist.resume') }}
         <span class="opacity-80">({{ mm.deck.length }})</span>
       </button>
+      <!-- Manche épuisée, mais le catalogue en garde : sans ce relais, la shortlist serait un
+           cul-de-sac pour qui y entre juste après la dernière carte. -->
+      <button
+        v-else-if="nextRoundSize > 0"
+        type="button"
+        class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        @click="mm.showMoreWatches()"
+      >
+        {{ t('matchmaking.end.showMore', { count: nextRoundSize }) }}
+      </button>
       <button
         type="button"
         class="inline-flex items-center gap-1.5 text-gray-600 underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-primary"
@@ -162,4 +172,7 @@ const emit = defineEmits(['open-details'])
 const features = getSiteConfig().features
 
 const entries = computed(() => props.mm.likedEntries)
+
+/** Ce que la manche suivante montrerait vraiment ; `0` quand le catalogue est épuisé. */
+const nextRoundSize = computed(() => props.mm.nextRoundSize)
 </script>
