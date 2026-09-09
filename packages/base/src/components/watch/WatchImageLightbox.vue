@@ -21,6 +21,7 @@
           :images="images"
           :show-navigation="images.length > 1"
           :swipe-disabled="isZoomed"
+          mouse-drag
           track-class="touch-none"
           idle-track-class="touch-none"
           navigation-button-class="hidden lg:inline-flex items-center justify-center bg-white/15 hover:bg-white/25 p-3 backdrop-blur-sm"
