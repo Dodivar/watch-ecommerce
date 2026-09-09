@@ -82,7 +82,9 @@ Procédure détaillée : [`03-recette-paiement.md`](03-recette-paiement.md).
       `paid`, e-mail de confirmation, reçu PDF).
 - [ ] Bascule en clés **live**.
 - [ ] **Commande réelle à 1 €**, puis remboursement par le client depuis son dashboard —
-      c'est aussi sa formation au geste de remboursement.
+      c'est aussi sa formation au geste de remboursement. Procédure détaillée (composer le
+      total à 1 €, fiche de test dédiée, saisie du `re_…` côté admin, nettoyage) :
+      [`03-recette-paiement.md` §3](03-recette-paiement.md#3-commande-réelle-à-1-).
 - [ ] `GET /api/health/deep` et `GET /api/health/payments` au vert avec `X-Health-Token`.
 - [ ] Fichier de vérification Apple Pay hébergé, si le client a enregistré son domaine.
 

@@ -82,9 +82,11 @@ Cochez, cela nous évite un aller-retour :
 
 1. Nous branchons vos codes sur la boutique — **quelques minutes**.
 2. Nous passons une commande de test de bout en bout, puis une **vraie commande à 1 €**
-   que vous verrez arriver dans votre tableau de bord Stripe. Nous la remboursons dans la
-   foulée : ce sera votre premier remboursement, l'occasion de voir où se trouve le
-   bouton.
+   que vous verrez arriver dans votre tableau de bord Stripe. **C'est vous qui la
+   remboursez**, depuis votre tableau de bord — nous n'en avons pas le droit technique, et
+   c'est l'occasion de faire une fois le geste à froid. Nous vous guidons : *Paiements* →
+   ouvrir le paiement → *Rembourser*. Comptez 5 à 10 jours ouvrés pour que la somme
+   revienne sur la carte.
 3. Nous vous confirmons que la boutique encaisse, et vous pouvez ouvrir.
 
 Si vous ne voyez pas la commande de test apparaître dans Stripe dans l'heure, c'est en

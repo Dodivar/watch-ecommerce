@@ -66,18 +66,126 @@ Date d'expiration future quelconque, CVC quelconque, code postal quelconque.
 
 ## 3. Commande réelle à 1 €
 
-Le seul test qui prouve quelque chose. Créer un produit temporaire à 1 €, non listé, et
-acheter avec une vraie carte.
+Le seul test qui prouve quelque chose : clés `live`, vraie carte, depuis le **domaine de
+production** — pas depuis `localhost`, sinon ni le CORS ni l'URL de webhook ne sont ceux du
+réel.
 
-- [ ] Le paiement apparaît dans le dashboard **du client**
-- [ ] La commande est en `paid` côté admin
-- [ ] L'e-mail de confirmation part
+### 3.1 — Composer un total de 1,00 € exactement
+
+`backend/orders/pricing.js:76` calcule :
+
+```
+totalCents = max(0, subtotal + livraison − remise)
+```
+
+La remise (`fixed`, `percent`) est **plafonnée au sous-total** : elle ne mord jamais sur les
+frais de port. « Un produit à 1 € » ne fait donc pas « une commande à 1 € » si la livraison
+est facturée 9,90 €. Deux façons d'atterrir juste :
+
+- **Retrait en boutique** — si `checkout.shipping` du site déclare une méthode
+  `type: 'pickup'` à `fee.amount: 0` (ou `pickupEnabled: true`).
+- **Un code promo `free_shipping`** — `computeDiscountCents` renvoie exactement
+  `shippingCents` (`backend/orders/promo.js:56`), quel que soit le mode choisi.
+
+Minimum Stripe pour l'euro : 0,50 €. 1 € passe.
+
+### 3.2 — Créer une fiche de test dédiée, jamais une vraie montre
+
+⚠️ **Le paiement marque la montre vendue.** `fulfillOrderPayment` — *« Marque une commande
+comme payée et les montres comme vendues »* (`backend/orders/fulfillment.js:2`) — la RPC
+`fulfill_order_payment` passe `is_sold` à `true`, et `applyRetailStockDecrement` décrémente
+`stock_quantity` et repositionne `is_available`. Utiliser une pièce réelle du catalogue
+obligerait à rétablir ces trois champs à la main sur du stock vendable.
+
+⚠️ **Il n'existe pas de fiche « achetable mais masquée ».** Le front public filtre sur
+`is_available = true` et `is_sold = false` (`watchService.js:471`, `:812`) : pour être mise
+au panier, la fiche doit être visible. Faire ce test **avant l'annonce publique**, ou à un
+moment creux.
+
+Dans `/admin/watches`, créer :
+
+| Champ | Valeur |
+| --- | --- |
+| Marque / Nom | `TEST` / `Ne pas acheter — test technique` |
+| Prix | `1` |
+| Stock disponible | `1` |
+| En vente / Disponible | ✅ coché — obligatoire pour l'achat |
+| En promotion | ❌ décoché |
+
+Ni photo ni fiche technique. La montre **sort d'elle-même du catalogue** après l'achat,
+puisque le paiement la marque vendue : c'est le comportement recherché ici.
+
+*Variante si le catalogue est déjà public* et qu'une fiche « TEST » visible dérange : code
+promo `fixed` d'un montant `prix − 1` sur une vraie montre. Mais la pièce sera marquée
+vendue, avec `is_sold`, `is_available` et `stock_quantity` à rétablir sur du stock réel —
+plus risqué que de supprimer une fiche jetable. À réserver à ce cas.
+
+### 3.3 — Passer la commande et vérifier
+
+Panier → `/checkout` → coordonnées → retrait en boutique (ou code promo `free_shipping`) →
+carte réelle → **1,00 €**.
+
+- [ ] Redirection vers `/commande/succes?order=…&token=…`
+- [ ] Le paiement apparaît dans le dashboard Stripe **du client**
+- [ ] La commande est en **`paid`** dans `/admin/orders` — c'est le **webhook** qui fait
+      cette transition, pas la redirection : c'est tout l'intérêt du test
+- [ ] E-mail de confirmation reçu
+- [ ] Reçu PDF présent dans le bucket `order-receipts`
+- [ ] Stripe → Développeurs → Webhooks → *Tentatives* : `payment_intent.succeeded` en
+      **Réussi** (`200`)
 - [ ] Le libellé sur le relevé bancaire est bien celui de la marque — pas un sigle
       illisible : c'est le premier motif de contestation de paiement
-- [ ] **Le client rembourse lui-même** depuis son dashboard, puis saisit le montant et la
-      référence `re_…` dans l'admin. C'est sa formation au geste, et la vérification que
-      nous n'en avons effectivement pas besoin.
-- [ ] Supprimer le produit temporaire
+
+### 3.4 — Le remboursement, par le client
+
+Il n'y a pas d'autre chemin : la clé restreinte n'a pas la permission *Refunds*,
+volontairement. C'est donc aussi sa formation au geste.
+
+**Son dashboard → Paiements → ouvrir le paiement → Rembourser → Montant total.**
+
+Raccourci : le panneau retour de l'admin affiche un bouton **« Ouvrir le paiement dans
+Stripe »** qui pointe sur la bonne page (`stripePaymentDashboardUrl`,
+`packages/base/src/services/admin/orderReturns.js:115` — il ajoute `/test` en mode test).
+Le client copie l'identifiant `re_…` affiché après coup.
+
+### 3.5 — Enregistrer la trace côté admin
+
+`/admin/orders` → ouvrir la commande → panneau **Retour / Remboursement** :
+
+| Champ | Valeur |
+| --- | --- |
+| Statut de retour | **Remboursée** |
+| Montant remboursé | `1,00` — pré-rempli au passage en « Remboursée » |
+| Identifiant Stripe | le `re_…` copié |
+| Date de remboursement | le jour même |
+| Notes | `Test technique d'ouverture` |
+
+`validateReturnUpdate` refuse l'enregistrement si le montant est vide ou nul, s'il dépasse
+le total de la commande, ou si l'identifiant ne colle pas à `^re_[A-Za-z0-9_]+$`.
+
+**Cette double saisie n'est pas une redondance.** Le backend n'écoute que trois événements
+(`backend/routes/stripe.js:67`) : `payment_intent.succeeded`, `.payment_failed`,
+`.canceled`. `charge.refunded` n'en fait pas partie — rien ne remonte automatiquement d'un
+remboursement, et la saisie admin est la **seule** source pour la compta et pour
+`summarizeReturnStats`.
+
+### 3.6 — Nettoyage
+
+- [ ] Supprimer la fiche montre de test
+- [ ] Désactiver le code promo s'il y en a eu un (ou l'avoir plafonné à `max_uses: 1` dès
+      sa création)
+- [ ] `/api/health/payments` : la commande remboursée reste `paid`, aucune alerte ne doit
+      apparaître
+
+### Ce que le test coûte
+
+Stripe **ne restitue pas les frais de traitement** sur un remboursement : le client perd
+les frais de la transaction, de l'ordre de 0,25 € fixe plus un pourcentage (tarif exact sur
+[stripe.com/fr/pricing](https://stripe.com/fr/pricing)). Dérisoire face à une ouverture
+avec un webhook mal branché.
+
+Le remboursement revient sur la carte en **5 à 10 jours ouvrés** : prévenir le client,
+sinon il s'inquiète le lendemain.
 
 ## 4. Supervision
 
