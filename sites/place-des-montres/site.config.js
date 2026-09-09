@@ -1879,6 +1879,16 @@ export default {
         de: 'Uhr - Place des Montres',
       }),
       titlePriceSuffix: ' | Place des Montres',
+      /**
+       * Argument commercial ajouté aux méta-descriptions de fiche. Reprend la garantie
+       * réellement déclarée par la vitrine (`watchCatalog.guarantees`) : le socle codait
+       * « Garantie 1 an » en dur, ce qui contredisait les 2 ans annoncés ici.
+       */
+      descriptionSuffix: t({
+        fr: 'Garantie 2 ans, retrait en boutique ou livraison suivie.',
+        en: '2-year warranty, in-store collection or tracked delivery.',
+        de: '2 Jahre Garantie, Abholung im Geschäft oder verfolgter Versand.',
+      }),
       descriptionFallback: t({
         fr: 'Découvrez cette montre chez Place des Montres.',
         en: 'Discover this watch at Place des Montres.',

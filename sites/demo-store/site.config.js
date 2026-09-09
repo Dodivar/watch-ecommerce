@@ -311,6 +311,8 @@ export default {
     watchDetail: {
       titleFallback: 'Montre - Demo Store',
       titlePriceSuffix: ' | Demo Store',
+      /** Argument commercial ajouté aux méta-descriptions de fiche (voir `WatchDetail.vue`). */
+      descriptionSuffix: 'Garantie 1 an, authentification certifiée.',
       descriptionFallback: 'Découvrez cette montre de luxe sur Demo Store',
       structuredDataSellerName: 'Demo Store',
     },

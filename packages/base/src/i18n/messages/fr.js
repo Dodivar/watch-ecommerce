@@ -335,6 +335,9 @@ export default {
   'watch.loadErrorFallback': 'Une erreur est survenue lors du chargement de la montre',
   'watch.addToCartFailed': 'Impossible d’ajouter au panier',
   'watch.watchFallback': 'Montre',
+  // Repli de méta-description quand la fiche n'a pas de descriptif rédigé.
+  'watch.genericDescription': 'Montre {brand} {reference}',
+  'watch.pricePrefix': 'Prix :',
   'watch.noBrandsAvailable': 'Aucune marque disponible pour le moment.',
   'watch.contactInPerson': "Contactez-nous pour plus d'informations ou pour organiser une visite sur rendez-vous",
   'watch.listingCode': 'Code annonce',

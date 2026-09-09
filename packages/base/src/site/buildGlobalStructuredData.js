@@ -21,6 +21,38 @@ function toSchemaOpeningHours(openingHours) {
 }
 
 /**
+ * URL absolue du logo, depuis le même `seo.indexHtml.ogImagePath` que la coquille HTML.
+ *
+ * @param {Record<string, any>} siteConfig
+ * @param {string} baseUrl
+ * @returns {string}
+ */
+function resolveLogoUrl(siteConfig, baseUrl) {
+  const configured = siteConfig?.seo?.indexHtml?.ogImagePath
+  if (typeof configured !== 'string' || !configured.trim() || !baseUrl) return ''
+  const path = configured.trim()
+  return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`
+}
+
+/**
+ * `PostalAddress` avec ses composants séparés quand l'adresse a pu être découpée, sinon la
+ * ligne entière — un composant inventé vaut moins que pas de composant.
+ *
+ * @param {ReturnType<typeof resolveSiteNap>} nap
+ */
+function buildPostalAddress(nap) {
+  const parts = nap.postalAddress ?? {}
+  const address = {
+    '@type': 'PostalAddress',
+    streetAddress: parts.streetAddress || nap.streetAddress,
+    addressCountry: parts.addressCountry || 'FR',
+  }
+  if (parts.postalCode) address.postalCode = parts.postalCode
+  if (parts.addressLocality) address.addressLocality = parts.addressLocality
+  return address
+}
+
+/**
  * Schémas JSON-LD globaux (WebSite + LocalBusiness) injectés sur toutes les pages publiques.
  * @param {Record<string, unknown>} siteConfig
  * @param {string} baseUrl
@@ -33,6 +65,7 @@ export function buildGlobalStructuredData(siteConfig, baseUrl) {
   const social = siteConfig?.social ?? {}
   const nap = resolveSiteNap(siteConfig)
   const siteName = brand.displayName || brand.legalName || nap.name
+  const logoUrl = resolveLogoUrl(siteConfig, baseUrl)
 
   const organization = {
     '@context': 'https://schema.org',
@@ -44,6 +77,9 @@ export function buildGlobalStructuredData(siteConfig, baseUrl) {
   if (brand.legalName && brand.displayName && brand.legalName !== brand.displayName) {
     organization.alternateName = brand.displayName
   }
+  // `logo` : ce que Google lit pour le panneau de connaissance. Même visuel que la balise de
+  // partage, déclaré une seule fois dans le manifest.
+  if (logoUrl) organization.logo = logoUrl
   if (nap.telephone) organization.telephone = nap.telephone
   if (nap.email) organization.email = nap.email
 
@@ -101,14 +137,15 @@ export function buildGlobalStructuredData(siteConfig, baseUrl) {
       name: siteName,
       url: baseUrl,
     },
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: nap.streetAddress,
-      addressCountry: 'FR',
-    },
-    description:
-      'Magasin de montres, horlogerie et bijouterie.',
+    address: buildPostalAddress(nap),
   }
+
+  // Description : propre au client, donc au manifest. Le socle ne décrit pas le commerce
+  // de quelqu'un d'autre à sa place.
+  const description = storeMap.description || siteConfig?.seo?.indexHtml?.metaDescription
+  if (description) localBusiness.description = description
+
+  if (logoUrl) localBusiness.image = logoUrl
 
   if (nap.telephone) localBusiness.telephone = nap.telephone
   if (nap.email) localBusiness.email = nap.email

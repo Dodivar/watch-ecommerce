@@ -326,6 +326,8 @@ export default {
   'watch.loadErrorFallback': 'Something went wrong while loading the watch',
   'watch.addToCartFailed': 'Could not add to the cart',
   'watch.watchFallback': 'Watch',
+  'watch.genericDescription': '{brand} {reference} watch',
+  'watch.pricePrefix': 'Price:',
   'watch.noBrandsAvailable': 'No brands available at the moment.',
   'watch.contactInPerson': 'Contact us for more information or to arrange a viewing by appointment',
   'watch.listingCode': 'Listing code',

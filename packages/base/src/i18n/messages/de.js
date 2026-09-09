@@ -326,6 +326,8 @@ export default {
   'watch.loadErrorFallback': 'Beim Laden der Uhr ist ein Fehler aufgetreten',
   'watch.addToCartFailed': 'Konnte nicht zum Warenkorb hinzugefügt werden',
   'watch.watchFallback': 'Uhr',
+  'watch.genericDescription': 'Uhr {brand} {reference}',
+  'watch.pricePrefix': 'Preis:',
   'watch.noBrandsAvailable': 'Derzeit keine Marken verfügbar.',
   'watch.contactInPerson': 'Kontaktieren Sie uns für weitere Informationen oder für eine Besichtigung nach Vereinbarung',
   'watch.listingCode': 'Anzeigencode',

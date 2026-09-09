@@ -760,6 +760,16 @@ export default {
         de: 'Uhr - Sauvage',
       }),
       titlePriceSuffix: ' | Sauvage',
+      /**
+       * Argument commercial ajouté aux méta-descriptions de fiche. Propre à chaque vitrine :
+       * il était codé en dur dans `WatchDetail.vue`, et annonçait donc la garantie de Sauvage
+       * sur les fiches des autres clients. Omettre la clé retire simplement la phrase.
+       */
+      descriptionSuffix: t({
+        fr: 'Garantie 1 an, authentification certifiée.',
+        en: '1-year warranty, certified authentication.',
+        de: '1 Jahr Garantie, zertifizierte Authentifizierung.',
+      }),
       descriptionFallback: t({
         fr: 'Découvrez cette montre de luxe sur Sauvage',
         en: 'Discover this luxury watch at Sauvage',

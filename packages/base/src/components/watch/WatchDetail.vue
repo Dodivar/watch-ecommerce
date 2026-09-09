@@ -851,6 +851,7 @@ import { getBrowsePath } from '@/site/siteFeatures.js'
 import { resolveRetailTrustHighlights, resolveWatchGuarantees, isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
 import { getWatchById, getWatchBySlug } from '@/services/watchService'
 import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
+import { buildWatchProductStructuredData } from '@/site/buildWatchProductStructuredData.js'
 import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredData.js'
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { buildWatchPath, isLegacyWatchIdParam } from '@/utils/watchSlug.js'
@@ -895,7 +896,6 @@ import {
   formatWaterResistance,
   getBraceletColorLabel,
   getBraceletMaterialLabel,
-  resolveConditionSchemaValue,
   translateAccessory,
   translateDuration,
   translateGuarantee,
@@ -1362,9 +1362,18 @@ const handleAddToCart = () => {
 }
 
 // SEO Meta Tags and Structured Data
+
+/**
+ * Une montre sans prix renseigné vaut `0` ici (`getEffectiveWatchPrice`), et `formatPrice(0)`
+ * rend « 0 € » — un vrai zéro reste formaté. Sans cette garde, le titre affiché dans Google
+ * annonçait « 0 € » et le JSON-LD déclarait une offre à zéro euro.
+ */
+const hasDisplayPrice = computed(() => Number.isFinite(displayPrice.value) && displayPrice.value > 0)
+
 const pageTitle = computed(() => {
   if (!watchItem.value) return seoWatch.titleFallback
-  return `${watchItem.value.name} - ${formatPrice(displayPrice.value)}${seoWatch.titlePriceSuffix}`
+  const price = hasDisplayPrice.value ? ` - ${formatPrice(displayPrice.value)}` : ''
+  return `${watchItem.value.name}${price}${seoWatch.titlePriceSuffix}`
 })
 
 const pageDescription = computed(() => {
@@ -1372,7 +1381,14 @@ const pageDescription = computed(() => {
   const desc = watchItem.value.description || ''
   const brand = watchItem.value.brand || ''
   const ref = watchItem.value.reference || ''
-  return `${desc || `Montre ${brand} ${ref}`.trim()}. Garantie 1 an, authentification certifiée. Prix: ${formatPrice(displayPrice.value)}`
+  const base = desc || t('watch.genericDescription', { brand, reference: ref }).trim()
+  // Argument commercial propre au client : il vient du manifest. Codé en dur dans le socle, il
+  // annonçait la garantie d'une vitrine sur les fiches de toutes les autres.
+  const claim = seoWatch.descriptionSuffix ? ` ${seoWatch.descriptionSuffix}` : ''
+  const price = hasDisplayPrice.value
+    ? ` ${t('watch.pricePrefix')} ${formatPrice(displayPrice.value)}`
+    : ''
+  return `${base}.${claim}${price}`.trim()
 })
 
 const ogImage = computed(() => {
@@ -1410,48 +1426,16 @@ const breadcrumbStructuredData = computed(() => {
 })
 
 // Structured Data (JSON-LD)
-const structuredData = computed(() => {
-  if (!watchItem.value) return null
-  
-  const baseData = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: watchItem.value.name,
-    description: watchItem.value.description || `${watchItem.value.brand} ${watchItem.value.reference}`,
-    image: watchItem.value.images || [],
-    brand: {
-      '@type': 'Brand',
-      name: watchItem.value.brand || t('watch.unknownBrand'),
-    },
-    sku: watchItem.value.reference || watchItem.value.id,
-    offers: {
-      '@type': 'Offer',
-      price: displayPrice.value,
-      priceCurrency: 'EUR',
-      availability: watchItem.value.isAvailable && !watchItem.value.isSold
-        ? 'https://schema.org/InStock'
-        : 'https://schema.org/OutOfStock',
-      url: canonicalUrl.value,
-      seller: {
-        '@type': 'Organization',
-        name: seoWatch.structuredDataSellerName,
-        url: BASE_URL,
-      },
-    },
-  }
-
-  // État : passe par le vocabulaire, pour que « neuf » ou « Comme neuf » ne soient pas
-  // silencieusement rangés en occasion par une comparaison de chaîne exacte.
-  const conditionSchema = resolveConditionSchemaValue(watchItem.value.condition)
-  if (conditionSchema) {
-    baseData.itemCondition =
-      conditionSchema === 'new'
-        ? 'https://schema.org/NewCondition'
-        : 'https://schema.org/UsedCondition'
-  }
-
-  return baseData
-})
+const structuredData = computed(() =>
+  buildWatchProductStructuredData({
+    watch: watchItem.value,
+    price: displayPrice.value,
+    canonicalUrl: canonicalUrl.value,
+    baseUrl: BASE_URL,
+    sellerName: seoWatch.structuredDataSellerName,
+    unknownBrandLabel: t('watch.unknownBrand'),
+  }),
+)
 
 const watchDetailHead = computed(() => ({
   title: pageTitle.value,

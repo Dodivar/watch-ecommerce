@@ -644,6 +644,11 @@ export default {
     watchDetail: {
       titleFallback: "Montre - Jack'N'Ed",
       titlePriceSuffix: " | Jack'N'Ed",
+      /**
+       * Argument commercial ajouté aux méta-descriptions de fiche. Aucune durée de garantie
+       * n'est chiffrée dans ce manifest : la phrase s'en tient au service annoncé.
+       */
+      descriptionSuffix: 'Horloger sur place, service après-vente assuré en boutique.',
       descriptionFallback: "Découvrez cette montre chez Jack'N'Ed.",
       structuredDataSellerName: "Jack'N'Ed",
     },
