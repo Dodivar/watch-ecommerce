@@ -152,8 +152,8 @@ async function load() {
 async function endCampaign(campaign) {
   const isScheduled = liveStatus(campaign) === 'scheduled'
   const message = isScheduled
-    ? `Annuler l'événement « ${campaign.name} » avant son démarrage ?`
-    : `Terminer l'événement « ${campaign.name} » maintenant ? Les remises seront désactivées.`
+    ? `Annuler la campagne « ${campaign.name} » avant son démarrage ?`
+    : `Terminer la campagne « ${campaign.name} » maintenant ? Les remises seront désactivées.`
 
   if (!confirm(message)) return
   try {
@@ -219,7 +219,7 @@ onMounted(load)
 </script>
 
 <template>
-  <AdminShell title="Promotions montres" content-class="max-w-5xl">
+  <AdminShell title="Campagnes de promotion" content-class="max-w-5xl">
     <template #actions>
       <button
         type="button"
@@ -233,7 +233,7 @@ onMounted(load)
         class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-hover"
         @click="router.push('/admin/watch-promotions/new')"
       >
-        Nouvel événement
+        Nouvelle campagne
       </button>
     </template>
 
@@ -323,14 +323,14 @@ onMounted(load)
             </div>
           </div>
           <div v-if="currentCampaigns.length === 0" class="p-8 text-center text-gray-500">
-            Aucun événement en cours.
+            Aucune campagne en cours.
           </div>
         </div>
       </section>
 
       <section class="mb-8">
         <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
-          Passés ({{ pastCampaigns.length }})
+          Passées ({{ pastCampaigns.length }})
         </h2>
         <div class="bg-white rounded-lg shadow divide-y">
           <div
@@ -350,7 +350,7 @@ onMounted(load)
             </p>
           </div>
           <div v-if="pastCampaigns.length === 0" class="p-8 text-center text-gray-500">
-            Aucun événement passé.
+            Aucune campagne passée.
           </div>
         </div>
       </section>
@@ -369,9 +369,9 @@ onMounted(load)
 
         <div class="border-t border-cream-200 px-4 py-4">
           <p class="mb-4 text-sm text-gray-600">
-            Ajoutez des liens vers vos événements actifs dans la colonne « Promotions » du menu principal.
+            Ajoutez des liens vers vos campagnes actives dans la colonne « Promotions » du menu principal.
             Les entrées statiques déjà configurées (ex. Promotions homme / femme) restent affichées.
-            Seuls les événements <strong>en cours</strong> apparaissent sur le site ; vous pouvez les préparer à l'avance s'ils sont <strong>à venir</strong>.
+            Seules les campagnes <strong>en cours</strong> apparaissent sur le site ; vous pouvez les préparer à l'avance si elles sont <strong>à venir</strong>.
           </p>
 
           <div v-if="menuError" class="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -391,7 +391,7 @@ onMounted(load)
               v-if="menuConfigurableEntries.length === 0"
               class="rounded-lg border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-500"
             >
-              Aucun événement en cours ou à venir à afficher dans le menu.
+              Aucune campagne en cours ou à venir à afficher dans le menu.
             </div>
 
             <ul v-else class="space-y-3">
@@ -440,7 +440,7 @@ onMounted(load)
                       v-if="entry.liveStatus === 'scheduled' && entry.showInMenu"
                       class="text-xs text-amber-700"
                     >
-                      Le lien sera visible dès le début de l'événement.
+                      Le lien sera visible dès le début de la campagne.
                     </p>
                   </div>
 

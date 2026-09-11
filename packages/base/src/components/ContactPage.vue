@@ -292,6 +292,7 @@ useHead({
     { name: 'twitter:title', content: pageTitle },
     { name: 'twitter:description', content: pageDescription },
   ],
+  link: [{ rel: 'canonical', href: `${CANONICAL_BASE_URL}/contact` }],
 })
 
 async function submitContactForm(event) {

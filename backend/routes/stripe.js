@@ -2,7 +2,7 @@ const express = require('express')
 
 const { getStripeClient, getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
 const { resolveSiteFromRequest } = require('../middleware/resolveSite')
-const { handlePaymentIntentSucceeded } = require('./orders')
+const { handlePaymentIntentSucceeded, handleRefundEvent } = require('./orders')
 
 /**
  * @param {*} registry
@@ -64,10 +64,24 @@ function buildStripeRouter(registry) {
       return res.status(400).send(`Webhook signature verification failed: ${err.message}`)
     }
 
+    // Les quatre événements de remboursement couvrent les deux générations d'API
+    // Stripe : `charge.refunded` porte la charge (remboursements imbriqués),
+    // `refund.*` portent directement le Refund. Un compte récent n'émet pas
+    // `charge.refund.updated`, un compte ancien n'émet pas `refund.created` ;
+    // les recevoir tous rend l'enregistrement indépendant de la version du
+    // compte client, et le traitement est idempotent par `stripe_refund_id`.
+    const REFUND_EVENT_TYPES = [
+      'charge.refunded',
+      'refund.created',
+      'refund.updated',
+      'charge.refund.updated',
+    ]
+
     const handledTypes = [
       'payment_intent.succeeded',
       'payment_intent.payment_failed',
       'payment_intent.canceled',
+      ...REFUND_EVENT_TYPES,
     ]
     if (!handledTypes.includes(event.type)) {
       console.log(`[${site.id}] ℹ️  Événement Stripe ignoré: ${event.type}`)
@@ -89,6 +103,8 @@ function buildStripeRouter(registry) {
     try {
       if (event.type === 'payment_intent.succeeded') {
         await handlePaymentIntentSucceeded(supabase, site, event.data.object)
+      } else if (REFUND_EVENT_TYPES.includes(event.type)) {
+        await handleRefundEvent(supabase, site, event, { stripe })
       } else {
         const orderId = event.data.object?.metadata?.order_id
         if (orderId) {

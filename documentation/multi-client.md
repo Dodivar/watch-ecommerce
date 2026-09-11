@@ -96,6 +96,9 @@ vers `main` dont la source n'est pas `staging` reste non mergeable.
 
 ## Ajouter un client
 
+> Procédure d'onboarding complète, documents à envoyer au client compris (compte Stripe,
+> informations à fournir, recette paiement) : [onboarding/](onboarding/README.md).
+
 1. Copier `sites/_template/` vers `sites/<SITE_ID>/` (voir [son README](../sites/_template/README.md)) ;
    renommer `index.html.example` et `main.js.example`, créer `src/` et `public/`.
 2. Écrire `site.config.js` : `siteId`, `brand`, `contact`, `urls`, `theme`, `features`, `home`,
@@ -105,6 +108,11 @@ vers `main` dont la source n'est pas `staging` reste non mergeable.
 4. Créer le projet d'hébergement avec `SITE_ID` et les variables `VITE_*` du client.
 5. Déclarer les secrets backend `SITE_<ID>__<KEY>` sur Render et ajouter le domaine à
    `BACKEND_CORS_ORIGINS`.
+5 bis. Pour un client qui vend en ligne, créer le webhook Stripe vers
+   `/api/stripe/webhook/<SITE_ID>` et y cocher les six événements listés dans
+   [backend/README.md](../backend/README.md#-ajouter-un-nouveau-client) — dont les quatre de
+   remboursement, sans lesquels un remboursement fait dans Stripe n'existe pas pour
+   l'application.
 6. Lancer `npm run test:contracts` : le nouveau manifest est validé comme les autres.
 
 ## Confort d'éditeur

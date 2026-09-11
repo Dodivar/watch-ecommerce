@@ -56,11 +56,24 @@ export const DEFAULT_SITE_FEATURES = {
    */
   homeNouvelles: false,
   /**
+   * Hero « vitrine » sur l'accueil — dérivé de `home.hero.variant` et de `home.sections`
+   * (voir resolveSiteConfig). Commande l'écran admin « Montre en vitrine » : inutile de le
+   * poser à la main dans un manifest, il suit le variant de hero réellement rendu.
+   */
+  homeVitrine: false,
+  /**
+   * Bloc « aperçu collection » sur l'accueil (et l'écran d'admin qui choisit les montres
+   * mises en avant) — dérivé de `home.sections` contenant `collectionHighlight`, comme
+   * `homeNouvelles`. À ne pas confondre avec `collection`, qui n'ouvre que la page
+   * catalogue : un site peut avoir un catalogue sans exposer ce bloc sur son accueil.
+   */
+  homeCollectionHighlight: false,
+  /**
    * Afficher la référence montre sur les cartes catalogue et fiches produit.
    * Dérivé de `watchCatalog.mode === 'resale'` dans getSiteConfig() — ne pas surcharger sauf cas exceptionnel.
    */
   watchReference: false,
-  /** Campagnes promotionnelles groupées dans l'admin (événements soldes, etc.). */
+  /** Campagnes de promotion groupées dans l'admin (soldes, ventes flash, etc.). */
   adminWatchPromotions: false,
   /**
    * Archive publique des montres vendues : page `/ventes`, fiches montre
@@ -97,6 +110,7 @@ export function mergeSiteFeatures(partial = {}) {
   if (!merged.collection) {
     merged.soldArchive = false
     merged.watchMatchmaking = false
+    merged.homeCollectionHighlight = false
   }
   if (!merged.watchMatchmaking) {
     merged.watchMatchAlerts = false

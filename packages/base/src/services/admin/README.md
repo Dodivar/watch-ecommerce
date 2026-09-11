@@ -11,6 +11,17 @@ l’administration.
   `watch_articles`.
 - `adminWatchService.js` : création/mise à jour de montres, upload d’images,
   bascules `is_available` / `is_sold`.
+- `adminOrderService.js` + `orderReturns.js` : commandes, dossiers retour et
+  remboursements. Partage des rôles à connaître avant d'y toucher — le panel
+  écrit en direct dans Supabase le **suivi** du dossier (statut, dates, notes),
+  jamais les montants : `refundOrder()` passe par le backend
+  (`POST /api/admin/orders/:id/refund`, rôle `admin`, clé d'idempotence par clic)
+  parce que la clé secrète Stripe n'existe pas côté navigateur et que le montant
+  doit être borné contre la commande relue en service role. Les colonnes de
+  remboursement de `orders` sont un cache écrit par le webhook Stripe ; la base
+  en retire d'ailleurs le droit d'écriture au panel. `orderReturns.js` reste le
+  module pur : délais légaux, totaux (`summarizeRefunds`), reste à rembourser
+  (`refundableCents`), éligibilité (`canRefundOrder`).
 - `adminWatchPromotionService.js` : campagnes promotionnelles (brouillon,
   application, fin anticipée, menu) et lecture transverse des remises —
   `getActiveCampaignMembershipsForAdmin()` / `getCampaignByWatchIdForAdmin()` disent

@@ -10,6 +10,7 @@ import {
   Tag,
   Sparkles,
   Images,
+  Store,
   Users,
   ChartColumn,
   LogOut,
@@ -20,6 +21,7 @@ import {
   Send,
 } from '@lucide/vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { APP_VERSION } from '@/services/appVersion.js'
 import { logoutAdmin, getCurrentAdmin } from '@/services/admin/adminAuthService'
 import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 import { ROLE_LABELS } from '@/services/admin/adminPermissions'
@@ -58,8 +60,12 @@ const withAccess = (item) => ({
 
 const roleLabel = computed(() => (role.value ? ROLE_LABELS[role.value] : ''))
 
+// Version du bundle servi : de quoi répondre « tu vois quelle version ? » sans deviner.
+// Vide en développement (le tampon n'est posé qu'au build) — la ligne disparaît alors.
+const appVersion = APP_VERSION
+
 // Trois écrans traitent de remises : les codes promo du tunnel de paiement, les
-// événements promotionnels et le récapitulatif des montres remisées. Ils tiennent dans
+// campagnes de promotion et le récapitulatif des montres remisées. Ils tiennent dans
 // une sous-catégorie plutôt que dans trois entrées de premier niveau.
 const promotionLinks = computed(() => {
   const items = [
@@ -74,7 +80,7 @@ const promotionLinks = computed(() => {
     items.push(
       {
         to: '/admin/watch-promotions',
-        label: 'Promotions montres',
+        label: 'Campagnes de promotion',
         icon: Percent,
         match: (p) =>
           p.startsWith('/admin/watch-promotions') && p !== '/admin/watch-promotions/watches',
@@ -108,12 +114,20 @@ const carouselLinks = computed(() => {
       match: (p) => p === '/admin/home-featured',
     })
   }
-  if (features.collection) {
+  if (features.homeCollectionHighlight) {
     items.push({
       to: '/admin/home-collection',
       label: 'Aperçu collection',
       icon: Watch,
       match: (p) => p === '/admin/home-collection',
+    })
+  }
+  if (features.homeVitrine) {
+    items.push({
+      to: '/admin/home-vitrine',
+      label: 'Montre en vitrine',
+      icon: Store,
+      match: (p) => p === '/admin/home-vitrine',
     })
   }
   return items
@@ -306,6 +320,9 @@ onMounted(async () => {
         <LogOut class="w-5 h-5 shrink-0" :stroke-width="1.75" />
         <span>Déconnexion</span>
       </button>
+      <p v-if="appVersion" class="px-3 pt-3 text-[11px] text-gray-400">
+        Version <span class="font-mono">{{ appVersion }}</span>
+      </p>
     </div>
   </aside>
 </template>

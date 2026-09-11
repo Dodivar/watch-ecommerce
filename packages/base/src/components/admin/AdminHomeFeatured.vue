@@ -1,14 +1,26 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { getWatchesByIdsForAdmin, searchWatchesForAdmin } from '@/services/admin/adminWatchService'
 import {
   getFeaturedWatchesForAdmin,
   setFeaturedWatchesForAdmin,
 } from '@/services/admin/adminFeaturedService'
-import { resetNouvellesWatchesCache } from '@/services/nouvellesWatchesService'
-import { resetCollectionHighlightCache } from '@/services/collectionHighlightService'
-import WatchCard from '@/components/watch/WatchCard.vue'
-import { WATCH_CARD_CATALOG_PROPS } from '@/constants/watchCardDefaults.js'
+import { getWatchById } from '@/services/watchService'
+import {
+  assembleNouvellesWatches,
+  resetNouvellesWatchesCache,
+} from '@/services/nouvellesWatchesService'
+import {
+  assembleCollectionHighlightWatches,
+  resetCollectionHighlightCache,
+} from '@/services/collectionHighlightService'
+import { assembleVitrineWatch, resetVitrineWatchCache } from '@/services/homeVitrineService'
+import CarouselNouvelles from '@/components/CarouselNouvelles.vue'
+import HomeCollectionHighlightSection from '@/components/home/HomeCollectionHighlightSection.vue'
+import HomeHeroVitrineSection from '@/components/home/HomeHeroVitrineSection.vue'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { filterHomeSectionsByFeatures } from '@/site/homeSections.js'
+import { homeBandClass, resolveHomeBands } from '@/site/homeBands.js'
 import AdminShell from './AdminShell.vue'
 
 const props = defineProps({
@@ -28,6 +40,11 @@ const props = defineProps({
     default:
       'Si la sélection est vide, le carrousel affiche automatiquement les dernières montres disponibles.',
   },
+  /** Titre de la section d'aperçu — tous les contextes ne rendent pas un carrousel. */
+  previewTitle: {
+    type: String,
+    default: 'Aperçu du carrousel',
+  },
   /** Libellé de l'état vide / aperçu. */
   emptyHint: {
     type: String,
@@ -40,10 +57,50 @@ const props = defineProps({
 const CACHE_RESET_BY_CONTEXT = {
   nouvelles: resetNouvellesWatchesCache,
   collection: resetCollectionHighlightCache,
+  vitrine: resetVitrineWatchCache,
+}
+
+/**
+ * Aperçu : la section d'accueil elle-même, alimentée par le même assemblage que
+ * la page publique. Rien n'est redessiné ici — c'est ce qui garantit que l'image
+ * de la montre, sa carte et la mise en page sont exactement celles du site.
+ */
+const PREVIEW_BY_CONTEXT = {
+  nouvelles: {
+    sectionId: 'nouvelles',
+    component: CarouselNouvelles,
+    async buildProps(ids, { loadWatch }) {
+      return { watches: await assembleNouvellesWatches(ids, { loadWatch }) }
+    },
+    hasContent: (previewProps) => previewProps.watches?.length > 0,
+  },
+  collection: {
+    sectionId: 'collectionHighlight',
+    component: HomeCollectionHighlightSection,
+    async buildProps(ids, { loadWatch }) {
+      return { watches: await assembleCollectionHighlightWatches(ids, { loadWatch }) }
+    },
+    hasContent: (previewProps) => previewProps.watches?.length > 0,
+  },
+  vitrine: {
+    sectionId: 'hero',
+    component: HomeHeroVitrineSection,
+    async buildProps(ids, { loadWatch, rowById }) {
+      // La vitrine passe à la remplaçante dès qu'une montre part à la vente :
+      // `is_sold` est porté par la ligne admin, pas par l'identifiant seul.
+      const candidates = ids.map((id) => rowById.get(id) ?? { id })
+      return { watch: await assembleVitrineWatch(candidates, { loadWatch }) }
+    },
+    // Le hero se rend même sans pièce à exposer — le discours prend alors toute
+    // la largeur, exactement comme sur l'accueil.
+    hasContent: () => true,
+  },
 }
 
 const PAGE_SIZE = 24
 const SEARCH_DEBOUNCE_MS = 300
+/** L'aperçu suit le brouillon, mais après la rafale de glisser-déposer. */
+const PREVIEW_DEBOUNCE_MS = 250
 
 const watchById = ref(new Map())
 const originalIds = ref([])
@@ -84,6 +141,71 @@ const isDirty = computed(
   () => JSON.stringify(selectedIds.value) !== JSON.stringify(originalIds.value),
 )
 
+const previewSection = computed(
+  () => PREVIEW_BY_CONTEXT[props.context] ?? PREVIEW_BY_CONTEXT.nouvelles,
+)
+
+/**
+ * Bande de l'accueil (vert de marque / blanc) posée par `HomePage.vue` sur la
+ * section : sur les sites au thème vert, elle décide du fond, donc l'aperçu
+ * doit la porter aussi.
+ */
+const site = getSiteConfig()
+const homeSectionIds = computed(() =>
+  filterHomeSectionsByFeatures(site.home?.sections ?? [], site.features ?? {}, site),
+)
+const previewSectionIndex = computed(() =>
+  homeSectionIds.value.indexOf(previewSection.value.sectionId),
+)
+/** Section absente de `home.sections` : la sélection ne s'affiche nulle part. */
+const isSectionOnHome = computed(() => previewSectionIndex.value !== -1)
+const previewBandClass = computed(() =>
+  homeBandClass(resolveHomeBands(homeSectionIds.value)[previewSectionIndex.value] ?? 'light'),
+)
+
+const previewProps = ref({})
+const hasPreviewContent = computed(() => previewSection.value.hasContent(previewProps.value))
+const isPreviewLoading = ref(true)
+const previewError = ref(null)
+/** Montres déjà montées pour l'aperçu : réordonner le brouillon ne recharge rien. */
+const previewWatchCache = new Map()
+let previewDebounceTimer = null
+let previewRequestId = 0
+
+function loadPreviewWatch(id) {
+  if (!previewWatchCache.has(id)) {
+    // Même chargement que l'accueil : toutes les images, prix promotionnel,
+    // et la même exclusion des montres retirées de la vente.
+    previewWatchCache.set(id, getWatchById(id).catch(() => null))
+  }
+  return previewWatchCache.get(id)
+}
+
+async function refreshPreview() {
+  const requestId = (previewRequestId += 1)
+  isPreviewLoading.value = true
+  try {
+    const built = await previewSection.value.buildProps(selectedIds.value, {
+      loadWatch: loadPreviewWatch,
+      rowById: watchById.value,
+    })
+    if (requestId !== previewRequestId) return
+    previewProps.value = built
+    previewError.value = null
+  } catch (err) {
+    if (requestId !== previewRequestId) return
+    previewProps.value = {}
+    previewError.value = err.message
+  } finally {
+    if (requestId === previewRequestId) isPreviewLoading.value = false
+  }
+}
+
+function schedulePreviewRefresh() {
+  clearTimeout(previewDebounceTimer)
+  previewDebounceTimer = setTimeout(refreshPreview, PREVIEW_DEBOUNCE_MS)
+}
+
 async function loadAvailableWatches() {
   try {
     isLoadingAvailable.value = true
@@ -123,6 +245,10 @@ async function load() {
   try {
     isLoading.value = true
     error.value = null
+    // Rechargement de l'écran : l'aperçu repart des montres telles qu'elles sont
+    // en base, photos comprises, plutôt que de celles montées avant la dernière
+    // publication.
+    previewWatchCache.clear()
     const featuredRows = await getFeaturedWatchesForAdmin(props.context)
     originalIds.value = featuredRows.map((row) => row.watch_id).filter(Boolean)
     selectedIds.value = [...originalIds.value]
@@ -236,7 +362,20 @@ watch(search, () => {
   }, SEARCH_DEBOUNCE_MS)
 })
 
-onMounted(load)
+watch(selectedIds, schedulePreviewRefresh)
+
+onMounted(async () => {
+  await load()
+  // `load()` a déjà armé le rafraîchissement différé via le watcher : on le
+  // remplace par un chargement immédiat, l'aperçu n'a pas à attendre.
+  clearTimeout(previewDebounceTimer)
+  await refreshPreview()
+})
+
+onUnmounted(() => {
+  clearTimeout(previewDebounceTimer)
+  clearTimeout(searchDebounceTimer)
+})
 </script>
 
 <template>
@@ -420,31 +559,60 @@ onMounted(load)
         </template>
       </section>
 
-      <!-- Aperçu fidèle du carrousel -->
-      <section class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
-        <h2 class="text-sm font-semibold text-gray-700 mb-3">Aperçu du carrousel</h2>
-        <div
-          v-if="selectedWatches.length > 0"
-          class="overflow-x-auto custom-scrollbar-carrousel scroll-smooth -mx-2 px-2"
-        >
-          <div class="flex items-stretch space-x-4 min-w-full py-2">
-            <div
-              v-for="watch in selectedWatches"
-              :key="`preview-${watch.id}`"
-              class="flex-shrink-0 w-40 sm:w-56"
-            >
-              <WatchCard
-                v-bind="WATCH_CARD_CATALOG_PROPS"
-                :watch="watch"
-                :clickable="false"
-                :show-new-badge="true"
-              />
-            </div>
-          </div>
+      <!--
+        Aperçu : la section de l'accueil elle-même, montée avec les montres du
+        brouillon chargées par le chemin public. Rien n'est réinterprété ici, donc
+        l'image de la montre, sa carte et la mise en page sont celles du site.
+      -->
+      <section class="mb-6">
+        <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2 class="text-sm font-semibold text-gray-700">{{ previewTitle }}</h2>
+          <p class="text-xs text-gray-400">
+            Rendu réel de la section, à la largeur de cet écran.
+          </p>
         </div>
-        <p v-else class="text-sm text-gray-500 py-6 text-center">
+
+        <p
+          v-if="!isSectionOnHome"
+          class="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800"
+        >
+          Cette section n'est pas affichée sur l'accueil de ce site : la sélection est
+          enregistrée, mais rien ne la montre aux visiteurs.
+        </p>
+        <p
+          v-else-if="selectedIds.length === 0"
+          class="mb-3 rounded-lg bg-cream-100 px-4 py-3 text-sm text-gray-600"
+        >
           {{ emptyHint }}
         </p>
+        <div
+          v-if="isPreviewLoading"
+          class="rounded-lg bg-white p-8 text-center text-sm text-gray-500 shadow"
+        >
+          Chargement de l'aperçu…
+        </div>
+        <div
+          v-else-if="previewError"
+          class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
+          Aperçu indisponible : {{ previewError }}
+        </div>
+        <div
+          v-else-if="!hasPreviewContent"
+          class="rounded-lg bg-white p-8 text-center text-sm text-gray-500 shadow"
+        >
+          Aucune montre à afficher : l'accueil n'affichera pas cette section.
+        </div>
+        <div v-else class="overflow-hidden rounded-lg border border-gray-200">
+          <component
+            :is="previewSection.component"
+            :key="previewSection.sectionId"
+            v-bind="previewProps"
+            preview
+            :class="previewBandClass"
+          />
+        </div>
       </section>
 
       <!-- Actions -->

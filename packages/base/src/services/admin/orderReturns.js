@@ -7,9 +7,11 @@
  * - remboursement (art. L221-24) : le vendeur a 14 jours après avoir été informé
  *   de la rétractation pour rembourser.
  *
- * Le remboursement lui-même n'est pas déclenché par l'application : il est
- * effectué à la main depuis le dashboard Stripe, puis enregistré ici. Ce module
- * est pur (aucun accès Supabase) pour rester testable.
+ * Le remboursement est déclenché depuis le panel (`POST /api/admin/orders/:id/refund`),
+ * exécuté par Stripe et enregistré par le webhook dans `order_refunds`. Ce module
+ * ne porte donc plus aucune saisie de montant : il calcule les échéances légales,
+ * le reste à rembourser, et valide le suivi du dossier. Il est pur (aucun accès
+ * Supabase) pour rester testable.
  */
 
 /** Durée du droit de rétractation, en jours. */
@@ -106,8 +108,12 @@ export function computeRefundDeadline(returnRequestedAt, now = new Date()) {
 }
 
 /**
- * Lien direct vers le paiement dans le dashboard Stripe, où le remboursement
- * est effectué à la main.
+ * Lien direct vers le paiement dans le dashboard Stripe.
+ *
+ * Plus aucune opération courante n'en a besoin : il ne reste affiché que comme
+ * porte de sortie quand l'application ne peut pas rembourser elle-même (aucun
+ * PaymentIntent rattaché, refus de l'API) et pour instruire un litige, que
+ * Stripe est seul à savoir traiter.
  * @param {string|null|undefined} paymentIntentId
  * @param {{ testMode?: boolean }} [options]
  * @returns {string|null} null si aucun paiement Stripe rattaché.
@@ -121,11 +127,19 @@ export function stripePaymentDashboardUrl(paymentIntentId, { testMode = false } 
 /**
  * Contrôle la cohérence d'une mise à jour de dossier retour avant écriture.
  *
- * Un dossier marqué « remboursée » doit porter la trace du remboursement fait
- * dans Stripe : sans montant, la commande deviendrait inexploitable en compta.
+ * Le panel n'écrit plus que le suivi du dossier : statut, dates logistiques et
+ * notes. Les montants viennent de `order_refunds`, alimentée par le webhook —
+ * la base refuse d'ailleurs l'écriture des colonnes de remboursement depuis le
+ * navigateur (migration `20260911120000_order_refunds.sql`).
  *
- * @param {{ returnStatus?: string, refundAmountCents?: number|null, stripeRefundId?: string|null }} update
- * @param {{ totalCents?: number|null }} [order]
+ * D'où la seule règle un peu subtile ici : « Remboursée » n'est pas un statut
+ * qu'on déclare, c'est un état qu'on constate. Il n'est accepté que sur une
+ * commande qui porte réellement un remboursement — sinon la liste des commandes
+ * afficherait « remboursée » sans qu'un centime soit sorti.
+ *
+ * @param {{ returnStatus?: string, returnNotes?: string|null }} update
+ * @param {{ totalCents?: number|null, refundAmountCents?: number|null,
+ *   returnStatus?: string|null }} [order]
  * @returns {{ ok: boolean, error?: string }}
  */
 export function validateReturnUpdate(update, order = {}) {
@@ -134,28 +148,104 @@ export function validateReturnUpdate(update, order = {}) {
     return { ok: false, error: 'Statut de retour invalide' }
   }
 
-  const amount = update?.refundAmountCents
-  if (amount != null) {
-    if (!Number.isInteger(amount) || amount < 0) {
-      return { ok: false, error: 'Montant remboursé invalide' }
-    }
-    if (order?.totalCents != null && amount > order.totalCents) {
-      return { ok: false, error: 'Le montant remboursé dépasse le total de la commande' }
-    }
-  }
-
   if (status === 'refunded') {
-    if (amount == null || amount === 0) {
-      return { ok: false, error: 'Renseignez le montant remboursé dans Stripe' }
+    const alreadyRefunded =
+      (order?.refundAmountCents ?? 0) > 0 || order?.returnStatus === 'refunded'
+    if (!alreadyRefunded) {
+      return {
+        ok: false,
+        error: 'Le statut « Remboursée » est posé automatiquement : utilisez le bouton Rembourser.',
+      }
     }
-  }
-
-  const refundId = update?.stripeRefundId?.trim()
-  if (refundId && !/^re_[A-Za-z0-9_]+$/.test(refundId)) {
-    return { ok: false, error: 'Identifiant de remboursement Stripe invalide (format re_…)' }
   }
 
   return { ok: true }
+}
+
+/** Statuts d'un remboursement Stripe (`order_refunds.status`). */
+export const REFUND_STATUS_LABELS = {
+  pending: 'En cours',
+  requires_action: 'Action requise',
+  succeeded: 'Effectué',
+  failed: 'Échoué',
+  canceled: 'Annulé',
+}
+
+/** Origine d'un remboursement (`order_refunds.source`). */
+export const REFUND_SOURCE_LABELS = {
+  admin_panel: 'Administration',
+  stripe_dashboard: 'Dashboard Stripe',
+  dispute: 'Litige',
+  unknown: 'Origine inconnue',
+}
+
+/** Statuts qui immobilisent une partie du total sans l'avoir encore rendue. */
+const PENDING_REFUND_STATUSES = ['pending', 'requires_action']
+
+/**
+ * Totaux d'un lot de remboursements d'une commande.
+ *
+ * `pendingCents` est de l'argent déjà engagé auprès de Stripe : le confondre
+ * avec du disponible autoriserait un second remboursement du même montant
+ * pendant que le premier est en vol.
+ *
+ * @param {Array<{ amountCents?: number|null, status?: string|null }>} refunds
+ * @returns {{ refundedCents: number, pendingCents: number, engagedCents: number, count: number }}
+ */
+export function summarizeRefunds(refunds) {
+  let refundedCents = 0
+  let pendingCents = 0
+  let count = 0
+
+  for (const refund of refunds || []) {
+    const amount = Number(refund?.amountCents) || 0
+    if (refund?.status === 'succeeded') {
+      refundedCents += amount
+      count += 1
+    } else if (PENDING_REFUND_STATUSES.includes(refund?.status)) {
+      pendingCents += amount
+    }
+  }
+
+  return { refundedCents, pendingCents, engagedCents: refundedCents + pendingCents, count }
+}
+
+/**
+ * Reste à rembourser sur une commande.
+ * @param {{ totalCents?: number|null }} order
+ * @param {Array<object>} refunds
+ * @returns {number}
+ */
+export function refundableCents(order, refunds) {
+  const total = Number(order?.totalCents) || 0
+  return Math.max(0, total - summarizeRefunds(refunds).engagedCents)
+}
+
+/**
+ * La commande peut-elle être remboursée depuis le panel ?
+ * @param {{ status?: string, stripePaymentIntentId?: string|null, totalCents?: number|null }} order
+ * @param {Array<object>} refunds
+ * @returns {{ ok: boolean, reason?: string, availableCents: number }}
+ */
+export function canRefundOrder(order, refunds) {
+  const availableCents = refundableCents(order, refunds)
+
+  if (order?.status !== 'paid') {
+    return { ok: false, reason: 'Seule une commande payée peut être remboursée', availableCents }
+  }
+  if (!order?.stripePaymentIntentId) {
+    return {
+      ok: false,
+      reason:
+        'Aucun paiement Stripe rattaché : le remboursement doit être fait depuis le dashboard, puis il sera enregistré ici automatiquement.',
+      availableCents,
+    }
+  }
+  if (availableCents <= 0) {
+    return { ok: false, reason: 'Commande intégralement remboursée', availableCents }
+  }
+
+  return { ok: true, availableCents }
 }
 
 /** Dossiers encore à traiter : colis attendu ou reçu, remboursement pas encore fait. */

@@ -1,4 +1,6 @@
-import { isValidCollectionPublicQuerySlug } from '@/constants/watchAudiences.js'
+// Référentiel sans i18n, et chemin relatif : ce module est atteint par la fonction serverless
+// `api/sitemap.js` via `resolveSiteConfig`, hors de Vite (ni alias `@/`, ni `@site-config`).
+import { isValidCollectionPublicQuerySlug } from '../constants/watchAudienceSlugs.js'
 
 export const DEFAULT_HOME_SELECTIONS_TITLE = 'Nos sélections du moment'
 

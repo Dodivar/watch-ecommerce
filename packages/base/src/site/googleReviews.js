@@ -5,7 +5,8 @@
  * doivent rester alignés, comme `utils/googleMapsLinks.js` l'est avec `backend/utils/`.
  */
 
-import { buildGoogleMapsPlaceUrl } from '@/utils/googleMapsLinks.js'
+// Chemin relatif : atteint par `api/sitemap.js` via `resolveSiteConfig` (voir plus bas).
+import { buildGoogleMapsPlaceUrl } from '../utils/googleMapsLinks.js'
 
 /** Plafond dur de l'API Places (New) : une fiche ne renvoie jamais plus de 5 avis. */
 export const MAX_GOOGLE_REVIEWS = 5

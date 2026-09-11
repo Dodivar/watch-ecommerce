@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiche de renseignements — votre boutique en ligne</title>
+<style>
+  :root{
+    --ink:#1c2431; --muted:#6b7685; --line:#dfe4ea; --bg:#f4f6f9; --card:#fff;
+    --accent:#26334d; --accent-soft:#eef1f6; --req:#b3261e; --warn-bg:#fff6f5; --warn-line:#f3c2bd;
+    --ok:#1a7f4b;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:940px;margin:0 auto;padding:0 16px 80px}
+
+  /* ---- barre d'outils ---- */
+  .bar{position:sticky;top:0;z-index:20;background:var(--accent);color:#fff;
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+    padding:10px 16px;margin:0 -16px 0;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+  .bar .grow{flex:1 1 180px;min-width:0}
+  .bar b{font-size:15px}
+  .bar small{display:block;color:#c7d0de;font-size:12px}
+  button{font:inherit;font-size:14px;font-weight:600;cursor:pointer;
+    border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;
+    padding:8px 14px;border-radius:6px}
+  button:hover{background:rgba(255,255,255,.18)}
+  button.primary{background:#fff;color:var(--accent);border-color:#fff}
+  button.primary:hover{background:#e9edf4}
+  .count{font-variant-numeric:tabular-nums;font-size:13px;color:#c7d0de;white-space:nowrap}
+  .count b{color:#fff}
+
+  /* ---- structure ---- */
+  header.doc{background:var(--card);border:1px solid var(--line);border-top:none;
+    border-radius:0 0 10px 10px;padding:28px 32px 24px}
+  h1{font-size:27px;line-height:1.25;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:22px 32px 26px;margin-top:16px}
+  h2{font-size:19px;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--accent-soft)}
+  h3{font-size:15px;margin:24px 0 8px;color:var(--accent)}
+  .intro{color:var(--muted);font-size:14.5px;margin:10px 0 18px}
+
+  .note{border:1px solid var(--line);background:#f8fafc;border-left:4px solid var(--accent);
+    border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:14.5px}
+  .note.warn{background:var(--warn-bg);border-color:var(--warn-line);border-left-color:var(--req)}
+  .note b{color:var(--ink)}
+  .note p{margin:6px 0 0}
+  .note p:first-child{margin-top:0}
+  code{font-family:Consolas,Menlo,monospace;font-size:.92em;background:#eef1f6;
+    padding:1px 5px;border-radius:3px}
+
+  /* ---- champs ---- */
+  .f{display:grid;grid-template-columns:1fr 1.15fr;gap:10px 22px;
+    align-items:start;padding:9px 0;border-bottom:1px solid #eef1f5}
+  .f:last-child{border-bottom:none}
+  .f > label{font-size:14.5px;padding-top:7px}
+  .req::before{content:"●";color:var(--req);font-size:9px;vertical-align:4px;margin-right:7px}
+  .opt::before{content:"○";color:var(--muted);font-size:9px;vertical-align:4px;margin-right:7px}
+  .hint{display:block;color:var(--muted);font-size:12.5px;margin-top:3px}
+  input[type=text],textarea{width:100%;font:inherit;font-size:14.5px;color:var(--ink);
+    border:1px solid #cdd4de;border-radius:6px;padding:7px 10px;background:#fff}
+  input[type=text]:focus,textarea:focus{outline:2px solid #9db0d0;outline-offset:-1px;border-color:#9db0d0}
+  textarea{min-height:86px;resize:vertical;line-height:1.5}
+
+  /* ---- tableaux ---- */
+  table{width:100%;border-collapse:collapse;margin:6px 0 4px;font-size:14px}
+  th{text-align:left;font-size:12px;letter-spacing:.4px;text-transform:uppercase;
+    color:var(--muted);font-weight:700;padding:0 8px 6px;border-bottom:1px solid var(--line)}
+  td{padding:4px 4px;vertical-align:top}
+  td input{font-size:14px;padding:6px 8px}
+  td.rowlabel{padding:12px 8px 12px 4px;font-size:14px;line-height:1.35}
+  .addrow{margin-top:6px;background:var(--accent-soft);color:var(--accent);border-color:#ccd5e3;
+    padding:5px 12px;font-size:13px}
+  .addrow:hover{background:#e3e9f2}
+
+  /* ---- cases à cocher ---- */
+  .checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:2px 20px;margin:6px 0}
+  .checks label{display:flex;gap:9px;align-items:flex-start;padding:5px 0;font-size:14.5px;cursor:pointer}
+  input[type=checkbox]{width:17px;height:17px;margin:2px 0 0;accent-color:var(--accent);flex:none}
+
+  .legend{display:flex;gap:22px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin:14px 0 0}
+  footer.doc{color:var(--muted);font-size:13.5px;text-align:center;margin:26px 0 0;padding:0 20px}
+  a{color:var(--accent)}
+
+  @media (max-width:720px){
+    .f{grid-template-columns:1fr;gap:4px}
+    .f > label{padding-top:0}
+    section,header.doc{padding-left:18px;padding-right:18px}
+    table,thead,tbody,tr,td{display:block;width:100%}
+    th{display:none}
+    td{padding:3px 0}
+    td::before{content:attr(data-col);display:block;font-size:11.5px;text-transform:uppercase;
+      letter-spacing:.4px;color:var(--muted);margin-bottom:2px}
+    tr{padding:10px 0;border-bottom:1px solid #eef1f5}
+  }
+
+  @media print{
+    @page{size:A4;margin:13mm 12mm}
+    body{background:#fff;font-size:11pt}
+    .wrap{max-width:none;padding:0}
+    .no-print{display:none !important}
+    header.doc,section{border:none;border-radius:0;padding:0;margin:0 0 14pt;break-inside:auto}
+    h2{break-after:avoid;margin-top:12pt}
+    h3,.note{break-inside:avoid}
+    .f{break-inside:avoid;padding:5pt 0}
+    input[type=text],textarea{border:none;border-bottom:1px solid #8a93a0;border-radius:0;
+      padding:2pt 0;min-height:0}
+    textarea{min-height:46pt;border:1px solid #8a93a0;padding:3pt}
+    td input{border-bottom:1px solid #8a93a0}
+    tr{break-inside:avoid}
+    .checks{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="bar no-print">
+    <div class="grow">
+      <b>Fiche de renseignements</b>
+      <small id="saved">Sauvegarde automatique dans ce navigateur</small>
+    </div>
+    <span class="count" id="count"></span>
+    <button class="primary" id="dl">⤓ Télécharger la fiche remplie</button>
+    <button id="up">Reprendre une fiche…</button>
+    <button id="pr">Imprimer / PDF</button>
+    <button id="rz">Vider</button>
+    <input type="file" id="file" accept=".json,application/json" hidden>
+  </div>
+
+  <header class="doc">
+    <h1>Fiche de renseignements</h1>
+    <p class="sub">Les informations dont nous avons besoin pour configurer votre boutique.
+      Rien ici n'est technique : ce sont vos informations commerciales, légales et vos
+      contenus. Le reste — hébergement, base de données, sécurité, mises en ligne — est
+      de notre côté.</p>
+
+    <div class="note">
+      <p><b>Comment la remplir.</b> Répondez directement dans les champs. Votre saisie est
+        conservée dans ce navigateur : vous pouvez fermer la page et revenir plus tard.
+        Quand vous avez terminé — ou même avant — cliquez sur
+        <b>« Télécharger la fiche remplie »</b> et renvoyez-nous le fichier obtenu.</p>
+      <p>Une case vide n'est pas un problème : elle nous dit simplement qu'il faut en
+        reparler. Écrivez « à voir avec vous » là où vous bloquez, et renvoyez la fiche
+        sans attendre.</p>
+    </div>
+
+    <div class="note warn">
+      <p><b>🔐 Aucun code Stripe dans ce document.</b> Ni clé publique, ni clé restreinte
+        (<code>rk_live_…</code>), ni secret de webhook (<code>whsec_…</code>), ni mot de
+        passe. Cette fiche circule par e-mail ; ces valeurs, non.</p>
+      <p>Elles passent par un lien à usage unique créé sur
+        <a href="https://onetimesecret.com/fr/">onetimesecret.com/fr</a>, comme l'explique la
+        <a href="03-fiche-de-transmission.md">fiche de transmission</a>, une fois le
+        <a href="01-guide-stripe.md">guide Stripe</a> terminé.</p>
+    </div>
+
+    <h3 style="margin-top:22px">Pièces à joindre</h3>
+    <div id="pieces"></div>
+
+    <div id="meta"></div>
+
+    <div class="legend">
+      <span class="req">bloque l'ouverture de la boutique</span>
+      <span class="opt">peut venir plus tard</span>
+    </div>
+  </header>
+
+  <main id="form"></main>
+
+  <footer class="doc">
+    Merci. Dès réception, nous revenons vers vous avec la liste des points restants et une
+    date d'ouverture ferme. Une question d'ici là : <code>&lt;TON-EMAIL&gt;</code>.
+  </footer>
+</div>
+
+<script>
+/* ------------------------------------------------------------------ *
+ * Schéma — miroir de client/02-informations-a-fournir.md.             *
+ * Toute section ajoutée là doit l'être ici, et réciproquement.        *
+ * ------------------------------------------------------------------ */
+const PIECES = ['pieces', [
+  'Logo — fichier vectoriel .svg, ou .png haute définition à fond transparent',
+  'Photos des produits, le plus haute définition possible',
+  'Export CSV du catalogue, si vous venez d’une autre plateforme',
+  'CGV et politique de retour, si vous en avez déjà',
+  'Extrait Kbis ou avis Insee, si vous ne connaissez pas par cœur SIRET et RCS',
+]];
+
+const META = [
+  { k: 'meta_boutique', label: 'Nom de la boutique', req: 1 },
+  { k: 'meta_par', label: 'Fiche remplie par', req: 1 },
+  { k: 'meta_date', label: 'Date', req: 1 },
+];
+
+const SCHEMA = [
+{ id:'1', title:'1. Identité de la marque', blocks:[
+  {type:'fields', items:[
+    {k:'m_nom', label:'Nom commercial', hint:'en-tête du site, onglet du navigateur, e-mails', req:1},
+    {k:'m_raison', label:'Raison sociale complète', hint:'mentions légales, factures', req:1},
+    {k:'m_logo', label:'Logo fourni ?', hint:'format du fichier joint', req:1},
+    {k:'m_couleurs', label:'Couleurs de la marque', hint:'codes hexadécimaux si vous les connaissez ; sinon le logo suffit'},
+    {k:'m_slogan', label:'Slogan / phrase d’accroche', hint:'une ligne, sur la page d’accueil'},
+  ]},
+]},
+
+{ id:'2', title:'2. Informations légales',
+  intro:'Obligatoires pour les mentions légales et les CGV — et vérifiées par Stripe à l’activation de votre compte.',
+  blocks:[
+  {type:'fields', items:[
+    {k:'l_forme', label:'Forme juridique', hint:'SAS, SARL, EI, auto-entrepreneur…', req:1},
+    {k:'l_capital', label:'Capital social'},
+    {k:'l_siege', label:'Adresse du siège social', req:1},
+    {k:'l_siret', label:'SIRET', req:1},
+    {k:'l_tva', label:'Numéro de TVA intracommunautaire', req:1},
+    {k:'l_rcs', label:'Numéro RCS et ville d’immatriculation', req:1},
+    {k:'l_dirpub', label:'Nom du directeur de la publication', req:1},
+  ]},
+  {type:'note', html:'L’<b>hébergeur</b> doit aussi figurer dans les mentions légales : c’est nous qui le renseignons, vous n’avez rien à faire.'},
+]},
+
+{ id:'3', title:'3. Contact et adresse', blocks:[
+  {type:'fields', items:[
+    {k:'c_email', label:'Adresse e-mail affichée aux clients', req:1},
+    {k:'c_tel', label:'Téléphone', req:1},
+    {k:'c_whatsapp', label:'Numéro WhatsApp, si vous souhaitez le proposer'},
+    {k:'c_boutique', label:'Adresse de la boutique physique', hint:'elle sert à afficher la carte'},
+    {k:'c_horaires', label:'Horaires d’ouverture', type:'area'},
+    {k:'c_maps', label:'Lien de votre fiche Google Maps', hint:'depuis Google Maps : Partager → Copier le lien'},
+  ]},
+]},
+
+{ id:'4', title:'4. Adresse e-mail d’expédition',
+  intro:'L’adresse depuis laquelle partiront les confirmations de commande et les réponses aux formulaires.',
+  blocks:[
+  {type:'fields', items:[
+    {k:'e_from', label:'Adresse d’expédition souhaitée', hint:'par exemple commandes@votre-domaine.fr', req:1},
+    {k:'e_valideur', label:'Qui relève cette boîte ?', hint:'cette personne recevra l’e-mail de validation à confirmer', req:1},
+  ]},
+  {type:'note', html:'Cette adresse doit être <b>validée une fois</b> chez notre prestataire d’envoi : nous déclenchons la demande, vous cliquez sur le lien reçu. Sans cette validation, les e-mails de la boutique sont refusés à l’envoi. Préférez une adresse sur votre propre domaine : les adresses en <code>@gmail.com</code> ou <code>@orange.fr</code> sont massivement classées en indésirable quand elles servent à des envois automatiques.'},
+]},
+
+{ id:'5', title:'5. Nom de domaine', blocks:[
+  {type:'fields', items:[
+    {k:'d_nom', label:'Adresse souhaitée pour la boutique', hint:'par exemple www.ma-boutique.fr', req:1},
+    {k:'d_achete', label:'Le domaine est-il déjà acheté ?', hint:'oui / non', req:1},
+    {k:'d_registrar', label:'Si oui, chez quel prestataire ?', hint:'OVH, Gandi, Ionos…', req:1},
+    {k:'d_dns', label:'Qui peut ajouter des enregistrements DNS ?', hint:'nom et e-mail de la personne', req:1},
+    {k:'d_actuel', label:'Site actuel à remplacer', hint:'son adresse, s’il y en a un'},
+  ]},
+  {type:'note', html:'<b>Ne transférez pas votre domaine.</b> Nous vous enverrons deux ou trois lignes de configuration à ajouter chez votre prestataire. Si vous n’en avez pas encore, achetez-le <b>à votre nom</b> : un domaine est un actif de votre entreprise, il ne doit pas être immatriculé au nom d’un prestataire.'},
+]},
+
+{ id:'6', title:'6. Livraison',
+  intro:'Ce sont les options que verront vos clients au moment de payer.',
+  blocks:[
+  {type:'fields', items:[
+    {k:'li_pays', label:'Pays livrés', hint:'France seule, UE, international', req:1},
+    {k:'li_franco', label:'Franchise de port', hint:'à partir de quel montant la livraison est offerte ; laisser vide si aucune'},
+    {k:'li_retrait', label:'Adresse exacte du point de retrait', hint:'si vous activez le retrait en boutique'},
+  ]},
+  {type:'table', k:'li_modes', title:'Vos modes de livraison',
+   intro:'Une ligne par mode : domicile, point relais, retrait en boutique… Les tarifs sont en euros TTC.',
+   cols:['Mode de livraison','Pays concernés','Tarif TTC','Délai annoncé'], rows:4},
+]},
+
+{ id:'7', title:'7. Conditions commerciales', blocks:[
+  {type:'fields', items:[
+    {k:'cg_cgv', label:'CGV : vous en avez déjà, ou nous partons d’une base type ?', req:1},
+    {k:'cg_retour', label:'Politique de retour : délai de rétractation et conditions de reprise', type:'area', req:1},
+    {k:'cg_tva', label:'Taux de TVA applicable à vos produits', req:1},
+    {k:'cg_promo', label:'Souhaitez-vous des codes promotionnels au moment du paiement ?', hint:'oui / non'},
+  ]},
+  {type:'note', html:'Les CGV et la politique de retour sont <b>exigées par Stripe</b> pour activer votre compte : ce ne sont pas des formalités de fin de projet. Nous ne sommes pas juristes et ne pouvons pas les valider pour vous — faites-les relire si vous en avez la possibilité.'},
+]},
+
+{ id:'8', title:'8. Catalogue', blocks:[
+  {type:'fields', items:[
+    {k:'ca_nombre', label:'Nombre approximatif de références à mettre en ligne', req:1},
+    {k:'ca_plateforme', label:'Votre catalogue vit-il déjà quelque part ?', hint:'PrestaShop, Shopify, WooCommerce, un tableur, rien encore', req:1},
+    {k:'ca_export', label:'Un export CSV est-il possible depuis cette plateforme ?', hint:'oui / non / je ne sais pas', req:1},
+    {k:'ca_photos', label:'Les photos produits sont-elles disponibles et libres de droits pour vous ?', req:1},
+    {k:'ca_maj', label:'Qui mettra le catalogue à jour au quotidien ?'},
+  ]},
+  {type:'note', html:'Si vous venez d’une autre plateforme, <b>ne ressaisissez rien</b> : exportez le catalogue en CSV et envoyez-le nous, nous le reprenons automatiquement.'},
+]},
+
+{ id:'9', title:'9. Accès à votre administration',
+  intro:'Les personnes qui géreront la boutique. Chacune recevra une invitation par e-mail et choisira son propre mot de passe.',
+  blocks:[
+  {type:'table', k:'ad_acces',
+   cols:['Nom et prénom','Adresse e-mail','Niveau d’accès'], rows:4},
+  {type:'note', html:'Niveaux disponibles — <b>Administrateur</b> : tout, y compris la gestion des autres accès. <b>Modérateur</b> : catalogue, commandes, contenus, mais pas les accès. <b>Lecture seule</b> : consulter sans rien modifier.<br>Prévoyez <b>au moins deux administrateurs</b> : un compte administrateur unique dont l’e-mail devient inaccessible est un vrai problème.'},
+]},
+
+{ id:'10', title:'10. Mesure d’audience',
+  intro:'Facultatif. Si vous avez déjà ces comptes, donnez-nous les identifiants ; sinon, écrivez « à créer avec vous » et nous les ouvrons ensemble.',
+  blocks:[
+  {type:'fields', items:[
+    {k:'me_ga4', label:'Google Analytics 4', hint:'identifiant de la forme G-XXXXXXXXXX'},
+    {k:'me_ads', label:'Google Ads', hint:'si vous prévoyez des campagnes'},
+    {k:'me_meta', label:'Pixel Meta', hint:'pour Facebook et Instagram'},
+  ]},
+  {type:'note', html:'Ces outils ne se déclenchent qu’après acceptation du bandeau cookies par le visiteur.'},
+]},
+
+{ id:'11', title:'Avant de nous renvoyer la fiche', blocks:[
+  {type:'checklist', k:'bloquants',
+   intro:'Ces six points conditionnent l’ouverture. Le reste — catalogue complet, mesure d’audience, contenus éditoriaux — peut être complété après.',
+   items:['Informations légales complètes (section 2)',
+     'CGV et politique de retour (section 7)',
+     'Codes Stripe envoyés par lien à usage unique (One Time Secret) — pas dans cette fiche',
+     'Adresse e-mail d’expédition indiquée (section 4)',
+     'Nom de domaine identifié, et la personne qui gère le DNS (section 5)',
+     'Tarifs de livraison renseignés (section 6)']},
+]},
+
+{ id:'12', title:'Remarques libres',
+  intro:'Tout ce qui ne rentrait dans aucune case.',
+  blocks:[
+  {type:'fields', items:[{k:'libre', label:'Vos remarques', type:'area'}]},
+]},
+];
+
+/* ------------------------------------------------------------------ *
+ * Rendu                                                               *
+ * ------------------------------------------------------------------ */
+const STORE = 'fiche-renseignements-v1';
+const el = (t, cls, txt) => { const n = document.createElement(t); if (cls) n.className = cls;
+  if (txt != null) n.textContent = txt; return n; };
+
+function field(f) {
+  const row = el('div', 'f');
+  const lab = el('label', f.req ? 'req' : 'opt');
+  lab.append(document.createTextNode(f.label));
+  if (f.hint) lab.append(el('span', 'hint', f.hint));
+  const input = f.type === 'area' ? document.createElement('textarea')
+                                  : Object.assign(document.createElement('input'), { type: 'text' });
+  input.name = f.k;
+  input.id = 'fld-' + f.k;
+  lab.htmlFor = input.id;
+  row.append(lab, input);
+  return row;
+}
+
+function tableBlock(b) {
+  const box = el('div');
+  if (b.title) box.append(el('h3', null, b.title));
+  if (b.intro) box.append(el('p', 'intro', b.intro));
+  const t = el('table'), head = el('thead'), hr = el('tr');
+  b.cols.forEach(c => hr.append(el('th', null, c)));
+  head.append(hr);
+  const body = el('tbody');
+  const addRow = (preset) => {
+    const tr = el('tr');
+    const n = body.children.length;
+    b.cols.forEach((c, i) => {
+      const td = el('td');
+      td.dataset.col = c;
+      const inp = Object.assign(document.createElement('input'), { type: 'text' });
+      inp.name = b.k + '.' + n + '.' + i;
+      if (preset && preset[i]) { inp.value = preset[i]; }
+      // Libellé de ligne figé (ex. « Instagram ») : texte lisible, valeur conservée pour l'export.
+      if (i === 0 && b.lockFirst && preset && preset[0]) {
+        td.className = 'rowlabel';
+        td.append(el('span', null, preset[0]));
+        inp.type = 'hidden';
+      }
+      td.append(inp);
+      tr.append(td);
+    });
+    body.append(tr);
+  };
+  (b.preset || Array.from({ length: b.rows || 3 }, () => null)).forEach(addRow);
+  t.append(head, body);
+  box.append(t);
+  if (!b.fixed) {
+    const btn = el('button', 'addrow no-print', '+ Ajouter une ligne');
+    btn.type = 'button';
+    btn.onclick = () => { addRow(null); save(); };
+    box.append(btn);
+  }
+  return box;
+}
+
+function checklist(b) {
+  const box = el('div');
+  if (b.title) box.append(el('h3', null, b.title));
+  if (b.intro) box.append(el('p', 'intro', b.intro));
+  const g = el('div', 'checks');
+  b.items.forEach((item, i) => {
+    const lab = el('label');
+    const c = Object.assign(document.createElement('input'), { type: 'checkbox' });
+    c.name = b.k + '#' + i;
+    lab.append(c, document.createTextNode(item));
+    g.append(lab);
+  });
+  box.append(g);
+  return box;
+}
+
+function noteBlock(b) {
+  const n = el('div', 'note' + (b.tone === 'warn' ? ' warn' : ''));
+  n.innerHTML = b.html;
+  return n;
+}
+
+function render() {
+  // pièces à joindre + méta
+  document.getElementById('pieces').append(checklist({ k: PIECES[0], items: PIECES[1] }));
+  const m = el('div');
+  META.forEach(f => m.append(field(f)));
+  document.getElementById('meta').append(m);
+
+  const root = document.getElementById('form');
+  SCHEMA.forEach(sec => {
+    const s = el('section');
+    s.id = 'sec-' + sec.id;
+    s.append(el('h2', null, sec.title));
+    if (sec.intro) s.append(el('p', 'intro', sec.intro));
+    sec.blocks.forEach(b => {
+      if (b.type === 'heading') return s.append(el('h3', null, b.text));
+      if (b.type === 'note') return s.append(noteBlock(b));
+      if (b.type === 'table') return s.append(tableBlock(b));
+      if (b.type === 'checklist') return s.append(checklist(b));
+      if (b.title) s.append(el('h3', null, b.title));
+      const box = el('div');
+      b.items.forEach(f => box.append(field(f)));
+      s.append(box);
+    });
+    root.append(s);
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * État : sauvegarde locale, import, export                            *
+ * ------------------------------------------------------------------ */
+const inputs = () => document.querySelectorAll('input[name], textarea[name]');
+
+function collect() {
+  const d = {};
+  inputs().forEach(i => { d[i.name] = i.type === 'checkbox' ? i.checked : i.value; });
+  return d;
+}
+
+function apply(d) {
+  inputs().forEach(i => {
+    if (!(i.name in d)) return;
+    if (i.type === 'checkbox') i.checked = !!d[i.name]; else i.value = d[i.name];
+  });
+}
+
+let timer;
+function save() {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    try {
+      localStorage.setItem(STORE, JSON.stringify(collect()));
+      const t = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('saved').textContent = 'Enregistré à ' + t + ' dans ce navigateur';
+    } catch (e) {
+      document.getElementById('saved').textContent =
+        'Sauvegarde automatique indisponible — pensez à télécharger la fiche';
+    }
+    progress();
+  }, 300);
+}
+
+function progress() {
+  const req = [...META, ...SCHEMA.flatMap(s => s.blocks.filter(b => b.type === 'fields')
+    .flatMap(b => b.items))].filter(f => f.req);
+  const done = req.filter(f => {
+    const n = document.getElementById('fld-' + f.k);
+    return n && n.value.trim() !== '';
+  }).length;
+  const c = document.getElementById('count');
+  c.innerHTML = '<b>' + done + '</b> / ' + req.length + ' champs requis';
+  c.style.color = done === req.length ? '#9ff0c4' : '';
+}
+
+/* --- export Markdown : même structure que fiche-de-collecte.md --- */
+function toMarkdown() {
+  const v = k => (document.querySelector('[name="' + CSS.escape(k) + '"]')?.value || '').trim();
+  const out = ['# Fiche de renseignements — votre boutique en ligne', ''];
+  out.push('**Boutique :** ' + (v('meta_boutique') || '—'),
+           '**Rempli par :** ' + (v('meta_par') || '—'),
+           '**Le :** ' + (v('meta_date') || '—'), '');
+
+  const checks = (k, items) => items.map((it, i) =>
+    '- [' + (document.querySelector('[name="' + k + '#' + i + '"]').checked ? 'x' : ' ') + '] ' + it);
+
+  out.push('## Pièces à joindre', '', ...checks(PIECES[0], PIECES[1]), '');
+
+  SCHEMA.forEach(sec => {
+    out.push('## ' + sec.title, '');
+    sec.blocks.forEach(b => {
+      if (b.type === 'note') return;
+      if (b.type === 'heading') { out.push('### ' + b.text, ''); return; }
+      if (b.title) out.push('### ' + b.title, '');
+      if (b.type === 'checklist') { out.push(...checks(b.k, b.items), ''); return; }
+      if (b.type === 'table') {
+        const rows = [...document.querySelectorAll('[name^="' + b.k + '."]')];
+        const byRow = {};
+        rows.forEach(i => {
+          const [, r, c] = i.name.split('.');
+          (byRow[r] ||= [])[c] = i.value.trim().replace(/\|/g, '\\|');
+        });
+        out.push('| ' + b.cols.join(' | ') + ' |',
+                 '| ' + b.cols.map(() => '---').join(' | ') + ' |');
+        Object.keys(byRow).sort((a, z) => a - z).forEach(r => {
+          const cells = b.cols.map((_, i) => byRow[r][i] || '');
+          if (cells.some(x => x !== '')) out.push('| ' + cells.join(' | ') + ' |');
+        });
+        out.push('');
+        return;
+      }
+      out.push('| Champ | Réponse |', '| --- | --- |');
+      b.items.forEach(f => {
+        const val = v(f.k).replace(/\|/g, '\\|').replace(/\n+/g, ' ');
+        out.push('| ' + (f.req ? '**' : '') + f.label + (f.req ? '**' : '') + ' | ' + (val || '_(vide)_') + ' |');
+      });
+      out.push('');
+    });
+  });
+  out.push('---', '',
+    '> Aucun code Stripe (clé publique, clé restreinte, secret de webhook) ne doit figurer',
+    '> dans ce fichier : ils passent par le lien à usage unique de la fiche de transmission.');
+  return out.join('\n');
+}
+
+function download(name, text, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+function slug() {
+  const n = (document.querySelector('[name="meta_boutique"]').value || 'boutique').trim();
+  return (n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+           .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'client');
+}
+
+/* ------------------------------------------------------------------ */
+render();
+try { const raw = localStorage.getItem(STORE); if (raw) apply(JSON.parse(raw)); } catch (e) {}
+progress();
+document.addEventListener('input', save);
+document.addEventListener('change', save);
+
+document.getElementById('dl').onclick = () => {
+  const base = 'fiche-renseignements-' + slug();
+  download(base + '.md', toMarkdown(), 'text/markdown;charset=utf-8');
+  // Le .json permet de rouvrir la fiche plus tard et de la modifier.
+  setTimeout(() => download(base + '.json', JSON.stringify(collect(), null, 2),
+    'application/json'), 400);
+};
+document.getElementById('up').onclick = () => document.getElementById('file').click();
+document.getElementById('file').onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  f.text().then(t => { apply(JSON.parse(t)); save(); })
+          .catch(() => alert('Fichier illisible : attendu le .json téléchargé depuis cette page.'));
+};
+document.getElementById('pr').onclick = () => window.print();
+document.getElementById('rz').onclick = () => {
+  if (!confirm('Effacer toutes les réponses saisies dans ce navigateur ?')) return;
+  try { localStorage.removeItem(STORE); } catch (e) {}
+  location.reload();
+};
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Trash2, UserPlus, ShieldCheck, ScrollText } from '@lucide/vue'
+import { ChevronDown, Trash2, UserPlus, ShieldCheck, ScrollText } from '@lucide/vue'
 import {
   getAdminUsersList,
   inviteAdminUser,
@@ -304,18 +304,175 @@ const confirmDelete = async () => {
       </template>
     </div>
 
-    <!-- Accès support -->
+    <!-- Rôles et accès -->
     <div class="bg-white rounded-lg shadow p-6 mt-6">
       <h2 class="flex items-center gap-2 text-lg font-semibold text-text-main mb-2">
         <ShieldCheck class="w-5 h-5 text-primary" :stroke-width="1.75" />
-        Accès support
+        Rôles et accès
       </h2>
-      <p class="text-sm text-gray-600">
-        Un compte « Visiteur » est en lecture seule : il ne peut rien créer, modifier ni
-        supprimer, et les données personnelles de vos clients (nom, adresse, téléphone, email)
-        lui sont masquées. Son accès reste fermé tant que vous ne l’ouvrez pas, et se referme
-        seul au bout de {{ ACCESS_HOURS }} heures.
+      <p class="text-sm text-gray-600 mb-4">
+        Ce que chaque rôle peut voir et faire dans l’administration. Dépliez un rôle pour
+        en voir le détail.
       </p>
+
+      <div class="space-y-2">
+        <!-- Administrateur -->
+        <details class="role-card overflow-hidden rounded-lg border border-primary/15">
+          <summary
+            class="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-semibold text-text-main transition hover:bg-cream/60"
+          >
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+              {{ ROLE_LABELS.admin }}
+            </span>
+            <span class="text-gray-600 font-normal">Accès total</span>
+            <ChevronDown
+              class="role-card-chevron ml-auto h-4 w-4 shrink-0 text-gray-500 transition-transform"
+              :stroke-width="2"
+              aria-hidden="true"
+            />
+          </summary>
+          <div class="space-y-3 border-t border-cream-200 px-4 py-4 text-sm text-gray-600">
+            <div>
+              <h3 class="mb-1 font-semibold text-text-main">Peut accéder à tout le panel</h3>
+              <ul class="list-disc space-y-1 pl-5">
+                <li>Tableau de bord, montres, commandes, messages, newsletter, articles, statistiques.</li>
+                <li>
+                  Et les sections qui lui sont réservées : <strong>codes promo checkout</strong>,
+                  <strong>campagnes de promotion</strong>, et le contenu de la page d’accueil
+                  (<strong>carrousels</strong>, <strong>aperçu collection</strong>,
+                  <strong>montre en vitrine</strong>).
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="mb-1 font-semibold text-text-main">Seul à gérer les utilisateurs</h3>
+              <ul class="list-disc space-y-1 pl-5">
+                <li>Inviter un compte, changer un rôle, retirer un accès (cette page).</li>
+                <li>Ouvrir et refermer la fenêtre d’accès d’un compte support, et lire le journal d’accès.</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="mb-1 font-semibold text-text-main">Garde-fous</h3>
+              <ul class="list-disc space-y-1 pl-5">
+                <li>Personne ne peut modifier ni supprimer son propre compte.</li>
+                <li>
+                  Le <strong>dernier administrateur</strong> ne peut être ni rétrogradé ni supprimé :
+                  le site garde toujours au moins un compte capable de gérer les accès.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </details>
+
+        <!-- Modérateur -->
+        <details class="role-card overflow-hidden rounded-lg border border-primary/15">
+          <summary
+            class="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-semibold text-text-main transition hover:bg-cream/60"
+          >
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+              {{ ROLE_LABELS.moderator }}
+            </span>
+            <span class="text-gray-600 font-normal">Gestion du quotidien</span>
+            <ChevronDown
+              class="role-card-chevron ml-auto h-4 w-4 shrink-0 text-gray-500 transition-transform"
+              :stroke-width="2"
+              aria-hidden="true"
+            />
+          </summary>
+          <div class="space-y-3 border-t border-cream-200 px-4 py-4 text-sm text-gray-600">
+            <div>
+              <h3 class="mb-1 font-semibold text-text-main">Peut consulter et modifier</h3>
+              <ul class="list-disc space-y-1 pl-5">
+                <li><strong>Montres</strong> : création, édition, suppression de fiches.</li>
+                <li><strong>Commandes</strong> : suivi, changement de statut, retours.</li>
+                <li><strong>Messages</strong> : lecture et traitement des demandes clients.</li>
+                <li><strong>Newsletter</strong> : abonnés, campagnes, rédaction et envoi.</li>
+                <li><strong>Articles</strong> : rédaction, génération, publication.</li>
+                <li><strong>Tableau de bord</strong> et <strong>statistiques</strong>.</li>
+              </ul>
+              <p class="mt-1">
+                Il voit les données clients en clair (nom, adresse, téléphone, email), nécessaires
+                au traitement des commandes.
+              </p>
+            </div>
+            <div>
+              <h3 class="mb-1 font-semibold text-text-main">Ne peut pas</h3>
+              <ul class="list-disc space-y-1 pl-5">
+                <li>
+                  Toucher au <strong>contenu de la page d’accueil</strong> (carrousels, aperçu
+                  collection, montre en vitrine).
+                </li>
+                <li>Gérer les <strong>codes promo</strong> ni les <strong>campagnes de promotion</strong>.</li>
+                <li>Accéder à cette page <strong>Utilisateurs</strong> : ni inviter, ni changer un rôle.</li>
+              </ul>
+              <p class="mt-1">
+                Ces entrées sont grisées dans le menu, et une URL saisie à la main renvoie au
+                tableau de bord.
+              </p>
+            </div>
+          </div>
+        </details>
+
+        <!-- Visiteur -->
+        <details class="role-card overflow-hidden rounded-lg border border-primary/15">
+          <summary
+            class="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-semibold text-text-main transition hover:bg-cream/60"
+          >
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+              {{ ROLE_LABELS.visitor }}
+            </span>
+            <span class="text-gray-600 font-normal">Accès support temporaire</span>
+            <ChevronDown
+              class="role-card-chevron ml-auto h-4 w-4 shrink-0 text-gray-500 transition-transform"
+              :stroke-width="2"
+              aria-hidden="true"
+            />
+          </summary>
+          <div class="space-y-3 border-t border-cream-200 px-4 py-4 text-sm text-gray-600">
+            <div>
+              <h3 class="mb-1 font-semibold text-text-main">Peut consulter</h3>
+              <ul class="list-disc space-y-1 pl-5">
+                <li>
+                  Les mêmes sections qu’un modérateur (montres, commandes, messages, newsletter,
+                  articles, statistiques), <strong>en lecture seule</strong>.
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="mb-1 font-semibold text-text-main">Ne peut pas</h3>
+              <ul class="list-disc space-y-1 pl-5">
+                <li>Créer, modifier ou supprimer quoi que ce soit : les formulaires lui sont fermés.</li>
+                <li>
+                  Voir les sections réservées à l’administrateur (promotions, contenu d’accueil,
+                  utilisateurs).
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="mb-1 font-semibold text-text-main">Données clients masquées</h3>
+              <ul class="list-disc space-y-1 pl-5">
+                <li>
+                  Nom, adresse, téléphone et email sont <strong>caviardés</strong> sur les commandes
+                  et les messages. Le masquage est fait en base : la donnée en clair ne quitte
+                  jamais le serveur.
+                </li>
+                <li>La recherche par email est désactivée pour ces comptes.</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="mb-1 font-semibold text-text-main">Fenêtre d’accès et traçabilité</h3>
+              <ul class="list-disc space-y-1 pl-5">
+                <li>
+                  Son accès reste <strong>fermé</strong> tant que vous ne l’ouvrez pas, et se referme
+                  seul au bout de <strong>{{ ACCESS_HOURS }} heures</strong> (bouton
+                  « Ouvrir {{ ACCESS_HOURS }} h » ci-dessus).
+                </li>
+                <li>Chaque page consultée est enregistrée dans le journal d’accès, en bas de cette page.</li>
+              </ul>
+            </div>
+          </div>
+        </details>
+      </div>
     </div>
 
     <!-- Journal d'accès -->
@@ -384,3 +541,17 @@ const confirmDelete = async () => {
     </div>
   </AdminShell>
 </template>
+
+<style scoped>
+.role-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.role-card > summary::marker {
+  content: '';
+}
+
+.role-card[open] .role-card-chevron {
+  transform: rotate(180deg);
+}
+</style>

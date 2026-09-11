@@ -51,6 +51,21 @@ export const GOOGLE_ADS_PURCHASE_LABEL = import.meta.env.VITE_GOOGLE_ADS_PURCHAS
 /** Meta (Facebook / Instagram) — `VITE_META_PIXEL_ID`, identifiant numérique du pixel. */
 export const META_PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID || ''
 
+/**
+ * Relecture client : barre de commentaires Vercel injectée en production sur `?relecture=1`.
+ *
+ * Identifiants publics du projet Vercel qui sert le site — `VITE_VERCEL_TOOLBAR_OWNER_ID`
+ * (identifiant d'équipe ou de compte) et `VITE_VERCEL_TOOLBAR_PROJECT_ID`. Tant que les deux
+ * ne sont pas renseignés, rien n'est chargé. `VITE_VERCEL_TOOLBAR_BRANCH` (optionnel) range
+ * les fils de commentaires sous une branche donnée.
+ * Voir `packages/base/src/services/review/vercelToolbar.js`.
+ */
+export const VERCEL_TOOLBAR_OWNER_ID = import.meta.env.VITE_VERCEL_TOOLBAR_OWNER_ID || ''
+
+export const VERCEL_TOOLBAR_PROJECT_ID = import.meta.env.VITE_VERCEL_TOOLBAR_PROJECT_ID || ''
+
+export const VERCEL_TOOLBAR_BRANCH = import.meta.env.VITE_VERCEL_TOOLBAR_BRANCH || ''
+
 const urlProduction = site.urls.production
 const urlStaging = site.urls.staging
 const urlDevelopment = site.urls.development
@@ -91,6 +106,22 @@ function getBaseUrl() {
 }
 
 export const BASE_URL = getBaseUrl()
+
+/**
+ * Image de partage par défaut, en absolu.
+ *
+ * Même source que la coquille `index.html` (`seo.indexHtml.ogImagePath`, appliqué par
+ * `vite/site-from-config.mjs`) : les balises posées à l'exécution ne peuvent pas diverger de
+ * celles du HTML statique, et une vitrine qui change de visuel n'a qu'un seul endroit à mettre
+ * à jour. Chaîne vide si le manifest n'en déclare pas — les appelants retombent alors sur leur
+ * propre visuel plutôt que d'émettre une URL morte.
+ */
+export const DEFAULT_OG_IMAGE_URL = (() => {
+  const configured = site.seo?.indexHtml?.ogImagePath
+  if (typeof configured !== 'string' || !configured.trim()) return ''
+  const path = configured.trim()
+  return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`
+})()
 
 /**
  * Origine de la page **dans la langue active** : `https://…` ou `https://…/en`.

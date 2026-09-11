@@ -68,6 +68,7 @@
                 <WatchCard
                   v-bind="WATCH_CARD_CATALOG_PROPS"
                   :watch="watch"
+                  :clickable="!preview"
                   :show-new-badge="isNouvelle(watch.id)"
                   :image-loading="i < 2 ? 'eager' : 'lazy'"
                   :image-fetch-priority="i === 0 ? 'high' : 'auto'"
@@ -84,7 +85,7 @@
 
 <script setup>
 import { t } from '@/i18n'
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { computed, ref, onMounted, onUnmounted, nextTick, watch as vueWatch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { loadNouvellesWatches } from '@/services/nouvellesWatchesService'
@@ -97,11 +98,43 @@ import { navigateToWatch } from '@/utils/watchSlug.js'
 const AUTO_SCROLL_DELAY_MS = 5000
 const SCROLL_SETTLE_DEBOUNCE_MS = 150
 
+const props = defineProps({
+  /**
+   * Montres imposées de l'extérieur — l'aperçu de l'écran d'administration
+   * passe son brouillon ici. `null` (défaut) : la section charge la sélection
+   * publiée elle-même, comme sur l'accueil.
+   */
+  watches: {
+    type: Array,
+    default: null,
+  },
+  /**
+   * Aperçu : rendu identique à l'accueil, mais les cartes ne mènent nulle part
+   * et le carrousel ne défile pas tout seul sous les yeux de l'administrateur.
+   */
+  preview: {
+    type: Boolean,
+    default: false,
+  },
+})
+
 const router = useRouter()
-const { isNouvelle } = useNouvellesWatchIds()
+/**
+ * Sélection reçue : les montres affichées SONT les nouveautés, comme sur
+ * l'accueil où le carrousel et le jeu d'ids viennent du même chargement. Le
+ * service n'est alors pas interrogé — il rendrait la version publiée, pas le
+ * brouillon en cours d'édition.
+ */
+const isControlled = computed(() => Array.isArray(props.watches))
+// Le mode est figé au montage : interroger le service dans l'aperçu coûterait
+// une requête pour un jeu d'ids que l'on connaît déjà.
+const { isNouvelle } = Array.isArray(props.watches)
+  ? { isNouvelle: () => true }
+  : useNouvellesWatchIds()
 const nouvelles = getSiteConfig().home.nouvelles
-const latestWatches = ref([])
-const isLoading = ref(true)
+const loadedWatches = ref([])
+const latestWatches = computed(() => (isControlled.value ? props.watches : loadedWatches.value))
+const isLoading = ref(!isControlled.value)
 const sectionRef = ref(null)
 const carouselContainer = ref(null)
 const carouselContent = ref(null)
@@ -131,6 +164,7 @@ const clearScrollSettleTimer = () => {
 }
 
 const canAutoScroll = () => {
+  if (props.preview) return false
   if (!autoScrollEnabled.value || isLoading.value || !isSectionFullyVisible.value) {
     return false
   }
@@ -295,14 +329,16 @@ const onResize = () => {
 
 onMounted(async () => {
   try {
-    isLoading.value = true
-    latestWatches.value = await loadNouvellesWatches()
+    if (!isControlled.value) {
+      isLoading.value = true
+      loadedWatches.value = await loadNouvellesWatches()
+    }
     await nextTick()
     updateArrowVisibility()
     window.addEventListener('resize', onResize)
   } catch (error) {
     console.error('Erreur lors du chargement des nouvelles montres:', error)
-    latestWatches.value = []
+    loadedWatches.value = []
   } finally {
     isLoading.value = false
     await nextTick()
@@ -311,6 +347,13 @@ onMounted(async () => {
     setupScrollEndListener()
     onScrollSettled()
   }
+})
+
+// L'aperçu admin remplace sa sélection à chaud : les flèches doivent suivre la
+// nouvelle largeur de piste, sinon elles restent celles de la liste précédente.
+vueWatch(latestWatches, async () => {
+  await nextTick()
+  updateArrowVisibility()
 })
 
 onUnmounted(() => {

@@ -48,6 +48,7 @@
               v-model="activeIndex"
               :images="images"
               :show-navigation="images.length > 1"
+              mouse-drag
               :slide-alt-fn="(image, index) => `${watch.name} - ${index + 1}`"
             >
               <template #slide="{ image, index }">

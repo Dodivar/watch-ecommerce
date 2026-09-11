@@ -30,17 +30,23 @@ Ce dossier **n’est pas** un site buildable : il sert de référence pour crée
 7. **Backend**  
    Si le front parle au serveur Express, renseigner `backend.publicApiUrl` dans `site.config.js` (prod : `https://watch-ecommerce-mp9l.onrender.com`) et `BACKEND_CORS_ORIGINS` côté Render avec les domaines du nouveau client.
 
-8. **Avis Google** (facultatif — uniquement si le client possède une fiche Google Business)  
+8. **Paiements et remboursements** (si `features.purchase`)  
+   - Appliquer les migrations Supabase du client dans l'ordre ([supabase/migrations/README.md](../../supabase/migrations/README.md)), dont `20260824120000_order_returns.sql` et `20260911120000_order_refunds.sql` : sans elles, le panneau retour ne charge pas et le remboursement échoue à l'enregistrement.
+   - Créer le webhook Stripe vers `/api/stripe/webhook/<SITE_ID>` et y cocher les **six** événements listés dans [backend/README.md](../../backend/README.md#-ajouter-un-nouveau-client) : trois pour l'encaissement, quatre pour les remboursements (`charge.refunded`, `refund.created`, `refund.updated`, `charge.refund.updated`). Sans ces derniers, un remboursement fait dans Stripe n'existe pas pour l'application — le chiffre d'affaires et la TVA restent surévalués.
+   - Vérifier après le premier paiement de test : rembourser 1 € depuis la fiche commande de l'admin, puis confirmer que la ligne apparaît dans le panneau retour et que `GET /api/health/payments` reste vert.
+   - Le client n'a **pas** besoin d'ouvrir le dashboard Stripe au quotidien : remboursements totaux ou partiels se déclenchent depuis `/admin/orders/<id>`. Le dashboard ne reste nécessaire que pour les litiges (chargebacks) et les virements.
+
+9. **Avis Google** (facultatif — uniquement si le client possède une fiche Google Business)  
    Ajouter le bloc au manifest, puis déclarer le secret `SITE_<UPPER_SITE_ID>__GOOGLE_PLACES_API_KEY` côté Render et l'id `avisGoogle` dans `home.sections`. Tant que `placeId` est vide, la section reste masquée. Procédure complète : [documentation/google-reviews/README.md](../../documentation/google-reviews/README.md).
 
    ```js
    googleReviews: { enabled: true, placeId: 'ChIJ…', maxReviews: 5 },
    ```
 
-9. **Catalogue (migration PrestaShop)**  
+10. **Catalogue (migration PrestaShop)**  
    Si le client vient de PrestaShop : import réalisé par l’équipe technique (pas d’accès admin client). Préparer `prestashop-import.mapping.json`, exporter le CSV produits (+ CSV images), appliquer la migration SQL documentée dans [`scripts/prestashop-import/README.md`](../../scripts/prestashop-import/README.md), puis lancer `npm run db:import-prestashop` (aperçu) avant `npm run db:import-prestashop:apply`.
 
-10. **Validation**  
+11. **Validation**  
    `npm run dev` avec `SITE_ID=<votre-site-id>` puis `SITE_ID=<votre-site-id> npm run build`.
 
 ## Fichiers exemple

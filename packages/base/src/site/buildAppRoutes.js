@@ -30,6 +30,7 @@ import AdminWatchPromotionForm from '@/components/admin/AdminWatchPromotionForm.
 import AdminWatchPromotionReview from '@/components/admin/AdminWatchPromotionReview.vue'
 import AdminPromotedWatchesList from '@/components/admin/AdminPromotedWatchesList.vue'
 import AdminHomeFeatured from '@/components/admin/AdminHomeFeatured.vue'
+import AdminHomeVitrine from '@/components/admin/AdminHomeVitrine.vue'
 import AdminHomeCollection from '@/components/admin/AdminHomeCollection.vue'
 import AdminHomeCarousel from '@/components/admin/AdminHomeCarousel.vue'
 import AdminUsersList from '@/components/admin/AdminUsersList.vue'
@@ -117,6 +118,7 @@ const COMPONENTS_BY_PATH = {
   '/admin/watch-promotions/:id/review': AdminWatchPromotionReview,
   '/admin/home-featured': AdminHomeFeatured,
   '/admin/home-collection': AdminHomeCollection,
+  '/admin/home-vitrine': AdminHomeVitrine,
   '/admin/home-carousel': AdminHomeCarousel,
   '/admin/users': AdminUsersList,
   '/admin/newsletter': AdminNewsletterCampaigns,

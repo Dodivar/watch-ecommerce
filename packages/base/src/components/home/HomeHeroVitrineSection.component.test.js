@@ -8,14 +8,14 @@ import { RouterLinkStub } from '@vue/test-utils'
 import HomeHeroVitrineSection from './HomeHeroVitrineSection.vue'
 
 const getSiteConfigMock = vi.hoisted(() => vi.fn())
-const getLatestAvailableWatchesMock = vi.hoisted(() => vi.fn())
+const loadVitrineWatchMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@/site/getSiteConfig.js', () => ({
   getSiteConfig: getSiteConfigMock,
 }))
 
-vi.mock('@/services/watchService.js', () => ({
-  getLatestAvailableWatches: getLatestAvailableWatchesMock,
+vi.mock('@/services/homeVitrineService.js', () => ({
+  loadVitrineWatch: loadVitrineWatchMock,
 }))
 
 vi.mock('@/utils/watchImageUrl.js', () => ({
@@ -54,14 +54,14 @@ function mountSection() {
 }
 
 describe('HomeHeroVitrineSection', () => {
-  it('expose la première montre en vente et pointe vers sa fiche', async () => {
+  it('expose la montre résolue par le service et pointe vers sa fiche', async () => {
     getSiteConfigMock.mockReturnValue(siteConfig)
-    getLatestAvailableWatchesMock.mockResolvedValue([availableWatch])
+    loadVitrineWatchMock.mockResolvedValue(availableWatch)
 
     const wrapper = mountSection()
     await flushPromises()
 
-    expect(getLatestAvailableWatchesMock).toHaveBeenCalledWith(1)
+    expect(loadVitrineWatchMock).toHaveBeenCalled()
 
     const image = wrapper.get('img')
     expect(image.attributes('src')).toBe('https://cdn.test/rolex-datejust.jpg')
@@ -75,7 +75,7 @@ describe('HomeHeroVitrineSection', () => {
 
   it('garde un hero lisible quand le catalogue ne répond pas', async () => {
     getSiteConfigMock.mockReturnValue(siteConfig)
-    getLatestAvailableWatchesMock.mockRejectedValue(new Error('réseau'))
+    loadVitrineWatchMock.mockRejectedValue(new Error('réseau'))
 
     const wrapper = mountSection()
     await flushPromises()
@@ -87,7 +87,7 @@ describe('HomeHeroVitrineSection', () => {
 
   it('masque le panneau quand la montre n’a pas de photo', async () => {
     getSiteConfigMock.mockReturnValue(siteConfig)
-    getLatestAvailableWatchesMock.mockResolvedValue([{ ...availableWatch, images: [] }])
+    loadVitrineWatchMock.mockResolvedValue({ ...availableWatch, images: [] })
 
     const wrapper = mountSection()
     await flushPromises()

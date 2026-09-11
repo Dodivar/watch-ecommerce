@@ -23,7 +23,7 @@ function makeMm() {
     currentWatch: makeWatch('a', 'Explorer'),
     upcomingWatches: [makeWatch('b', 'Datejust'), makeWatch('c', 'Submariner')],
     seenInBudget: 0,
-    totalInBudget: 3,
+    roundTotal: 3,
     session: { liked: [] },
     like: vi.fn(),
     pass: vi.fn(),
@@ -48,7 +48,7 @@ function makeConsumingMm() {
       return remaining().slice(1, 3)
     },
     seenInBudget: 0,
-    totalInBudget: all.length,
+    roundTotal: all.length,
     session: { liked: [] },
     like: (id) => seen.push(id),
     pass: (id) => seen.push(id),

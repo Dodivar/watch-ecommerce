@@ -24,9 +24,13 @@
       <li v-for="entry in entries" :key="entry.id" class="flex flex-col">
         <!-- Montre encore au catalogue -->
         <template v-if="entry.watch">
+          <!-- `min-h-0` : la vignette est un élément flex dans une colonne, sa hauteur minimale
+               automatique vaut donc la hauteur de son contenu — la photo à ses proportions
+               d'origine plus le bandeau — et l'emportait sur `aspect-[4/5]`. Les portraits
+               débordaient alors la maille et décalaient toute la rangée. -->
           <button
             type="button"
-            class="block aspect-[4/5] w-full text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            class="block aspect-[4/5] w-full min-h-0 text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             :aria-label="
               t('matchmaking.shortlist.detailsLabel', {
                 name: entry.watch.model || entry.watch.name,
@@ -78,7 +82,7 @@
         <!-- Coup de cœur disparu du catalogue -->
         <template v-else>
           <div
-            class="flex aspect-[4/5] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white/60 p-3 text-center sm:p-6"
+            class="flex aspect-[4/5] w-full min-h-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-gray-300 bg-white/60 p-3 text-center sm:p-6"
           >
             <HeartCrack class="h-8 w-8 text-gray-400" :stroke-width="1.5" />
             <p class="mt-3 text-sm font-semibold text-gray-700">
@@ -95,7 +99,9 @@
               {{ t('matchmaking.cta.sourcing.button') }}
             </RouterLink>
           </div>
-          <div class="mt-3 flex justify-end">
+          <!-- Même gouttière que sous une vignette disponible : les deux rangées d'actions
+               doivent tomber à la même hauteur d'une colonne à l'autre. -->
+          <div class="mt-2 flex justify-end sm:mt-3">
             <button
               type="button"
               class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 hover:border-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -119,6 +125,16 @@
       >
         {{ t('matchmaking.shortlist.resume') }}
         <span class="opacity-80">({{ mm.deck.length }})</span>
+      </button>
+      <!-- Manche épuisée, mais le catalogue en garde : sans ce relais, la shortlist serait un
+           cul-de-sac pour qui y entre juste après la dernière carte. -->
+      <button
+        v-else-if="nextRoundSize > 0"
+        type="button"
+        class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold uppercase tracking-wide text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        @click="mm.showMoreWatches()"
+      >
+        {{ t('matchmaking.end.showMore', { count: nextRoundSize }) }}
       </button>
       <button
         type="button"
@@ -162,4 +178,7 @@ const emit = defineEmits(['open-details'])
 const features = getSiteConfig().features
 
 const entries = computed(() => props.mm.likedEntries)
+
+/** Ce que la manche suivante montrerait vraiment ; `0` quand le catalogue est épuisé. */
+const nextRoundSize = computed(() => props.mm.nextRoundSize)
 </script>
