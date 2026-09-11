@@ -77,7 +77,12 @@ dossier de travail hors dépôt, remplace, puis envoie (PDF ou lien) :
 | `<NOM-BOUTIQUE>` | le nom commercial | `brand.displayName` |
 | `<ADRESSE-DU-SITE>` | le domaine final, ex. `www.exemple.fr` | `urls.production` |
 | `<TON-EMAIL>` | notre adresse de contact technique | — |
-| `<LIEN-SECURISE>` | le lien de dépôt à usage unique | Bitwarden Send / 1Password |
+
+Le canal sécurisé, lui, ne demande aucune préparation de notre côté : c'est le **client** qui
+crée le lien à usage unique sur [onetimesecret.com/fr](https://onetimesecret.com/fr/) et nous
+l'envoie par e-mail, la phrase de passe suivant par SMS ou par téléphone. Rien à ouvrir ni à
+provisionner à l'avance — il faut seulement être joignable sur les deux canaux le jour de
+l'envoi, et ouvrir le lien sans tarder : il expire, et la première consultation le détruit.
 
 L'identifiant de boutique doit être **figé avant** l'envoi : il est dans l'URL du webhook,
 et le changer après coup oblige le client à refaire l'étape.
@@ -90,7 +95,7 @@ et le changer après coup oblige le client à refaire l'étape.
 | --- | --- | --- |
 | [`client/01-guide-stripe.md`](client/01-guide-stripe.md) | création, activation, moyens de paiement, webhook, clé restreinte | dès la signature |
 | [`client/02-informations-a-fournir.md`](client/02-informations-a-fournir.md) | identité légale, contact, livraison, domaine, contenus — ce qu'on demande et **pourquoi** | dès la signature |
-| [`client/03-fiche-de-transmission.md`](client/03-fiche-de-transmission.md) | le formulaire de retour + le canal sécurisé | avec le guide Stripe |
+| [`client/03-fiche-de-transmission.md`](client/03-fiche-de-transmission.md) | le formulaire de retour + l'envoi par lien à usage unique (One Time Secret) | avec le guide Stripe |
 | [`client/04-fiche-de-renseignements.html`](client/04-fiche-de-renseignements.html) | **le formulaire à remplir et à nous retourner** : les mêmes rubriques que le 02, en champs de saisie | avec le 02 |
 | [`client/04-fiche-de-renseignements.pdf`](client/04-fiche-de-renseignements.pdf) | la même fiche à imprimer, pour un client qui préfère le papier | sur demande |
 | [`client/assets/`](client/assets/) | les schémas du guide Stripe (SVG) | — |

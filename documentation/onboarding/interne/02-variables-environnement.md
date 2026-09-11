@@ -162,9 +162,16 @@ dans le manifest. Les deux conditions, pas l'une ou l'autre.
 
 ## Hygiène des secrets
 
-- **Réception** : uniquement par lien à usage unique et expiration courte (Bitwarden Send,
-  1Password). Une clé arrivée par e-mail ou messagerie est compromise : faire révoquer et
-  recréer, quelle que soit la confiance dans l'interlocuteur.
+- **Réception** : uniquement par lien à usage unique et expiration courte. Le canal retenu
+  est [One Time Secret](https://onetimesecret.com/fr/) — gratuit, sans compte, en français,
+  secret détruit à la première lecture : c'est ce que décrit
+  [`client/03-fiche-de-transmission.md`](../client/03-fiche-de-transmission.md). Le lien
+  arrive par e-mail, **la phrase de passe par un autre canal** (SMS, téléphone) ; les deux
+  dans le même message et la séparation ne vaut plus rien. L'ouvrir une seule fois, au
+  moment de renseigner les variables, et ne jamais le transférer. Un lien annoncé déjà
+  consulté alors que le client ne l'a pas ouvert vaut compromission. Une clé arrivée en
+  clair par e-mail ou messagerie est compromise : faire révoquer et recréer, quelle que
+  soit la confiance dans l'interlocuteur.
 - **Stockage** : Render et Vercel, rien d'autre. Jamais dans le dépôt, jamais dans un
   fichier local durable, jamais dans un ticket. `*.md` est gitignoré à la racine mais
   **pas sous `documentation/`** (`.gitignore:59`) : ne jamais coller une valeur réelle

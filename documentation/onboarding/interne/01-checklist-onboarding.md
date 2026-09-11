@@ -18,7 +18,8 @@ caractère non alphanumérique → `_`.
       et l'enregistrement Apple Pay.
 - [ ] Préparer les documents client : copier `documentation/onboarding/client/*` hors
       dépôt, remplacer `<IDENTIFIANT-BOUTIQUE>`, `<NOM-BOUTIQUE>`, `<ADRESSE-DU-SITE>`,
-      `<TON-EMAIL>`, `<LIEN-SECURISE>` (voir le tableau du [README](../README.md)).
+      `<TON-EMAIL>` (voir le tableau du [README](../README.md)). Aucun lien de dépôt à
+      préparer : le client crée lui-même son lien à usage unique sur onetimesecret.com/fr.
 - [ ] Envoyer `01-guide-stripe.md`, `02-informations-a-fournir.md`,
       `03-fiche-de-transmission.md` et `04-fiche-de-renseignements.html` (ou son PDF).
 - [ ] **Emporter `client/assets/` avec le guide Stripe.** Ses cinq schémas y sont liés en
@@ -57,10 +58,19 @@ caractère non alphanumérique → `_`.
 
 ## Phase 3 — Réception des valeurs Stripe
 
-- [ ] Les trois valeurs sont arrivées **par le canal sécurisé**, pas par e-mail. Si elles
-      arrivent quand même par e-mail : demander au client de **révoquer et recréer** la clé
-      restreinte, puis supprimer le message. Une clé passée par une boîte mail est
-      compromise, indépendamment de la confiance qu'on a dans le client.
+- [ ] Les trois valeurs sont arrivées **par lien One Time Secret**, la phrase de passe par
+      un autre canal (SMS, téléphone). Si les valeurs arrivent en clair dans un e-mail — ou
+      si la phrase de passe accompagne le lien dans le même message : demander au client de
+      **révoquer et recréer** la clé restreinte, puis supprimer le message. Une clé passée
+      par une boîte mail est compromise, indépendamment de la confiance qu'on a dans le
+      client.
+- [ ] **Ouvrir le lien une seule fois, au moment de renseigner Render et Vercel**, et coller
+      les valeurs directement dans les variables : la page est détruite à la lecture, il n'y
+      a pas de seconde ouverture. Ne jamais transférer le lien à quelqu'un d'autre — la
+      première personne qui l'ouvre le consomme pour tout le monde.
+- [ ] Si le lien s'annonce **déjà consulté ou expiré** alors que le client ne l'a pas ouvert :
+      traiter les valeurs comme lues par un tiers. Révocation, nouvelle clé restreinte,
+      nouvel envoi.
 - [ ] `rk_live_…` et non `sk_live_…`. Si c'est un `sk_`, ne pas l'utiliser : renvoyer le
       client à l'étape 5.2 du guide.
 - [ ] Le webhook client pointe sur `/api/stripe/webhook/<site-id>` — vérifier le suffixe

@@ -152,7 +152,8 @@
       <p><b>🔐 Aucun code Stripe dans ce document.</b> Ni clé publique, ni clé restreinte
         (<code>rk_live_…</code>), ni secret de webhook (<code>whsec_…</code>), ni mot de
         passe. Cette fiche circule par e-mail ; ces valeurs, non.</p>
-      <p>Elles passent par le lien sécurisé de la
+      <p>Elles passent par un lien à usage unique créé sur
+        <a href="https://onetimesecret.com/fr/">onetimesecret.com/fr</a>, comme l'explique la
         <a href="03-fiche-de-transmission.md">fiche de transmission</a>, une fois le
         <a href="01-guide-stripe.md">guide Stripe</a> terminé.</p>
     </div>
@@ -311,7 +312,7 @@ const SCHEMA = [
    intro:'Ces six points conditionnent l’ouverture. Le reste — catalogue complet, mesure d’audience, contenus éditoriaux — peut être complété après.',
    items:['Informations légales complètes (section 2)',
      'CGV et politique de retour (section 7)',
-     'Codes Stripe envoyés par le lien sécurisé — pas dans cette fiche',
+     'Codes Stripe envoyés par lien à usage unique (One Time Secret) — pas dans cette fiche',
      'Adresse e-mail d’expédition indiquée (section 4)',
      'Nom de domaine identifié, et la personne qui gère le DNS (section 5)',
      'Tarifs de livraison renseignés (section 6)']},
@@ -526,7 +527,7 @@ function toMarkdown() {
   });
   out.push('---', '',
     '> Aucun code Stripe (clé publique, clé restreinte, secret de webhook) ne doit figurer',
-    '> dans ce fichier : ils passent par le lien sécurisé de la fiche de transmission.');
+    '> dans ce fichier : ils passent par le lien à usage unique de la fiche de transmission.');
   return out.join('\n');
 }
 

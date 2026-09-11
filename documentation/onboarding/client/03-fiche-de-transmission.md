@@ -6,21 +6,50 @@
 
 ## Comment nous les envoyer
 
-⚠️ **Pas par e-mail, SMS, WhatsApp ni message instantané.** Ces canaux conservent une copie
-durable de vos codes, souvent sauvegardée ailleurs et lisible par d'autres que vous.
+⚠️ **Vos codes ne doivent circuler ni par e-mail, ni par SMS, WhatsApp ou message
+instantané.** Ces canaux en conservent une copie durable, souvent sauvegardée ailleurs et
+lisible par d'autres que vous. Le **lien** ci-dessous, lui, peut passer par e-mail sans
+danger : il ne contient rien par lui-même, il ne s'ouvre qu'une fois, et la phrase de passe
+qui le déverrouille voyage par un autre chemin.
 
-**Utilisez ce lien sécurisé, à usage unique :**
+**Passez par One Time Secret : [onetimesecret.com/fr](https://onetimesecret.com/fr/)**
+
+Le service est gratuit, en français, et ne demande aucune inscription. Il transforme un
+texte en un **lien qui ne s'ouvre qu'une fois** : à la première consultation, le message
+s'affiche, puis il est détruit sur le serveur. Le lien qui reste ensuite dans votre boîte
+d'envoi ne montre plus rien.
+
+1. Ouvrez [onetimesecret.com/fr](https://onetimesecret.com/fr/).
+2. Collez les trois valeurs dans le grand cadre de saisie, sur le modèle ci-dessous.
+3. Renseignez une **phrase de passe** (le champ *passphrase*) : un mot simple suffit, mais
+   il ne doit apparaître ni dans le message ni dans l'e-mail qui portera le lien.
+4. Choisissez une **durée de vie courte** — 7 jours au plus, le temps qu'on ouvre le lien.
+5. Validez. Le site vous rend un lien du type `https://onetimesecret.com/secret/…`.
+   **Ne cliquez pas dessus pour vérifier** : vous consommeriez l'unique ouverture et nous
+   recevrions une page vide.
+6. Envoyez-nous **le lien** par e-mail à `<TON-EMAIL>`. Seul, il ne donne rien.
+7. Donnez-nous la **phrase de passe par un autre canal** : SMS ou téléphone. C'est cette
+   séparation en deux canaux qui fait la sécurité de l'envoi — la phrase de passe glissée
+   dans le même e-mail annulerait tout.
+
+À coller dans le cadre :
 
 ```
-<LIEN-SECURISE>
+Clé publique   : pk_live_…
+Clé restreinte : rk_live_…
+Secret webhook : whsec_…
 ```
 
-Collez-y les trois valeurs, envoyez, et prévenez-nous d'un simple message « c'est
-envoyé ». Le lien expire après consultation : si vous devez recommencer, demandez-nous
-en un nouveau, c'est immédiat.
+Prévenez-nous ensuite d'un simple message « c'est envoyé ». Si le délai expire avant qu'on
+ait ouvert le lien, refaites l'opération : c'est gratuit et immédiat, vos codes n'ont pas
+besoin d'être changés pour autant.
 
-*Vous n'arrivez pas à utiliser le lien ?* Appelez-nous et dictez les valeurs, ou passez par
-un gestionnaire de mots de passe si vous en utilisez un (Bitwarden, 1Password, Dashlane
+⚠️ En revanche, si nous vous disons que **le lien avait déjà été consulté** alors que vous ne
+l'avez jamais ouvert vous-même, considérez les valeurs comme lues par un tiers : révoquez la
+clé restreinte, recréez-en une (étape 5.2 du guide) et recommencez l'envoi.
+
+*Vous n'arrivez pas à utiliser le service ?* Appelez-nous et dictez les valeurs, ou passez
+par un gestionnaire de mots de passe si vous en utilisez un (Bitwarden, 1Password, Dashlane
 proposent tous un partage à expiration). Ne cherchez pas de solution de contournement par
 e-mail : nous préférons perdre dix minutes au téléphone.
 

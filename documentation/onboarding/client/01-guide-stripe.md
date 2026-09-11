@@ -264,12 +264,15 @@ collaboration s'arrête.
 
 ## Étape 6 — Nous transmettre les trois valeurs
 
-Reportez-vous à la **[fiche de transmission](03-fiche-de-transmission.md)**. Elle indique
-le canal sécurisé à utiliser.
+Reportez-vous à la **[fiche de transmission](03-fiche-de-transmission.md)**. Elle vous fait
+passer par [One Time Secret](https://onetimesecret.com/fr/) : vous y collez les trois
+valeurs, le site vous rend un lien **qui ne s'ouvre qu'une fois**, et vous nous envoyez ce
+lien par e-mail — la phrase de passe qui le déverrouille arrivant, elle, par SMS ou par
+téléphone. Ni inscription ni logiciel à installer.
 
-⚠️ **N'envoyez jamais ces valeurs par e-mail, SMS, WhatsApp ou message instantané.** Ces
-canaux gardent une copie durable, souvent sauvegardée et consultable par d'autres
-personnes que vous.
+⚠️ **N'envoyez jamais les valeurs elles-mêmes par e-mail, SMS, WhatsApp ou message
+instantané** — seul le lien One Time Secret y circule. Ces canaux gardent une copie
+durable, souvent sauvegardée et consultable par d'autres personnes que vous.
 
 ---
 
