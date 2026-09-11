@@ -27,7 +27,7 @@ npm run test:e2e:report  # rouvrir le dernier rapport HTML
 | --- | --- |
 | `packages/base/**/*.test.js` | Test **à côté du module qu'il couvre** — c'est la convention par défaut (l'essentiel est sous `packages/base/src/site/`) |
 | `tests/base/` | Tests transverses du socle (pricing, pagination, campagnes promo) |
-| `tests/backend/` | Routes et logique Express : commandes, paiements, e-mails, newsletter, avis, registry multi-tenant |
+| `tests/backend/` | Routes et logique Express : commandes, paiements, remboursements (`refunds`, `refundWebhook`, `orderReturns`), e-mails, newsletter, avis, registry multi-tenant |
 | `tests/api/` | Fonctions serverless Vercel (`sitemap`) |
 | `tests/contracts/` | **Contrats sur tous les `site.config.js`** — voir ci-dessous |
 | `tests/scripts/` | Import PrestaShop |

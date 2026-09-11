@@ -23,6 +23,11 @@ Un export qui ne s'importe pas est un export inutile : le cabinet ressaisit à l
 
 - Modèle de commande complet : `orders`, `order_lines`, `order_shipping`, `order_discounts`
   (montants en centimes, `paid_at`, `stripe_payment_intent_id`, `site_id`).
+- **Remboursements enregistrés** : `order_refunds` (une ligne par remboursement Stripe, alimentée
+  par le webhook et par le bouton du panel — `backend/orders/refunds.js`), plus l'invariant
+  « tout remboursement Stripe a sa ligne en base » sur `GET /api/health/payments`. Le moteur
+  d'écritures a donc déjà sa source d'avoirs : il lui manque la numérotation et la ventilation
+  HT/TVA, pas la donnée.
 - Transition vers `paid` **atomique et idempotente** via la RPC `fulfill_order_payment`
   (`backend/orders/fulfillment.js:7`), appelée depuis `handlePaymentIntentSucceeded`
   (`backend/routes/orders.js:788`). C'est le point d'ancrage naturel de la numérotation de facture.
@@ -41,7 +46,7 @@ Un export qui ne s'importe pas est un export inutile : le cabinet ressaisit à l
 | 1 | **Aucun numéro de facture** | 🔴 bloquant | Les commandes sont identifiées par un UUID. L'art. 242 nonies A ann. II CGI impose une numérotation **séquentielle, chronologique et sans rupture**. Sans elle, ni facture valable, ni export importable (le champ `PieceRef` est obligatoire partout). |
 | 2 | **TVA non figée** | 🔴 bloquant | La TVA n'est pas stockée : elle est **recalculée à l'affichage** à partir de `checkout.vatRate` du manifest (`backend/orders/receiptData.js:46`, `receiptBranding.js:102`). Changer le taux ou le manifest réécrit rétroactivement des factures déjà émises et déjà déclarées. La ventilation HT / TVA doit être gelée sur la commande au moment du paiement. |
 | 3 | **TVA sur la marge non gérée** | 🔴 pour `sauvage-watches` | `watchCatalog.mode: 'resale'` = montres d'occasion. Si elles sont achetées à des particuliers, le régime applicable est celui de la marge (art. 297 A CGI) : la facture ne doit **pas** faire apparaître de TVA et doit porter la mention du régime. Le socle facture 20 % à tout le monde — les écritures produites seraient fausses. |
-| 4 | **Avoirs / remboursements invisibles** | 🟠 fort | Aucune trace en base d'un remboursement (aucune occurrence de `refund` dans le code). Un remboursement fait depuis le dashboard Stripe n'existe pas pour l'application : l'export surévaluerait le chiffre d'affaires et la TVA collectée. |
+| 4 | **Avoirs : montants OK, pièces manquantes** | 🟡 réduit | ~~Aucune trace en base d'un remboursement.~~ **Levé pour la partie montants** (migration `20260911120000_order_refunds.sql`) : la table `order_refunds` enregistre chaque remboursement, y compris ceux faits hors application, via le webhook `charge.refunded` / `refund.*` ; l'invariant `GET /api/health/payments` alerte sur tout remboursement Stripe sans ligne en base. Reste à faire pour la conformité : la **numérotation d'avoir** (série `AV`) et la ventilation HT/TVA de l'avoir, qui dépendent du verrou 1. |
 | 5 | **Frais et virements Stripe absents** | 🟠 fort | Ni `stripe_charge_id`, ni `balance_transaction`, ni commission. Le comptable ne peut pas rapprocher le relevé bancaire (un virement Stripe = N commandes − commissions) ; c'est le premier point de friction en pratique. |
 | 6 | **Territorialité TVA ignorée** | 🟠 moyen | Les méthodes de livraison couvrent FR, MC, BE, CH, LU (`sites/sauvage-watches/site.config.js:224`). La Suisse est un export (hors TVA), BE/LU relèvent du guichet unique OSS au-delà de 10 000 €. Un taux unique de 20 % pour tous produit des comptes de vente et de TVA erronés. |
 
@@ -204,18 +209,15 @@ appelant, donc un rejeu de webhook ne consomme pas de numéro.
 ### 4.3 Remboursements (lot 4) et journal des exports (lot 1)
 
 ```sql
-create table if not exists public.order_refunds (
-  id uuid primary key default gen_random_uuid(),
-  site_id text not null,
-  order_id uuid not null references public.orders (id),
-  credit_note_number text,
-  amount_cents integer not null,
-  net_cents integer, vat_cents integer, vat_rate numeric(5,2),
-  reason text,
-  stripe_refund_id text unique,
-  refunded_at timestamptz not null default now(),
-  created_at timestamptz not null default now()
-);
+-- `order_refunds` EXISTE DÉJÀ (migration 20260911120000_order_refunds.sql) :
+-- elle porte site_id, order_id, stripe_refund_id, amount_cents, currency,
+-- status, reason, failure_reason, source, initiated_by, refunded_at.
+-- Le lot 4 n'a plus qu'à lui ajouter les colonnes comptables :
+alter table public.order_refunds
+  add column if not exists credit_note_number text,
+  add column if not exists net_cents integer,
+  add column if not exists vat_cents integer,
+  add column if not exists vat_rate numeric(5,2);
 
 create table if not exists public.accounting_exports (
   id uuid primary key default gen_random_uuid(),
@@ -366,7 +368,7 @@ de téléchargement, historique des exports avec empreinte et état de verrouill
 | **1 — Socle export** | Moteur d'écritures, FEC, CSV générique, routes admin, page `/admin/comptabilite`, ZIP des pièces | **Export utilisable par n'importe quel cabinet** | ~3 j |
 | **2 — Profils éditeurs** | Profils Sage / EBP / Quadra + encodages + fichiers d'or | La case « Sage, EBP, Quadra » est cochée | ~2 j (après réception d'un fichier d'exemple) |
 | **3 — Journal de banque** | `stripe_charge_id` + balance transactions + commissions + virements | Rapprochement bancaire automatique | ~2 j |
-| **4 — Avoirs** | Webhook `charge.refunded`, `order_refunds`, numérotation `AV`, écritures d'avoir | CA et TVA justes | ~2 j |
+| **4 — Avoirs** | ~~Webhook `charge.refunded`, `order_refunds`~~ (faits), numérotation `AV`, ventilation HT/TVA de l'avoir, écritures d'avoir | CA et TVA justes | ~1 j |
 | **5 — Régimes de TVA** | TVA sur la marge (prix d'achat par montre, jamais exposé au front), export hors UE, OSS | Conformité `resale` + ventes UE/CH | ~2–3 j |
 
 Le lot 1 seul répond déjà à la promesse commerciale : le FEC est accepté partout. Le lot 2 est du

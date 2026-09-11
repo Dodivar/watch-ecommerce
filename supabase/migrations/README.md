@@ -775,7 +775,8 @@ rejetée par la contrainte : la demande n'apparaît pas dans la boîte de récep
 - `orders.return_status` — avancement du dossier (`none`, `requested`, `received`, `refunded`, `rejected`)
 - `orders.return_requested_at` — notification de la rétractation : point de départ des 14 jours de remboursement
 - `orders.refund_amount_cents`, `orders.refunded_at`, `orders.stripe_refund_id` — trace du
-  remboursement effectué à la main dans le dashboard Stripe
+  remboursement. Depuis `20260911120000_order_refunds.sql` (voir plus bas), ces trois colonnes
+  ne sont plus saisies à la main : elles forment un cache recalculé à partir de `order_refunds`
 - `orders.return_notes` — commentaire libre de l'admin
 - Index partiel pour les dossiers encore à traiter (badge dashboard, filtre `?retours=open`)
 
@@ -808,6 +809,79 @@ create index if not exists orders_open_returns_idx
   on public.orders (site_id, return_status)
   where return_status in ('requested', 'received');
 ```
+
+## Remboursements pilotés depuis l'admin
+
+`20260911120000_order_refunds.sql` — requis pour le bouton « Rembourser » du panneau retour,
+l'enregistrement des remboursements par le webhook Stripe et la demande de rétractation faite
+par le client depuis sa page de suivi. Prérequis : `20260525120000_admin_phase1.sql`
+(`is_admin_user()`) et `20260824120000_order_returns.sql` (colonnes retour de `orders`).
+
+Trois changements indissociables — appliquer le fichier entier, pas un morceau :
+
+1. **Table `order_refunds`** : un remboursement Stripe = une ligne (`stripe_refund_id` unique,
+   montant, statut, motif, origine, opérateur). Les colonnes `orders.refund_amount_cents` /
+   `refunded_at` / `stripe_refund_id` ne tenaient pas au-delà d'**un** remboursement : deux
+   remboursements partiels — le cas courant, on rembourse la montre mais pas le port — et le
+   modèle cassait. Elles deviennent un cache recalculé par le backend à chaque événement.
+2. **`orders.return_reason` et `orders.return_requested_by`** : motif et origine de la demande
+   de rétractation, pour distinguer un dossier ouvert par le client de celui saisi par l'admin.
+3. **Retrait du droit d'écriture du panel sur les colonnes de remboursement**
+   (`revoke update on orders from authenticated`, puis `grant update` sur les seules colonnes de
+   suivi). Sans ce point, le bouton « Rembourser » serait cosmétique : le montant resterait
+   falsifiable depuis le navigateur.
+
+Sans cette migration : `relation "public.order_refunds" does not exist` au chargement du
+panneau retour, et le remboursement échoue à l'enregistrement (le webhook renvoie 500, Stripe
+rejoue — l'argent est bien parti, mais la commande ne le sait pas).
+
+Après application, cocher les événements de remboursement dans le webhook Stripe du client
+(`charge.refunded`, `refund.created`, `refund.updated`, `charge.refund.updated`) — voir
+[backend/README.md](../../backend/README.md#-ajouter-un-nouveau-client).
+
+```sql
+create table if not exists public.order_refunds (
+  id uuid primary key default gen_random_uuid(),
+  site_id text not null,
+  order_id uuid not null references public.orders (id) on delete cascade,
+  stripe_refund_id text not null unique,
+  stripe_payment_intent_id text,
+  amount_cents integer not null check (amount_cents >= 0),
+  currency text not null default 'eur',
+  status text not null default 'pending'
+    check (status in ('pending', 'succeeded', 'failed', 'canceled', 'requires_action')),
+  reason text,
+  failure_reason text,
+  source text not null default 'unknown'
+    check (source in ('admin_panel', 'stripe_dashboard', 'dispute', 'unknown')),
+  initiated_by text,
+  metadata jsonb not null default '{}'::jsonb,
+  refunded_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.order_refunds enable row level security;
+
+-- Lecture par le panel ; aucune policy d'écriture : seul le backend (service
+-- role, qui contourne la RLS) écrit ces lignes.
+create policy "order_refunds_admin_read"
+  on public.order_refunds for select
+  using (public.is_admin_user());
+
+alter table public.orders
+  add column if not exists return_reason text,
+  add column if not exists return_requested_by text;
+
+revoke update on public.orders from authenticated;
+grant update (
+  fulfillment_status, delivered_at, return_status, return_requested_at,
+  return_reason, return_requested_by, return_notes, updated_at
+) on public.orders to authenticated;
+```
+
+Le fichier versionné contient en plus les index et les contraintes ; rollback du seul point
+sensible : `grant update on public.orders to authenticated;`.
 
 ## Catalogue admin — pagination serveur et réordonnancement
 

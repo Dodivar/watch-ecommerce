@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  canRefundOrder,
   computeRefundDeadline,
   computeWithdrawalWindow,
+  refundableCents,
   stripePaymentDashboardUrl,
+  summarizeRefunds,
   summarizeReturnStats,
   validateReturnUpdate,
 } from './orderReturns.js'
@@ -98,38 +101,90 @@ describe('validateReturnUpdate', () => {
     expect(validateReturnUpdate({ returnStatus: 'wat' }).ok).toBe(false)
   })
 
-  it('exige le montant remboursé sur un dossier remboursé', () => {
-    const result = validateReturnUpdate({ returnStatus: 'refunded', refundAmountCents: null })
+  it('refuse de déclarer « remboursée » une commande sans remboursement', () => {
+    const result = validateReturnUpdate({ returnStatus: 'refunded' }, { totalCents: 50000 })
     expect(result.ok).toBe(false)
-    expect(result.error).toMatch(/montant/i)
+    expect(result.error).toMatch(/bouton Rembourser/i)
   })
 
-  it('refuse un remboursement supérieur au total de la commande', () => {
+  it('accepte « remboursée » sur une commande qui porte déjà un remboursement', () => {
     const result = validateReturnUpdate(
-      { returnStatus: 'refunded', refundAmountCents: 60000 },
-      { totalCents: 50000 },
-    )
-    expect(result.ok).toBe(false)
-  })
-
-  it('refuse un identifiant de remboursement mal formé', () => {
-    const result = validateReturnUpdate({
-      returnStatus: 'received',
-      stripeRefundId: 'pi_3ABC123def',
-    })
-    expect(result.ok).toBe(false)
-  })
-
-  it('accepte un dossier remboursé complet', () => {
-    const result = validateReturnUpdate(
-      { returnStatus: 'refunded', refundAmountCents: 50000, stripeRefundId: 're_3ABC123def' },
-      { totalCents: 50000 },
+      { returnStatus: 'refunded' },
+      { totalCents: 50000, refundAmountCents: 50000 },
     )
     expect(result).toEqual({ ok: true })
   })
 
-  it('accepte un dossier ouvert sans remboursement encore saisi', () => {
+  it('accepte un dossier ouvert', () => {
     expect(validateReturnUpdate({ returnStatus: 'requested' }).ok).toBe(true)
+  })
+})
+
+describe('summarizeRefunds', () => {
+  it('sépare le remboursé de l’engagé encore en vol', () => {
+    const totals = summarizeRefunds([
+      { amountCents: 30000, status: 'succeeded' },
+      { amountCents: 10000, status: 'pending' },
+      { amountCents: 5000, status: 'failed' },
+    ])
+
+    expect(totals).toEqual({
+      refundedCents: 30000,
+      pendingCents: 10000,
+      engagedCents: 40000,
+      count: 1,
+    })
+  })
+
+  it('ne compte ni les échecs ni les annulations', () => {
+    const totals = summarizeRefunds([
+      { amountCents: 20000, status: 'failed' },
+      { amountCents: 20000, status: 'canceled' },
+    ])
+
+    expect(totals.refundedCents).toBe(0)
+    expect(totals.engagedCents).toBe(0)
+  })
+})
+
+describe('refundableCents', () => {
+  it('déduit les remboursements aboutis ET ceux en cours', () => {
+    const available = refundableCents({ totalCents: 100000 }, [
+      { amountCents: 30000, status: 'succeeded' },
+      { amountCents: 20000, status: 'pending' },
+    ])
+
+    expect(available).toBe(50000)
+  })
+
+  it('ne descend jamais sous zéro', () => {
+    expect(
+      refundableCents({ totalCents: 10000 }, [{ amountCents: 15000, status: 'succeeded' }]),
+    ).toBe(0)
+  })
+})
+
+describe('canRefundOrder', () => {
+  const paid = { status: 'paid', totalCents: 100000, stripePaymentIntentId: 'pi_3ABC123def' }
+
+  it('autorise le remboursement d’une commande payée non remboursée', () => {
+    expect(canRefundOrder(paid, [])).toEqual({ ok: true, availableCents: 100000 })
+  })
+
+  it('refuse une commande non payée', () => {
+    expect(canRefundOrder({ ...paid, status: 'pending_payment' }, []).ok).toBe(false)
+  })
+
+  it('renvoie vers Stripe quand aucun paiement n’est rattaché', () => {
+    const result = canRefundOrder({ ...paid, stripePaymentIntentId: null }, [])
+    expect(result.ok).toBe(false)
+    expect(result.reason).toMatch(/dashboard/i)
+  })
+
+  it('refuse une commande déjà intégralement remboursée', () => {
+    const result = canRefundOrder(paid, [{ amountCents: 100000, status: 'succeeded' }])
+    expect(result.ok).toBe(false)
+    expect(result.availableCents).toBe(0)
   })
 })
 

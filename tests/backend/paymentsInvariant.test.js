@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 const require = createRequire(import.meta.url)
 const {
   checkPaymentsWithoutOrder,
+  checkRefundsWithoutRecord,
   runPaymentsInvariant,
 } = require('../../backend/health/paymentsInvariant.js')
 
@@ -214,6 +215,185 @@ describe('checkPaymentsWithoutOrder', () => {
   })
 })
 
+
+describe('checkRefundsWithoutRecord', () => {
+  function refund(overrides = {}) {
+    return {
+      id: 're_1',
+      status: 'succeeded',
+      created: secondsAgo(30),
+      amount: 450000,
+      currency: 'eur',
+      payment_intent: 'pi_1',
+      ...overrides,
+    }
+  }
+
+  /**
+   * Supabase minimal à deux tables : `order_refunds` (ce qui est enregistré) et
+   * `orders` (ce à quoi un remboursement peut se rattacher).
+   */
+  function fakeRefundSupabase({ recorded = [], orders = [] }, spy = {}) {
+    return {
+      from(table) {
+        spy.tables = [...(spy.tables || []), table]
+        const builder = {
+          select: () => builder,
+          eq: (column, value) => {
+            spy.eq = { column, value }
+            return builder
+          },
+          in: (column, values) => {
+            spy.in = [...(spy.in || []), { table, column, values }]
+            return Promise.resolve({
+              data: table === 'order_refunds' ? recorded : orders,
+              error: null,
+            })
+          },
+        }
+        return builder
+      },
+    }
+  }
+
+  function run(refunds, db, options = {}) {
+    return checkRefundsWithoutRecord(SITE, {
+      now: NOW,
+      clients: {
+        stripe: { refunds: { list: async () => ({ data: refunds }) } },
+        supabase: fakeRefundSupabase(db),
+      },
+      ...options,
+    })
+  }
+
+  it('ne signale rien quand chaque remboursement a sa ligne en base', async () => {
+    const result = await run([refund()], { recorded: [{ stripe_refund_id: 're_1' }] })
+
+    expect(result.status).toBe('ok')
+    expect(result.matched).toBe(1)
+    expect(result.unrecorded).toEqual([])
+  })
+
+  it('alerte sur un remboursement Stripe absent de la base', async () => {
+    const result = await run([refund()], {
+      recorded: [],
+      orders: [{ id: 'order-1', stripe_payment_intent_id: 'pi_1' }],
+    })
+
+    expect(result.status).toBe('alert')
+    expect(result.unrecorded).toHaveLength(1)
+    expect(result.unrecorded[0]).toMatchObject({
+      refundId: 're_1',
+      orderId: 'order-1',
+      amount: 450000,
+      refundStatus: 'succeeded',
+    })
+  })
+
+  it('laisse le webhook arriver : les remboursements récents sont ignorés', async () => {
+    const result = await run([refund({ created: secondsAgo(1) })], { recorded: [] })
+
+    expect(result.status).toBe('ok')
+    expect(result.refunds).toBe(0)
+  })
+
+  it('ignore un remboursement échoué ou annulé, qui ne rend rien au client', async () => {
+    const result = await run([refund({ status: 'failed' }), refund({ id: 're_2', status: 'canceled' })], {
+      recorded: [],
+    })
+
+    expect(result.status).toBe('ok')
+    expect(result.refunds).toBe(0)
+  })
+
+  it('compte à part un remboursement sans commande de ce site', async () => {
+    const result = await run([refund()], { recorded: [], orders: [] })
+
+    expect(result.status).toBe('ok')
+    expect(result.unknown).toBe(1)
+    expect(result.unrecorded).toEqual([])
+  })
+
+  it('interroge la bonne fenêtre et cloisonne par site', async () => {
+    const spy = {}
+    const stripeSpy = {}
+    await checkRefundsWithoutRecord(SITE, {
+      now: NOW,
+      windowMinutes: 240,
+      clients: {
+        stripe: {
+          refunds: {
+            list: async (params) => {
+              stripeSpy.params = params
+              return { data: [refund()] }
+            },
+          },
+        },
+        supabase: fakeRefundSupabase({ recorded: [], orders: [] }, spy),
+      },
+    })
+
+    expect(stripeSpy.params.created.gte).toBe(secondsAgo(240))
+    expect(spy.eq).toEqual({ column: 'site_id', value: 'sauvage-watches' })
+    expect(spy.in[0]).toMatchObject({ table: 'order_refunds', values: ['re_1'] })
+  })
+
+  it('pagine tant que Stripe annonce has_more', async () => {
+    const calls = []
+    const pages = [
+      { data: [refund({ id: 're_new' })], has_more: true },
+      { data: [refund({ id: 're_old' })], has_more: false },
+    ]
+    const result = await checkRefundsWithoutRecord(SITE, {
+      now: NOW,
+      clients: {
+        stripe: {
+          refunds: {
+            list: async (params) => {
+              calls.push(params.starting_after || null)
+              return pages[calls.length - 1]
+            },
+          },
+        },
+        supabase: fakeRefundSupabase({
+          recorded: [],
+          orders: [{ id: 'order-1', stripe_payment_intent_id: 'pi_1' }],
+        }),
+      },
+    })
+
+    expect(calls).toEqual([null, 're_new'])
+    expect(result.unrecorded.map((r) => r.refundId)).toEqual(['re_new', 're_old'])
+  })
+
+  it('remonte down quand Supabase répond en erreur', async () => {
+    const supabase = {
+      from: () => ({
+        select: function () {
+          return this
+        },
+        eq: function () {
+          return this
+        },
+        in: async () => ({ data: null, error: { message: 'JWT expired' } }),
+      }),
+    }
+    const result = await checkRefundsWithoutRecord(SITE, {
+      now: NOW,
+      clients: { stripe: { refunds: { list: async () => ({ data: [refund()] }) } }, supabase },
+    })
+
+    expect(result.status).toBe('down')
+    expect(result.error).toContain('JWT expired')
+  })
+
+  it('rend not_configured quand les secrets du site manquent', async () => {
+    const result = await checkRefundsWithoutRecord({ id: 'demo-store', secrets: {} }, { now: NOW })
+    expect(result.status).toBe('not_configured')
+  })
+})
+
 describe('runPaymentsInvariant', () => {
   it('une alerte sur un site suffit à alerter globalement', async () => {
     const registry = {
@@ -227,5 +407,14 @@ describe('runPaymentsInvariant', () => {
     // Sans secrets, les deux sites sont not_configured : neutre.
     expect(payload.status).toBe('ok')
     expect(Object.keys(payload.sites)).toEqual(['demo-store', 'jackned'])
+  })
+
+  it('rapporte les deux invariants par site, argent entrant et sortant', async () => {
+    const registry = { byId: new Map(), list: () => [{ id: 'demo-store', secrets: {} }] }
+
+    const payload = await runPaymentsInvariant(registry, { now: NOW })
+
+    expect(payload.sites['demo-store'].status).toBe('not_configured')
+    expect(payload.sites['demo-store'].refunds.status).toBe('not_configured')
   })
 })

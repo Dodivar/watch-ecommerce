@@ -42,10 +42,17 @@ Interface back-office accessible après authentification Supabase.
   `recherche`, `repairRequest`), plus tout type ayant un historique sur la
   période — couper une feature ne doit pas effacer les demandes déjà reçues.
 - `AdminOrderReturnPanel.vue` : dossier retour d'une commande payée (délai de
-  rétractation de 14 jours, statut du retour, trace du remboursement). Aucun
-  remboursement n'est déclenché depuis l'admin : le panneau renvoie vers le
-  paiement dans le dashboard Stripe, où l'opération est faite à la main, puis
-  enregistre le montant et l'identifiant `re_…` obtenus.
+  rétractation de 14 jours, statut du retour, historique des remboursements).
+  **Le remboursement se déclenche ici** : le bouton appelle
+  `POST /api/admin/orders/:id/refund`, Stripe exécute, le webhook enregistre. Le
+  panneau n'écrit donc plus aucun montant — il affiche total payé, déjà
+  remboursé, en cours et reste à rembourser, lus dans `order_refunds`. Trois
+  garde-fous : bouton réservé au rôle `admin` (un modérateur instruit le dossier
+  sans le solder), confirmation explicite avant la sortie d'argent, montant borné
+  par le reste dû côté serveur. Le lien vers le dashboard Stripe ne réapparaît
+  qu'en secours — refus de l'API, ou commande sans PaymentIntent. Le bloc
+  « demande client » est en lecture seule : il vient de la page de suivi
+  (`OrderSuccess.vue`), où l'acheteur déclare lui-même sa rétractation.
 - `AdminLogin.vue`, `AdminShell.vue` + `AdminSidebar.vue` : enveloppe d’authentification et navigation.
   Le menu mélange liens de premier niveau et sections groupées (`type: 'group'`) : « Promotions »
   (codes promo checkout, campagnes de promotion, montres en promo) et « Carrousels ». Une section
