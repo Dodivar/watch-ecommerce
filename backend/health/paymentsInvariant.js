@@ -381,6 +381,19 @@ async function checkRefundsWithoutRecord(site, options = {}) {
     const result = await withTimeout(run(), options.timeoutMs || 10000, `refundsInvariant:${site.id}`)
     return { ...result, durationMs: Date.now() - startedAt }
   } catch (err) {
+    // La clé restreinte du client peut légitimement ne pas porter la permission
+    // « Refunds » (voir documentation/onboarding). Ce n'est pas une panne : le
+    // webhook, lui, n'a besoin d'aucune permission et continue d'enregistrer les
+    // remboursements. Laisser `down` ici allumerait la supervision en rouge en
+    // permanence sur un site parfaitement sain.
+    if (err?.type === 'StripePermissionError' || err?.statusCode === 403) {
+      return {
+        ...base,
+        status: 'not_configured',
+        missing: ['STRIPE_REFUNDS_PERMISSION'],
+        durationMs: Date.now() - startedAt,
+      }
+    }
     return {
       ...base,
       status: 'down',

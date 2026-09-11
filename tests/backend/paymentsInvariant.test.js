@@ -392,6 +392,31 @@ describe('checkRefundsWithoutRecord', () => {
     const result = await checkRefundsWithoutRecord({ id: 'demo-store', secrets: {} }, { now: NOW })
     expect(result.status).toBe('not_configured')
   })
+
+  it('ne passe pas en panne quand la clé du client n’autorise pas les remboursements', async () => {
+    // Permission « Refunds » volontairement absente : le webhook enregistre
+    // quand même les remboursements, la supervision ne doit pas rougir.
+    const permissionError = Object.assign(new Error('does not have access to refunds'), {
+      type: 'StripePermissionError',
+      statusCode: 403,
+    })
+    const result = await checkRefundsWithoutRecord(SITE, {
+      now: NOW,
+      clients: {
+        stripe: {
+          refunds: {
+            list: async () => {
+              throw permissionError
+            },
+          },
+        },
+        supabase: {},
+      },
+    })
+
+    expect(result.status).toBe('not_configured')
+    expect(result.missing).toEqual(['STRIPE_REFUNDS_PERMISSION'])
+  })
 })
 
 describe('runPaymentsInvariant', () => {

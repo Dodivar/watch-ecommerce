@@ -138,36 +138,39 @@ carte réelle → **1,00 €**.
 
 ### 3.4 — Le remboursement, par le client
 
-Il n'y a pas d'autre chemin : la clé restreinte n'a pas la permission *Refunds*,
-volontairement. C'est donc aussi sa formation au geste.
+C'est **son** geste : le faire faire par lui, à froid, c'est sa formation. Le chemin dépend
+de la permission `Refunds` accordée à l'étape 5.2 du guide.
 
-**Son dashboard → Paiements → ouvrir le paiement → Rembourser → Montant total.**
+**Cas nominal — depuis le panel.** `/admin/orders` → ouvrir la commande → panneau **Retour
+et remboursement** → le montant est pré-rempli avec le reste dû (`1,00 €`) →
+**Rembourser** → confirmer. Réservé au rôle `admin` : un `moderator` ne voit pas le bouton.
 
-Raccourci : le panneau retour de l'admin affiche un bouton **« Ouvrir le paiement dans
-Stripe »** qui pointe sur la bonne page (`stripePaymentDashboardUrl`,
-`packages/base/src/services/admin/orderReturns.js:115` — il ajoute `/test` en mode test).
-Le client copie l'identifiant `re_…` affiché après coup.
+**Cas sans permission `Refunds`.** Le bouton répond **403** avec un message explicite. Le
+client rembourse depuis **son dashboard → Paiements → ouvrir le paiement → Rembourser**, et
+le lien « Ouvrir le paiement dans Stripe » qui s'affiche alors sous le bouton pointe
+directement sur la bonne page (`stripePaymentDashboardUrl` — il ajoute `/test` en mode
+test). **Rien à recopier ensuite** : voir ci-dessous.
 
-### 3.5 — Enregistrer la trace côté admin
+### 3.5 — Vérifier l'enregistrement automatique
 
-`/admin/orders` → ouvrir la commande → panneau **Retour / Remboursement** :
+Aucune saisie. Le webhook (`charge.refunded`, `refund.*`) écrit la ligne dans
+`order_refunds` et recalcule le cache porté par `orders`. Rafraîchir la fiche commande :
 
-| Champ | Valeur |
-| --- | --- |
-| Statut de retour | **Remboursée** |
-| Montant remboursé | `1,00` — pré-rempli au passage en « Remboursée » |
-| Identifiant Stripe | le `re_…` copié |
-| Date de remboursement | le jour même |
-| Notes | `Test technique d'ouverture` |
+- [ ] Une ligne **1,00 € · Effectué** apparaît dans l'historique du panneau retour, avec
+      son origine (*Administration* ou *Dashboard Stripe*) et, pour un remboursement lancé
+      depuis le panel, l'e-mail de l'opérateur
+- [ ] « Reste à rembourser » tombe à **0,00 €** et le bouton disparaît
+- [ ] Le statut du dossier passe à **Remboursée** dans `/admin/orders`
+- [ ] Le client reçoit l'e-mail de confirmation de remboursement
+- [ ] Stripe → Développeurs → Webhooks → *Tentatives* : `charge.refunded` en **Réussi**
+      (`200`). Un `400`/`500` ici, ou l'absence d'événement, veut dire que les événements de
+      remboursement ne sont pas cochés ou que la migration `order_refunds` n'a pas été
+      appliquée — à corriger avant l'ouverture, sinon les remboursements resteront
+      invisibles pour la comptabilité.
 
-`validateReturnUpdate` refuse l'enregistrement si le montant est vide ou nul, s'il dépasse
-le total de la commande, ou si l'identifiant ne colle pas à `^re_[A-Za-z0-9_]+$`.
-
-**Cette double saisie n'est pas une redondance.** Le backend n'écoute que trois événements
-(`backend/routes/stripe.js:67`) : `payment_intent.succeeded`, `.payment_failed`,
-`.canceled`. `charge.refunded` n'en fait pas partie — rien ne remonte automatiquement d'un
-remboursement, et la saisie admin est la **seule** source pour la compta et pour
-`summarizeReturnStats`.
+Si le remboursement apparaît d'abord **En cours** (`pending`), ce n'est pas une anomalie :
+certains moyens de paiement passent par cet état. L'e-mail au client et le total ne
+bougent qu'à la transition vers *Effectué*, portée par `refund.updated`.
 
 ### 3.6 — Nettoyage
 
@@ -175,14 +178,17 @@ remboursement, et la saisie admin est la **seule** source pour la compta et pour
 - [ ] Désactiver le code promo s'il y en a eu un (ou l'avoir plafonné à `max_uses: 1` dès
       sa création)
 - [ ] `/api/health/payments` : la commande remboursée reste `paid`, aucune alerte ne doit
-      apparaître
+      apparaître — ni sur l'invariant paiements, ni sur la clé `refunds` de la réponse, qui
+      doit compter le remboursement en `matched`. Un site dont la clé n'a pas la permission
+      *Refunds* rend `refunds.status: not_configured` : c'est neutre, pas une alerte.
 
 ### Ce que le test coûte
 
 Stripe **ne restitue pas les frais de traitement** sur un remboursement : le client perd
 les frais de la transaction, de l'ordre de 0,25 € fixe plus un pourcentage (tarif exact sur
 [stripe.com/fr/pricing](https://stripe.com/fr/pricing)). Dérisoire face à une ouverture
-avec un webhook mal branché.
+avec un webhook mal branché. Le dire au client avant qu'il clique, l'écran de confirmation
+du panel le rappelle aussi.
 
 Le remboursement revient sur la carte en **5 à 10 jours ouvrés** : prévenir le client,
 sinon il s'inquiète le lendemain.
@@ -209,6 +215,12 @@ ignorés (le webhook a le droit d'arriver après), et un PaymentIntent sans
 `metadata.order_id` — paiement manuel depuis le dashboard, Payment Link — est compté à
 part, jamais en alerte.
 
+La même réponse porte l'invariant **symétrique sur l'argent sortant**, sous la clé
+`refunds` de chaque site : « tout remboursement Stripe a sa ligne `order_refunds` ». C'est
+lui qui attrape un remboursement fait dans le dashboard alors que les événements du webhook
+ne sont pas cochés — le cas le plus courant après une ouverture, et le plus coûteux : la
+comptabilité surévalue le chiffre d'affaires et la TVA sans que rien ne le signale.
+
 - [ ] `<site-id>` ajouté à `HEALTH_REQUIRED_SITES` **le jour de l'ouverture**
 - [ ] Moniteur externe (UptimeRobot / Better Stack) branché avec le `X-Health-Token`
 
@@ -227,6 +239,10 @@ part, jamais en alerte.
 | Apple Pay absent | domaine non enregistré, ou fichier de vérification non hébergé | Stripe → Réglages → Domaines des moyens de paiement |
 | E-mails non reçus | adresse `From` non validée dans le compte Mailjet | Mailjet refuse à l'envoi, sans erreur côté commande |
 | Premier webhook en échec après inactivité | cold start Render dépassant le délai de livraison Stripe | Stripe réessaie ; l'invariant paiements couvre le cas s'il persiste |
+| Remboursement fait dans Stripe, invisible dans l'admin | événements `charge.refunded` / `refund.*` non cochés sur le webhook | Stripe → Webhooks → *Événements écoutés* ; la clé `refunds` de `/api/health/payments` le signale en `alert` |
+| `relation "public.order_refunds" does not exist` | migration `20260911120000_order_refunds.sql` non appliquée sur ce projet Supabase | le webhook répond 500 et Stripe rejoue : appliquer la migration suffit, le rejeu enregistre le remboursement |
+| Bouton « Rembourser » en `403` | la clé restreinte du client n'a pas la permission *Refunds* | choix légitime : rembourser depuis le dashboard, l'enregistrement reste automatique. Pour l'activer : nouvelle clé restreinte (rotation), pas de modification possible d'une clé existante |
+| Remboursement bloqué « En cours » | moyen de paiement à règlement différé, ou solde Stripe insuffisant | `refund.updated` fera la transition ; un `failed` remonte avec son motif dans l'historique du panneau retour |
 
 ## Après l'ouverture
 

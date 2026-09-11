@@ -138,7 +138,7 @@ Les variables historiques (`STRIPE_SECRET_KEY`, `MAILJET_API_KEY`, `BASE_URL`, e
 > [documentation/onboarding/](../documentation/onboarding/README.md).
 
 1. **Créer le manifest front** : `sites/<nouveau-client>/site.config.js` (le front Vite l'utilise déjà). Compléter le bloc `backend` (cf. exemple ci-dessus).
-2. **Configurer les secrets** dans le dashboard Render : ajouter toutes les variables `SITE_<UPPER_ID>__`* correspondantes (Stripe, Supabase, Mailjet, PaymentCancel).
+2. **Configurer les secrets** dans le dashboard Render : ajouter toutes les variables `SITE_<UPPER_ID>__`* correspondantes (Stripe, Supabase, Mailjet, PaymentCancel). La clé Stripe est une clé restreinte du client : permissions `PaymentIntents — Écriture`, `Balance — Lecture`, et `Refunds — Écriture` pour que le bouton « Rembourser » du panel fonctionne. Cette dernière est optionnelle — sans elle, l'appel répond 403 avec un message explicite, et un remboursement fait dans le dashboard reste enregistré par le webhook.
 3. **Configurer le webhook Stripe** : dans le dashboard Stripe du nouveau client, pointer le webhook vers :
   ```
    https://watch-ecommerce-mp9l.onrender.com/api/stripe/webhook/<nouveau-client>

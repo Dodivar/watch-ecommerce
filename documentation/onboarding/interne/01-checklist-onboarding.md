@@ -42,7 +42,10 @@ caractère non alphanumérique → `_`.
 
 - [ ] Projet Supabase créé, région UE.
 - [ ] Migrations appliquées **dans l'ordre chronologique** via le SQL Editor :
-      [`supabase/migrations/README.md`](../../../supabase/migrations/README.md).
+      [`supabase/migrations/README.md`](../../../supabase/migrations/README.md). Ne pas
+      sauter `20260824120000_order_returns.sql` ni `20260911120000_order_refunds.sql` : sans
+      elles, le panneau retour ne charge pas et l'enregistrement d'un remboursement échoue
+      (le webhook répond 500, Stripe rejoue — l'argent est parti, la commande l'ignore).
 - [ ] Buckets Storage présents (visuels montres, `home-carousel`, `order-receipts` privé).
 - [ ] Lignes `admin_users` créées pour les personnes désignées par le client
       (`role` ∈ `admin`, `moderator`, `visitor`) — **au moins deux `admin`**.
@@ -59,6 +62,13 @@ caractère non alphanumérique → `_`.
       client à l'étape 5.2 du guide.
 - [ ] Le webhook client pointe sur `/api/stripe/webhook/<site-id>` — vérifier le suffixe
       caractère par caractère, c'est la panne n° 1.
+- [ ] Les **six** événements sont cochés, dont les quatre de remboursement
+      (`charge.refunded`, `refund.created`, `refund.updated`, `charge.refund.updated` si
+      proposé). Sans eux, un remboursement n'existe pas pour l'application : CA et TVA
+      surévalués, et l'invariant ne peut rien rattraper.
+- [ ] Noter si le client a accordé la permission **Refunds — Écriture**. Si non, prévenir
+      l'équipe : le bouton « Rembourser » du panel répondra 403 (message explicite), et le
+      geste reste dans son dashboard — ce qui est un choix valable, pas une anomalie.
 
 ## Phase 4 — Configuration des variables
 
@@ -81,10 +91,13 @@ Procédure détaillée : [`03-recette-paiement.md`](03-recette-paiement.md).
 - [ ] Recette en **mode test** de bout en bout (commande, paiement, webhook, commande
       `paid`, e-mail de confirmation, reçu PDF).
 - [ ] Bascule en clés **live**.
-- [ ] **Commande réelle à 1 €**, puis remboursement par le client depuis son dashboard —
-      c'est aussi sa formation au geste de remboursement. Procédure détaillée (composer le
-      total à 1 €, fiche de test dédiée, saisie du `re_…` côté admin, nettoyage) :
+- [ ] **Commande réelle à 1 €**, puis remboursement **par le client**, depuis le panel s'il
+      a accordé la permission Refunds, sinon depuis son dashboard — c'est aussi sa formation
+      au geste. Procédure détaillée (composer le total à 1 €, fiche de test dédiée,
+      vérification de l'enregistrement automatique, nettoyage) :
       [`03-recette-paiement.md` §3](03-recette-paiement.md#3-commande-réelle-à-1-).
+- [ ] Vérifier après ce remboursement que la ligne apparaît **seule** dans le panneau
+      retour (aucune saisie) et que la commande passe au statut « Remboursée ».
 - [ ] `GET /api/health/deep` et `GET /api/health/payments` au vert avec `X-Health-Token`.
 - [ ] Fichier de vérification Apple Pay hébergé, si le client a enregistré son domaine.
 
@@ -94,9 +107,13 @@ Procédure détaillée : [`03-recette-paiement.md`](03-recette-paiement.md).
 - [ ] `VITE_PURCHASE_ENABLED=true` et `features.purchase: true` — les deux sont requis
       pour que les boutons d'achat apparaissent.
 - [ ] `<site-id>` dans `HEALTH_REQUIRED_SITES` (cf. phase 4).
-- [ ] Client formé : administration, commandes, remboursements, stock.
-- [ ] Contrat signé mentionnant la clé restreinte détenue, ses permissions, sa
-      révocabilité et sa suppression en fin de mission. DPA si nous traitons ses données
+- [ ] Client formé : administration, commandes, remboursements (bouton du panel, ou
+      dashboard s'il n'a pas donné la permission), dossiers de rétractation ouverts par les
+      acheteurs depuis leur page de suivi, stock.
+- [ ] Contrat signé mentionnant la clé restreinte détenue, ses permissions — **y compris
+      `Refunds — Écriture` si elle a été accordée**, puisqu'elle autorise un mouvement
+      d'argent, borné au remboursement de l'acheteur d'une commande —, sa révocabilité et sa
+      suppression en fin de mission. DPA si nous traitons ses données
       clients — c'est le cas via Supabase.
 
 ## Phase 7 — Fin de collaboration

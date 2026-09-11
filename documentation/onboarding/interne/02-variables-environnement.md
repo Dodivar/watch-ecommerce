@@ -45,20 +45,43 @@ Elles découlent strictement des appels présents dans le code :
 | --- | --- | --- |
 | **PaymentIntents** | Écriture | `create`, `update`, `retrieve`, `cancel` — `backend/routes/orders.js`, `backend/orders/paymentIntentSync.js`, `list` dans `backend/health/paymentsInvariant.js` |
 | **Balance** | Lecture | `balance.retrieve()` — sonde `probeStripe`, `backend/health/probes.js:126` |
+| **Refunds** | Écriture | `refunds.create` — `backend/orders/refunds.js`, appelé par `POST /api/admin/orders/:id/refund` ; `refunds.list` dans `backend/health/paymentsInvariant.js` (invariant remboursements) et pour déplier une charge de plus de dix remboursements |
 
-Rien d'autre n'est appelé. En particulier **pas de Refunds** : le remboursement est fait à
-la main par le client dans son dashboard, puis saisi côté admin
-(`packages/base/src/services/admin/orderReturns.js`). C'est ce qui justifie de ne pas
-demander cette permission — si un jour on automatise le remboursement, il faudra
-redemander une clé à chaque client, ce n'est pas neutre.
+Rien d'autre n'est appelé. En particulier, toujours **pas de Payouts, Customers ni
+Settings** : aucun virement, aucune lecture du fichier client, aucun réglage.
 
 La vérification de signature du webhook (`stripe.webhooks.constructEvent`) est un calcul
-HMAC local : elle ne consomme **aucune** permission de la clé.
+HMAC local : elle ne consomme **aucune** permission de la clé. C'est ce qui rend la ligne
+Refunds facultative — voir ci-dessous.
 
-> **Si un jour un appel est ajouté au code**, vérifier qu'il rentre dans ces deux
-> permissions. Sinon toutes les vitrines tombent en `StripePermissionError` au déploiement,
-> et il faut redemander une clé à chaque client — un incident lent et pénible. Ce tableau
-> est la source de vérité à tenir à jour.
+### Refunds : la seule permission optionnelle
+
+Le remboursement était autrefois un geste exclusif du client dans son dashboard, et cette
+page recommandait de **ne pas** demander la permission `Refunds`. Ce n'est plus le cas : le
+panel déclenche désormais le remboursement (`POST /api/admin/orders/:id/refund`, rôle
+`admin`), ce qui supprime la double saisie et les erreurs de recopie.
+
+Le client reste libre de refuser cette permission, et **tout continue de fonctionner** :
+
+| Avec `Refunds — Écriture` | Sans |
+| --- | --- |
+| Bouton « Rembourser » actif dans `/admin/orders/<id>` | Bouton actif, mais l'appel revient en **403** avec un message qui renvoie vers le dashboard |
+| Remboursement enregistré immédiatement, puis confirmé par le webhook | Remboursement fait dans Stripe, enregistré par le **webhook** — aucune saisie |
+| Invariant `/api/health/payments` complet, argent entrant **et** sortant | L'invariant remboursements rend `not_configured` (neutre, pas d'alerte) : la supervision ne rougit pas pour un choix assumé, mais un remboursement fait dans Stripe et non enregistré ne sera pas détecté |
+
+Autrement dit, la permission achète le **confort** (rembourser sans quitter l'admin) et la
+supervision de l'argent sortant ; elle n'est pas nécessaire à la justesse des données, que
+le webhook garantit seul.
+
+**Pour les clients déjà en production** avec une clé à deux permissions : leur demander une
+**nouvelle clé restreinte** (procédure de rotation plus bas) et cocher les événements de
+remboursement sur leur webhook. Tant que ce n'est pas fait, le bouton renvoie un 403
+explicite — pas une panne silencieuse.
+
+> **Si un jour un appel est ajouté au code**, vérifier qu'il rentre dans ces permissions.
+> Sinon toutes les vitrines tombent en `StripePermissionError` au déploiement, et il faut
+> redemander une clé à chaque client — un incident lent et pénible. Ce tableau est la
+> source de vérité à tenir à jour.
 
 ---
 

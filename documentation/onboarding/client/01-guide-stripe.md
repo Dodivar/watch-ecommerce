@@ -11,13 +11,22 @@ votre IBAN. L'argent des ventes va directement sur votre compte bancaire, sans p
 nous. Vous seul accédez à votre tableau de bord Stripe.
 
 **Nous n'aurons jamais accès à votre compte.** À la fin de ce guide, vous nous transmettez
-trois codes techniques qui permettent au site d'encaisser vos ventes. Ces codes ne
-permettent ni de rembourser, ni de virer de l'argent, ni de lire votre fichier client, ni
-de modifier vos réglages. Vous pouvez les annuler vous-même à tout moment (étape 5).
+trois codes techniques qui permettent au site d'encaisser vos ventes — et, si vous le
+souhaitez, de déclencher un remboursement depuis l'administration de votre boutique. Ces
+codes ne permettent ni de virer de l'argent vers un autre compte, ni de lire votre fichier
+client, ni de modifier vos réglages. Vous pouvez les annuler vous-même à tout moment
+(étape 5).
 
-**Ce qui reste de votre ressort, en permanence :** les remboursements, les litiges avec un
-client, les virements vers votre banque, votre comptabilité et votre TVA. Tout cela se
-fait depuis votre tableau de bord Stripe, où nous ne sommes pas.
+**Les remboursements, à votre main, dans l'outil que vous préférez.** L'administration de
+votre boutique sait rembourser une commande, en totalité ou en partie, en un bouton : le
+mouvement part de votre compte Stripe comme toujours, mais vous n'avez plus à chercher le
+paiement dans le tableau de bord, ni à recopier quoi que ce soit ensuite. C'est une
+permission que vous accordez à l'étape 5.2, et qui reste facultative : sans elle, vous
+remboursez depuis Stripe et votre boutique enregistre l'opération automatiquement.
+
+**Ce qui reste de votre ressort, en permanence :** les litiges avec un client, les
+virements vers votre banque, votre comptabilité et votre TVA. Tout cela se fait depuis
+votre tableau de bord Stripe, où nous ne sommes pas.
 
 ### Ce dont vous avez besoin sous la main
 
@@ -124,12 +133,28 @@ l'étape à ne pas rater.
    Recopiez-la sans rien modifier, y compris la fin `<IDENTIFIANT-BOUTIQUE>` : c'est ce
    qui indique à notre serveur qu'il s'agit de votre boutique.
 
-3. Cliquez sur **Sélectionner des événements** et cochez ces trois lignes, ni plus ni
+3. Cliquez sur **Sélectionner des événements** et cochez ces six lignes, ni plus ni
    moins :
+
+   *Pour les paiements :*
 
    - `payment_intent.succeeded`
    - `payment_intent.payment_failed`
    - `payment_intent.canceled`
+
+   *Pour les remboursements :*
+
+   - `charge.refunded`
+   - `refund.created`
+   - `refund.updated`
+
+   Les trois dernières permettent à votre boutique d'enregistrer un remboursement **quel
+   que soit l'endroit d'où il part** : le bouton de votre administration, votre tableau de
+   bord Stripe, ou une contestation tranchée en faveur de l'acheteur. Sans elles, une
+   commande remboursée continuerait de compter dans votre chiffre d'affaires.
+
+   > Si votre compte propose aussi `charge.refund.updated` dans la liste, cochez-la : les
+   > comptes Stripe plus anciens utilisent ce nom-là. En cocher une de trop est sans effet.
 
 4. Validez avec **Ajouter un point de terminaison**.
 5. Sur l'écran du webhook qui vient d'être créé, cherchez **Secret de signature** et
@@ -157,15 +182,24 @@ tous les droits sur votre compte. Créez à la place une clé limitée :
 1. Toujours dans **Développeurs → Clés API**, cliquez sur **Créer une clé restreinte**.
 2. Nommez-la de façon reconnaissable, par exemple `Boutique en ligne — <NOM-BOUTIQUE>`.
 3. Vous voyez une longue liste de ressources, toutes sur **Aucune** par défaut. **Ne
-   changez que ces deux lignes :**
+   changez que ces trois lignes :**
 
-   | Ressource | Réglage à choisir |
-   | --- | --- |
-   | **PaymentIntents** | **Écriture** |
-   | **Balance** | **Lecture** |
+   | Ressource | Réglage à choisir | À quoi ça sert |
+   | --- | --- | --- |
+   | **PaymentIntents** | **Écriture** | encaisser les commandes de la boutique |
+   | **Balance** | **Lecture** | vérifier que votre compte répond (supervision) |
+   | **Refunds** | **Écriture** | rembourser une commande depuis votre administration |
 
-   Tout le reste doit rester sur **Aucune**. En particulier : laissez **Refunds**,
-   **Payouts**, **Customers** et **Settings** sur *Aucune*.
+   Tout le reste doit rester sur **Aucune**. En particulier : laissez **Payouts**,
+   **Customers** et **Settings** sur *Aucune* — personne d'autre que vous ne doit pouvoir
+   virer des fonds, lire votre fichier client ou changer vos réglages.
+
+   > **La ligne Refunds est facultative.** Ce qu'elle autorise est borné : rendre tout ou
+   > partie d'un paiement encaissé sur votre boutique, **à l'acheteur qui l'a réglé**, sur
+   > son moyen de paiement d'origine. Il n'existe aucun moyen d'envoyer cet argent
+   > ailleurs. Si vous préférez garder ce geste dans votre tableau de bord, laissez cette
+   > ligne sur *Aucune* et dites-le nous : votre boutique enregistrera quand même vos
+   > remboursements automatiquement, elle n'affichera simplement pas le bouton.
 
 4. Créez la clé. La valeur `rk_live_…` s'affiche : **copiez-la immédiatement**, elle n'est
    affichée en entier qu'une seule fois. Si vous la perdez, supprimez la clé et
@@ -173,10 +207,11 @@ tous les droits sur votre compte. Créez à la place une clé limitée :
 
 👉 C'est la **valeur n° 2**.
 
-**Concrètement, cette clé nous permet uniquement** d'encaisser une commande passée sur
-votre boutique et de vérifier que votre compte répond. Elle ne permet pas de rembourser,
-de virer des fonds, de consulter votre chiffre d'affaires détaillé, de lire votre fichier
-client ni de modifier quoi que ce soit dans vos réglages.
+**Concrètement, cette clé permet uniquement** d'encaisser une commande passée sur votre
+boutique, de vérifier que votre compte répond, et — si vous avez coché *Refunds* — de
+rembourser une de ces commandes à son acheteur. Elle ne permet pas de virer des fonds vers
+un compte, de consulter votre chiffre d'affaires détaillé, de lire votre fichier client ni
+de modifier quoi que ce soit dans vos réglages.
 
 **Vous gardez la main :** à tout moment, depuis cette même page, vous pouvez révoquer
 cette clé d'un clic. Le site cessera simplement d'accepter les paiements jusqu'à ce que
@@ -205,11 +240,19 @@ Nous ne prélevons aucune commission sur vos ventes et ne sommes pas intermédia
 paiement.
 
 **Comment rembourser un client ?**
-Depuis votre tableau de bord Stripe : **Paiements**, ouvrez le paiement concerné,
-**Rembourser**. Total ou partiel. Reportez ensuite le montant et la référence du
-remboursement (elle commence par `re_`) dans l'administration de votre boutique, pour que
-la commande et votre comptabilité restent cohérentes. C'est volontairement vous qui gardez
-ce geste : nous n'en avons pas le droit technique.
+Depuis l'administration de votre boutique : **Commandes**, ouvrez la commande, panneau
+*Retour et remboursement*, bouton **Rembourser**. Total ou partiel, avec une confirmation
+avant validation. L'argent part de votre compte Stripe et revient sur la carte de
+l'acheteur en 5 à 10 jours ouvrés ; la commande, vos statistiques et votre comptabilité
+sont mises à jour toutes seules, sans rien recopier.
+
+Vous pouvez aussi continuer à rembourser depuis votre tableau de bord Stripe : votre
+boutique le détecte et l'enregistre de la même façon. Les deux chemins mènent au même
+résultat — c'est le même compte, le même argent.
+
+Un point à connaître : **Stripe ne vous restitue pas la commission** prélevée sur le
+paiement initial. Un remboursement total vous laisse donc de cette commission à votre
+charge, quel que soit l'endroit d'où vous le déclenchez.
 
 **Un client conteste un paiement, que faire ?**
 Stripe vous alerte par e-mail et vous ouvre un délai pour répondre avec vos preuves

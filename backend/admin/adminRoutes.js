@@ -342,6 +342,20 @@ function buildAdminRouter(registry) {
         if (e instanceof MissingSecretsError) {
           return res.status(503).json({ success: false, error: e.message })
         }
+        // La clé restreinte du client n'a pas la permission « Refunds ».
+        // C'est un choix légitime de sa part : tout le reste continue de
+        // fonctionner, y compris l'enregistrement automatique d'un
+        // remboursement fait depuis son dashboard (le webhook ne consomme
+        // aucune permission). Le message doit donc dire quoi faire, pas
+        // ressembler à une panne.
+        if (e?.type === 'StripePermissionError' || e?.statusCode === 403) {
+          console.error(`[${site.id}] Remboursement refusé (permission) ${orderId}:`, e.message)
+          return res.status(403).json({
+            success: false,
+            error:
+              'La clé Stripe de ce site n’autorise pas les remboursements. Remboursez depuis le dashboard Stripe (l’opération sera enregistrée ici automatiquement), ou demandez une clé restreinte avec la permission « Refunds — Écriture ».',
+          })
+        }
         // Refus Stripe (paiement trop ancien, déjà remboursé, solde
         // insuffisant) : le message est le seul qui dise au commerçant quoi
         // faire, on le remonte tel quel plutôt qu'un « erreur serveur ».

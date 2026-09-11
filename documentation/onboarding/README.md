@@ -11,20 +11,32 @@ Tout ce qu'il faut pour brancher une nouvelle vitrine, des deux côtés :
 ## Le principe : le client garde son compte Stripe, nous n'avons qu'une clé
 
 Le client crée **son** compte Stripe, à **son** nom, avec **son** IBAN. C'est lui le
-marchand : il encaisse, il déclare la TVA, il rembourse, il gère les litiges. Nous ne
-sommes jamais membre de son équipe Stripe et nous ne voyons pas son dashboard.
+marchand : il encaisse, il déclare la TVA, il gère les litiges. Nous ne sommes jamais
+membre de son équipe Stripe et nous ne voyons pas son dashboard.
+
+Les **remboursements** se déclenchent depuis l'administration de sa boutique — c'est
+toujours son compte Stripe qui exécute, mais il n'a plus à ouvrir le dashboard pour ça, et
+la commande, les statistiques et la comptabilité restent justes sans ressaisie. Cela
+suppose une permission de plus sur la clé restreinte (« Refunds — Écriture »), qu'il donne
+ou non : sans elle, tout fonctionne à l'identique, le bouton en moins et un remboursement
+fait dans son dashboard reste enregistré automatiquement.
 
 Il nous transmet trois valeurs, et trois seulement :
 
 | Valeur | Ce qu'elle permet | Ce qu'elle ne permet pas |
 | --- | --- | --- |
 | `pk_live_…` clé publique | afficher le formulaire de paiement | rien d'autre — elle est publique par nature |
-| `rk_live_…` **clé restreinte** | créer et suivre les paiements de la boutique | rembourser, virer des fonds, lire ses clients, changer ses réglages |
+| `rk_live_…` **clé restreinte** | créer et suivre les paiements de la boutique, et rembourser une commande (permission optionnelle) | virer des fonds vers un compte, lire ses clients, changer ses réglages |
 | `whsec_…` secret de webhook | vérifier que les notifications viennent bien de Stripe | aucun appel à son compte |
 
 La clé restreinte est le point clé : elle est créée par le client, avec des permissions
-qu'il choisit, et il peut la révoquer seul et à tout moment sans nous prévenir. Les
-permissions exactes sont listées dans [`interne/02-variables-environnement.md`](interne/02-variables-environnement.md).
+qu'il choisit, et il peut la révoquer seul et à tout moment sans nous prévenir. Un
+remboursement ne peut de toute façon que **rendre l'argent à l'acheteur de la commande**,
+sur son moyen de paiement d'origine : aucune permission Stripe ne permet d'envoyer un euro
+ailleurs.
+
+Les permissions exactes sont listées dans
+[`interne/02-variables-environnement.md`](interne/02-variables-environnement.md).
 
 Ce que nous ne demandons **jamais** : son mot de passe, un code 2FA, une clé secrète
 complète `sk_live_…`, ni une invitation comme membre de son équipe.

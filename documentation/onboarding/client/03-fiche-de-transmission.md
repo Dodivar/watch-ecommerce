@@ -45,7 +45,12 @@ rk_live_
 ```
 
 ☑ Confirmez avant d'envoyer : dans cette clé, **PaymentIntents** est sur *Écriture*,
-**Balance** sur *Lecture*, et **tout le reste sur Aucune**.
+**Balance** sur *Lecture*, **Refunds** sur *Écriture*, et **tout le reste sur Aucune**.
+
+*Refunds est facultatif* : il sert uniquement à rembourser une commande de votre boutique
+depuis votre administration, à l'acheteur qui l'a réglée. Si vous préférez rembourser
+depuis Stripe, laissez-le sur *Aucune* et signalez-le nous — votre boutique enregistrera
+quand même vos remboursements.
 
 ⚠️ Si votre valeur commence par `sk_live_`, ce n'est pas la bonne : c'est la clé secrète,
 qui donne tous les droits sur votre compte. Reprenez l'étape 5.2 du guide.
@@ -70,9 +75,11 @@ Cochez, cela nous évite un aller-retour :
 - [ ] La **double authentification** est activée sur le compte
 - [ ] Le webhook pointe **exactement** sur :
       `https://watch-ecommerce-mp9l.onrender.com/api/stripe/webhook/<IDENTIFIANT-BOUTIQUE>`
-- [ ] Les **trois** événements sont cochés sur ce webhook : `payment_intent.succeeded`,
-      `payment_intent.payment_failed`, `payment_intent.canceled`
-- [ ] La clé restreinte n'a que les **deux** permissions demandées
+- [ ] Les **six** événements sont cochés sur ce webhook : `payment_intent.succeeded`,
+      `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`,
+      `refund.created`, `refund.updated` (plus `charge.refund.updated` si votre compte le
+      propose)
+- [ ] La clé restreinte n'a que les permissions demandées, et aucune autre
 - [ ] Les trois valeurs sont copiées **en entier** (elles sont longues — vérifiez que la
       fin n'a pas été tronquée à la copie)
 
@@ -83,10 +90,12 @@ Cochez, cela nous évite un aller-retour :
 1. Nous branchons vos codes sur la boutique — **quelques minutes**.
 2. Nous passons une commande de test de bout en bout, puis une **vraie commande à 1 €**
    que vous verrez arriver dans votre tableau de bord Stripe. **C'est vous qui la
-   remboursez**, depuis votre tableau de bord — nous n'en avons pas le droit technique, et
-   c'est l'occasion de faire une fois le geste à froid. Nous vous guidons : *Paiements* →
-   ouvrir le paiement → *Rembourser*. Comptez 5 à 10 jours ouvrés pour que la somme
-   revienne sur la carte.
+   remboursez**, et c'est l'occasion de faire une fois le geste à froid : dans
+   l'administration de votre boutique, *Commandes* → ouvrir la commande → **Rembourser**.
+   Si vous avez préféré ne pas accorder la permission *Refunds*, le geste se fait depuis
+   Stripe (*Paiements* → ouvrir le paiement → *Rembourser*) et votre boutique
+   l'enregistrera seule. Comptez 5 à 10 jours ouvrés pour que la somme revienne sur la
+   carte.
 3. Nous vous confirmons que la boutique encaisse, et vous pouvez ouvrir.
 
 Si vous ne voyez pas la commande de test apparaître dans Stripe dans l'heure, c'est en
@@ -98,11 +107,14 @@ nous, la correction prend deux minutes.
 ## Ce que vous gardez, définitivement
 
 - **L'accès exclusif** à votre tableau de bord Stripe
-- **Le contrôle** des remboursements, des litiges et des virements vers votre banque
+- **Le contrôle** des litiges et des virements vers votre banque
+- **La décision** de chaque remboursement — que vous le déclenchiez depuis votre
+  administration ou depuis Stripe, et quelle que soit la permission accordée
 - **Le droit de révoquer** la clé restreinte quand vous le souhaitez, sans nous prévenir
 - **La propriété** du compte, de son historique et de ses fonds
 
 Nous n'avons ni votre mot de passe, ni votre double authentification, ni le pouvoir de
-déplacer un euro.
+sortir un euro de votre compte vers ailleurs : un remboursement ne peut aller qu'à
+l'acheteur qui a payé la commande.
 
 Une question : `<TON-EMAIL>`
