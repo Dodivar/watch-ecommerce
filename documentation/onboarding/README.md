@@ -89,8 +89,11 @@ et le changer après coup oblige le client à refaire l'étape.
 | Fichier | Contenu | Quand l'envoyer |
 | --- | --- | --- |
 | [`client/01-guide-stripe.md`](client/01-guide-stripe.md) | création, activation, moyens de paiement, webhook, clé restreinte | dès la signature |
-| [`client/02-informations-a-fournir.md`](client/02-informations-a-fournir.md) | identité légale, contact, livraison, domaine, contenus | dès la signature |
+| [`client/02-informations-a-fournir.md`](client/02-informations-a-fournir.md) | identité légale, contact, livraison, domaine, contenus — ce qu'on demande et **pourquoi** | dès la signature |
 | [`client/03-fiche-de-transmission.md`](client/03-fiche-de-transmission.md) | le formulaire de retour + le canal sécurisé | avec le guide Stripe |
+| [`client/04-fiche-de-renseignements.html`](client/04-fiche-de-renseignements.html) | **le formulaire à remplir et à nous retourner** : les mêmes rubriques que le 02, en champs de saisie | avec le 02 |
+| [`client/04-fiche-de-renseignements.pdf`](client/04-fiche-de-renseignements.pdf) | la même fiche à imprimer, pour un client qui préfère le papier | sur demande |
+| [`client/assets/`](client/assets/) | les schémas du guide Stripe (SVG) | — |
 
 ### Pour nous
 
@@ -107,6 +110,43 @@ et le changer après coup oblige le client à refaire l'étape.
 - [`../../sites/_template/README.md`](../../sites/_template/README.md) — créer `sites/<id>/`
 - [`../../supabase/migrations/README.md`](../../supabase/migrations/README.md) — migrations, dans l'ordre
 
+## Tenir la fiche de renseignements à jour
+
+`client/02-informations-a-fournir.md` explique ce qu'on demande ; `client/04-fiche-de-renseignements.html`
+le demande. **Les deux décrivent les mêmes rubriques** : le HTML porte son schéma dans la
+constante `SCHEMA` de son `<script>`, et toute rubrique ajoutée d'un côté doit l'être de
+l'autre — sinon la fiche renvoyée par un client ne correspondra plus à celle d'un autre.
+
+Le HTML est **autonome** : aucun script externe, aucune police distante. Il se remplit hors
+ligne, garde la saisie dans le navigateur du client (`localStorage`), et son bouton de
+téléchargement produit deux fichiers — un `.md` lisible, que le client nous renvoie, et un
+`.json` qu'il peut recharger pour reprendre une fiche entamée.
+
+Le PDF est **généré**, jamais édité à la main. Après modification du HTML :
+
+```bash
+node -e "
+const { chromium } = require('playwright-core');
+(async () => {
+  const b = await chromium.launch();
+  const p = await b.newPage();
+  await p.goto('file://' + process.cwd() + '/documentation/onboarding/client/04-fiche-de-renseignements.html', { waitUntil: 'networkidle' });
+  await p.pdf({ path: 'documentation/onboarding/client/04-fiche-de-renseignements.pdf', format: 'A4', printBackground: true, preferCSSPageSize: true });
+  await b.close();
+})();
+"
+```
+
+## Les schémas du guide Stripe
+
+`client/assets/*.svg` sont des **reproductions schématiques** du tableau de bord Stripe, pas
+des captures d'écran. C'est un choix : elles n'exigent l'accès au compte Stripe de personne,
+restent éditables en texte clair, et ne posent aucune question de droit d'usage sur un dépôt
+public. En contrepartie elles sont à relire quand Stripe refond son interface — raison pour
+laquelle le guide s'appuie d'abord sur les **adresses directes** (`dashboard.stripe.com/apikeys`,
+`/webhooks`) et sur le **début des valeurs** (`pk_`, `rk_`, `whsec_`), qui ne bougent pas.
+
 > Les `.md` sont gitignorés à la racine du dépôt, **sauf** sous `documentation/`
 > (`.gitignore:59` — `!documentation/**/*.md`). Les fichiers de ce dossier sont donc
-> suivis normalement, sans `git add -f`.
+> suivis normalement, sans `git add -f`. Même chose pour le PDF de la fiche, que
+> `!documentation/onboarding/**/*.pdf` réintroduit malgré la règle `*.pdf`.

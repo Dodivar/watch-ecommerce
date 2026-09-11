@@ -36,6 +36,15 @@ votre tableau de bord Stripe, où nous ne sommes pas.
 - L'**IBAN de la société** (pas un compte personnel)
 - Un téléphone pour la double authentification
 
+> **À propos des captures de ce guide.** Ce sont des **reproductions schématiques** du
+> tableau de bord Stripe, pas des photos d'écran : elles montrent où regarder et quoi
+> cliquer, pas le pixel exact. Stripe fait évoluer son interface plusieurs fois par an —
+> un bouton peut changer de couleur, un intitulé d'un mot. Ce qui ne bouge pas, et sur
+> quoi vous pouvez vous fier : **les adresses directes** (`dashboard.stripe.com/apikeys`,
+> `dashboard.stripe.com/webhooks`) et **le début des valeurs** (`pk_`, `rk_`, `whsec_`).
+> Si un écran ne ressemble pas tout à fait à l'image, cherchez le libellé, pas la forme —
+> et en cas de doute, écrivez-nous plutôt que de cliquer au hasard.
+
 ---
 
 ## Étape 1 — Créer le compte
@@ -123,6 +132,16 @@ Le webhook est le canal par lequel Stripe prévient votre boutique qu'un paiemen
 abouti. **Sans lui, les clients paient mais les commandes n'apparaissent jamais.** C'est
 l'étape à ne pas rater.
 
+**Développeurs** se trouve en bas de la colonne de gauche du tableau de bord. Le menu
+s'ouvre sur deux entrées qui servent pour tout le reste de ce guide : **Clés API**
+(étape 5) et **Webhooks** (ci-dessous).
+
+![Tableau de bord Stripe : l'entrée « Développeurs » en bas de la colonne de gauche, ses sous-entrées « Clés API » et « Webhooks », et le sélecteur de mode en haut à droite](assets/stripe-01-developpeurs.svg)
+
+Le repère **1** est le sélecteur **Mode test**. Pour encaisser de vraies ventes, il doit
+rester **éteint**. La vérification qui ne trompe pas : une clé de test commence par
+`pk_test_`, une clé réelle par `pk_live_`.
+
 1. Menu **Développeurs** → **Webhooks** → **Ajouter un point de terminaison**.
 2. Dans **URL du point de terminaison**, collez **exactement** cette adresse :
 
@@ -157,10 +176,22 @@ l'étape à ne pas rater.
    > comptes Stripe plus anciens utilisent ce nom-là. En cocher une de trop est sans effet.
 
 4. Validez avec **Ajouter un point de terminaison**.
+
+   ![Formulaire de création d'un webhook Stripe : le champ URL du point de terminaison, et les six événements cochés — trois pour les paiements, trois pour les remboursements](assets/stripe-02-webhook-creation.svg)
+
+   Les repères **1** à **4** de l'image correspondent aux points 1 à 4 ci-dessus. Seule la
+   fin de l'URL change d'une boutique à l'autre : c'est l'identifiant que nous vous avons
+   donné, en rouge sur l'image.
+
 5. Sur l'écran du webhook qui vient d'être créé, cherchez **Secret de signature** et
    cliquez sur **Révéler**. Une valeur commençant par `whsec_` apparaît.
 
+   ![Fiche d'un webhook Stripe : le bloc « Secret de signature », son bouton « Révéler », et la valeur commençant par whsec_ une fois révélée](assets/stripe-03-secret-signature.svg)
+
    👉 **Copiez-la**, c'est la **valeur n° 3** de la fiche de transmission.
+
+   Ce secret appartient à **ce** point de terminaison : si vous supprimez puis recréez le
+   webhook, la valeur change et il faut nous transmettre la nouvelle.
 
 ---
 
@@ -173,6 +204,12 @@ et copiez la valeur qui commence par `pk_live_`.
 
 👉 C'est la **valeur n° 1**. Elle est publique par nature (elle est visible dans le code
 de n'importe quelle boutique) : aucun risque à nous la transmettre.
+
+![Page « Clés API » de Stripe : la clé publiable à copier, la clé secrète barrée d'un avertissement « ne jamais nous l'envoyer », et le bouton « Créer une clé restreinte » plus bas](assets/stripe-04-cles-api.svg)
+
+Les trois repères de l'image : **1** la clé publiable, celle qu'on vous demande ;
+**2** la clé secrète, celle qu'on ne vous demandera **jamais** ; **3** le bouton qui ouvre
+l'étape suivante.
 
 ### 5.2 — La clé restreinte
 
@@ -200,6 +237,11 @@ tous les droits sur votre compte. Créez à la place une clé limitée :
    > ailleurs. Si vous préférez garder ce geste dans votre tableau de bord, laissez cette
    > ligne sur *Aucune* et dites-le nous : votre boutique enregistrera quand même vos
    > remboursements automatiquement, elle n'affichera simplement pas le bouton.
+
+   ![Formulaire « Créer une clé restreinte » de Stripe : chaque ressource propose Aucune, Lecture ou Écriture ; seules Balance (Lecture), PaymentIntents (Écriture) et Refunds (Écriture) sont modifiées](assets/stripe-05-cle-restreinte.svg)
+
+   Les trois repères de l'image sont les trois seules lignes à changer. La liste réelle est
+   bien plus longue que celle dessinée ici — faites défiler sans rien toucher d'autre.
 
 4. Créez la clé. La valeur `rk_live_…` s'affiche : **copiez-la immédiatement**, elle n'est
    affichée en entier qu'une seule fois. Si vous la perdez, supprimez la clé et

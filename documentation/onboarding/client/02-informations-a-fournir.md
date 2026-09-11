@@ -8,6 +8,13 @@ Vous pouvez nous les envoyer au fil de l'eau, par e-mail — **à l'exception de
 Stripe**, qui passent par le canal sécurisé décrit dans la
 [fiche de transmission](03-fiche-de-transmission.md).
 
+> **Le formulaire à remplir est à côté.** Ce document-ci explique ce que nous demandons et
+> pourquoi. Pour répondre, ouvrez la
+> [**fiche de renseignements**](04-fiche-de-renseignements.html) dans votre navigateur :
+> elle reprend les mêmes rubriques en champs de saisie, garde votre travail d'une session à
+> l'autre, et produit en un clic le fichier à nous renvoyer. Une version imprimable est
+> jointe si vous préférez le papier.
+
 ---
 
 ## 1. Identité de la marque
@@ -136,3 +143,6 @@ Ces outils ne se déclenchent qu'après acceptation du bandeau cookies par le vi
 
 Le reste (catalogue complet, mesure d'audience, contenus éditoriaux) peut être complété
 après l'ouverture.
+
+Pour nous répondre : [fiche de renseignements](04-fiche-de-renseignements.html) → remplir →
+**Télécharger la fiche remplie** → nous renvoyer le fichier.

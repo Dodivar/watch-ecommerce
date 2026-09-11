@@ -19,8 +19,11 @@ caractère non alphanumérique → `_`.
 - [ ] Préparer les documents client : copier `documentation/onboarding/client/*` hors
       dépôt, remplacer `<IDENTIFIANT-BOUTIQUE>`, `<NOM-BOUTIQUE>`, `<ADRESSE-DU-SITE>`,
       `<TON-EMAIL>`, `<LIEN-SECURISE>` (voir le tableau du [README](../README.md)).
-- [ ] Envoyer `01-guide-stripe.md`, `02-informations-a-fournir.md` et
-      `03-fiche-de-transmission.md`.
+- [ ] Envoyer `01-guide-stripe.md`, `02-informations-a-fournir.md`,
+      `03-fiche-de-transmission.md` et `04-fiche-de-renseignements.html` (ou son PDF).
+- [ ] **Emporter `client/assets/` avec le guide Stripe.** Ses cinq schémas y sont liés en
+      chemins relatifs : un `01-guide-stripe.md` envoyé seul arrive sans ses images. Si tu
+      convertis en PDF, vérifie qu'elles sont bien rendues avant l'envoi.
 
 ## Phase 1 — Socle technique (en parallèle du client)
 
