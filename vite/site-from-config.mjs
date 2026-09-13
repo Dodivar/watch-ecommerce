@@ -84,11 +84,16 @@ function buildThemeCss(siteConfig) {
 export function siteFromConfigPlugin(siteConfig) {
   /** Coquilles `index.html` par langue, calculées au transform et émises au bundle. */
   let localizedShells = []
+  /** Origine du Storage Supabase, pour le `preconnect` — connue seulement après résolution. */
+  let supabaseUrl = ''
 
   const virtualId = '\0virtual:site-theme.css'
 
   return {
     name: 'site-from-config',
+    configResolved(config) {
+      supabaseUrl = config.env?.VITE_SUPABASE_URL || ''
+    },
     resolveId(id) {
       if (id === 'virtual:site-theme.css') return virtualId
     },
@@ -107,11 +112,11 @@ export function siteFromConfigPlugin(siteConfig) {
             .filter((locale) => locale !== i18n.defaultLocale)
             .map((locale) => ({
               fileName: `${locale}/index.html`,
-              source: buildIndexHtml(html, siteConfig, locale),
+              source: buildIndexHtml(html, siteConfig, locale, { supabaseUrl }),
             }))
         : []
 
-      return buildIndexHtml(html, siteConfig, i18n.defaultLocale)
+      return buildIndexHtml(html, siteConfig, i18n.defaultLocale, { supabaseUrl })
     },
     /**
      * `writeBundle` et non `generateBundle` : `transformIndexHtml` est lui-même exécuté pendant
@@ -134,6 +139,67 @@ export function siteFromConfigPlugin(siteConfig) {
 }
 
 /**
+ * Indices de ressources injectés dans la coquille : ce que le navigateur doit chercher avant
+ * même d'avoir lu la feuille de style.
+ *
+ * - `preconnect` vers le Storage Supabase : les visuels du catalogue en viennent, et l'image
+ *   LCP d'une page collection ou d'une fiche montre paie sinon un DNS + TLS complet sur le
+ *   chemin critique.
+ * - `preload` des deux polices sûres d'être rendues au-dessus de la ligne de flottaison — le
+ *   corps de texte et les titres. Les autres graisses restent découvertes normalement :
+ *   précharger une police non utilisée gaspille la bande passante et déclenche un avertissement
+ *   navigateur. `crossorigin` est obligatoire même en même origine, les polices étant toujours
+ *   récupérées en mode CORS ; sans lui le fichier est téléchargé deux fois.
+ *
+ * @param {Record<string, any>} siteConfig
+ * @param {{ supabaseUrl?: string }} options
+ * @returns {string}
+ */
+function buildResourceHints(siteConfig, { supabaseUrl } = {}) {
+  const links = []
+
+  const origin = toOrigin(supabaseUrl)
+  if (origin) {
+    links.push(`<link rel="preconnect" href="${escapeHtmlAttr(origin)}" crossorigin />`)
+  }
+
+  const typography = resolveTypography(siteConfig)
+  const pickFace = (role, weight) =>
+    role.faces.find((face) => face.style === 'normal' && face.weight === weight) ||
+    role.faces.find((face) => face.style === 'normal')
+
+  const preloaded = new Set()
+  for (const face of [
+    pickFace(typography.sans, 400),
+    pickFace(typography.heading, typography.headingWeight),
+  ]) {
+    if (!face || preloaded.has(face.src)) continue
+    preloaded.add(face.src)
+    links.push(
+      `<link rel="preload" as="font" type="font/woff2" href="${escapeHtmlAttr(face.src)}" crossorigin />`,
+    )
+  }
+
+  return links.map((link) => `    ${link}`).join('\n')
+}
+
+/**
+ * Origine d'une URL, ou chaîne vide si elle est absente ou illisible — une variable
+ * d'environnement mal renseignée ne doit pas faire échouer le build.
+ *
+ * @param {string | undefined} value
+ * @returns {string}
+ */
+function toOrigin(value) {
+  if (typeof value !== 'string' || !value.trim()) return ''
+  try {
+    return new URL(value.trim()).origin
+  } catch {
+    return ''
+  }
+}
+
+/**
  * Applique le manifest — aplati dans `locale` — aux marqueurs `__…__` de `index.html`.
  *
  * @param {string} html
@@ -141,7 +207,7 @@ export function siteFromConfigPlugin(siteConfig) {
  * @param {string} locale
  * @returns {string}
  */
-export function buildIndexHtml(html, rawSiteConfig, locale) {
+export function buildIndexHtml(html, rawSiteConfig, locale, options = {}) {
   const i18n = resolveI18nConfig(rawSiteConfig)
   // Sans cet aplatissement, un `t({ fr, en, de })` dans `seo.indexHtml` finirait en
   // « [object Object] » dans la balise <title>.
@@ -186,6 +252,11 @@ export function buildIndexHtml(html, rawSiteConfig, locale) {
   let out = html
   for (const [token, value] of Object.entries(map)) {
     out = out.split(token).join(value)
+  }
+
+  const hints = buildResourceHints(siteConfig, options)
+  if (hints) {
+    out = out.replace('</head>', `${hints}\n  </head>`)
   }
 
   const radiusPreset = getRadiusPreset(siteConfig)

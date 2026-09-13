@@ -13,6 +13,12 @@ const SWIPE_COMMIT_RATIO = 0.2
 const SWIPE_COMMIT_MIN_PX = 40
 const MIN_SWIPE_VELOCITY = 0.35
 
+/** Axe indéterminé tant que le doigt (ou le curseur) n'a pas bougé d'autant. */
+const AXIS_LOCK_PX = 8
+
+/** En deçà, le geste souris reste un clic : on ne le confisque pas. */
+const MOUSE_DRAG_CLICK_GUARD_PX = 5
+
 function wrapIndex(index, count) {
   if (count <= 0) return 0
   const safe = Number(index)
@@ -34,6 +40,7 @@ export function useWatchImageSwipe({
   currentIndex,
   onIndexChange,
   swipeDisabled,
+  mouseDragEnabled,
 }) {
   const dragOffset = ref(0)
   const transitionMs = ref(0)
@@ -41,17 +48,26 @@ export function useWatchImageSwipe({
 
   const slideWidth = ref(0)
 
-  let touchStartX = 0
-  let touchStartY = 0
-  let lastTouchX = 0
-  let lastTouchTime = 0
+  let dragStartX = 0
+  let dragStartY = 0
+  let lastDragX = 0
+  let lastDragTime = 0
   let velocity = 0
   let isHorizontalSwipe = null
+  /** `'touch'` ou `'mouse'` : le geste en cours, `null` au repos. */
+  let dragPointer = null
+  let mouseDragDistance = 0
   let resizeObserver = null
+  let clickGuardTimeout = null
 
   const count = computed(() => resolveImageCount(imageCount))
   const isSwipeDisabled = computed(() => {
     const raw = typeof swipeDisabled === 'function' ? swipeDisabled() : unref(swipeDisabled)
+    return Boolean(raw)
+  })
+  const isMouseDragEnabled = computed(() => {
+    const raw =
+      typeof mouseDragEnabled === 'function' ? mouseDragEnabled() : unref(mouseDragEnabled)
     return Boolean(raw)
   })
 
@@ -70,8 +86,10 @@ export function useWatchImageSwipe({
   // on abandonne le drag en cours pour éviter une piste figée en travers.
   watch(isSwipeDisabled, (disabled) => {
     if (!disabled) return
+    detachMouseListeners()
     isDragging.value = false
     isHorizontalSwipe = null
+    dragPointer = null
     dragOffset.value = 0
     transitionMs.value = 0
   })
@@ -121,43 +139,44 @@ export function useWatchImageSwipe({
     )
   }
 
-  function onTouchStart(event) {
-    if (count.value <= 1 || isSwipeDisabled.value) return
+  /* ------------------------------------------------- Geste, sans son pointeur */
 
-    const touch = event.touches[0]
+  function beginDrag(clientX, clientY, pointer) {
+    if (count.value <= 1 || isSwipeDisabled.value) return false
+
     transitionMs.value = 0
     isDragging.value = true
     isHorizontalSwipe = null
-    touchStartX = touch.clientX
-    touchStartY = touch.clientY
-    lastTouchX = touch.clientX
-    lastTouchTime = performance.now()
+    dragPointer = pointer
+    dragStartX = clientX
+    dragStartY = clientY
+    lastDragX = clientX
+    lastDragTime = performance.now()
     velocity = 0
+    return true
   }
 
-  function onTouchMove(event) {
-    if (!isDragging.value || count.value <= 1 || isSwipeDisabled.value) return
+  /** @returns {boolean} vrai quand le mouvement est pris en charge par la piste. */
+  function updateDrag(clientX, clientY) {
+    if (!isDragging.value || count.value <= 1 || isSwipeDisabled.value) return false
 
-    const touch = event.touches[0]
-    const deltaX = touch.clientX - touchStartX
-    const deltaY = touch.clientY - touchStartY
+    const deltaX = clientX - dragStartX
+    const deltaY = clientY - dragStartY
 
     if (isHorizontalSwipe === null) {
-      if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return
+      if (Math.abs(deltaX) < AXIS_LOCK_PX && Math.abs(deltaY) < AXIS_LOCK_PX) return false
       isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY)
     }
 
-    if (!isHorizontalSwipe) return
-
-    event.preventDefault()
+    if (!isHorizontalSwipe) return false
 
     const now = performance.now()
-    const dt = now - lastTouchTime
+    const dt = now - lastDragTime
     if (dt > 0) {
-      velocity = (touch.clientX - lastTouchX) / dt
+      velocity = (clientX - lastDragX) / dt
     }
-    lastTouchX = touch.clientX
-    lastTouchTime = now
+    lastDragX = clientX
+    lastDragTime = now
 
     const atStart = currentIndex.value === 0
     const atEnd = currentIndex.value === count.value - 1
@@ -168,11 +187,13 @@ export function useWatchImageSwipe({
     }
 
     dragOffset.value = offset
+    return true
   }
 
-  function onTouchEnd() {
+  function endDrag() {
     if (!isDragging.value) return
     isDragging.value = false
+    dragPointer = null
 
     if (!isHorizontalSwipe || count.value <= 1 || isSwipeDisabled.value) {
       dragOffset.value = 0
@@ -208,6 +229,109 @@ export function useWatchImageSwipe({
     isHorizontalSwipe = null
   }
 
+  /* ---------------------------------------------------------------- Tactile */
+
+  function onTouchStart(event) {
+    const touch = event.touches?.[0]
+    if (!touch) return
+    beginDrag(touch.clientX, touch.clientY, 'touch')
+  }
+
+  function onTouchMove(event) {
+    if (dragPointer !== 'touch') return
+
+    const touch = event.touches?.[0]
+    if (!touch) return
+
+    if (updateDrag(touch.clientX, touch.clientY)) event.preventDefault()
+  }
+
+  function onTouchEnd() {
+    if (dragPointer !== 'touch') return
+    endDrag()
+  }
+
+  /* ------------------------------------------------------------------ Souris */
+
+  /**
+   * Glissement à la souris, jumeau du swipe tactile : sur une fenêtre étroite
+   * d'ordinateur les flèches sont masquées (elles sont réservées au tactile,
+   * qui swipe), et le curseur n'avait alors que les pastilles pour changer
+   * d'image. Le geste est identique — seuil, inertie, rebond aux extrémités.
+   */
+  function onMouseDown(event) {
+    if (!isMouseDragEnabled.value || event.button !== 0) return
+    if (!beginDrag(event.clientX, event.clientY, 'mouse')) return
+
+    mouseDragDistance = 0
+    // Coupe la sélection de texte et le drag natif de l'image pendant le geste.
+    event.preventDefault()
+
+    window.addEventListener('mousemove', onWindowMouseMove)
+    window.addEventListener('mouseup', onWindowMouseUp)
+  }
+
+  function onWindowMouseMove(event) {
+    if (dragPointer !== 'mouse') return
+
+    // Bouton relâché hors de la fenêtre : le `mouseup` ne nous parviendra pas.
+    if (event.buttons === 0) {
+      finishMouseDrag()
+      return
+    }
+
+    mouseDragDistance = Math.max(mouseDragDistance, Math.abs(event.clientX - dragStartX))
+    updateDrag(event.clientX, event.clientY)
+  }
+
+  function onWindowMouseUp() {
+    if (dragPointer !== 'mouse') return
+    finishMouseDrag()
+  }
+
+  function finishMouseDrag() {
+    detachMouseListeners()
+    const hasMoved = mouseDragDistance > MOUSE_DRAG_CLICK_GUARD_PX
+    mouseDragDistance = 0
+    endDrag()
+    if (hasMoved) swallowNextClick()
+  }
+
+  function detachMouseListeners() {
+    if (typeof window === 'undefined') return
+    window.removeEventListener('mousemove', onWindowMouseMove)
+    window.removeEventListener('mouseup', onWindowMouseUp)
+  }
+
+  /**
+   * Un glissement se termine par un `click` sur l'ancêtre commun du bouton
+   * enfoncé et relâché — le fond de la visionneuse quand le curseur a quitté la
+   * photo, ce qui la refermait en fin de geste. On avale ce clic parasite.
+   */
+  function onGuardedClick(event) {
+    event.stopPropagation()
+    event.preventDefault()
+    releaseClickGuard()
+  }
+
+  function swallowNextClick() {
+    if (typeof window === 'undefined') return
+
+    releaseClickGuard()
+    window.addEventListener('click', onGuardedClick, true)
+    // Tout glissement ne produit pas un clic : la garde tombe au tour suivant.
+    clickGuardTimeout = setTimeout(releaseClickGuard, 0)
+  }
+
+  function releaseClickGuard() {
+    if (typeof window === 'undefined') return
+    if (clickGuardTimeout) {
+      clearTimeout(clickGuardTimeout)
+      clickGuardTimeout = null
+    }
+    window.removeEventListener('click', onGuardedClick, true)
+  }
+
   onMounted(async () => {
     await nextTick()
     syncSlideWidth()
@@ -222,6 +346,8 @@ export function useWatchImageSwipe({
   onUnmounted(() => {
     resizeObserver?.disconnect()
     window.removeEventListener('resize', syncSlideWidth)
+    detachMouseListeners()
+    releaseClickGuard()
   })
 
   return {
@@ -235,6 +361,7 @@ export function useWatchImageSwipe({
     onTouchStart,
     onTouchMove,
     onTouchEnd,
+    onMouseDown,
     syncSlideWidth,
   }
 }

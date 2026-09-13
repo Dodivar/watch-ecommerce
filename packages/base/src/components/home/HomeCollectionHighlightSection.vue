@@ -11,24 +11,67 @@ import { navigateToWatch } from '@/utils/watchSlug.js'
 
 const DEFAULT_CTA = { label: 'Voir toute la collection', to: '/collection' }
 
+const props = defineProps({
+  /**
+   * Montres imposées de l'extérieur — l'aperçu de l'écran d'administration
+   * passe son brouillon ici. `null` (défaut) : le bloc charge la sélection
+   * publiée lui-même, comme sur l'accueil.
+   */
+  watches: {
+    type: Array,
+    default: null,
+  },
+  /**
+   * Aperçu : rendu identique à l'accueil, mais rien n'y navigue — ni les
+   * cartes, ni le bouton de fin de bloc, qui sortiraient l'administrateur de
+   * son écran d'édition.
+   */
+  preview: {
+    type: Boolean,
+    default: false,
+  },
+})
+
 const router = useRouter()
 const config = computed(() => getSiteConfig().home?.collectionHighlight ?? {})
 const cta = computed(() => ({ ...DEFAULT_CTA, ...(config.value.cta ?? {}) }))
 
-const watches = ref([])
-const isLoading = ref(true)
+/**
+ * Sélection reçue : le service n'est pas interrogé — il rendrait la version
+ * publiée, pas le brouillon en cours d'édition.
+ */
+const isControlled = computed(() => Array.isArray(props.watches))
+const loadedWatches = ref([])
+const displayedWatches = computed(() =>
+  isControlled.value ? props.watches : loadedWatches.value,
+)
+const isLoading = ref(!isControlled.value)
 
 /** Première montre = vedette (grand format), les suivantes en grille. */
-const featuredWatch = computed(() => watches.value[0] ?? null)
-const secondaryWatches = computed(() => watches.value.slice(1))
+const featuredWatch = computed(() => displayedWatches.value[0] ?? null)
+const secondaryWatches = computed(() => displayedWatches.value.slice(1))
+
+/**
+ * En aperçu le bouton reste un `<a>` : le thème vert repeint les aplats
+ * `bg-primary` portés par un élément cliquable, un `<span>` perdrait sa couleur.
+ */
+const ctaTag = computed(() => (props.preview ? 'a' : RouterLink))
+const ctaProps = computed(() =>
+  props.preview ? { href: cta.value.to } : { to: cta.value.to },
+)
+
+function onCtaClick(event) {
+  if (props.preview) event.preventDefault()
+}
 
 onMounted(async () => {
+  if (isControlled.value) return
   try {
     isLoading.value = true
-    watches.value = await loadCollectionHighlightWatches()
+    loadedWatches.value = await loadCollectionHighlightWatches()
   } catch (error) {
     console.error('Erreur lors du chargement de la mise en avant collection:', error)
-    watches.value = []
+    loadedWatches.value = []
   } finally {
     isLoading.value = false
   }
@@ -41,7 +84,7 @@ function handleViewDetails(watch) {
 
 <template>
   <section
-    v-if="isLoading || watches.length > 0"
+    v-if="isLoading || displayedWatches.length > 0"
     class="py-12 bg-cream"
     aria-labelledby="collection-highlight-title"
   >
@@ -76,6 +119,7 @@ function handleViewDetails(watch) {
           <WatchCard
             v-bind="WATCH_CARD_CATALOG_PROPS"
             :watch="featuredWatch"
+            :clickable="!preview"
             image-loading="eager"
             image-fetch-priority="high"
             @viewDetails="handleViewDetails"
@@ -91,6 +135,7 @@ function handleViewDetails(watch) {
             :key="watch.id || `${i}-${watch.name}`"
             v-bind="WATCH_CARD_CATALOG_PROPS"
             :watch="watch"
+            :clickable="!preview"
             :image-loading="i < 1 ? 'eager' : 'lazy'"
             @viewDetails="handleViewDetails"
           />
@@ -99,12 +144,14 @@ function handleViewDetails(watch) {
 
       <!-- CTA -->
       <div class="mt-10 text-center">
-        <RouterLink
-          :to="cta.to"
+        <component
+          :is="ctaTag"
+          v-bind="ctaProps"
           class="inline-flex items-center justify-center bg-primary text-white font-semibold px-8 py-3 transition-colors hover:bg-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          @click="onCtaClick"
         >
           {{ cta.label }}
-        </RouterLink>
+        </component>
       </div>
     </div>
   </section>

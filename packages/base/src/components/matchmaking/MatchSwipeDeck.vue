@@ -20,7 +20,7 @@
         </h1>
       </div>
       <p class="shrink-0 text-xs tabular-nums text-gray-500 sm:text-sm" aria-live="off">
-        {{ t('matchmaking.deck.counter', { seen: mm.seenInBudget + 1, total: mm.totalInBudget }) }}
+        {{ t('matchmaking.deck.counter', { seen: mm.seenInBudget + 1, total: mm.roundTotal }) }}
       </p>
     </header>
 

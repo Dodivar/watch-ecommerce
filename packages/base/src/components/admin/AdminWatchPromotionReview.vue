@@ -41,8 +41,8 @@ const pageTitle = computed(() =>
 
 const pageSubtitle = computed(() =>
   isLiveEdit.value
-    ? 'Vérifiez les changements avant de mettre à jour l\'événement'
-    : 'Vérifiez les informations avant d\'activer l\'événement promotionnel',
+    ? 'Vérifiez les changements avant de mettre à jour la campagne'
+    : 'Vérifiez les informations avant d\'activer la campagne de promotion',
 )
 
 const schedule = computed(() => {
@@ -132,7 +132,7 @@ async function load() {
     error.value = null
     const data = await getWatchPromotionCampaignByIdForAdmin(campaignId.value)
     if (!data) {
-      error.value = 'Événement introuvable'
+      error.value = 'Campagne introuvable'
       return
     }
 
@@ -158,7 +158,7 @@ async function load() {
       return
     }
 
-    error.value = 'Cet événement ne peut plus être modifié'
+    error.value = 'Cette campagne ne peut plus être modifiée'
   } catch (err) {
     error.value = err.message
   } finally {
@@ -212,11 +212,11 @@ async function confirmApply() {
       }
       await updateWatchPromotionCampaign(campaignId.value, pendingUpdate.value)
       showApplyConfirm.value = false
-      success.value = 'Événement promotionnel mis à jour avec succès.'
+      success.value = 'Campagne de promotion mise à jour avec succès.'
     } else {
       await applyWatchPromotionCampaign(campaignId.value)
       showApplyConfirm.value = false
-      success.value = 'Événement promotionnel appliqué avec succès.'
+      success.value = 'Campagne de promotion appliquée avec succès.'
     }
 
     setTimeout(() => {
@@ -239,7 +239,7 @@ onMounted(load)
     :subtitle="pageSubtitle"
     show-back-button
     back-button-route="/admin/watch-promotions"
-    back-button-text="Promotions montres"
+    back-button-text="Campagnes de promotion"
     content-class="max-w-5xl"
   >
     <template #actions>
@@ -259,7 +259,7 @@ onMounted(load)
     <template v-else-if="campaign">
       <section class="bg-white rounded-lg shadow p-6 mb-6 space-y-4">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Événement</p>
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Campagne</p>
           <h2 class="text-xl font-semibold text-gray-900">{{ campaign.name }}</h2>
           <p v-if="campaign.description" class="mt-2 text-gray-600 whitespace-pre-line">
             {{ campaign.description }}
@@ -360,7 +360,7 @@ onMounted(load)
           v-if="resolvedItems.some((i) => i.watch?.promotionPrice)"
           class="px-6 py-3 text-xs text-gray-500 border-t border-gray-100 bg-cream/30"
         >
-          Les promotions individuelles existantes seront remplacées le temps de cet événement, puis restaurées à la fin de la campagne.
+          Les promotions individuelles existantes seront remplacées le temps de cette campagne, puis restaurées à la fin de celle-ci.
         </p>
       </section>
 
@@ -371,7 +371,7 @@ onMounted(load)
           class="px-4 py-2 border border-red-200 text-red-700 rounded-lg hover:bg-red-50 font-medium"
           @click="openCancelConfirm"
         >
-          Annuler l'événement
+          Annuler la campagne
         </button>
         <div v-else />
         <button
@@ -383,7 +383,7 @@ onMounted(load)
           {{
             isApplying
               ? (isLiveEdit ? 'Enregistrement…' : 'Application…')
-              : (isLiveEdit ? 'Enregistrer les modifications' : 'Appliquer l\'événement')
+              : (isLiveEdit ? 'Enregistrer les modifications' : 'Appliquer la campagne')
           }}
         </button>
       </div>
@@ -396,7 +396,7 @@ onMounted(load)
       @click="closeCancelConfirm"
     >
       <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full" @click.stop>
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">Annuler l'événement ?</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Annuler la campagne ?</h3>
         <p class="text-gray-600 mb-6">
           Le brouillon « <strong>{{ campaign?.name }}</strong> » et la sélection de
           {{ resolvedItems.length }} montre{{ resolvedItems.length > 1 ? 's' : '' }} seront supprimés.
@@ -431,7 +431,7 @@ onMounted(load)
     >
       <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full" @click.stop>
         <h3 class="text-lg font-semibold text-gray-900 mb-2">
-          {{ isLiveEdit ? 'Enregistrer les modifications ?' : 'Appliquer l\'événement promotionnel ?' }}
+          {{ isLiveEdit ? 'Enregistrer les modifications ?' : 'Appliquer la campagne de promotion ?' }}
         </h3>
         <p class="text-gray-600 mb-4">
           <template v-if="isLiveEdit">

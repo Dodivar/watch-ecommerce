@@ -11,8 +11,8 @@
  * caractéristiques saisies en texte libre et souvent absentes) :
  *
  * - **Le budget est le seul filtre dur.** Tout le reste est un score : une montre qui ne
- *   correspond pas à une préférence est reléguée en fin de deck, jamais retirée. « Vous avez
- *   vu tout le monde » doit vouloir dire exactement cela.
+ *   correspond pas à une préférence est reléguée en fin de classement, jamais retirée du
+ *   catalogue parcourable — elle attend simplement la manche suivante (`selectMatchRound`).
  * - **Inconnu ≠ non-correspondant.** Une caractéristique absente ou non reconnue (un calibre
  *   brut dans `movement`, un cadran « Ice Blue ») vaut 0, ni bonus ni malus. Sans cette règle,
  *   une préférence « cadran noir » éliminerait la moitié du stock pour un champ jamais rempli.
@@ -204,9 +204,13 @@ export function buildMatchFacets(pool) {
  * Deck ordonné : budget appliqué en filtre, puis tri par score décroissant, puis
  * `displayOrder` décroissant (les nouveautés d'abord), puis id pour la stabilité.
  *
+ * `positiveCount` compte les scores `>= 0`. Le tri étant décroissant, ils forment un
+ * **préfixe** de `ranked` : un seul entier suffit donc à dire où commencent les montres qui
+ * contredisent une préférence, sans avoir à traîner les scores jusqu'à l'affichage.
+ *
  * @param {any[]} pool
  * @param {MatchPreferences} preferences
- * @returns {{ ranked: any[], excludedByBudget: number }}
+ * @returns {{ ranked: any[], excludedByBudget: number, positiveCount: number }}
  */
 export function rankPool(pool, preferences) {
   const watches = Array.isArray(pool) ? pool : []
@@ -225,5 +229,73 @@ export function rankPool(pool, preferences) {
   return {
     ranked: scored.map((s) => s.watch),
     excludedByBudget: watches.length - eligible.length,
+    positiveCount: scored.filter((s) => s.score >= 0).length,
   }
+}
+
+/* --------------------------------------------------------------------- Manche */
+
+/**
+ * Montres présentées d'une traite. Vingt tient dans une session de swipe (~5 s par carte,
+ * photo comprise) ; c'est la borne qui empêche un catalogue de 250 montres de transformer le
+ * parcours en inventaire.
+ */
+export const MATCH_ROUND_SIZE = 20
+
+/**
+ * L'écrémage par le score ne s'applique que s'il laisse au moins autant de montres. En deçà,
+ * il ne s'applique pas du tout : un visiteur aux critères rares n'a parfois que des montres
+ * qui le contredisent, et mieux vaut lui en présenter vingt tièdes, la moins mauvaise devant,
+ * qu'un deck vide ou une manche rabougrie.
+ *
+ * C'est bien une condition sur l'écrémage, pas une taille : il borne le nombre de montres
+ * qu'écarter le score peut coûter, jamais le nombre de montres que la manche présente.
+ */
+export const MATCH_DECK_MIN = 8
+
+/**
+ * La manche : ce que le visiteur va voir maintenant, pris en tête du classement.
+ *
+ * Deux coupes, dans cet ordre :
+ *
+ * 1. **Les montres qui contredisent** (score `< 0`) sont écartées, mais seulement tant qu'il
+ *    reste au moins `MATCH_DECK_MIN` montres sans contradiction — sinon la coupe est
+ *    abandonnée entière. C'est la seule coupe au score que ce parcours s'autorise, et elle
+ *    est sûre : un score négatif ne peut venir que d'un critère explicitement contredit,
+ *    jamais d'une caractéristique inconnue — qui vaut 0 (voir `measureAffinity`). Un seuil
+ *    absolu, lui, écarterait les montres *mal renseignées* plutôt que les *hors sujet*.
+ * 2. **Le rang**, borné par `allowance`. Couper au rang plutôt qu'au score est ce qui rend la
+ *    taille de la manche indépendante de la qualité de remplissage des fiches : quel que soit
+ *    le catalogue, on présente vingt montres.
+ *
+ * Rien n'est perdu : ce que la manche laisse de côté revient à la manche suivante, que
+ * l'écran de fin propose explicitement (voir `MatchEndScreen.vue`).
+ *
+ * @param {any[]} ranked Classement complet (sortie de `rankPool`), montres vues comprises
+ * @param {object} params
+ * @param {Set<string> | string[]} params.seen Identifiants déjà présentés
+ * @param {number} params.allowance Nombre de montres encore permises dans cette manche
+ * @param {number} [params.positiveCount] Scores `>= 0` en tête de `ranked` (défaut : tous)
+ * @returns {any[]}
+ */
+export function selectMatchRound(ranked, { seen, allowance, positiveCount } = {}) {
+  const all = Array.isArray(ranked) ? ranked : []
+  const seenIds = seen instanceof Set ? seen : new Set(Array.isArray(seen) ? seen : [])
+  const positiveEnd = Number.isFinite(positiveCount) ? positiveCount : all.length
+
+  // Le retrait des montres vues préserve l'ordre du classement : les non-vues issues du
+  // préfixe non négatif restent donc en tête de `unseen`, et se comptent au passage.
+  const unseen = []
+  let positiveUnseen = 0
+  all.forEach((watch, index) => {
+    if (seenIds.has(watch?.id)) return
+    unseen.push(watch)
+    if (index < positiveEnd) positiveUnseen += 1
+  })
+
+  // L'écrémage s'efface plutôt que de rétrécir la manche : une fois les montres sans
+  // contradiction épuisées, « voir plus » doit rendre une manche pleine, pas un fond de tiroir.
+  const qualityCut = positiveUnseen >= MATCH_DECK_MIN ? positiveUnseen : unseen.length
+  const size = Math.min(Math.max(0, allowance ?? 0), qualityCut, unseen.length)
+  return unseen.slice(0, size)
 }

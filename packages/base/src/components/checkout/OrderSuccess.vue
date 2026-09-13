@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { verifyOrder, downloadOrderReceipt } from '@/services/orderService.js'
+import { verifyOrder, downloadOrderReceipt, requestOrderReturn } from '@/services/orderService.js'
 import { getWatchById, getLatestAvailableWatches } from '@/services/watchService'
 import { useCart } from '@/composables/useCart.js'
 import { trackPurchase } from '@/services/analytics'
@@ -45,6 +45,16 @@ const isPreview = ref(false)
 const accessToken = ref('')
 const receiptDownloading = ref(false)
 const receiptError = ref('')
+
+// Dossier retour : le client déclare sa rétractation depuis cette page plutôt
+// que par e-mail. C'est le serveur qui horodate la demande — cette date fait
+// courir les 14 jours de remboursement (art. L221-24) — et l'admin voit le
+// dossier ouvert sans rien ressaisir.
+const returnInfo = ref(null)
+const returnFormOpen = ref(false)
+const returnReason = ref('')
+const returnSending = ref(false)
+const returnError = ref('')
 
 const DISCOUNT_TYPE_LABELS = {
   percent: 'Pourcentage',
@@ -123,6 +133,71 @@ const followUpMessage = computed(() => {
   }
   return 'Notre équipe prépare votre commande. Vous serez contacté pour l’expédition.'
 })
+
+function formatDateLabel(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleDateString(getActiveLocale(), {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+const returnStatus = computed(() => returnInfo.value?.status || 'none')
+
+/** Le client peut-il encore ouvrir un dossier ? */
+const canRequestReturn = computed(
+  () => isTrackingView.value && !isPreview.value && returnStatus.value === 'none' && Boolean(returnInfo.value?.withdrawalOpen),
+)
+
+/** Bloc visible dès qu'il y a quelque chose à dire : droit ouvert, ou dossier en cours. */
+const showReturnBlock = computed(
+  () =>
+    isTrackingView.value &&
+    !isPreview.value &&
+    Boolean(returnInfo.value) &&
+    (canRequestReturn.value || returnStatus.value !== 'none'),
+)
+
+const returnStatusMessage = computed(() => {
+  const info = returnInfo.value
+  if (!info) return ''
+  if (info.status === 'requested') {
+    return t('checkout.returnRequested', { date: formatDateLabel(info.requestedAt) })
+  }
+  if (info.status === 'received') return t('checkout.returnReceived')
+  if (info.status === 'refunded') {
+    return t('checkout.returnRefunded', {
+      amount: formatPrice(info.refundAmountCents),
+      date: formatDateLabel(info.refundedAt),
+    })
+  }
+  if (info.status === 'rejected') return t('checkout.returnRejected')
+  return ''
+})
+
+const refundDeadlineMessage = computed(() => {
+  const info = returnInfo.value
+  if (!info || !['requested', 'received'].includes(info.status) || !info.refundDeadline) return ''
+  return t('checkout.returnRefundDeadline', { date: formatDateLabel(info.refundDeadline) })
+})
+
+async function submitReturnRequest() {
+  returnError.value = ''
+  returnSending.value = true
+  try {
+    const result = await requestOrderReturn(orderId.value, accessToken.value, returnReason.value)
+    returnInfo.value = result.return || returnInfo.value
+    returnFormOpen.value = false
+    returnReason.value = ''
+  } catch (e) {
+    returnError.value = e.message || t('checkout.returnError')
+  } finally {
+    returnSending.value = false
+  }
+}
 
 function clearCheckoutSession() {
   const key = `watch_checkout:${site.siteId || site.id || 'default'}`
@@ -234,6 +309,7 @@ onMounted(async () => {
     shippingMethodType.value = order.shippingMethodType || ''
     shippingMethodLabel.value = order.shippingMethodLabel || ''
     pickupLocation.value = order.pickupLocation || null
+    returnInfo.value = order.return || null
     lines.value = result.lines || []
 
     // Effets de bord de fin de tunnel — jamais sur le lien de suivi durable : rouvert des
@@ -340,6 +416,71 @@ onMounted(async () => {
 
             <div v-if="!isTrackingView" class="rounded-xl bg-gray-50 border border-gray-100 p-4 mb-8">
               <p class="text-gray-600 text-sm leading-relaxed">{{ followUpMessage }}</p>
+            </div>
+
+            <div
+              v-if="showReturnBlock"
+              class="rounded-xl border border-gray-200 p-4 mb-6"
+              data-testid="return-block"
+            >
+              <h2 class="text-base font-semibold text-gray-900 mb-1">
+                {{ t('checkout.returnTitle') }}
+              </h2>
+
+              <p v-if="returnStatusMessage" class="text-sm text-gray-600">
+                {{ returnStatusMessage }}
+              </p>
+              <p v-if="refundDeadlineMessage" class="text-sm text-gray-500 mt-1">
+                {{ refundDeadlineMessage }}
+              </p>
+
+              <template v-if="canRequestReturn">
+                <p class="text-sm text-gray-600">{{ t('checkout.returnLegal') }}</p>
+
+                <button
+                  v-if="!returnFormOpen"
+                  type="button"
+                  class="mt-3 px-4 py-2 border border-gray-300 text-gray-800 rounded-lg text-sm font-medium transition-colors hover:bg-gray-50"
+                  data-testid="return-cta"
+                  @click="returnFormOpen = true"
+                >
+                  {{ t('checkout.returnCta') }}
+                </button>
+
+                <div v-else class="mt-3">
+                  <label class="block text-sm text-gray-700">
+                    {{ t('checkout.returnReasonLabel') }}
+                    <textarea
+                      v-model="returnReason"
+                      rows="3"
+                      :placeholder="t('checkout.returnReasonPlaceholder')"
+                      class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      data-testid="return-reason"
+                    ></textarea>
+                  </label>
+                  <div class="mt-3 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium disabled:opacity-60"
+                      :disabled="returnSending"
+                      data-testid="return-submit"
+                      @click="submitReturnRequest"
+                    >
+                      {{ returnSending ? t('checkout.returnSending') : t('checkout.returnSubmit') }}
+                    </button>
+                    <button
+                      type="button"
+                      class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm"
+                      :disabled="returnSending"
+                      @click="returnFormOpen = false"
+                    >
+                      {{ t('checkout.returnCancel') }}
+                    </button>
+                  </div>
+                </div>
+              </template>
+
+              <p v-if="returnError" class="mt-3 text-sm text-red-600">{{ returnError }}</p>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3">

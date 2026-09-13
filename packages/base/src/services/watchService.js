@@ -16,6 +16,7 @@ import {
 } from '@/constants/watchAudiences'
 import { getActiveLocale } from '@/i18n'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
 import { buildWatchSlug } from '@/utils/watchSlug.js'
 
 /** Images par montre en listing collection / recherche (navigation jusqu'à WATCH_CARD_MAX_IMAGES). */
@@ -826,6 +827,45 @@ export async function getLatestAvailableWatches(limit = 7) {
     console.error('Erreur dans getLatestAvailableWatches:', error)
     throw error
   }
+}
+
+/**
+ * Montres d'un panier qui ne peuvent plus être commandées : fiche disparue du
+ * catalogue, retirée de la vente, vendue, ou stock épuisé côté retail.
+ *
+ * Sert au checkout : le backend refuse la commande en bloc (« une ou plusieurs
+ * montres ne sont plus disponibles ») sans jamais nommer la ligne fautive, et
+ * son RPC n'est pas interrogeable ligne à ligne. Une seule requête suffit à
+ * lever le doute pour tout le panier.
+ *
+ * @param {string[]} watchIds
+ * @returns {Promise<string[]>} sous-ensemble de `watchIds`, dans l'ordre reçu
+ */
+export async function getUnpurchasableWatchIds(watchIds) {
+  const ids = [
+    ...new Set((watchIds ?? []).filter((id) => typeof id === 'string' && id.trim() !== '')),
+  ]
+  if (ids.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('watches')
+    .select('id, is_available, is_sold, stock_quantity')
+    .in('id', ids)
+
+  if (error) {
+    throw new Error(`Erreur lors de la vérification des montres du panier: ${error.message}`)
+  }
+
+  const siteConfig = getSiteConfig()
+  const rows = new Map((data ?? []).map((row) => [row.id, row]))
+
+  return ids.filter((id) => {
+    const row = rows.get(id)
+    // Absente de la réponse : fiche supprimée, ou masquée par une policy RLS.
+    if (!row) return true
+    if (row.is_sold === true || row.is_available === false) return true
+    return isWatchOutOfStock(siteConfig, { stockQuantity: row.stock_quantity })
+  })
 }
 
 /**

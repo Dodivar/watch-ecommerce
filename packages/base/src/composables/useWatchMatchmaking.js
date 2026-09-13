@@ -4,10 +4,12 @@ import { getAllWatchesForListing } from '@/services/watchService'
 import { getActiveCampaignWatchPricingPublic } from '@/services/watchPromotionCampaignService.js'
 import { enrichWatchesWithActiveCampaignPricing } from '@/utils/watchPromotionCampaign.js'
 import {
+  MATCH_ROUND_SIZE,
   buildMatchFacets,
   createEmptyPreferences,
   rankPool,
   sanitizePreferences,
+  selectMatchRound,
 } from '@/utils/watchMatchmaking.js'
 import {
   clearMatchSession,
@@ -29,6 +31,13 @@ import {
  * page collection : le parcours s'ouvre sur la première, le reste se range derrière sans que
  * rien n'attende. Le deck a bien besoin de tout connaître pour classer — mais il n'en a besoin
  * qu'au moment de classer, pas pour afficher la première question.
+ *
+ * Le deck est présenté par **manches** de `MATCH_ROUND_SIZE` (voir `selectMatchRound`) : sur un
+ * catalogue de 250 montres, tout présenter d'un coup ferait du parcours un inventaire. La
+ * manche est une allocation de décisions (`session.deckLimit`), pas une tranche figée du
+ * classement : le visiteur qui revient sur ses préférences en cours de route voit les places
+ * restantes se remplir des montres devenues les plus proches, sans gagner de manche pour
+ * autant. `showMoreWatches()` — l'écran de fin — est le seul chemin qui en accorde une.
  */
 export function useWatchMatchmaking() {
   /** @type {import('vue').Ref<any[]>} */
@@ -48,15 +57,49 @@ export function useWatchMatchmaking() {
 
   const ranking = computed(() => rankPool(pool.value, session.preferences))
   const seenSet = computed(() => new Set(session.seen))
-  /** Montres restant à présenter, dans l'ordre d'affinité. */
-  const deck = computed(() => ranking.value.ranked.filter((w) => !seenSet.value.has(w.id)))
+  const seenInBudget = computed(
+    () => ranking.value.ranked.filter((w) => seenSet.value.has(w.id)).length,
+  )
+  /**
+   * Places encore permises. Les décisions se comptent dans le budget courant : un visiteur qui
+   * resserre son budget après coup ne se voit pas facturer des montres qui n'y entrent plus.
+   */
+  const allowance = computed(() => Math.max(0, session.deckLimit - seenInBudget.value))
+  /** Montres restant à présenter dans cette manche, dans l'ordre d'affinité. */
+  const deck = computed(() =>
+    selectMatchRound(ranking.value.ranked, {
+      seen: seenSet.value,
+      allowance: allowance.value,
+      positiveCount: ranking.value.positiveCount,
+    }),
+  )
   const currentWatch = computed(() => deck.value[0] ?? null)
   /** Les deux suivantes : montées derrière la carte pour l'empilement et le préchargement. */
   const upcomingWatches = computed(() => deck.value.slice(1, 3))
 
   const totalInBudget = computed(() => ranking.value.ranked.length)
-  const seenInBudget = computed(
-    () => ranking.value.ranked.filter((w) => seenSet.value.has(w.id)).length,
+  /**
+   * Dénominateur du compteur de deck : les décisions déjà prises plus celles qui restent dans
+   * la manche. Sur un petit catalogue il vaut le catalogue, sur un grand la manche — dans les
+   * deux cas il annonce une ligne d'arrivée atteignable, ce que « 3 sur 247 » ne faisait pas.
+   */
+  const roundTotal = computed(() => seenInBudget.value + deck.value.length)
+  /** Montres du budget encore jamais présentées et laissées à une manche ultérieure. */
+  const remainingBeyondRound = computed(
+    () => totalInBudget.value - seenInBudget.value - deck.value.length,
+  )
+  /**
+   * Ce que « voir plus » montrerait vraiment, la manche suivante étant simulée plutôt
+   * qu'annoncée : l'écrémage par le score peut la rendre plus courte que `MATCH_ROUND_SIZE`,
+   * et un bouton qui promet vingt montres pour en livrer dix est un bouton qui ment.
+   */
+  const nextRoundSize = computed(
+    () =>
+      selectMatchRound(ranking.value.ranked, {
+        seen: seenSet.value,
+        allowance: MATCH_ROUND_SIZE,
+        positiveCount: ranking.value.positiveCount,
+      }).length,
   )
 
   const likedSet = computed(() => new Set(session.liked))
@@ -154,7 +197,9 @@ export function useWatchMatchmaking() {
     if (session.step === 'swipe' && deck.value.length === 0) {
       session.step = 'end'
     }
-    // Nouvelles montres arrivées depuis la fin du parcours : on les présente.
+    // Nouvelles montres arrivées depuis la fin du parcours : on les présente. Manche épuisée,
+    // le deck reste vide et l'écran de fin propose la suivante — l'allocation ne s'élargit
+    // jamais toute seule, pas même pour de la nouveauté.
     if (session.step === 'end' && deck.value.length > 0) {
       session.step = 'swipe'
     }
@@ -192,6 +237,15 @@ export function useWatchMatchmaking() {
 
   function startDiscovery() {
     session.step = deck.value.length > 0 ? 'swipe' : 'end'
+  }
+
+  /**
+   * Accorde une manche de plus. Le seul chemin qui élargit l'allocation : ce que la manche a
+   * laissé de côté n'est jamais perdu, mais n'est jamais imposé non plus.
+   */
+  function showMoreWatches() {
+    session.deckLimit += MATCH_ROUND_SIZE
+    if (deck.value.length > 0) session.step = 'swipe'
   }
 
   /** Retour aux préférences en gardant l'historique : les montres vues restent vues. */
@@ -260,6 +314,7 @@ export function useWatchMatchmaking() {
       seen: session.seen,
       liked: session.liked,
       passed: session.passed,
+      deckLimit: session.deckLimit,
     }),
     (snapshot) => {
       if (!hydrated) return
@@ -284,6 +339,9 @@ export function useWatchMatchmaking() {
     upcomingWatches,
     totalInBudget,
     seenInBudget,
+    roundTotal,
+    remainingBeyondRound,
+    nextRoundSize,
     excludedByBudget: computed(() => ranking.value.excludedByBudget),
     likedSet,
     likedEntries,
@@ -297,6 +355,7 @@ export function useWatchMatchmaking() {
     nextStep,
     previousStep,
     startDiscovery,
+    showMoreWatches,
     editPreferences,
     restart,
     like,

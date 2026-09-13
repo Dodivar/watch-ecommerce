@@ -250,12 +250,13 @@ export default {
       ogLocale: 'fr_FR',
       ogSiteName: 'Demo Store',
       appleMobileWebAppTitle: 'Demo Store Watches',
-      ogImagePath: '/logo500x500.png',
+      /** Icône applicative, à remplacer par une bannière 1200×630 dédiée au partage. */
+      ogImagePath: '/web-app-manifest-512x512.png',
     },
     home: {
       title: 'Demo Store - Rachat de Montres de Luxe | Collection Garantie',
       metaDescription:
-        'Découvrez notre collection de montres de luxe garanties 1 an. Rolex, Breitling, Tag Heuer, Cartier et plus. Estimation gratuite, recherche personnalisée et accompagnement expert.',
+        'Montres de luxe garanties 1 an : Rolex, Breitling, Tag Heuer, Cartier. Estimation gratuite, recherche personnalisée et accompagnement expert.',
       ogTitle: 'Demo Store - Rachat de Montres de Luxe | Collection Garantie',
       ogDescription:
         'Découvrez notre collection de montres de luxe garanties 1 an. Estimation gratuite, recherche personnalisée et accompagnement expert.',
@@ -310,13 +311,21 @@ export default {
     watchDetail: {
       titleFallback: 'Montre - Demo Store',
       titlePriceSuffix: ' | Demo Store',
+      /** Argument commercial ajouté aux méta-descriptions de fiche (voir `WatchDetail.vue`). */
+      descriptionSuffix: 'Garantie 1 an, authentification certifiée.',
       descriptionFallback: 'Découvrez cette montre de luxe sur Demo Store',
       structuredDataSellerName: 'Demo Store',
     },
-    aPropos: {
-      title: 'À propos de Demo Store - Votre partenaire de confiance pour les montres de luxe',
+    /** Reprend `heading` / `subheading` de `faq.config.js`, pour que le pré-rendu les voie. */
+    faq: {
+      title: 'Questions fréquentes | Demo Store',
       metaDescription:
-        'Découvrez Demo Store, une entreprise spécialisée dans le rachat et la vente de montres de luxe. Nous possédons directement notre stock, garantissant authenticité, qualité et disponibilité immédiate.',
+        'Exemple de structure pour la FAQ (textes génériques — à adapter par marque).',
+    },
+    aPropos: {
+      title: 'À propos de Demo Store — Spécialiste de la montre de luxe',
+      metaDescription:
+        'Demo Store, spécialiste du rachat et de la vente de montres de luxe. Notre stock nous appartient : authenticité, qualité et disponibilité immédiate.',
       ogTitle: 'À propos de Demo Store - Votre partenaire de confiance',
       ogDescription:
         'Découvrez Demo Store, une entreprise spécialisée dans le rachat et la vente de montres de luxe. Stock direct, authenticité garantie.',

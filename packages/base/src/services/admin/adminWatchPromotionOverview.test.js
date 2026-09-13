@@ -124,7 +124,7 @@ describe('getActiveCampaignMembershipsForAdmin', () => {
 })
 
 describe('getCampaignByWatchIdForAdmin', () => {
-  it('préfère la campagne en cours quand une montre est engagée dans plusieurs événements', async () => {
+  it('préfère la campagne en cours quand une montre est engagée dans plusieurs campagnes', async () => {
     const byWatchId = await getCampaignByWatchIdForAdmin([
       { watchId: 'w1', campaign: { id: 'c-future', status: 'scheduled', startsAt: FUTURE, endsAt: null } },
       { watchId: 'w1', campaign: { id: 'c-now', status: 'active', startsAt: PAST, endsAt: null } },

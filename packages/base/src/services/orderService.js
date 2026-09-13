@@ -112,6 +112,26 @@ export async function cancelOrder(orderId, accessToken) {
   return parseJson(response)
 }
 
+/**
+ * Déclare la rétractation du client depuis la page de suivi de commande.
+ *
+ * La date de notification — celle qui fait courir les 14 jours de
+ * remboursement (art. L221-24) — est posée par le serveur : elle ne peut pas
+ * venir d'ici.
+ *
+ * @param {string} orderId
+ * @param {string} accessToken Token de suivi (lien de l'email de confirmation)
+ * @param {string} [reason] Motif libre, facultatif
+ */
+export async function requestOrderReturn(orderId, accessToken, reason) {
+  const response = await fetch(`${getBackendApiUrl()}/api/orders/${orderId}/return-request`, {
+    method: 'POST',
+    headers: apiHeaders(accessToken),
+    body: JSON.stringify({ reason: reason || null }),
+  })
+  return parseJson(response)
+}
+
 export async function verifyOrder(orderId, accessToken) {
   const params = new URLSearchParams({ token: accessToken })
   const response = await fetch(

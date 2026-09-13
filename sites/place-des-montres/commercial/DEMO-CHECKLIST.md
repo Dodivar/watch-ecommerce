@@ -78,7 +78,7 @@ Connexion : `/admin/login` (compte Supabase Auth autorisé dans `admin_users`).
 - [ ] **Montres** — liste, création, édition, upload images
 - [ ] **Commandes** — statut, expédition / retrait, reçu PDF
 - [ ] **Codes promo checkout** — création d'un code pour la démo
-- [ ] **Promotions montres** — campagne soldes (si utilisée)
+- [ ] **Campagnes de promotion** — campagne soldes (si utilisée)
 - [ ] **Carrousel accueil** — ajout / réordonnancement de slides
 - [ ] **Nouveautés accueil** — montres mises en avant
 - [ ] **Messages** — leads formulaire contact

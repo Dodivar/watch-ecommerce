@@ -2,13 +2,16 @@
   <div
     ref="containerRef"
     class="relative h-full w-full overflow-hidden"
+    :class="mouseDragCursorClass"
     style="overscroll-behavior: contain"
     @touchstart.passive="onTouchStart"
     @touchmove="onTouchMove"
     @touchend="onTouchEnd"
     @touchcancel="onTouchEnd"
+    @mousedown="onMouseDown"
+    @dragstart="onNativeDragStart"
   >
-    <div class="flex h-full" :class="trackClass" :style="trackStyle">
+    <div class="flex h-full" :class="effectiveTrackClass" :style="trackStyle">
       <div
         v-for="(image, index) in images"
         :key="slideKey(image, index)"
@@ -117,10 +120,28 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  /**
+   * Rejoue le swipe au curseur (bouton gauche maintenu). Utile là où les flèches
+   * sont masquées hors grand écran : une fenêtre étroite sur ordinateur n'a
+   * alors aucun geste pour changer d'image.
+   */
+  mouseDrag: {
+    type: Boolean,
+    default: false,
+  },
   /** `touch-none` quand la gestuelle verticale est pilotée en JS (visionneuse). */
   trackClass: {
     type: String,
     default: 'touch-pan-y',
+  },
+  /**
+   * Piste qui n'a aucun geste horizontal à jouer (une seule image) : elle rend la
+   * main au navigateur. La visionneuse, qui pilote le zoom au doigt même sur une
+   * photo unique, repasse `touch-none`.
+   */
+  idleTrackClass: {
+    type: String,
+    default: 'touch-auto',
   },
 })
 
@@ -129,6 +150,16 @@ const emit = defineEmits(['update:modelValue', 'index-change'])
 const containerRef = ref(null)
 const currentIndex = ref(Number.isFinite(props.modelValue) ? props.modelValue : 0)
 const imageCount = computed(() => props.images.length)
+
+/**
+ * `touch-pan-y` confisque le défilement horizontal au profit du glissement d'images.
+ * Sur une carte à une seule image, il n'y avait rien à confisquer : le doigt posé sur
+ * la photo bloquait le défilement du carrousel parent (bande « Dernières transactions »
+ * de l'accueil, dont les cartes n'ont qu'un visuel).
+ */
+const effectiveTrackClass = computed(() =>
+  props.images.length > 1 ? props.trackClass : props.idleTrackClass,
+)
 
 watch(
   () => props.modelValue,
@@ -145,21 +176,38 @@ function emitIndexChange(index) {
   emit('index-change', index)
 }
 
+const isMouseDragActive = computed(
+  () => props.mouseDrag && props.images.length > 1 && !props.swipeDisabled,
+)
+
 const {
   trackStyle,
+  isDragging,
   nextImage,
   previousImage,
   goToIndex,
   onTouchStart,
   onTouchMove,
   onTouchEnd,
+  onMouseDown,
 } = useWatchImageSwipe({
   imageCount,
   containerRef,
   currentIndex,
   onIndexChange: emitIndexChange,
   swipeDisabled: () => props.swipeDisabled,
+  mouseDragEnabled: () => isMouseDragActive.value,
 })
+
+const mouseDragCursorClass = computed(() => {
+  if (!isMouseDragActive.value) return ''
+  return isDragging.value ? 'cursor-grabbing' : 'cursor-grab'
+})
+
+/** Le glissement d'image du navigateur volerait le geste dès le premier pixel. */
+function onNativeDragStart(event) {
+  if (isMouseDragActive.value) event.preventDefault()
+}
 
 function slideKey(image, index) {
   return props.slideKeyFn ? props.slideKeyFn(image, index) : index

@@ -45,7 +45,7 @@ const form = ref({
 const watches = ref([])
 const selectedWatchIds = ref(new Set())
 const itemOverrides = ref({})
-/** Promo catalogue avant événement (snapshot campagne ou promo montre). */
+/** Promo catalogue avant campagne (snapshot campagne ou promo montre). */
 const baselinePromos = ref({})
 const isLoading = ref(true)
 const isSaving = ref(false)
@@ -260,7 +260,7 @@ async function loadCampaign() {
   )
   const existing = await getWatchPromotionCampaignByIdForAdmin(draftId.value)
   if (!existing) {
-    error.value = 'Événement introuvable'
+    error.value = 'Campagne introuvable'
     return
   }
 
@@ -270,7 +270,7 @@ async function loadCampaign() {
   } else if (live === 'active' || live === 'scheduled') {
     campaignStatus.value = existing.status
   } else {
-    error.value = 'Cet événement ne peut plus être modifié'
+    error.value = 'Cette campagne ne peut plus être modifiée'
     return
   }
 
@@ -360,10 +360,10 @@ onMounted(async () => {
 
 <template>
   <AdminShell
-    :title="isEdit ? (isLiveEdit ? 'Modifier l\'événement en cours' : 'Modifier l\'événement promotionnel') : 'Nouvel événement promotionnel'"
+    :title="isEdit ? (isLiveEdit ? 'Modifier la campagne en cours' : 'Modifier la campagne de promotion') : 'Nouvelle campagne de promotion'"
     show-back-button
     back-button-route="/admin/watch-promotions"
-    back-button-text="Promotions montres"
+    back-button-text="Campagnes de promotion"
     content-class="max-w-6xl"
   >
     <div v-if="error" class="bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-4">{{ error }}</div>
@@ -371,7 +371,7 @@ onMounted(async () => {
 
     <form v-else class="space-y-8" @submit.prevent="continueToReview">
       <section class="bg-white rounded-lg shadow p-6 space-y-4">
-        <h2 class="text-lg font-semibold text-gray-900">Informations de l'événement</h2>
+        <h2 class="text-lg font-semibold text-gray-900">Informations de la campagne</h2>
         <div>
           <label for="campaign-name" class="block text-sm font-medium mb-1">Titre</label>
           <input
@@ -485,8 +485,8 @@ onMounted(async () => {
                 <th class="px-4 py-3 cursor-pointer" @click="handleSort('name')">Montre</th>
                 <th class="px-4 py-3 cursor-pointer" @click="handleSort('price')">Prix catalogue</th>
                 <th class="px-4 py-3">Promo actuelle</th>
-                <th class="px-4 py-3">Remise événement %</th>
-                <th class="px-4 py-3">Prix promo événement</th>
+                <th class="px-4 py-3">Remise campagne %</th>
+                <th class="px-4 py-3">Prix promo campagne</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -527,7 +527,7 @@ onMounted(async () => {
                       max="99"
                       :placeholder="String(event.pct ?? form.defaultDiscountPercent)"
                       class="w-20 px-2 py-1 border border-primary/30 rounded text-sm font-medium text-primary"
-                      :title="'Remplace la promo actuelle le temps de l\'événement'"
+                      :title="'Remplace la promo actuelle le temps de la campagne'"
                     />
                     <p
                       v-if="existing?.discountPercent != null"
@@ -546,7 +546,7 @@ onMounted(async () => {
                       min="1"
                       :placeholder="String(event.promo ?? '')"
                       class="w-28 px-2 py-1 border border-primary/30 rounded text-sm font-medium text-primary"
-                      :title="'Remplace la promo actuelle le temps de l\'événement'"
+                      :title="'Remplace la promo actuelle le temps de la campagne'"
                     />
                     <p v-if="existing" class="mt-1 text-[11px] text-amber-700 leading-tight">
                       au lieu de {{ formatPrice(existing.promotionPrice) }}
@@ -564,7 +564,7 @@ onMounted(async () => {
           class="px-6 py-3 text-xs text-amber-900 border-t border-amber-100 bg-amber-50"
         >
           {{ selectedWithExistingPromoCount }} montre{{ selectedWithExistingPromoCount > 1 ? 's' : '' }}
-          avec une promo individuelle : la remise événement la remplace pendant la campagne, puis l'ancienne promo est restaurée à la fin.
+          avec une promo individuelle : la remise de la campagne la remplace le temps de celle-ci, puis l'ancienne promo est restaurée à la fin.
         </p>
 
         <div class="px-4 py-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">

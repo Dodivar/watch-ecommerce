@@ -12,6 +12,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import OrderSuccess from './OrderSuccess.vue'
 
 const verifyOrderMock = vi.hoisted(() => vi.fn())
+const requestOrderReturnMock = vi.hoisted(() => vi.fn())
 const trackPurchaseMock = vi.hoisted(() => vi.fn())
 const clearCartMock = vi.hoisted(() => vi.fn())
 const routeMock = vi.hoisted(() => ({ path: '/commande/succes', query: {} }))
@@ -26,6 +27,7 @@ vi.mock('vue-router', () => ({
 vi.mock('@/services/orderService.js', () => ({
   verifyOrder: verifyOrderMock,
   downloadOrderReceipt: vi.fn(),
+  requestOrderReturn: requestOrderReturnMock,
 }))
 
 vi.mock('@/services/watchService', () => ({
@@ -64,10 +66,29 @@ async function mountAt(path) {
   return wrapper
 }
 
+/** Dossier retour tel que le renvoie `GET /api/orders/:id/verify`. */
+function returnInfo(overrides = {}) {
+  return {
+    status: 'none',
+    requestedAt: null,
+    refundedAt: null,
+    refundAmountCents: null,
+    withdrawalOpen: true,
+    withdrawalDeadline: '2026-03-25T10:00:00.000Z',
+    refundDeadline: null,
+    ...overrides,
+  }
+}
+
 beforeEach(() => {
   verifyOrderMock.mockReset()
   trackPurchaseMock.mockReset()
   clearCartMock.mockReset()
+  requestOrderReturnMock.mockReset()
+  requestOrderReturnMock.mockResolvedValue({
+    success: true,
+    return: returnInfo({ status: 'requested', requestedAt: '2026-03-10T10:00:00.000Z' }),
+  })
   verifyOrderMock.mockResolvedValue({ valid: true, order: PAID_ORDER, lines: [] })
 })
 
@@ -111,5 +132,99 @@ describe('OrderSuccess — suivi durable (/commande/suivi)', () => {
 
     expect(wrapper.text()).toContain('Commande indisponible')
     expect(wrapper.text()).toContain('Commande introuvable')
+  })
+})
+
+describe('OrderSuccess — rétractation depuis le suivi', () => {
+  /** @param {object} info */
+  function withReturn(info) {
+    verifyOrderMock.mockResolvedValue({
+      valid: true,
+      order: { ...PAID_ORDER, return: info },
+      lines: [],
+    })
+  }
+
+  it('propose la rétractation tant que la fenêtre est ouverte', async () => {
+    withReturn(returnInfo())
+    const wrapper = await mountAt('/commande/suivi')
+
+    expect(wrapper.get('[data-testid="return-cta"]').text()).toContain('Demander un retour')
+  })
+
+  it('ne la propose pas une fois le délai dépassé', async () => {
+    withReturn(returnInfo({ withdrawalOpen: false }))
+    const wrapper = await mountAt('/commande/suivi')
+
+    expect(wrapper.find('[data-testid="return-block"]').exists()).toBe(false)
+  })
+
+  it('ne la propose jamais en fin de tunnel : le colis n’est pas encore parti', async () => {
+    withReturn(returnInfo())
+    const wrapper = await mountAt('/commande/succes')
+
+    expect(wrapper.find('[data-testid="return-block"]').exists()).toBe(false)
+  })
+
+  it('envoie la demande avec son motif et affiche l’accusé', async () => {
+    withReturn(returnInfo())
+    const wrapper = await mountAt('/commande/suivi')
+
+    await wrapper.get('[data-testid="return-cta"]').trigger('click')
+    await wrapper.get('[data-testid="return-reason"]').setValue('Bracelet trop grand')
+    await wrapper.get('[data-testid="return-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(requestOrderReturnMock).toHaveBeenCalledWith(
+      'order-42',
+      'tok.sig',
+      'Bracelet trop grand',
+    )
+    expect(wrapper.text()).toContain('10 mars 2026')
+    expect(wrapper.find('[data-testid="return-cta"]').exists()).toBe(false)
+  })
+
+  it('affiche l’échéance de remboursement d’un dossier en cours', async () => {
+    withReturn(
+      returnInfo({
+        status: 'requested',
+        requestedAt: '2026-03-10T10:00:00.000Z',
+        refundDeadline: '2026-03-24T10:00:00.000Z',
+        withdrawalOpen: false,
+      }),
+    )
+    const wrapper = await mountAt('/commande/suivi')
+
+    expect(wrapper.text()).toContain('24 mars 2026')
+  })
+
+  it('annonce le remboursement émis, montant et date', async () => {
+    withReturn(
+      returnInfo({
+        status: 'refunded',
+        refundedAt: '2026-03-20T10:00:00.000Z',
+        refundAmountCents: 850000,
+        withdrawalOpen: false,
+      }),
+    )
+    const wrapper = await mountAt('/commande/suivi')
+    const text = wrapper.text()
+
+    expect(text).toContain('20 mars 2026')
+    expect(text).toMatch(/8\s?500,00/)
+  })
+
+  it('affiche l’erreur sans perdre le motif saisi', async () => {
+    requestOrderReturnMock.mockRejectedValue(new Error('Le délai de rétractation est dépassé.'))
+    withReturn(returnInfo())
+    const wrapper = await mountAt('/commande/suivi')
+
+    await wrapper.get('[data-testid="return-cta"]').trigger('click')
+    await wrapper.get('[data-testid="return-reason"]').setValue('Changement d’avis')
+    await wrapper.get('[data-testid="return-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Le délai de rétractation est dépassé.')
+    expect(wrapper.get('[data-testid="return-reason"]').element.value).toBe('Changement d’avis')
   })
 })

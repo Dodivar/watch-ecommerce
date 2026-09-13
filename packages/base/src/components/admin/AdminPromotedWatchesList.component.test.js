@@ -165,7 +165,7 @@ describe('AdminPromotedWatchesList', () => {
     expect(table).not.toContain('Black Bay')
   })
 
-  it('cherche par montre ou par événement', async () => {
+  it('cherche par montre ou par campagne', async () => {
     const wrapper = await mountScreen()
     await wrapper.find('input[type="text"]').setValue('black friday')
     await flushPromises()

@@ -1,15 +1,19 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { ExternalLink, Copy, Check } from '@lucide/vue'
+import { ExternalLink, RotateCcw, TriangleAlert } from '@lucide/vue'
 import { STRIPE_PUBLISHABLE_KEY } from '@/config'
-import { updateOrderReturn } from '@/services/admin/adminOrderService'
+import { getOrderRefunds, refundOrder, updateOrderReturn } from '@/services/admin/adminOrderService'
 import {
+  REFUND_SOURCE_LABELS,
+  REFUND_STATUS_LABELS,
   RETURN_STATUSES,
   RETURN_STATUS_LABELS,
   WITHDRAWAL_PERIOD_DAYS,
+  canRefundOrder,
   computeRefundDeadline,
   computeWithdrawalWindow,
   stripePaymentDashboardUrl,
+  summarizeRefunds,
 } from '@/services/admin/orderReturns'
 import { useAdminPermissions } from '@/services/admin/useAdminPermissions'
 
@@ -20,20 +24,31 @@ const props = defineProps({
 
 const emit = defineEmits(['updated'])
 
-const { canWrite } = useAdminPermissions()
+const { canWrite, role } = useAdminPermissions()
+
+/**
+ * Le remboursement fait sortir de l'argent : réservé au rôle `admin`, comme
+ * côté backend. Un modérateur instruit le dossier, il ne le solde pas.
+ */
+const canRefund = computed(() => role.value === 'admin')
 
 const returnStatus = ref('none')
 const deliveredAt = ref('')
 const returnRequestedAt = ref('')
-const refundAmountEuros = ref('')
-const refundedAt = ref('')
-const stripeRefundId = ref('')
 const returnNotes = ref('')
+
+const refunds = ref([])
+const refundsLoading = ref(false)
+const refundAmountEuros = ref('')
+const refundReason = ref('')
+const isConfirmingRefund = ref(false)
+const isRefunding = ref(false)
+const refundError = ref(null)
+const refundSuccess = ref(null)
 
 const isSaving = ref(false)
 const error = ref(null)
 const success = ref(null)
-const copied = ref(false)
 
 /** `Date`/ISO vers la valeur d'un `<input type="date">`, en heure locale. */
 function toDateInput(value) {
@@ -66,7 +81,9 @@ function formatDate(value) {
 }
 
 function formatPrice(cents) {
-  if (cents == null) return '—'
+  // `Number.NaN` arrive du champ montant tant que la saisie est incomplète : le
+  // bouton doit afficher un tiret, pas « NaN € ».
+  if (cents == null || !Number.isFinite(cents)) return '—'
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 }
 
@@ -74,30 +91,39 @@ function syncFromOrder(order) {
   returnStatus.value = order?.returnStatus || 'none'
   deliveredAt.value = toDateInput(order?.deliveredAt)
   returnRequestedAt.value = toDateInput(order?.returnRequestedAt)
-  refundAmountEuros.value =
-    order?.refundAmountCents != null ? (order.refundAmountCents / 100).toFixed(2) : ''
-  refundedAt.value = toDateInput(order?.refundedAt)
-  stripeRefundId.value = order?.stripeRefundId || ''
   returnNotes.value = order?.returnNotes || ''
 }
 
-watch(() => props.order, syncFromOrder, { immediate: true })
+async function loadRefunds(orderId) {
+  if (!orderId) return
+  refundsLoading.value = true
+  try {
+    refunds.value = await getOrderRefunds(orderId)
+  } catch (err) {
+    refundError.value = err.message || 'Impossible de charger les remboursements'
+  } finally {
+    refundsLoading.value = false
+  }
+}
+
+watch(
+  () => props.order,
+  (order) => {
+    syncFromOrder(order)
+    loadRefunds(order?.id)
+  },
+  { immediate: true },
+)
 
 const today = () => toDateInput(new Date())
 
-// Passer un dossier à l'étape suivante pré-remplit la date correspondante :
+// Passer un dossier à l'étape suivante pré-remplit la date de notification :
 // c'est la saisie attendue dans la quasi-totalité des cas, et elle reste
-// modifiable.
+// modifiable. La date de remboursement, elle, n'est plus saisie du tout.
 watch(returnStatus, (status, previous) => {
   if (status === previous) return
   if (status !== 'none' && !returnRequestedAt.value) {
     returnRequestedAt.value = today()
-  }
-  if (status === 'refunded') {
-    if (!refundedAt.value) refundedAt.value = today()
-    if (!refundAmountEuros.value && props.order?.totalCents != null) {
-      refundAmountEuros.value = (props.order.totalCents / 100).toFixed(2)
-    }
   }
 })
 
@@ -124,32 +150,37 @@ const isRefundPending = computed(
   () => ['requested', 'received'].includes(props.order?.returnStatus) && !props.order?.refundedAt,
 )
 
+const totals = computed(() => summarizeRefunds(refunds.value))
+
+const refundEligibility = computed(() => canRefundOrder(props.order, refunds.value))
+
+const availableCents = computed(() => refundEligibility.value.availableCents)
+
+/**
+ * Lien de secours vers Stripe : affiché seulement quand l'application ne peut
+ * pas rembourser elle-même, ou après un refus de l'API. En marche normale,
+ * personne n'ouvre le dashboard.
+ */
 const stripeUrl = computed(() =>
   stripePaymentDashboardUrl(props.order?.stripePaymentIntentId, {
     testMode: STRIPE_PUBLISHABLE_KEY.startsWith('pk_test_'),
   }),
 )
 
-const showRefundFields = computed(() => returnStatus.value !== 'none')
+const showStripeFallback = computed(
+  () => Boolean(stripeUrl.value) && (Boolean(refundError.value) || !refundEligibility.value.ok),
+)
 
-async function copyPaymentIntentId() {
-  const value = props.order?.stripePaymentIntentId
-  if (!value) return
-  try {
-    await navigator.clipboard.writeText(value)
-    copied.value = true
-    setTimeout(() => {
-      copied.value = false
-    }, 2000)
-  } catch {
-    copied.value = false
-  }
-}
+const showReturnFields = computed(() => returnStatus.value !== 'none')
 
-function fillFullRefund() {
-  if (props.order?.totalCents == null) return
-  refundAmountEuros.value = (props.order.totalCents / 100).toFixed(2)
-}
+/** Remise à zéro du formulaire de remboursement sur le reste à rembourser. */
+watch(
+  availableCents,
+  (cents) => {
+    refundAmountEuros.value = cents > 0 ? (cents / 100).toFixed(2) : ''
+  },
+  { immediate: true },
+)
 
 function parseAmountCents() {
   const raw = String(refundAmountEuros.value).trim().replace(',', '.')
@@ -159,15 +190,63 @@ function parseAmountCents() {
   return Math.round(euros * 100)
 }
 
+const refundAmountCents = computed(() => parseAmountCents())
+
+const isPartialRefund = computed(
+  () => refundAmountCents.value != null && refundAmountCents.value < availableCents.value,
+)
+
+function startRefund() {
+  refundError.value = null
+  refundSuccess.value = null
+
+  const amount = parseAmountCents()
+  if (amount == null || Number.isNaN(amount) || amount <= 0) {
+    refundError.value = 'Montant de remboursement invalide'
+    return
+  }
+  if (amount > availableCents.value) {
+    refundError.value = `Montant supérieur au reste à rembourser (${formatPrice(availableCents.value)})`
+    return
+  }
+  isConfirmingRefund.value = true
+}
+
+function cancelRefund() {
+  isConfirmingRefund.value = false
+}
+
+async function confirmRefund() {
+  refundError.value = null
+  const amount = parseAmountCents()
+
+  try {
+    isRefunding.value = true
+    const result = await refundOrder(props.order.id, {
+      amountCents: amount,
+      reason: refundReason.value.trim() || null,
+    })
+    refundSuccess.value =
+      result?.refund?.status === 'succeeded'
+        ? `Remboursement de ${formatPrice(result.refund.amountCents)} effectué`
+        : `Remboursement de ${formatPrice(result?.refund?.amountCents ?? amount)} envoyé à Stripe (statut : ${
+            REFUND_STATUS_LABELS[result?.refund?.status] || result?.refund?.status
+          })`
+    refundReason.value = ''
+    isConfirmingRefund.value = false
+    await loadRefunds(props.order.id)
+    emit('updated')
+  } catch (err) {
+    refundError.value = err.message || 'Remboursement impossible'
+    isConfirmingRefund.value = false
+  } finally {
+    isRefunding.value = false
+  }
+}
+
 async function save() {
   error.value = null
   success.value = null
-
-  const refundAmountCents = parseAmountCents()
-  if (Number.isNaN(refundAmountCents)) {
-    error.value = 'Montant remboursé invalide'
-    return
-  }
 
   try {
     isSaving.value = true
@@ -177,12 +256,13 @@ async function save() {
         returnStatus: returnStatus.value,
         deliveredAt: fromDateInput(deliveredAt.value),
         returnRequestedAt: fromDateInput(returnRequestedAt.value),
-        refundAmountCents,
-        refundedAt: fromDateInput(refundedAt.value),
-        stripeRefundId: stripeRefundId.value,
         returnNotes: returnNotes.value,
       },
-      { totalCents: props.order?.totalCents },
+      {
+        totalCents: props.order?.totalCents,
+        refundAmountCents: props.order?.refundAmountCents,
+        returnStatus: props.order?.returnStatus,
+      },
     )
     success.value = 'Dossier retour mis à jour'
     emit('updated')
@@ -239,6 +319,192 @@ async function save() {
       </span>
     </div>
 
+    <!-- Demande venue du client depuis la page de suivi : lecture seule. -->
+    <div
+      v-if="order.returnRequestedBy === 'customer'"
+      class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 mb-4 text-sm"
+      data-testid="customer-request"
+    >
+      <p class="font-medium text-gray-800">
+        Rétractation déclarée par le client le {{ formatDate(order.returnRequestedAt) }}
+      </p>
+      <p v-if="order.returnReason" class="mt-1 text-gray-600 whitespace-pre-line">
+        « {{ order.returnReason }} »
+      </p>
+    </div>
+
+    <!-- ------------------------------------------------------ Remboursement -->
+    <div class="rounded-lg border border-gray-200 p-4 mb-6" data-testid="refund-panel">
+      <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+        <h3 class="font-medium text-gray-900">Remboursement</h3>
+        <span class="text-xs text-gray-500">Exécuté par Stripe, piloté depuis cette page</span>
+      </div>
+
+      <dl class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-4" data-testid="refund-summary">
+        <div>
+          <dt class="text-gray-500">Total payé</dt>
+          <dd class="font-medium text-gray-900">{{ formatPrice(order.totalCents) }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">Déjà remboursé</dt>
+          <dd class="font-medium text-gray-900">{{ formatPrice(totals.refundedCents) }}</dd>
+        </div>
+        <div v-if="totals.pendingCents > 0">
+          <dt class="text-gray-500">En cours</dt>
+          <dd class="font-medium text-amber-700">{{ formatPrice(totals.pendingCents) }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">Reste à rembourser</dt>
+          <dd class="font-medium text-primary">{{ formatPrice(availableCents) }}</dd>
+        </div>
+      </dl>
+
+      <div
+        v-if="refundError"
+        class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-3 text-sm"
+        data-testid="refund-error"
+      >
+        {{ refundError }}
+      </div>
+      <div
+        v-if="refundSuccess"
+        class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-3 text-sm"
+        data-testid="refund-success"
+      >
+        {{ refundSuccess }}
+      </div>
+
+      <ul v-if="refunds.length" class="mb-4 divide-y divide-gray-100" data-testid="refund-history">
+        <li v-for="refund in refunds" :key="refund.id" class="py-2 text-sm">
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <span class="font-medium text-gray-900">{{ formatPrice(refund.amountCents) }}</span>
+            <span
+              class="text-xs px-2 py-0.5 rounded-full"
+              :class="
+                refund.status === 'succeeded'
+                  ? 'bg-green-100 text-green-800'
+                  : refund.status === 'failed' || refund.status === 'canceled'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-amber-100 text-amber-800'
+              "
+            >
+              {{ REFUND_STATUS_LABELS[refund.status] || refund.status }}
+            </span>
+          </div>
+          <p class="text-xs text-gray-500">
+            {{ formatDate(refund.refundedAt) }} ·
+            {{ REFUND_SOURCE_LABELS[refund.source] || refund.source }}
+            <template v-if="refund.initiatedBy"> · {{ refund.initiatedBy }}</template>
+          </p>
+          <p v-if="refund.failureReason" class="text-xs text-red-600">
+            Échec : {{ refund.failureReason }}
+          </p>
+        </li>
+      </ul>
+      <p v-else-if="!refundsLoading" class="text-sm text-gray-500 mb-4">
+        Aucun remboursement sur cette commande.
+      </p>
+
+      <div v-if="!canRefund" class="text-sm text-gray-500">
+        Le remboursement est réservé au rôle administrateur.
+      </div>
+
+      <div v-else-if="!refundEligibility.ok" class="text-sm text-gray-600">
+        {{ refundEligibility.reason }}
+      </div>
+
+      <template v-else>
+        <div v-if="!isConfirmingRefund" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+          <label class="block text-sm">
+            <span class="font-medium text-gray-700">Montant à rembourser (€)</span>
+            <input
+              v-model="refundAmountEuros"
+              type="number"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              class="mt-1 w-full px-3 py-2 border rounded-lg"
+              data-testid="refund-amount"
+            />
+          </label>
+
+          <label class="block text-sm sm:col-span-2">
+            <span class="font-medium text-gray-700">Motif (facultatif, interne)</span>
+            <input
+              v-model="refundReason"
+              type="text"
+              placeholder="Rétractation, geste commercial, article endommagé…"
+              class="mt-1 w-full px-3 py-2 border rounded-lg"
+            />
+          </label>
+
+          <div class="sm:col-span-3">
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50"
+              :disabled="isRefunding"
+              data-testid="refund-button"
+              @click="startRefund"
+            >
+              <RotateCcw class="h-4 w-4" />
+              Rembourser {{ formatPrice(refundAmountCents) }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirmation explicite : une sortie d'argent ne se déclenche pas d'un clic. -->
+        <div
+          v-else
+          class="rounded-lg border border-amber-300 bg-amber-50 p-4"
+          data-testid="refund-confirm"
+        >
+          <p class="flex items-start gap-2 text-sm text-amber-900">
+            <TriangleAlert class="h-4 w-4 mt-0.5 shrink-0" />
+            <span>
+              Rembourser <strong>{{ formatPrice(refundAmountCents) }}</strong> au client
+              {{ isPartialRefund ? '(remboursement partiel)' : '(remboursement total du reste dû)' }} ?
+              L'opération est immédiate et irréversible. Les commissions Stripe du paiement
+              initial ne sont pas restituées.
+            </span>
+          </p>
+          <div class="mt-3 flex gap-3">
+            <button
+              type="button"
+              class="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50"
+              :disabled="isRefunding"
+              data-testid="refund-confirm-button"
+              @click="confirmRefund"
+            >
+              {{ isRefunding ? 'Remboursement…' : 'Confirmer le remboursement' }}
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 border border-gray-300 rounded-lg"
+              :disabled="isRefunding"
+              @click="cancelRefund"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <p v-if="showStripeFallback" class="mt-3 text-xs text-gray-500">
+        Un remboursement fait directement dans Stripe reste enregistré ici automatiquement.
+        <a
+          :href="stripeUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 text-primary underline"
+          data-testid="stripe-link"
+        >
+          <ExternalLink class="h-3 w-3" />
+          Ouvrir le paiement dans Stripe
+        </a>
+      </p>
+    </div>
+
+    <!-- ------------------------------------------------------- Suivi dossier -->
     <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
       {{ error }}
     </div>
@@ -273,7 +539,7 @@ async function save() {
         </select>
       </label>
 
-      <label v-if="showRefundFields" class="block text-sm">
+      <label v-if="showReturnFields" class="block text-sm">
         <span class="font-medium text-gray-700">Date de la demande de rétractation</span>
         <input
           v-model="returnRequestedAt"
@@ -284,104 +550,23 @@ async function save() {
       </label>
     </div>
 
-    <template v-if="showRefundFields">
-      <div class="mt-6 rounded-lg border border-gray-200 bg-cream/40 p-4">
-        <p class="text-sm font-medium text-gray-800">
-          Le remboursement se fait depuis le dashboard Stripe
-        </p>
-        <p class="text-sm text-gray-600 mt-1">
-          Aucun remboursement n'est déclenché par l'administration : remboursez le paiement dans
-          Stripe, puis notez ci-dessous le montant et l'identifiant obtenus.
-        </p>
-
-        <div v-if="stripeUrl" class="mt-3 flex flex-col sm:flex-row sm:items-center gap-2">
-          <a
-            :href="stripeUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium"
-            data-testid="stripe-link"
-          >
-            <ExternalLink class="h-4 w-4" />
-            Ouvrir le paiement dans Stripe
-          </a>
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            @click="copyPaymentIntentId"
-          >
-            <component :is="copied ? Check : Copy" class="h-4 w-4" />
-            {{ copied ? 'Copié' : "Copier l'ID de paiement" }}
-          </button>
-          <code class="text-xs text-gray-500 break-all">{{ order.stripePaymentIntentId }}</code>
-        </div>
-        <p v-else class="mt-3 text-sm text-gray-500">
-          Aucun paiement Stripe rattaché à cette commande : retrouvez la transaction dans le
-          dashboard à partir de l'email du client.
-        </p>
-      </div>
-
-      <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <label class="block text-sm">
-          <span class="font-medium text-gray-700">Montant remboursé (€)</span>
-          <input
-            v-model="refundAmountEuros"
-            type="number"
-            min="0"
-            step="0.01"
-            inputmode="decimal"
-            :disabled="!canWrite"
-            class="mt-1 w-full px-3 py-2 border rounded-lg disabled:opacity-60"
-          />
-          <button
-            v-if="canWrite && order.totalCents != null"
-            type="button"
-            class="mt-1 text-xs text-primary underline"
-            @click="fillFullRefund"
-          >
-            Rembourser le total ({{ formatPrice(order.totalCents) }})
-          </button>
-        </label>
-
-        <label class="block text-sm">
-          <span class="font-medium text-gray-700">Identifiant Stripe</span>
-          <input
-            v-model="stripeRefundId"
-            type="text"
-            placeholder="re_…"
-            :disabled="!canWrite"
-            class="mt-1 w-full px-3 py-2 border rounded-lg disabled:opacity-60"
-          />
-        </label>
-
-        <label class="block text-sm">
-          <span class="font-medium text-gray-700">Date du remboursement</span>
-          <input
-            v-model="refundedAt"
-            type="date"
-            :disabled="!canWrite"
-            class="mt-1 w-full px-3 py-2 border rounded-lg disabled:opacity-60"
-          />
-        </label>
-      </div>
-
-      <label class="block text-sm mt-4">
-        <span class="font-medium text-gray-700">Notes internes</span>
-        <textarea
-          v-model="returnNotes"
-          rows="3"
-          :disabled="!canWrite"
-          placeholder="Motif, état du produit, échanges avec le client…"
-          class="mt-1 w-full px-3 py-2 border rounded-lg disabled:opacity-60"
-        ></textarea>
-      </label>
-    </template>
+    <label v-if="showReturnFields" class="block text-sm mt-4">
+      <span class="font-medium text-gray-700">Notes internes</span>
+      <textarea
+        v-model="returnNotes"
+        rows="3"
+        :disabled="!canWrite"
+        placeholder="Motif, état du produit, échanges avec le client…"
+        class="mt-1 w-full px-3 py-2 border rounded-lg disabled:opacity-60"
+      ></textarea>
+    </label>
 
     <div v-if="canWrite" class="mt-4">
       <button
         type="button"
-        class="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50"
+        class="px-4 py-2 border border-gray-300 text-gray-800 rounded-lg disabled:opacity-50"
         :disabled="isSaving"
+        data-testid="save-return"
         @click="save"
       >
         {{ isSaving ? 'Enregistrement…' : 'Enregistrer le dossier retour' }}

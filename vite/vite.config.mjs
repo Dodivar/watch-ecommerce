@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+import { buildVersionPlugin } from './build-version.mjs'
 import { mergeBasePublicPlugin } from './merge-base-public.mjs'
 import { siteFromConfigPlugin } from './site-from-config.mjs'
 import { REPO_ROOT, resolveSitePaths } from './resolve-site.mjs'
@@ -72,6 +73,7 @@ export default defineConfig(async ({ command }) => {
   }
 
   const plugins = [
+    buildVersionPlugin({ siteId, repoRoot: REPO_ROOT }),
     mergeBasePublicPlugin({ repoRoot: REPO_ROOT }),
     siteFromConfigPlugin(siteConfig),
     vue(),

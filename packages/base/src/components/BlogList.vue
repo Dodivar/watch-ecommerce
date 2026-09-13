@@ -82,7 +82,12 @@
           @click="handleViewArticle(article.id)"
         >
             <div class="p-6">
-              <h2 class="text-xl font-bold text-text-main mb-2 line-clamp-2">{{ article.title }}</h2>
+              <h2 class="text-xl font-bold text-text-main mb-2 line-clamp-2">
+                <!-- Voir `WatchCard.vue` : le `@click` de la carte ne crée aucun lien suivable. -->
+                <RouterLink :to="`/blog/${article.id}`" @click.stop>
+                  {{ article.title }}
+                </RouterLink>
+              </h2>
               <p class="text-gray-600 text-sm mb-3 line-clamp-3">
                 {{ getExcerpt(article.text) }}
               </p>
@@ -180,7 +185,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { getAllArticles, getAllCategories } from '@/services/articleService'
 import { scrollAnimation } from '@/animation'

@@ -22,8 +22,9 @@ import AddressAutocompleteInput from './AddressAutocompleteInput.vue'
 import PickupLocationCard from './PickupLocationCard.vue'
 import LegalPageLinks from '@/components/legal/LegalPageLinks.vue'
 import { CHECKOUT_FIELD_CLASS } from './checkoutFieldClasses.js'
+import { getUnpurchasableWatchIds } from '@/services/watchService.js'
 import { formatPrice as formatAmount } from '@/utils/formatters.js'
-import { t } from '@/i18n'
+import { t, tc } from '@/i18n'
 
 const COUNTRY_LABELS = {
   FR: 'France',
@@ -42,12 +43,20 @@ const pickupEnabled = checkoutConfig.shipping?.pickupEnabled === true
 const promoEnabled = checkoutConfig.promo?.enabled !== false
 const vatRate = Number(checkoutConfig.vatRate) > 0 ? Number(checkoutConfig.vatRate) : 20
 
-const { items, getCheckoutLines, cartMultiQuantity, replaceItems } = useCart()
+const {
+  items,
+  getCheckoutLines,
+  cartMultiQuantity,
+  replaceItems,
+  remove: removeCartLine,
+} = useCart()
 
 const loading = ref(true)
 const syncLoading = ref(false)
 const promoLoading = ref(false)
 const pageError = ref('')
+/** Avis de retrait automatique d'une montre devenue incommandable. */
+const removedLinesNotice = ref('')
 const paymentError = ref('')
 const cgvError = ref('')
 const orderId = ref('')
@@ -371,6 +380,62 @@ async function createOrderFromCart() {
   orderSnapshot.value = created
   saveSession()
   return true
+}
+
+/**
+ * Retire du panier les montres que le catalogue ne permet plus de commander, et
+ * rédige l'avis qui l'annonce au client.
+ *
+ * @returns {Promise<boolean>} vrai si au moins une ligne a été retirée
+ */
+async function dropUnpurchasableCartLines() {
+  const lines = [...items.value]
+  if (lines.length === 0) return false
+
+  const unpurchasableIds = new Set(
+    await getUnpurchasableWatchIds(lines.map((line) => line.watchId)),
+  )
+  const removed = lines.filter((line) => unpurchasableIds.has(line.watchId))
+  if (removed.length === 0) return false
+
+  for (const line of removed) {
+    removeCartLine(line.watchId)
+  }
+
+  removedLinesNotice.value = tc('checkout.cartLinesRemovedUnavailable', removed.length, {
+    names: removed.map((line) => line.name).join(', '),
+  })
+  return true
+}
+
+/**
+ * Une montre vendue entre la mise au panier et le paiement faisait échouer la
+ * création de commande, et le client restait devant un message d'erreur sans
+ * formulaire — sans moyen de savoir laquelle des lignes bloquait, ni de la
+ * retirer autrement qu'en rouvrant le panier.
+ *
+ * Le backend refuse en bloc sans nommer la ligne fautive : on relit donc le
+ * catalogue, on retire ce qui n'est plus commandable, et on retente une fois. Si
+ * rien n'est à retirer, l'échec vient d'ailleurs et remonte tel quel.
+ */
+async function ensureOrderFromLivedCart() {
+  try {
+    await ensureOrder()
+    return
+  } catch (error) {
+    let dropped = false
+    try {
+      dropped = await dropUnpurchasableCartLines()
+    } catch {
+      // Catalogue injoignable : l'erreur d'origine reste la plus parlante.
+    }
+    if (!dropped) throw error
+  }
+
+  // Plus rien à commander : l'écran de panier vide porte l'avis de retrait.
+  if (items.value.length === 0) return
+
+  await ensureOrder()
 }
 
 async function discardSavedOrder() {
@@ -859,7 +924,7 @@ onMounted(async () => {
   }
 
   try {
-    await ensureOrder()
+    await ensureOrderFromLivedCart()
     const o = orderSnapshot.value?.order
     hydrateFromOrder(o)
 
@@ -908,6 +973,18 @@ onUnmounted(() => {
       </p>
 
       <p v-if="pageError" class="mb-4 text-sm text-red-600" role="alert">{{ pageError }}</p>
+
+      <!--
+        Retrait automatique d'une montre devenue incommandable : un avis, pas une
+        erreur — la commande, elle, continue avec le reste du panier.
+      -->
+      <div
+        v-if="removedLinesNotice"
+        class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+        role="status"
+      >
+        {{ removedLinesNotice }}
+      </div>
 
       <div
         v-if="loading"
@@ -1428,6 +1505,23 @@ onUnmounted(() => {
             {{ t('checkout.cancelAndReturn') }}
           </button>
         </div>
+      </div>
+
+      <!--
+        Panier vidé de ses dernières lignes par le retrait automatique : sans ce
+        bloc, la page ne montrerait plus que son titre au-dessus de l'avis.
+      -->
+      <div
+        v-else-if="!items.length"
+        class="rounded-lg border border-gray-200/80 bg-white px-6 py-10 text-center shadow-sm"
+      >
+        <p class="text-gray-600">{{ t('cart.empty') }}</p>
+        <RouterLink
+          to="/collection"
+          class="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+        >
+          {{ t('checkout.backToShop') }}
+        </RouterLink>
       </div>
     </div>
   </section>

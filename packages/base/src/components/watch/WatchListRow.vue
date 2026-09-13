@@ -46,7 +46,11 @@
           class="min-w-0 flex-1 text-sm font-semibold leading-tight text-gray-900 sm:text-lg lg:text-xl"
           :title="watchItem.name"
         >
-          {{ watchItem.name }}
+          <!-- Voir `WatchCard.vue` : le `@click` de la ligne ne crée aucun lien suivable. -->
+          <RouterLink v-if="clickable" :to="detailPath" @click.stop>
+            {{ watchItem.name }}
+          </RouterLink>
+          <template v-else>{{ watchItem.name }}</template>
         </h3>
         <span
           v-if="watchItem.isSold && effectiveShowSoldBadge"
@@ -107,11 +111,13 @@
 
 <script setup>
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 
 import { watchCardImageUrl, buildWatchCardSrcSet } from '@/utils/watchImageUrl.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
 import { formatPrice } from '@/utils/formatters.js'
+import { buildWatchPath } from '@/utils/watchSlug.js'
 import { formatCaseSizeDisplay, normalizeCaseSizeValue } from '@/utils/caseSize'
 import { t } from '@/i18n'
 import { getBraceletColorLabel, getBraceletMaterialLabel, translateSpec } from '@/i18n/watchSpecs'
@@ -162,6 +168,8 @@ const props = defineProps({
 const emit = defineEmits(['viewDetails'])
 
 const watchItem = computed(() => props.watch)
+
+const detailPath = computed(() => buildWatchPath(watchItem.value))
 
 const effectiveShowReference = computed(
   () => props.showReference && catalogDisplay.showReference,

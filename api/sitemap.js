@@ -4,9 +4,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createClient } from '@supabase/supabase-js'
 
 import { buildSitemapStaticRoutes } from '../packages/base/src/site/buildSitemapStaticRoutes.js'
-import { withLocalePrefix } from '../packages/base/src/i18n/localePaths.js'
-import { slugifyBrand } from '../packages/base/src/utils/brandSlug.js'
-import { buildWatchSlug } from '../packages/base/src/utils/watchSlug.js'
+import {
+  MAX_SITEMAP_IMAGES_PER_WATCH,
+  buildSitemapXml,
+} from '../packages/base/src/site/buildSitemapXml.js'
 import { resolveSiteConfig } from '../packages/base/src/site/resolveSiteConfig.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -61,6 +62,52 @@ function resolveBaseUrl(siteConfig, req, env = process.env) {
 }
 
 export { resolveBaseUrl }
+
+/**
+ * Visuels par fiche montre, pour l'extension `image:` du sitemap : le catalogue est entièrement
+ * visuel, et Google Images est un canal d'acquisition à part entière pour de l'horlogerie.
+ *
+ * Une lecture ratée n'est pas bloquante — le sitemap sort alors sans visuels plutôt que pas
+ * du tout.
+ *
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {{ id?: string }[]} watches
+ * @returns {Promise<Map<string, string[]>>}
+ */
+async function loadWatchImages(supabase, watches) {
+  const byWatchId = new Map()
+  const watchIds = watches.map((watch) => watch?.id).filter(Boolean)
+  if (watchIds.length === 0) return byWatchId
+
+  const { data, error } = await supabase
+    .from('watch_images')
+    .select('watch_id, image_url, image_path, image_order')
+    .in('watch_id', watchIds)
+    .order('watch_id', { ascending: true })
+    .order('image_order', { ascending: true })
+
+  if (error) {
+    console.error('Erreur lors de la récupération des visuels du sitemap:', error)
+    return byWatchId
+  }
+
+  for (const record of data ?? []) {
+    const list = byWatchId.get(record.watch_id) ?? []
+    if (list.length >= MAX_SITEMAP_IMAGES_PER_WATCH) continue
+
+    // `image_url` quand il est stocké, URL publique du Storage sinon — même règle que
+    // `resolveImageRecordUrl` dans `watchService.js`.
+    const url =
+      record.image_url ||
+      supabase.storage.from('watch-images').getPublicUrl(record.image_path).data?.publicUrl
+    if (!url) continue
+
+    list.push(url)
+    byWatchId.set(record.watch_id, list)
+  }
+
+  return byWatchId
+}
 
 export default async function handler(req, res) {
   // Gérer les requêtes OPTIONS pour CORS
@@ -139,95 +186,17 @@ export default async function handler(req, res) {
     }
 
     const staticRoutes = buildSitemapStaticRoutes(features, resolved)
-    // `resolveSiteConfig` expose déjà le bloc i18n normalisé.
-    const i18n = resolved.i18n
+    const imagesByWatchId = await loadWatchImages(supabase, watches)
 
-    // Générer le XML
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-`
-
-    /**
-     * Les pages statiques existent dans chaque langue activée : une entrée par langue, chacune
-     * déclarant ses équivalents. Les fiches montre et les articles n'apparaissent qu'en langue
-     * par défaut — leur contenu vient de la base et n'est pas traduit (`i18n.untranslatedRoutes`).
-     */
-    const alternatesFor = (routePath) => {
-      if (!i18n.enabled) return ''
-      const links = i18n.locales
-        .map(
-          (code) =>
-            `    <xhtml:link rel="alternate" hreflang="${code}" href="${baseUrl}${withLocalePrefix(routePath || '/', code, i18n)}"/>`,
-        )
-        .join('\n')
-      const xDefault = `    <xhtml:link rel="alternate" hreflang="x-default" href="${baseUrl}${withLocalePrefix(routePath || '/', i18n.defaultLocale, i18n)}"/>`
-      return `\n${links}\n${xDefault}`
-    }
-
-    // Ajouter les routes statiques, dans chaque langue activée
-    staticRoutes.forEach((route) => {
-      i18n.locales.forEach((code) => {
-        const localizedPath = withLocalePrefix(route.path || '/', code, i18n)
-        // `withLocalePrefix` rend « / » pour la racine ; le sitemap la veut sans slash final.
-        const loc = `${baseUrl}${localizedPath === '/' ? '' : localizedPath}`
-        xml += `  <url>
-    <loc>${loc}</loc>${alternatesFor(route.path)}
-    <changefreq>${route.changefreq}</changefreq>
-    <priority>${route.priority}</priority>
-  </url>
-`
-      })
+    const xml = buildSitemapXml({
+      baseUrl,
+      staticRoutes,
+      // `resolveSiteConfig` expose déjà le bloc i18n normalisé.
+      i18n: resolved.i18n,
+      watches,
+      articles,
+      imagesByWatchId,
     })
-
-    if (watches.length > 0) {
-      watches.forEach((watch) => {
-        const lastmod = watch.updated_at
-          ? new Date(watch.updated_at).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0]
-        const watchSlug = buildWatchSlug(watch)
-        xml += `  <url>
-    <loc>${baseUrl}/montre/${watchSlug}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-`
-      })
-
-      const brandSlugs = [
-        ...new Set(
-          watches
-            .map((watch) => slugifyBrand(watch.brand))
-            .filter((slug) => typeof slug === 'string' && slug.length > 0),
-        ),
-      ].sort()
-
-      brandSlugs.forEach((slug) => {
-        xml += `  <url>
-    <loc>${baseUrl}/collection/${slug}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-`
-      })
-    }
-
-    if (articles.length > 0) {
-      articles.forEach((article) => {
-        const lastmod = article.updated_at
-          ? new Date(article.updated_at).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0]
-        xml += `  <url>
-    <loc>${baseUrl}/blog/${article.id}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-`
-      })
-    }
-
-    xml += `</urlset>`
 
     // Définir les en-têtes de réponse
     res.setHeader('Content-Type', 'application/xml')

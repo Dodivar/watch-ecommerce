@@ -17,6 +17,7 @@ import {
   reconcileMatchSession,
   saveMatchSession,
 } from './matchSessionStorage.js'
+import { MATCH_ROUND_SIZE } from '@/utils/watchMatchmaking.js'
 
 /** `localStorage` minimal : l'environnement de test est Node, sans DOM. */
 function installLocalStorage() {
@@ -105,6 +106,23 @@ describe('matchSessionStorage', () => {
     expect(parsed.liked).toEqual([])
     expect(parsed.passed).toEqual([])
     expect(parsed.preferences.brand).toEqual(['x'])
+  })
+
+  it('reprend une session écrite avant la manche avec l’allocation par défaut', () => {
+    const parsed = parseMatchSession({
+      version: MATCH_SESSION_VERSION,
+      savedAt: new Date().toISOString(),
+      step: 'swipe',
+      seen: ['a'],
+    })
+    expect(parsed.deckLimit).toBe(MATCH_ROUND_SIZE)
+  })
+
+  it('conserve une allocation élargie et rejette une allocation absurde', () => {
+    const base = { version: MATCH_SESSION_VERSION, savedAt: new Date().toISOString() }
+    expect(parseMatchSession({ ...base, deckLimit: 60 }).deckLimit).toBe(60)
+    expect(parseMatchSession({ ...base, deckLimit: 0 }).deckLimit).toBe(MATCH_ROUND_SIZE)
+    expect(parseMatchSession({ ...base, deckLimit: 'beaucoup' }).deckLimit).toBe(MATCH_ROUND_SIZE)
   })
 
   it('reste inerte sans localStorage', () => {

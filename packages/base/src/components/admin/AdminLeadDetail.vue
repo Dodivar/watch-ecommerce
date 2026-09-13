@@ -1,9 +1,23 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import {
+  Archive,
+  ArchiveRestore,
+  BadgeEuro,
+  CalendarClock,
+  ExternalLink,
+  Mail,
+  MailOpen,
+  MessageSquare,
+  Paperclip,
+  Phone,
+  Telescope,
+  Watch,
+  Wrench,
+} from '@lucide/vue'
 import { getLeadByIdForAdmin, updateLeadStatus } from '@/services/admin/adminLeadService'
 import {
-  LEAD_TYPE_LABELS,
   LEAD_STATUS_LABELS,
   formatLeadSlot,
   formatLeadDate,
@@ -11,6 +25,7 @@ import {
   formatLeadPrice,
   formatLeadBudget,
   formatLeadHandling,
+  getLeadTypePresentation,
   getLeadWatchLink,
   getUnmappedPayloadKeys,
 } from '@/utils/leadDisplay'
@@ -19,18 +34,153 @@ import { getCurrentAdminRole } from '@/services/admin/adminAuthService'
 import { canWrite as roleCanWrite } from '@/services/admin/adminPermissions'
 import AdminShell from './AdminShell.vue'
 
+/** Icônes Lucide du bandeau de type, résolues depuis la table de présentation. */
+const TYPE_ICONS = {
+  MessageSquare,
+  CalendarClock,
+  BadgeEuro,
+  Telescope,
+  Wrench,
+}
+
 const { canWrite } = useAdminPermissions()
 const route = useRoute()
 const leadId = computed(() => route.params.id)
 const lead = ref(null)
 const isLoading = ref(true)
+const isSaving = ref(false)
 const error = ref(null)
 
 const payload = computed(() => lead.value?.payload || {})
 const watchLink = computed(() => (lead.value ? getLeadWatchLink(lead.value) : null))
-const unmappedKeys = computed(() =>
-  lead.value ? getUnmappedPayloadKeys(payload.value) : [],
+const unmappedKeys = computed(() => (lead.value ? getUnmappedPayloadKeys(payload.value) : []))
+const presentation = computed(() => getLeadTypePresentation(lead.value?.type))
+const typeIcon = computed(() => TYPE_ICONS[presentation.value.icon] || MessageSquare)
+
+/** Qui écrit : le nom en tête de page, l'email en secours. */
+const contactName = computed(
+  () =>
+    lead.value?.customerName ||
+    payload.value.name ||
+    lead.value?.customerEmail ||
+    payload.value.email ||
+    'Contact sans nom',
 )
+const email = computed(() => lead.value?.customerEmail || payload.value.email || null)
+const tel = computed(() => payload.value.tel || null)
+
+/**
+ * Une ligne de fiche, ignorée si la donnée est absente : les formulaires n'ont
+ * pas tous les mêmes champs, et une liste trouée se lit moins bien qu'une
+ * liste courte.
+ *
+ * @param {string} label
+ * @param {unknown} value
+ */
+function field(label, value) {
+  if (value == null || value === '' || value === '—') return null
+  return { label, value }
+}
+
+const contactFields = computed(() =>
+  [
+    field('Prénom', lead.value?.type !== 'contact' ? payload.value.nickname : null),
+    field('Nom', lead.value?.customerName || payload.value.name),
+    field('Préférence de contact', payload.value.contact_mode),
+  ].filter(Boolean),
+)
+
+/** Blocs propres au type de demande, dans l'ordre où on les lit. */
+const requestSections = computed(() => {
+  if (!lead.value) return []
+  const p = payload.value
+  const sections = []
+
+  if (lead.value.type === 'appointment') {
+    sections.push({
+      key: 'appointment',
+      title: 'Rendez-vous',
+      icon: CalendarClock,
+      fields: [
+        field('Date', formatLeadDate(p.date)),
+        field('Créneau', p.time_slot ? formatLeadSlot(p.time_slot) : null),
+      ],
+    })
+  }
+
+  if (lead.value.type === 'repair') {
+    sections.push({
+      key: 'repair',
+      title: 'Demande atelier',
+      icon: Wrench,
+      fields: [
+        field('Prestation', p.service_type),
+        field('Prise en charge', p.handling ? formatLeadHandling(p.handling) : null),
+        field('Marque', p.brand),
+        field('Modèle', p.model),
+        field('Page d’origine', p.source),
+      ],
+    })
+  }
+
+  if (lead.value.type === 'estimation') {
+    sections.push({
+      key: 'estimation',
+      title: 'Détails de la montre',
+      icon: BadgeEuro,
+      fields: [
+        field('Marque', p.brand),
+        field('Modèle', p.model),
+        field('Numéro de série', p.serienumber),
+        field('Année', p.year),
+        field('État général', p.etat || p.condition),
+        field('État de possession', p.possession),
+      ],
+    })
+  }
+
+  if (lead.value.type === 'search') {
+    sections.push({
+      key: 'search',
+      title: 'Critères de recherche',
+      icon: Telescope,
+      fields: [
+        field('Marque', p.brand),
+        field('Modèle', p.model),
+        field(
+          'Budget',
+          p.budget_min || p.budget_max ? formatLeadBudget(p.budget_min, p.budget_max) : null,
+        ),
+        field('État souhaité', p.condition),
+        field('Délai souhaité', p.delai),
+      ],
+    })
+  }
+
+  return sections
+    .map((section) => ({ ...section, fields: section.fields.filter(Boolean) }))
+    .filter((section) => section.fields.length > 0)
+})
+
+const watchFields = computed(() =>
+  [
+    field('Modèle', payload.value.watch_name),
+    field(
+      'Prix affiché',
+      payload.value.watch_price ? formatLeadPrice(payload.value.watch_price) : null,
+    ),
+  ].filter(Boolean),
+)
+
+const showWatchSection = computed(
+  () => watchFields.value.length > 0 || Boolean(watchLink.value) || Boolean(lead.value?.watchId),
+)
+
+const statusClass = computed(() => {
+  if (lead.value?.status === 'new') return 'bg-primary/10 text-primary font-semibold'
+  if (lead.value?.status === 'archived') return 'bg-gray-100 text-gray-600'
+  return 'bg-cream-200 text-gray-700'
+})
 
 async function load() {
   try {
@@ -49,9 +199,23 @@ async function load() {
   }
 }
 
+/**
+ * Le statut est appliqué localement plutôt que rechargé : un rechargement
+ * repasserait par le marquage automatique et annulerait un « marquer non lu ».
+ *
+ * @param {'new' | 'read' | 'archived'} status
+ */
 async function setStatus(status) {
-  await updateLeadStatus(leadId.value, status)
-  await load()
+  if (isSaving.value) return
+  isSaving.value = true
+  try {
+    await updateLeadStatus(leadId.value, status)
+    lead.value = { ...lead.value, status }
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    isSaving.value = false
+  }
 }
 
 onMounted(load)
@@ -63,249 +227,256 @@ onMounted(load)
     show-back-button
     back-button-route="/admin/leads"
     back-button-text="Messages"
-    content-class="max-w-3xl"
+    content-class="max-w-5xl"
   >
     <div v-if="error" class="bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-4">{{ error }}</div>
-    <div v-if="isLoading" class="text-center py-12">Chargement…</div>
+    <div v-if="isLoading" class="text-center py-12 text-gray-500">Chargement…</div>
 
     <template v-else-if="lead">
-      <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <div class="flex flex-wrap items-center gap-3 mb-2">
-          <span class="text-lg font-semibold">{{ LEAD_TYPE_LABELS[lead.type] || lead.type }}</span>
-          <span
-            class="text-xs uppercase tracking-wide px-2 py-1 rounded-full"
-            :class="
-              lead.status === 'new'
-                ? 'bg-primary/10 text-primary font-semibold'
-                : lead.status === 'archived'
-                  ? 'bg-gray-100 text-gray-600'
-                  : 'bg-cream text-gray-700'
-            "
-          >
-            {{ LEAD_STATUS_LABELS[lead.status] || lead.status }}
-          </span>
-        </div>
-        <p class="text-sm text-gray-600">Reçu le {{ formatLeadDateTime(lead.createdAt) }}</p>
-      </div>
-
-      <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 class="text-lg font-semibold mb-4">Coordonnées</h2>
-        <dl class="space-y-2 text-sm">
-          <div v-if="lead.type !== 'contact' && payload.nickname" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Prénom</dt>
-            <dd>{{ payload.nickname }}</dd>
-          </div>
-          <div v-if="lead.customerName || payload.name" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Nom</dt>
-            <dd>{{ lead.customerName || payload.name }}</dd>
-          </div>
-          <div v-if="lead.customerEmail || payload.email" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Email</dt>
-            <dd>
-              <a
-                :href="`mailto:${lead.customerEmail || payload.email}`"
-                class="text-primary underline"
-              >
-                {{ lead.customerEmail || payload.email }}
-              </a>
-            </dd>
-          </div>
-          <div v-if="payload.tel" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Téléphone</dt>
-            <dd>
-              <a :href="`tel:${payload.tel}`" class="text-primary underline">{{ payload.tel }}</a>
-            </dd>
-          </div>
-          <div v-if="payload.contact_mode" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Préférence de contact</dt>
-            <dd>{{ payload.contact_mode }}</dd>
-          </div>
-        </dl>
-      </div>
-
-      <div v-if="lead.type === 'appointment'" class="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 class="text-lg font-semibold mb-4">Rendez-vous</h2>
-        <dl class="space-y-2 text-sm">
-          <div class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Date</dt>
-            <dd>{{ formatLeadDate(payload.date) }}</dd>
-          </div>
-          <div v-if="payload.time_slot" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Créneau</dt>
-            <dd>{{ formatLeadSlot(payload.time_slot) }}</dd>
-          </div>
-        </dl>
-      </div>
-
+      <!-- Bandeau : type, statut, date de réception — l'identité du message
+           avant son contenu. -->
       <div
-        v-if="lead.type === 'appointment' || payload.watch_name"
-        class="bg-white rounded-lg shadow p-6 mb-6"
+        class="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-gray-100 bg-white p-5 shadow-sm"
       >
-        <h2 class="text-lg font-semibold mb-4">Montre concernée</h2>
-        <dl class="space-y-2 text-sm">
-          <div v-if="payload.watch_name" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Modèle</dt>
-            <dd>{{ payload.watch_name }}</dd>
+        <span
+          class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
+          :class="presentation.chip"
+        >
+          <component :is="typeIcon" class="h-5 w-5" :stroke-width="2" />
+        </span>
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-lg font-semibold text-text-main">{{ contactName }}</h2>
+            <span
+              class="rounded-full border px-2 py-0.5 text-xs font-medium"
+              :class="presentation.chip"
+            >
+              {{ presentation.label }}
+            </span>
+            <span
+              class="rounded-full px-2 py-0.5 text-xs uppercase tracking-wide"
+              :class="statusClass"
+            >
+              {{ LEAD_STATUS_LABELS[lead.status] || lead.status }}
+            </span>
           </div>
-          <div v-if="payload.watch_price" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Prix affiché</dt>
-            <dd>{{ formatLeadPrice(payload.watch_price) }}</dd>
-          </div>
-          <div v-if="watchLink || lead.watchId" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Fiche produit</dt>
-            <dd class="space-x-3">
+          <p class="mt-0.5 text-sm text-gray-500">
+            Reçu le {{ formatLeadDateTime(lead.createdAt) }}
+          </p>
+        </div>
+      </div>
+
+      <div class="grid gap-6 lg:grid-cols-3 lg:items-start">
+        <!-- Colonne principale : la demande elle-même. -->
+        <div class="space-y-6 lg:col-span-2">
+          <section
+            v-for="section in requestSections"
+            :key="section.key"
+            class="rounded-xl border border-gray-100 bg-white shadow-sm"
+          >
+            <h3
+              class="flex items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold text-text-main"
+            >
+              <component :is="section.icon" class="h-4 w-4 text-gray-400" :stroke-width="2" />
+              {{ section.title }}
+            </h3>
+            <dl class="divide-y divide-gray-50">
+              <div
+                v-for="item in section.fields"
+                :key="item.label"
+                class="flex gap-4 px-5 py-2.5 text-sm"
+              >
+                <dt class="w-40 shrink-0 text-gray-500">{{ item.label }}</dt>
+                <dd class="min-w-0 flex-1 text-text-main">{{ item.value }}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section
+            v-if="payload.message"
+            class="rounded-xl border border-gray-100 bg-white shadow-sm"
+          >
+            <h3
+              class="flex items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold text-text-main"
+            >
+              <MessageSquare class="h-4 w-4 text-gray-400" :stroke-width="2" />
+              Message
+            </h3>
+            <p class="whitespace-pre-wrap px-5 py-4 text-sm leading-relaxed text-gray-700">
+              {{ payload.message }}
+            </p>
+          </section>
+
+          <section
+            v-if="showWatchSection"
+            class="rounded-xl border border-gray-100 bg-white shadow-sm"
+          >
+            <h3
+              class="flex items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold text-text-main"
+            >
+              <Watch class="h-4 w-4 text-gray-400" :stroke-width="2" />
+              Montre concernée
+            </h3>
+            <dl class="divide-y divide-gray-50">
+              <div
+                v-for="item in watchFields"
+                :key="item.label"
+                class="flex gap-4 px-5 py-2.5 text-sm"
+              >
+                <dt class="w-40 shrink-0 text-gray-500">{{ item.label }}</dt>
+                <dd class="min-w-0 flex-1 text-text-main">{{ item.value }}</dd>
+              </div>
+            </dl>
+            <div
+              v-if="watchLink || lead.watchId"
+              class="flex flex-wrap gap-2 border-t border-gray-100 px-5 py-3"
+            >
               <a
                 v-if="watchLink"
                 :href="watchLink"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-primary underline"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:bg-cream/60"
               >
+                <ExternalLink class="h-4 w-4" :stroke-width="2" />
                 Voir la fiche produit
               </a>
               <RouterLink
                 v-if="lead.watchId"
                 :to="`/admin/watches/${lead.watchId}/edit`"
-                class="text-gray-600 underline"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:bg-cream/60"
               >
                 Modifier en admin
               </RouterLink>
-            </dd>
-          </div>
-        </dl>
-      </div>
+            </div>
+          </section>
 
-      <div v-if="lead.type === 'repair'" class="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 class="text-lg font-semibold mb-4">Demande atelier</h2>
-        <dl class="space-y-2 text-sm">
-          <div v-if="payload.service_type" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Prestation</dt>
-            <dd>{{ payload.service_type }}</dd>
-          </div>
-          <div v-if="payload.handling" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Prise en charge</dt>
-            <dd>{{ formatLeadHandling(payload.handling) }}</dd>
-          </div>
-          <div v-if="payload.brand" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Marque</dt>
-            <dd>{{ payload.brand }}</dd>
-          </div>
-          <div v-if="payload.model" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Modèle</dt>
-            <dd>{{ payload.model }}</dd>
-          </div>
-          <div v-if="payload.source" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Page d’origine</dt>
-            <dd>{{ payload.source }}</dd>
-          </div>
-        </dl>
-      </div>
-
-      <div
-        v-if="lead.type === 'estimation' || lead.type === 'search'"
-        class="bg-white rounded-lg shadow p-6 mb-6"
-      >
-        <h2 class="text-lg font-semibold mb-4">
-          {{ lead.type === 'estimation' ? 'Détails de la montre' : 'Critères de recherche' }}
-        </h2>
-        <dl class="space-y-2 text-sm">
-          <div v-if="payload.brand" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Marque</dt>
-            <dd>{{ payload.brand }}</dd>
-          </div>
-          <div v-if="payload.model" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">Modèle</dt>
-            <dd>{{ payload.model }}</dd>
-          </div>
-          <template v-if="lead.type === 'estimation'">
-            <div v-if="payload.serienumber" class="flex gap-2">
-              <dt class="font-medium text-gray-600 min-w-[140px]">Numéro de série</dt>
-              <dd>{{ payload.serienumber }}</dd>
-            </div>
-            <div v-if="payload.year" class="flex gap-2">
-              <dt class="font-medium text-gray-600 min-w-[140px]">Année</dt>
-              <dd>{{ payload.year }}</dd>
-            </div>
-            <div v-if="payload.etat || payload.condition" class="flex gap-2">
-              <dt class="font-medium text-gray-600 min-w-[140px]">État général</dt>
-              <dd>{{ payload.etat || payload.condition }}</dd>
-            </div>
-            <div v-if="payload.possession" class="flex gap-2">
-              <dt class="font-medium text-gray-600 min-w-[140px]">État de possession</dt>
-              <dd>{{ payload.possession }}</dd>
-            </div>
-          </template>
-          <template v-else>
-            <div
-              v-if="payload.budget_min || payload.budget_max"
-              class="flex gap-2"
+          <section
+            v-if="payload.attachments?.length"
+            class="rounded-xl border border-gray-100 bg-white shadow-sm"
+          >
+            <h3
+              class="flex items-center gap-2 border-b border-gray-100 px-5 py-3 text-sm font-semibold text-text-main"
             >
-              <dt class="font-medium text-gray-600 min-w-[140px]">Budget</dt>
-              <dd>{{ formatLeadBudget(payload.budget_min, payload.budget_max) }}</dd>
+              <Paperclip class="h-4 w-4 text-gray-400" :stroke-width="2" />
+              Pièces jointes
+              <span class="text-xs font-normal text-gray-400"
+                >({{ payload.attachments.length }})</span
+              >
+            </h3>
+            <ul class="divide-y divide-gray-50">
+              <li
+                v-for="(file, index) in payload.attachments"
+                :key="index"
+                class="px-5 py-2.5 text-sm text-gray-700"
+              >
+                {{ file.name || file }}
+              </li>
+            </ul>
+          </section>
+
+          <details
+            v-if="unmappedKeys.length"
+            class="rounded-xl border border-gray-100 bg-white shadow-sm"
+          >
+            <summary class="cursor-pointer px-5 py-3 text-sm font-medium text-gray-600">
+              Données techniques
+              <span class="text-xs font-normal text-gray-400">({{ unmappedKeys.length }})</span>
+            </summary>
+            <dl class="divide-y divide-gray-50 border-t border-gray-100">
+              <div v-for="key in unmappedKeys" :key="key" class="flex gap-4 px-5 py-2.5 text-sm">
+                <dt class="w-40 shrink-0 break-words text-gray-500">{{ key }}</dt>
+                <dd class="min-w-0 flex-1 break-words text-text-main">{{ payload[key] }}</dd>
+              </div>
+            </dl>
+          </details>
+        </div>
+
+        <!-- Colonne latérale : qui écrit, et quoi en faire. Reste sous les yeux
+             pendant la lecture d'un long message. -->
+        <aside class="space-y-4 lg:sticky lg:top-4">
+          <section class="rounded-xl border border-gray-100 bg-white shadow-sm">
+            <h3 class="border-b border-gray-100 px-5 py-3 text-sm font-semibold text-text-main">
+              Contact
+            </h3>
+            <dl class="divide-y divide-gray-50">
+              <div v-for="item in contactFields" :key="item.label" class="px-5 py-2.5 text-sm">
+                <dt class="text-xs uppercase tracking-wide text-gray-400">{{ item.label }}</dt>
+                <dd class="mt-0.5 break-words text-text-main">{{ item.value }}</dd>
+              </div>
+              <div v-if="email" class="px-5 py-2.5 text-sm">
+                <dt class="text-xs uppercase tracking-wide text-gray-400">Email</dt>
+                <dd class="mt-0.5 break-words">
+                  <a :href="`mailto:${email}`" class="text-primary underline">{{ email }}</a>
+                </dd>
+              </div>
+              <div v-if="tel" class="px-5 py-2.5 text-sm">
+                <dt class="text-xs uppercase tracking-wide text-gray-400">Téléphone</dt>
+                <dd class="mt-0.5">
+                  <a :href="`tel:${tel}`" class="text-primary underline">{{ tel }}</a>
+                </dd>
+              </div>
+            </dl>
+            <p
+              v-if="!email && !tel && contactFields.length === 0"
+              class="px-5 py-4 text-sm text-gray-500"
+            >
+              Aucune coordonnée transmise.
+            </p>
+          </section>
+
+          <section class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+            <h3 class="mb-3 text-sm font-semibold text-text-main">Actions</h3>
+            <div class="space-y-2">
+              <a
+                v-if="email"
+                :href="`mailto:${email}`"
+                class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
+              >
+                <Mail class="h-4 w-4" :stroke-width="2" />
+                Répondre par email
+              </a>
+              <a
+                v-if="tel"
+                :href="`tel:${tel}`"
+                class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-cream/60"
+              >
+                <Phone class="h-4 w-4" :stroke-width="2" />
+                Appeler
+              </a>
+              <button
+                v-if="canWrite && lead.status !== 'new'"
+                type="button"
+                class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-cream/60 disabled:opacity-50"
+                :disabled="isSaving"
+                @click="setStatus('new')"
+              >
+                <MailOpen class="h-4 w-4" :stroke-width="2" />
+                Marquer non lu
+              </button>
+              <button
+                v-if="canWrite && lead.status !== 'archived'"
+                type="button"
+                class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-cream/60 disabled:opacity-50"
+                :disabled="isSaving"
+                @click="setStatus('archived')"
+              >
+                <Archive class="h-4 w-4" :stroke-width="2" />
+                Archiver
+              </button>
+              <button
+                v-if="canWrite && lead.status === 'archived'"
+                type="button"
+                class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-cream/60 disabled:opacity-50"
+                :disabled="isSaving"
+                @click="setStatus('read')"
+              >
+                <ArchiveRestore class="h-4 w-4" :stroke-width="2" />
+                Désarchiver
+              </button>
             </div>
-            <div v-if="payload.condition" class="flex gap-2">
-              <dt class="font-medium text-gray-600 min-w-[140px]">État souhaité</dt>
-              <dd>{{ payload.condition }}</dd>
-            </div>
-            <div v-if="payload.delai" class="flex gap-2">
-              <dt class="font-medium text-gray-600 min-w-[140px]">Délai souhaité</dt>
-              <dd>{{ payload.delai }}</dd>
-            </div>
-          </template>
-        </dl>
-      </div>
-
-      <div v-if="payload.message" class="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 class="text-lg font-semibold mb-4">Message</h2>
-        <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ payload.message }}</p>
-      </div>
-
-      <div
-        v-if="payload.attachments?.length"
-        class="bg-white rounded-lg shadow p-6 mb-6"
-      >
-        <h2 class="text-lg font-semibold mb-4">Pièces jointes</h2>
-        <ul class="list-disc list-inside text-sm space-y-1">
-          <li v-for="(file, index) in payload.attachments" :key="index">
-            {{ file.name || file }}
-          </li>
-        </ul>
-      </div>
-
-      <details v-if="unmappedKeys.length" class="bg-white rounded-lg shadow p-6 mb-6">
-        <summary class="text-sm font-medium text-gray-600 cursor-pointer">Données techniques</summary>
-        <dl class="mt-4 space-y-2 text-sm">
-          <div v-for="key in unmappedKeys" :key="key" class="flex gap-2">
-            <dt class="font-medium text-gray-600 min-w-[140px]">{{ key }}</dt>
-            <dd>{{ payload[key] }}</dd>
-          </div>
-        </dl>
-      </details>
-
-      <div class="flex flex-wrap gap-2">
-        <button
-          v-if="canWrite && lead.status !== 'read'"
-          type="button"
-          class="px-4 py-2 border rounded-lg"
-          @click="setStatus('read')"
-        >
-          Marquer lu
-        </button>
-        <button
-          v-if="canWrite && lead.status !== 'archived'"
-          type="button"
-          class="px-4 py-2 border rounded-lg"
-          @click="setStatus('archived')"
-        >
-          Archiver
-        </button>
-        <a
-          v-if="lead.customerEmail || payload.email"
-          :href="`mailto:${lead.customerEmail || payload.email}`"
-          class="px-4 py-2 bg-primary text-white rounded-lg"
-        >
-          Répondre
-        </a>
+          </section>
+        </aside>
       </div>
     </template>
   </AdminShell>

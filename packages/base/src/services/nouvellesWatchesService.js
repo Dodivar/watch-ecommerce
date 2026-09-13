@@ -7,6 +7,35 @@ export const NOUVELLES_WATCH_LIMIT = 7
 let cachedWatchesPromise = null
 
 /**
+ * Monte le carrousel « nouveautés » à partir d'une liste d'identifiants : chaque
+ * montre est chargée par le même chemin que l'accueil (`getWatchById`, donc
+ * toutes ses images et son prix promotionnel), et une sélection vide — ou dont
+ * plus aucune montre n'est en vente — retombe sur les dernières disponibles.
+ *
+ * Deux appelants : la résolution publique ci-dessous, et l'aperçu de l'écran
+ * d'administration, qui doit montrer le brouillon avec exactement les mêmes
+ * données que la page d'accueil.
+ *
+ * @param {string[] | null | undefined} watchIds Sélection ordonnée (accueil : `display_order` décroissant).
+ * @param {{ limit?: number, loadWatch?: (id: string) => Promise<object | null> }} [options]
+ *   `loadWatch` permet à l'aperçu admin de mémoriser les montres déjà chargées.
+ * @returns {Promise<Array<{ id: string }>>}
+ */
+export async function assembleNouvellesWatches(watchIds, options = {}) {
+  const { limit = NOUVELLES_WATCH_LIMIT, loadWatch = getWatchById } = options
+  const ids = (watchIds ?? []).filter(Boolean)
+
+  if (ids.length) {
+    const assembled = (
+      await Promise.all(ids.map((id) => Promise.resolve(loadWatch(id)).catch(() => null)))
+    ).filter(Boolean)
+    if (assembled.length) return assembled
+  }
+
+  return getLatestAvailableWatches(limit)
+}
+
+/**
  * Résout les montres « nouveautés » : sélection admin (`home_featured_watches`)
  * ou, à défaut, les dernières montres disponibles par ordre d'affichage.
  *
@@ -15,13 +44,10 @@ let cachedWatchesPromise = null
  */
 export async function resolveNouvellesWatches(limit = NOUVELLES_WATCH_LIMIT) {
   const featured = await getFeaturedWatchesPublic('nouvelles')
-  if (featured?.length) {
-    const assembled = (
-      await Promise.all(featured.map((w) => getWatchById(w.id).catch(() => null)))
-    ).filter(Boolean)
-    if (assembled.length) return assembled
-  }
-  return getLatestAvailableWatches(limit)
+  return assembleNouvellesWatches(
+    featured?.map((watch) => watch.id),
+    { limit },
+  )
 }
 
 /**

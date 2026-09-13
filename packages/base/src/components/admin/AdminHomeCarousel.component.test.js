@@ -76,7 +76,7 @@ describe('AdminHomeCarousel — redirection au clic', () => {
     expect(selects[1].text()).toContain('ROLEX — DATEJUST 16014')
   })
 
-  it('affiche le sélecteur d\'événement après avoir choisi « Événement promotionnel »', async () => {
+  it('affiche le sélecteur de campagne après avoir choisi « Campagne de promotion »', async () => {
     const wrapper = await mountAdminCarousel()
 
     await slideSelects(wrapper)[0].setValue('campaign')

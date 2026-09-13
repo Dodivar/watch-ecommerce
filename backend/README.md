@@ -133,14 +133,35 @@ Les variables historiques (`STRIPE_SECRET_KEY`, `MAILJET_API_KEY`, `BASE_URL`, e
 
 ## ➕ Ajouter un nouveau client
 
+> Cette section couvre le branchement technique. Le parcours complet — ce que le client
+> fait seul dans Stripe, ce qu'il nous transmet, où chaque valeur atterrit — est dans
+> [documentation/onboarding/](../documentation/onboarding/README.md).
+
 1. **Créer le manifest front** : `sites/<nouveau-client>/site.config.js` (le front Vite l'utilise déjà). Compléter le bloc `backend` (cf. exemple ci-dessus).
-2. **Configurer les secrets** dans le dashboard Render : ajouter toutes les variables `SITE_<UPPER_ID>__`* correspondantes (Stripe, Supabase, Mailjet, PaymentCancel).
+2. **Configurer les secrets** dans le dashboard Render : ajouter toutes les variables `SITE_<UPPER_ID>__`* correspondantes (Stripe, Supabase, Mailjet, PaymentCancel). La clé Stripe est une clé restreinte du client : permissions `PaymentIntents — Écriture`, `Balance — Lecture`, et `Refunds — Écriture` pour que le bouton « Rembourser » du panel fonctionne. Cette dernière est optionnelle — sans elle, l'appel répond 403 avec un message explicite, et un remboursement fait dans le dashboard reste enregistré par le webhook.
 3. **Configurer le webhook Stripe** : dans le dashboard Stripe du nouveau client, pointer le webhook vers :
   ```
    https://watch-ecommerce-mp9l.onrender.com/api/stripe/webhook/<nouveau-client>
   ```
-   Inclure au minimum `payment_intent.succeeded`, `payment_intent.payment_failed` et `payment_intent.canceled`.
-4. **Redéployer Render** : le boot charge automatiquement le nouveau `sites/<id>/site.config.js`. Aucune modification de code.
+   Sélectionner les événements suivants — les trois premiers pour l'encaissement, les
+   suivants pour les remboursements :
+
+   | Événement | Sans lui |
+   | --- | --- |
+   | `payment_intent.succeeded` | Aucune commande ne passe en `paid` |
+   | `payment_intent.payment_failed` | Les commandes échouées restent bloquées en `pending_payment` |
+   | `payment_intent.canceled` | Idem |
+   | `charge.refunded` | Un remboursement n'existe pas pour l'application : CA et TVA surévalués |
+   | `refund.created`, `refund.updated` | Un remboursement `pending` n'est jamais confirmé, un échec jamais vu |
+   | `charge.refund.updated` | Même rôle sur les comptes Stripe d'ancienne génération |
+
+   Les quatre événements de remboursement font double emploi selon la version de l'API du
+   compte : les cocher tous rend l'enregistrement indépendant de cette version, le traitement
+   étant idempotent par `stripe_refund_id`.
+4. **Appliquer les migrations Supabase** du client, dont `20260911120000_order_refunds.sql`
+   (table `order_refunds`, motif de rétractation, retrait du droit d'écriture du panel sur les
+   colonnes de remboursement) — voir [supabase/migrations/README.md](../supabase/migrations/README.md).
+5. **Redéployer Render** : le boot charge automatiquement le nouveau `sites/<id>/site.config.js`. Aucune modification de code.
 
 ## Endpoints
 
@@ -160,6 +181,9 @@ Les variables historiques (`STRIPE_SECRET_KEY`, `MAILJET_API_KEY`, `BASE_URL`, e
 | POST    | `/api/orders/:id/promo`        | Origin + Bearer token   |
 | POST    | `/api/orders/:id/pay`          | Origin + Bearer token   |
 | GET     | `/api/orders/:id/verify`       | Origin + token query    |
+| POST    | `/api/orders/:id/return-request` | Origin + Bearer token (suivi accepté) |
+| POST    | `/api/admin/orders/:id/refund` | Origin + Bearer admin (rôle `admin`)  |
+| GET     | `/api/admin/orders/:id/receipt` | Origin + Bearer admin (`admin`, `moderator`) |
 | POST    | `/api/stripe/webhook/:siteId`  | Param `:siteId`         |
 | POST    | `/api/stripe/webhook` (legacy) | Forcé `sauvage-watches` |
 
@@ -245,6 +269,15 @@ sans pagination, ce sont les orphelins mûrs qui disparaîtraient). Au-delà de
 300 paiements dans la fenêtre, la réponse porte `truncated: true` et le workflow
 le signale plutôt que de laisser croire à une fenêtre complète.
 
+La même route porte l'invariant **symétrique** sur l'argent sortant : *tout remboursement
+Stripe doit avoir sa ligne `order_refunds`*. Il attrape le webhook manqué, mais surtout le
+remboursement fait hors application — dashboard Stripe un jour de panne, litige tranché en
+faveur de l'acheteur. Le résultat est sous la clé `refunds` de chaque site, avec les mêmes
+garde-fous (période de grâce, pagination, `truncated`) ; un remboursement dont le
+PaymentIntent ne correspond à aucune commande du site est compté dans `unknown` sans alerter,
+et les remboursements `failed` / `canceled` sont ignorés — ils ne rendent rien au client. Le
+statut d'un site est le plus grave des deux contrôles.
+
 Paramètres : `?site=<id>`, `?windowMinutes=<n>` (défaut 90), `?force=1`.
 
 ### Où faire tourner les checks
@@ -260,7 +293,8 @@ complément : le `schedule` GitHub est « best effort » et se désactive après
 
 - **CORS strict** : seules les origines déclarées par un `site.config.js` ou par `BACKEND_CORS_ORIGINS` sont acceptées. Toute origine inconnue → erreur 403 (transformée par le handler global).
 - **Webhooks Stripe** : signature vérifiée avec `SITE_<ID>__STRIPE_WEBHOOK_SECRET`. Échec → 400 (non-réessai par Stripe). Erreur métier après réception → 500 (Stripe réessaie). Idempotence via `stripe_processed_events`.
-- **Tokens d'annulation** : signés HMAC avec `SITE_<ID>__PAYMENT_CANCEL_SECRET` ; isolés par site.
+- **Tokens d'annulation** : signés HMAC avec `SITE_<ID>__PAYMENT_CANCEL_SECRET` ; isolés par site. Le token de suivi durable ouvre en plus la demande de rétractation (`POST /api/orders/:id/return-request`) : elle n'ouvre qu'un dossier, jamais un paiement, une annulation ni une modification de commande.
+- **Remboursements** : `POST /api/admin/orders/:id/refund` est la seule route qui fait sortir de l'argent. Réservée au rôle `admin`, journalisée (`admin_access_log`), montant borné contre la commande relue en service role (remboursements en vol déduits) et clé d'idempotence Stripe obligatoire. Le panel n'écrit jamais les colonnes de remboursement : la base lui en retire le droit (`revoke update … grant update (colonnes de suivi)`).
 - **Aucun secret partagé entre sites** : chaque siteId a son propre Stripe / Supabase / Mailjet.
 
 ## Maintenance

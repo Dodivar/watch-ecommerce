@@ -226,7 +226,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { marked } from 'marked'
@@ -234,7 +234,7 @@ import { getArticleById, incrementArticleViewCount } from '@/services/articleSer
 import { getArticleByIdForAdmin } from '@/services/admin/adminArticleService'
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import { scrollAnimation } from '@/animation'
-import { BASE_URL } from '@/config'
+import { BASE_URL, DEFAULT_OG_IMAGE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { formatDate } from '@/utils/formatters.js'
 import { t } from '@/i18n'
@@ -398,7 +398,7 @@ const modifiedDate = computed(() => {
 
 const ogImage = computed(() => {
   // Utiliser le logo par défaut pour les articles
-  return `${BASE_URL}/logo500x500.png`
+  return DEFAULT_OG_IMAGE_URL
 })
 
 // Structured Data (JSON-LD) for Article
@@ -421,10 +421,11 @@ const structuredData = computed(() => {
       '@type': 'Organization',
       name: seoBlog.structuredDataPublisherName,
       url: BASE_URL,
-      logo: {
-        '@type': 'ImageObject',
-        url: `${BASE_URL}/logo500x500.png`,
-      },
+      // `logo` omis plutôt que pointé sur une URL morte : un visuel introuvable invalide
+      // l'éditeur et peut disqualifier l'article des résultats enrichis.
+      ...(DEFAULT_OG_IMAGE_URL
+        ? { logo: { '@type': 'ImageObject', url: DEFAULT_OG_IMAGE_URL } }
+        : {}),
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
@@ -437,88 +438,48 @@ const structuredData = computed(() => {
   }
 })
 
-// Update head when article data changes
-watch([article, pageTitle, pageDescription, canonicalUrl, ogImage], () => {
-  if (!article.value) return
+/**
+ * Un seul appel `useHead`, au niveau du `setup`, alimenté par un `computed`.
+ *
+ * L'appeler depuis un `watch` — comme ici auparavant — le sort du `setup` : `getCurrentInstance()`
+ * y vaut `null`, donc unhead ne pose pas son `onBeforeUnmount` et n'enlève jamais l'entrée. Les
+ * balises de l'article (canonique, `og:type: article`, dates, JSON-LD) survivaient alors à la
+ * navigation et venaient se coller aux pages suivantes, chaque article visité empilant en plus
+ * son propre JSON-LD.
+ */
+const blogDetailHead = computed(() => {
+  // Avant chargement, on laisse la coquille `index.html` parler plutôt que d'annoncer un
+  // article qui n'existe pas encore.
+  if (!article.value) return {}
 
-  useHead({
+  const categories = article.value.categories ?? []
+
+  return {
     title: pageTitle.value,
     meta: [
-      {
-        name: 'description',
-        content: pageDescription.value,
-      },
-      {
-        property: 'og:title',
-        content: pageTitle.value,
-      },
-      {
-        property: 'og:description',
-        content: pageDescription.value,
-      },
-      {
-        property: 'og:image',
-        content: ogImage.value,
-      },
-      {
-        property: 'og:url',
-        content: canonicalUrl.value,
-      },
-      {
-        property: 'og:type',
-        content: 'article',
-      },
-      {
-        property: 'og:site_name',
-        content: seoBlog.structuredDataPublisherName,
-      },
-      {
-        property: 'article:published_time',
-        content: publishedDate.value,
-      },
-      {
-        property: 'article:modified_time',
-        content: modifiedDate.value || publishedDate.value,
-      },
-      ...(article.value.categories && article.value.categories.length > 0
-        ? article.value.categories.map((cat) => ({
-            property: 'article:tag',
-            content: cat,
-          }))
-        : []),
-      {
-        name: 'twitter:card',
-        content: 'summary_large_image',
-      },
-      {
-        name: 'twitter:title',
-        content: pageTitle.value,
-      },
-      {
-        name: 'twitter:description',
-        content: pageDescription.value,
-      },
-      {
-        name: 'twitter:image',
-        content: ogImage.value,
-      },
+      { name: 'description', content: pageDescription.value },
+      { property: 'og:title', content: pageTitle.value },
+      { property: 'og:description', content: pageDescription.value },
+      { property: 'og:image', content: ogImage.value },
+      { property: 'og:url', content: canonicalUrl.value },
+      { property: 'og:type', content: 'article' },
+      { property: 'og:site_name', content: seoBlog.structuredDataPublisherName },
+      { property: 'article:published_time', content: publishedDate.value },
+      { property: 'article:modified_time', content: modifiedDate.value || publishedDate.value },
+      ...categories.map((cat) => ({ property: 'article:tag', content: cat })),
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: pageTitle.value },
+      { name: 'twitter:description', content: pageDescription.value },
+      { name: 'twitter:image', content: ogImage.value },
     ],
-    link: [
-      {
-        rel: 'canonical',
-        href: canonicalUrl.value,
-      },
-    ],
+    link: [{ rel: 'canonical', href: canonicalUrl.value }],
     script: structuredData.value
-      ? [
-          {
-            type: 'application/ld+json',
-            children: JSON.stringify(structuredData.value),
-          },
-        ]
+      ? [{ type: 'application/ld+json', children: JSON.stringify(structuredData.value) }]
       : [],
-  })
-}, { immediate: true })
+  }
+})
+
+useHead(blogDetailHead)
 
 onMounted(async () => {
   await loadArticle()

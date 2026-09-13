@@ -47,7 +47,8 @@ l'archive `/ventes` (feature `soldArchive`). Le tri catalogue passe par `display
 
 | Table | Rôle | Colonnes clés observées |
 | --- | --- | --- |
-| `orders` | Commande | `id`, `order_id`, `site_id`, `customer_email`, `status`, `fulfillment_status`, `currency`, `subtotal_cents`, `total_cents`, `stripe_payment_intent_id`, `paid_at`, `refunded_at`, `refund_amount_cents`, `return_requested_at`, `return_status`, `receipt_storage_path`, `recovery_email_sent_at` |
+| `orders` | Commande | `id`, `order_id`, `site_id`, `customer_email`, `status`, `fulfillment_status`, `currency`, `subtotal_cents`, `total_cents`, `stripe_payment_intent_id`, `paid_at`, `delivered_at`, `return_status`, `return_requested_at`, `return_requested_by`, `return_reason`, `return_notes`, `receipt_storage_path`, `recovery_email_sent_at` — plus le cache de remboursement `refunded_at`, `refund_amount_cents`, `stripe_refund_id`, recalculé depuis `order_refunds` et en lecture seule pour le panel |
+| `order_refunds` | Remboursement Stripe (un par `stripe_refund_id`) | `id`, `site_id`, `order_id`, `stripe_refund_id`, `stripe_payment_intent_id`, `amount_cents`, `currency`, `status`, `reason`, `failure_reason`, `source`, `initiated_by`, `refunded_at` |
 | `order_lines` | Lignes de commande | `id`, `order_id`, `site_id`, `watch_id`, `name`, `reference`, `image_url`, `quantity`, `unit_price_cents` |
 | `order_shipping` | Mode de livraison retenu | `order_id`, `method_id`, `method_label`, `method_type`, `metadata` |
 | `order_discounts` | Remises appliquées | `order_id`, `promo_code`, `discount_type`, `discount_cents`, `method_id`, `metadata` |
@@ -63,7 +64,7 @@ un montant nominal : ne pas mélanger les deux.
 Une remise vit toujours dans `watches.promotion_price` / `watches.discount_percent`, que le prix
 promo ait été saisi sur la fiche montre ou écrit par l'application d'une campagne ; les colonnes
 `previous_*` de `watch_promotion_campaign_items` gardent la remise d'origine pour la restaurer à
-la fin de l'événement. Conséquence côté admin : une campagne **à venir** n'a encore touché à aucun
+la fin de la campagne. Conséquence côté admin : une campagne **à venir** n'a encore touché à aucun
 prix — ses montres ne se lisent que dans `watch_promotion_campaign_items`, ce que recompose l'écran
 « Montres en promotion » (`/admin/watch-promotions/watches`).
 

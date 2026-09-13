@@ -32,6 +32,8 @@ function mapOrderRow(row) {
     returnStatus: row.return_status || 'none',
     returnRequestedAt: row.return_requested_at || null,
     returnNotes: row.return_notes || '',
+    returnReason: row.return_reason || '',
+    returnRequestedBy: row.return_requested_by || null,
     refundAmountCents: row.refund_amount_cents ?? null,
     refundedAt: row.refunded_at || null,
     stripeRefundId: row.stripe_refund_id || null,
@@ -188,16 +190,18 @@ export async function updateOrderFulfillmentStatus(orderId, fulfillmentStatus) {
 }
 
 /**
- * Enregistre l'avancement d'un dossier retour / remboursement.
+ * Enregistre l'avancement d'un dossier retour.
  *
- * Le remboursement n'est pas déclenché ici : il est effectué à la main dans le
- * dashboard Stripe, cette fonction ne fait qu'en garder la trace côté commande.
+ * N'écrit que le suivi : statut, dates logistiques, notes internes. Les
+ * montants de remboursement ne transitent plus par le navigateur — ils sont
+ * écrits par le webhook Stripe en service role, et la base retire d'ailleurs le
+ * droit d'écriture de ces colonnes au panel.
  *
  * @param {string} orderId
  * @param {{ returnStatus: string, deliveredAt?: string|null, returnRequestedAt?: string|null,
- *   refundAmountCents?: number|null, refundedAt?: string|null, stripeRefundId?: string|null,
  *   returnNotes?: string|null }} update
- * @param {{ totalCents?: number|null }} [order] - Commande de référence, pour borner le montant.
+ * @param {{ totalCents?: number|null, refundAmountCents?: number|null,
+ *   returnStatus?: string|null }} [order] - Commande de référence, pour valider le statut.
  */
 export async function updateOrderReturn(orderId, update, order = {}) {
   const validation = validateReturnUpdate(update, order)
@@ -206,7 +210,6 @@ export async function updateOrderReturn(orderId, update, order = {}) {
   }
 
   const siteId = getAdminSiteId()
-  const refundId = update.stripeRefundId?.trim() || null
   const notes = update.returnNotes?.trim() || null
 
   const { error } = await supabase
@@ -215,9 +218,6 @@ export async function updateOrderReturn(orderId, update, order = {}) {
       return_status: update.returnStatus,
       delivered_at: update.deliveredAt || null,
       return_requested_at: update.returnRequestedAt || null,
-      refund_amount_cents: update.refundAmountCents ?? null,
-      refunded_at: update.refundedAt || null,
-      stripe_refund_id: refundId,
       return_notes: notes,
       updated_at: new Date().toISOString(),
     })
@@ -226,6 +226,80 @@ export async function updateOrderReturn(orderId, update, order = {}) {
 
   if (error) throw new Error(error.message)
   return { success: true }
+}
+
+/**
+ * Remboursements d'une commande, les plus récents d'abord.
+ *
+ * Lecture directe de `order_refunds` (RLS : lecture admin). L'écriture, elle,
+ * n'existe que côté backend.
+ *
+ * @param {string} orderId
+ * @returns {Promise<Array<object>>}
+ */
+export async function getOrderRefunds(orderId) {
+  const { data, error } = await supabase
+    .from('order_refunds')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('refunded_at', { ascending: false })
+
+  if (error) throw new Error(error.message)
+
+  return (data || []).map((row) => ({
+    id: row.id,
+    stripeRefundId: row.stripe_refund_id,
+    amountCents: row.amount_cents,
+    currency: row.currency,
+    status: row.status,
+    reason: row.reason || null,
+    failureReason: row.failure_reason || null,
+    source: row.source,
+    initiatedBy: row.initiated_by || null,
+    refundedAt: row.refunded_at,
+  }))
+}
+
+/**
+ * Déclenche un remboursement Stripe depuis le panel.
+ *
+ * Passe par le backend : la clé secrète Stripe n'existe pas côté navigateur, le
+ * montant doit être borné contre la commande relue en service role, et l'action
+ * est journalisée. `idempotencyKey` est généré par clic — un double-clic ou un
+ * réessai réseau ne rembourse pas deux fois.
+ *
+ * @param {string} orderId
+ * @param {{ amountCents?: number|null, reason?: string|null, idempotencyKey?: string }} params
+ */
+export async function refundOrder(orderId, { amountCents = null, reason = null, idempotencyKey } = {}) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  const token = session?.access_token
+  if (!token) {
+    throw new Error('Session admin requise')
+  }
+
+  const siteId = getAdminSiteId()
+  const response = await fetch(`${getBackendApiUrl()}/api/admin/orders/${orderId}/refund`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'X-Site-Id': siteId,
+    },
+    body: JSON.stringify({
+      amountCents,
+      reason,
+      idempotencyKey: idempotencyKey || globalThis.crypto?.randomUUID?.() || `${orderId}-${Date.now()}`,
+    }),
+  })
+
+  const data = await readApiResponseBody(response)
+  if (!response.ok || data?.success === false) {
+    throw new Error(data.error || data.message || 'Remboursement impossible')
+  }
+  return data
 }
 
 /**

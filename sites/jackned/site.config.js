@@ -586,13 +586,13 @@ export default {
       ogSiteName: "Jack'N'Ed",
       appleMobileWebAppTitle: "Jack'N'Ed",
       /**
-       * TODO client : `public/logo500x500.png` reste à fournir. Ce même chemin est codé en dur
-       * dans le JSON-LD de la fiche montre (`WatchDetail.vue`), donc un seul fichier suffit.
+       * TODO client : bannière de partage 1200×630 à fournir. En attendant, l'icône applicative
+       * — un visuel qui existe — plutôt qu'un chemin mort qui prive tout partage d'aperçu.
        */
-      ogImagePath: '/logo500x500.png',
+      ogImagePath: '/web-app-manifest-512x512.png',
     },
     home: {
-      title: "Jack'N'Ed — Horlogerie & montres à Strasbourg | Place de la Cathédrale",
+      title: "Jack'N'Ed — Montres & horlogerie, Strasbourg Cathédrale",
       metaDescription:
         "Découvrez Jack'N'Ed : montres et bijoux au cœur de Strasbourg, vue sur la cathédrale. Entreprise familiale, personnel accueillant, SAV sur place.",
       ogTitle: "Jack'N'Ed — Horlogerie à Strasbourg",
@@ -644,6 +644,11 @@ export default {
     watchDetail: {
       titleFallback: "Montre - Jack'N'Ed",
       titlePriceSuffix: " | Jack'N'Ed",
+      /**
+       * Argument commercial ajouté aux méta-descriptions de fiche. Aucune durée de garantie
+       * n'est chiffrée dans ce manifest : la phrase s'en tient au service annoncé.
+       */
+      descriptionSuffix: 'Horloger sur place, service après-vente assuré en boutique.',
       descriptionFallback: "Découvrez cette montre chez Jack'N'Ed.",
       structuredDataSellerName: "Jack'N'Ed",
     },

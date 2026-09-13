@@ -138,7 +138,16 @@
           style="max-width: 100%"
           :title="watchItem.name"
         >
-          {{ watchItem.name }}
+          <!--
+            Lien réel, et pas seulement le `@click` du conteneur : un crawler ne suit que les
+            `<a href>`, donc sans lui les fiches produit ne sont atteignables que par le
+            sitemap et ne reçoivent aucun maillage interne. Le nom de la montre sert d'ancre.
+            `.stop` empêche le clic de remonter au conteneur, qui rejouerait la même navigation.
+          -->
+          <RouterLink v-if="clickable" :to="detailPath" @click.stop>
+            {{ watchItem.name }}
+          </RouterLink>
+          <template v-else>{{ watchItem.name }}</template>
         </h3>
         <span
           v-if="watchItem.isSold && effectiveShowSoldBadge"
@@ -189,6 +198,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch as vueWatch } from 'vue'
+import { RouterLink } from 'vue-router'
 import { ChevronLeft, ChevronRight } from '@lucide/vue'
 import WatchImageSwipeCarousel from '@/components/watch/WatchImageSwipeCarousel.vue'
 import {
@@ -203,6 +213,7 @@ import {
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
 import { formatPrice } from '@/utils/formatters.js'
+import { buildWatchPath } from '@/utils/watchSlug.js'
 import { t } from '@/i18n'
 import { translateSpec } from '@/i18n/watchSpecs'
 
@@ -271,6 +282,8 @@ const props = defineProps({
 const emit = defineEmits(['viewDetails'])
 
 const watchItem = computed(() => props.watch)
+
+const detailPath = computed(() => buildWatchPath(watchItem.value))
 
 const effectiveShowReference = computed(
   () => props.showReference && catalogDisplay.showReference,

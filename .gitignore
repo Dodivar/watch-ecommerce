@@ -60,6 +60,9 @@ render.yaml
 *.pdf
 !sites/**/public/**/*.pdf
 !documentation/commercial/**/*.pdf
+# Fiche de renseignements client : le PDF est genere depuis le HTML voisin, il doit
+# partir avec le depot pour etre envoyable sans regeneration prealable.
+!documentation/onboarding/**/*.pdf
 *.sql
 # Migrations Supabase : versionnees pour que le schema soit lisible (CI, clones
 # frais, agents). Elles ne contiennent que du DDL et des policies RLS, aucun

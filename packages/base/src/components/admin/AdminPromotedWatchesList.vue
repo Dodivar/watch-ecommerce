@@ -73,7 +73,7 @@ const visibleRows = computed(() => {
   })
 })
 
-/** Montres remisées par campagne, pour la synthèse par événement. */
+/** Montres remisées par campagne, pour la synthèse par campagne. */
 const byCampaign = computed(() => {
   const grouped = new Map()
   for (const row of scopedRows.value) {
@@ -135,7 +135,7 @@ onMounted(load)
     subtitle="Toutes les remises actives du catalogue, campagne ou promotion directe"
     show-back-button
     back-button-route="/admin/watch-promotions"
-    back-button-text="Promotions montres"
+    back-button-text="Campagnes de promotion"
   >
     <template #actions>
       <button
@@ -150,7 +150,7 @@ onMounted(load)
         class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-hover"
         @click="router.push('/admin/watch-promotions/new')"
       >
-        Nouvel événement
+        Nouvelle campagne
       </button>
     </template>
 
@@ -188,10 +188,10 @@ onMounted(load)
         </div>
       </section>
 
-      <!-- Par événement -->
+      <!-- Par campagne -->
       <section v-if="byCampaign.length" class="bg-white rounded-lg shadow p-5 mb-6">
         <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-          Par événement
+          Par campagne
         </h2>
         <ul class="divide-y divide-gray-100">
           <li
@@ -220,7 +220,7 @@ onMounted(load)
               class="text-primary underline text-sm shrink-0"
               @click="router.push(`/admin/watch-promotions/${entry.campaign.id}/edit`)"
             >
-              Modifier l'événement
+              Modifier la campagne
             </button>
           </li>
         </ul>
@@ -261,7 +261,7 @@ onMounted(load)
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Rechercher (montre, marque, événement)…"
+            placeholder="Rechercher (montre, marque, campagne)…"
             class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
           />
         </div>
@@ -342,7 +342,7 @@ onMounted(load)
                       class="text-primary underline"
                       @click="router.push(`/admin/watch-promotions/${row.campaign.id}/edit`)"
                     >
-                      Événement
+                      Campagne
                     </button>
                   </div>
                 </td>
@@ -366,7 +366,7 @@ onMounted(load)
             portent sur des montres vendues ou hors stock : cochez la case ci-dessus pour les voir.
           </template>
           <template v-else>
-            Les remises apparaissent ici dès qu'un événement est appliqué ou qu'un prix promo
+            Les remises apparaissent ici dès qu'une campagne est appliquée ou qu'un prix promo
             est saisi sur une fiche montre.
           </template>
         </p>
@@ -377,7 +377,7 @@ onMounted(load)
           @click="router.push('/admin/watch-promotions/new')"
         >
           <Watch class="w-4 h-4" :stroke-width="1.75" />
-          Créer un événement promotionnel
+          Créer une campagne de promotion
         </button>
       </section>
     </template>

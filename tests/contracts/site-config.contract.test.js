@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { describe, expect, it } from 'vitest'
 
 import { getActiveRoutePaths } from '@/site/appRouteMeta.js'
@@ -7,6 +10,11 @@ import {
   MIN_WATCH_GUARANTEES,
 } from '@/site/watchCatalogDisplay.js'
 import { KNOWN_HOME_SECTION_IDS } from '@/site/homeSections.js'
+import { buildSitemapStaticRoutes } from '@/site/buildSitemapStaticRoutes.js'
+import {
+  STATIC_ROUTES_WITHOUT_OWN_COPY,
+  STATIC_ROUTE_SEO_SECTIONS,
+} from '@/site/staticRouteHead.js'
 import {
   resolveFooterNavigation,
   resolveMainNavigation,
@@ -17,7 +25,7 @@ import {
   collectResolvedNavLinks,
   isNavTargetAllowed,
 } from '../helpers/routeFeatures.js'
-import { listBuildableSiteIds, loadRawSiteConfig } from '../helpers/sites.js'
+import { SITES_DIR, listBuildableSiteIds, loadRawSiteConfig } from '../helpers/sites.js'
 
 /**
  * @param {ReturnType<typeof resolveSiteConfig>} resolved
@@ -37,6 +45,9 @@ export function pickSnapshotFields(resolved) {
     footerNav: footerNav.map((l) => ({ label: l.label, to: l.to })),
   }
 }
+
+/** Repères de troncature des résultats Google, en caractères. */
+const SEO_LENGTH_LIMITS = { title: 60, metaDescription: 160 }
 
 const siteIds = listBuildableSiteIds()
 
@@ -125,6 +136,92 @@ describe.each(siteIds)('site contract: %s', (siteId) => {
       (m) => m && m.type && m.type !== 'pickup',
     )
     expect(paidMethods).toHaveLength(0)
+  })
+
+  /**
+   * Une image de partage introuvable ne casse rien au build et ne se voit pas dans le site :
+   * elle se voit sur Facebook, LinkedIn ou WhatsApp, où le lien part alors sans aperçu. Le
+   * fichier est donc vérifié sur disque plutôt qu'à l'œil.
+   */
+  it('pointe seo.indexHtml.ogImagePath sur un fichier présent dans public/', async () => {
+    const raw = await loadRawSiteConfig(siteId)
+    const ogImagePath = raw.seo?.indexHtml?.ogImagePath
+    expect(typeof ogImagePath, 'seo.indexHtml.ogImagePath est requis').toBe('string')
+    expect(ogImagePath.startsWith('/'), 'ogImagePath doit être un chemin absolu').toBe(true)
+
+    const filePath = path.join(SITES_DIR, siteId, 'public', ogImagePath.slice(1))
+    expect(
+      fs.existsSync(filePath),
+      `seo.indexHtml.ogImagePath vaut ${ogImagePath} mais sites/${siteId}/public${ogImagePath} n'existe pas`,
+    ).toBe(true)
+  })
+
+  /**
+   * Longueurs SERP : au-delà, Google tronque ou réécrit, et l'appel à l'action se perd. Les
+   * limites sont des repères en caractères — l'affichage réel se mesure en pixels — mais elles
+   * suffisent à repérer une description qui part à 200 signes. Vérifié langue par langue :
+   * une traduction allemande dépasse là où le français passait.
+   */
+  it('garde titres et méta-descriptions dans les limites SERP', async () => {
+    const raw = await loadRawSiteConfig(siteId)
+    const locales = resolveSiteConfig(raw).i18n?.locales ?? ['fr']
+    const tooLong = []
+
+    for (const locale of locales) {
+      const seo = resolveSiteConfig(raw, locale).seo ?? {}
+      for (const [section, block] of Object.entries(seo)) {
+        if (!block || typeof block !== 'object') continue
+        for (const [key, limit] of Object.entries(SEO_LENGTH_LIMITS)) {
+          const value = block[key]
+          if (typeof value !== 'string' || value.length <= limit) continue
+          tooLong.push(`${locale} · seo.${section}.${key} : ${value.length} > ${limit}`)
+        }
+      }
+    }
+
+    expect(tooLong, 'raccourcir ces textes, ils seront tronqués dans les résultats').toEqual([])
+  })
+
+  /**
+   * Le pré-rendu écrit un `index.html` par route statique et y injecte le titre, la description
+   * et la canonique de la route. La correspondance route → bloc `seo` est une table
+   * (`staticRouteHead.js`) : une route ajoutée au sitemap sans y être déclarée reprendrait en
+   * silence la copie de l'accueil, ce qui est précisément le défaut corrigé.
+   *
+   * Les pages de prestation (`/services/<slug>`) varient par vitrine et tirent leur copie du
+   * manifest à l'exécution ; elles sont hors table par construction.
+   */
+  it('déclare chaque route pré-rendue dans la table des métadonnées', async () => {
+    const resolved = resolveSiteConfig(await loadRawSiteConfig(siteId))
+    const routes = buildSitemapStaticRoutes(resolved.features, resolved)
+
+    const unaccounted = routes
+      .map((route) => route.path)
+      .filter(
+        (routePath) =>
+          !(routePath in STATIC_ROUTE_SEO_SECTIONS) &&
+          !STATIC_ROUTES_WITHOUT_OWN_COPY.includes(routePath) &&
+          !routePath.startsWith('/services/'),
+      )
+
+    expect(
+      unaccounted,
+      'ajouter ces routes à STATIC_ROUTE_SEO_SECTIONS ou à STATIC_ROUTES_WITHOUT_OWN_COPY',
+    ).toEqual([])
+  })
+
+  /** Une section pointée par la table mais absente du manifest retomberait sur la coquille. */
+  it('ne pointe la table que vers des sections seo existantes', async () => {
+    const resolved = resolveSiteConfig(await loadRawSiteConfig(siteId))
+    const routes = new Set(buildSitemapStaticRoutes(resolved.features, resolved).map((r) => r.path))
+    const seo = resolved.seo ?? {}
+
+    const missing = Object.entries(STATIC_ROUTE_SEO_SECTIONS)
+      .filter(([routePath]) => routes.has(routePath))
+      .filter(([, section]) => !seo[section])
+      .map(([routePath, section]) => `${routePath} → seo.${section}`)
+
+    expect(missing, 'route active dont le bloc seo manque au manifest').toEqual([])
   })
 
   it('respecte le nombre de garanties fiche montre si configurées', async () => {

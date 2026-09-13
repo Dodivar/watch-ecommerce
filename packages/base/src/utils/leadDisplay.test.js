@@ -9,8 +9,15 @@ import {
   formatLeadSlot,
   getLeadSummary,
   getLeadWatchLink,
+  getLeadTypePresentation,
   getUnmappedPayloadKeys,
+  groupLeadsByDay,
+  formatLeadDayLabel,
+  matchesLeadSearch,
+  organizeAppointmentsByDate,
   LEAD_STATUS_LABELS,
+  LEAD_TYPE_LABELS,
+  LEAD_TYPE_PRESENTATION,
 } from './leadDisplay.js'
 
 describe('leadDisplay', () => {
@@ -215,5 +222,125 @@ describe('formatLeadHandling', () => {
   it('renvoie la valeur brute pour un mode inconnu et un tiret si absent', () => {
     expect(formatLeadHandling('pigeon')).toBe('pigeon')
     expect(formatLeadHandling(null)).toBe('—')
+  })
+})
+
+describe('getLeadTypePresentation', () => {
+  it('donne libellé, icône et teinte pour un type connu', () => {
+    const presentation = getLeadTypePresentation('appointment')
+    expect(presentation.label).toBe('RDV')
+    expect(presentation.icon).toBe('CalendarClock')
+    expect(presentation.chip).toContain('amber')
+  })
+
+  it('reste affichable pour un type inconnu', () => {
+    const presentation = getLeadTypePresentation('carrier-pigeon')
+    expect(presentation.label).toBe('carrier-pigeon')
+    expect(presentation.icon).toBe('MessageSquare')
+  })
+
+  it('LEAD_TYPE_LABELS dérive de la table de présentation', () => {
+    expect(LEAD_TYPE_LABELS.estimation).toBe(LEAD_TYPE_PRESENTATION.estimation.label)
+    expect(Object.keys(LEAD_TYPE_LABELS)).toEqual(Object.keys(LEAD_TYPE_PRESENTATION))
+  })
+})
+
+describe('formatLeadDayLabel / groupLeadsByDay', () => {
+  const now = new Date(2026, 8, 8, 10, 0, 0) // mardi 8 septembre 2026
+
+  it("nomme aujourd'hui et hier", () => {
+    expect(formatLeadDayLabel(new Date(2026, 8, 8, 23, 30).toISOString(), now)).toBe("Aujourd'hui")
+    expect(formatLeadDayLabel(new Date(2026, 8, 7, 8, 0).toISOString(), now)).toBe('Hier')
+  })
+
+  it('affiche la date longue au-delà', () => {
+    expect(formatLeadDayLabel(new Date(2026, 8, 4, 8, 0).toISOString(), now)).toContain('septembre')
+  })
+
+  it('regroupe les messages consécutifs du même jour', () => {
+    const leads = [
+      { id: 'a', createdAt: new Date(2026, 8, 8, 18, 0).toISOString() },
+      { id: 'b', createdAt: new Date(2026, 8, 8, 9, 0).toISOString() },
+      { id: 'c', createdAt: new Date(2026, 8, 7, 9, 0).toISOString() },
+    ]
+    const groups = groupLeadsByDay(leads, now)
+    expect(groups).toHaveLength(2)
+    expect(groups[0].label).toBe("Aujourd'hui")
+    expect(groups[0].leads.map((l) => l.id)).toEqual(['a', 'b'])
+    expect(groups[1].label).toBe('Hier')
+  })
+
+  it('range un message reçu en soirée dans le jour local, pas la veille UTC', () => {
+    // 22 h à Paris = le lendemain 20 h UTC en hiver : `toISOString()` ferait
+    // basculer ce message dans le mauvais groupe.
+    const evening = new Date(2026, 8, 8, 22, 30)
+    expect(formatLeadDayLabel(evening.toISOString(), now)).toBe("Aujourd'hui")
+  })
+
+  it('ne casse pas sur une date absente', () => {
+    expect(formatLeadDayLabel(null, now)).toBe('Date inconnue')
+    expect(groupLeadsByDay([])).toEqual([])
+  })
+})
+
+describe('matchesLeadSearch', () => {
+  const lead = {
+    customerName: 'Jérôme Dupont',
+    customerEmail: 'jerome@example.com',
+    type: 'estimation',
+    payload: { brand: 'Rolex', model: 'Submariner', tel: '0612345678' },
+  }
+
+  it('accepte tout si la recherche est vide', () => {
+    expect(matchesLeadSearch(lead, '')).toBe(true)
+    expect(matchesLeadSearch(lead, '   ')).toBe(true)
+  })
+
+  it('ignore accents et casse', () => {
+    expect(matchesLeadSearch(lead, 'jerome')).toBe(true)
+    expect(matchesLeadSearch(lead, 'JÉRÔME')).toBe(true)
+  })
+
+  it('cherche dans le contenu du formulaire et le téléphone', () => {
+    expect(matchesLeadSearch(lead, 'submariner')).toBe(true)
+    expect(matchesLeadSearch(lead, '0612')).toBe(true)
+  })
+
+  it('exige que tous les mots soient présents', () => {
+    expect(matchesLeadSearch(lead, 'rolex dupont')).toBe(true)
+    expect(matchesLeadSearch(lead, 'rolex omega')).toBe(false)
+  })
+})
+
+describe('organizeAppointmentsByDate', () => {
+  const now = new Date(2026, 8, 8, 10, 0, 0)
+
+  const byDate = {
+    '2026-09-04': [{ id: 'past', payload: { time_slot: 'morning' } }],
+    '2026-09-12': [{ id: 'later', payload: { time_slot: 'morning' } }],
+    '2026-09-08': [
+      { id: 'today-pm', customerName: 'Zoé', payload: { time_slot: 'afternoon' } },
+      { id: 'today-am', customerName: 'Alice', payload: { time_slot: 'morning' } },
+    ],
+  }
+
+  it('sépare les jours à venir du passé', () => {
+    const { upcoming, past } = organizeAppointmentsByDate(byDate, now)
+    expect(upcoming.map((d) => d.date)).toEqual(['2026-09-08', '2026-09-12'])
+    expect(past.map((d) => d.date)).toEqual(['2026-09-04'])
+  })
+
+  it('garde le jour même dans les RDV à venir', () => {
+    const { upcoming } = organizeAppointmentsByDate(byDate, now)
+    expect(upcoming[0].label).toContain('8 septembre')
+  })
+
+  it('trie chaque journée par créneau puis par nom', () => {
+    const { upcoming } = organizeAppointmentsByDate(byDate, now)
+    expect(upcoming[0].items.map((a) => a.id)).toEqual(['today-am', 'today-pm'])
+  })
+
+  it('accepte une entrée vide', () => {
+    expect(organizeAppointmentsByDate(null, now)).toEqual({ upcoming: [], past: [] })
   })
 })

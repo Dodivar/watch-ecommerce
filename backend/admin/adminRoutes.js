@@ -1,5 +1,13 @@
-const { getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
+const { getStripeClient, getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
 const { resolveReceiptConfig } = require('../orders/receiptBranding')
+const {
+  createStripeRefund,
+  listOrderRefunds,
+  recordStripeRefund,
+  refundableCents,
+  validateRefundRequest,
+} = require('../orders/refunds')
+const { sendRefundEmail } = require('../orders/email')
 const { resolveOrderReceiptPdfBuffer } = require('../orders/receiptStorage')
 const { receiptPdfFilename } = require('../orders/receiptPdf')
 const { logAdminAccess } = require('./accessLog')
@@ -229,6 +237,137 @@ function buildAdminRouter(registry) {
 
     return res.json({ success: true })
   })
+
+  /**
+   * Remboursement d'une commande, déclenché depuis le panel.
+   *
+   * Réservé au rôle `admin` : c'est la seule action du panel qui fait sortir de
+   * l'argent, un modérateur ne l'a pas. Elle passe obligatoirement par le
+   * backend — la clé secrète Stripe n'existe pas côté navigateur, et les
+   * montants doivent être bornés contre la commande relue en service role, pas
+   * contre ce que le front affirme.
+   *
+   * Trois garde-fous, dans l'ordre :
+   *   1. `validateRefundRequest` — commande payée, PaymentIntent présent,
+   *      montant ≤ reste à rembourser (remboursements en vol déduits) ;
+   *   2. clé d'idempotence Stripe — sans elle, un double-clic ou un réessai
+   *      réseau rembourse deux fois ;
+   *   3. enregistrement immédiat de la ligne `order_refunds`, que le webhook
+   *      viendra confirmer ou corriger (un Refund naît parfois `pending`).
+   */
+  router.post(
+    '/orders/:orderId/refund',
+    requireAdminAuth(registry),
+    requireAdminRole('admin'),
+    async (req, res) => {
+      const site = req.site
+      const orderId = req.params.orderId
+      const { amountCents, reason, idempotencyKey } = req.body || {}
+
+      try {
+        const supabase = getSupabaseClient(site)
+        const { data: order, error: orderError } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('id', orderId)
+          .eq('site_id', site.id)
+          .maybeSingle()
+        if (orderError) throw orderError
+
+        const existingRefunds = order ? await listOrderRefunds(supabase, orderId) : []
+        const validation = validateRefundRequest(order, existingRefunds, { amountCents })
+        if (!validation.ok) {
+          return res.status(validation.status).json({ success: false, error: validation.error })
+        }
+
+        const stripe = getStripeClient(site)
+        const refund = await createStripeRefund(stripe, {
+          order,
+          amountCents: validation.amountCents,
+          reason: reason || null,
+          initiatedBy: req.adminUser.email,
+          // La clé vient du bouton : un même clic rejoué (réseau, double-clic)
+          // renvoie le remboursement déjà créé au lieu d'en créer un second.
+          idempotencyKey: idempotencyKey
+            ? `refund:${site.id}:${orderId}:${String(idempotencyKey).slice(0, 120)}`
+            : null,
+        })
+
+        const result = await recordStripeRefund(supabase, site, refund, {
+          order,
+          source: 'admin_panel',
+          initiatedBy: req.adminUser.email,
+        })
+
+        logAdminAccess(req.adminSupabase, site.id, {
+          email: req.adminUser.email,
+          role: req.adminUser.role,
+          action: 'order:refund',
+          path: `${req.originalUrl} — ${validation.amountCents} ${refund.currency} (${refund.id})`,
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+        })
+
+        // Le client est prévenu dès que le remboursement aboutit. S'il est encore
+        // `pending`, c'est le webhook qui enverra l'e-mail à la transition.
+        if (result.statusChangedTo === 'succeeded') {
+          try {
+            await sendRefundEmail(site, order, {
+              amountCents: result.row.amount_cents,
+              refundedTotalCents: result.totals.succeededCents,
+              isPartial: !result.totals.isFullyRefunded,
+            })
+          } catch (mailErr) {
+            console.error(`[${site.id}] Email remboursement ${refund.id}:`, mailErr)
+          }
+        }
+
+        return res.json({
+          success: true,
+          refund: {
+            id: refund.id,
+            amountCents: result.row.amount_cents,
+            currency: result.row.currency,
+            status: result.row.status,
+            refundedAt: result.row.refunded_at,
+          },
+          totals: {
+            refundedCents: result.totals.succeededCents,
+            pendingCents: result.totals.pendingCents,
+            refundableCents: refundableCents(order, await listOrderRefunds(supabase, orderId)),
+            isFullyRefunded: result.totals.isFullyRefunded,
+          },
+        })
+      } catch (e) {
+        if (e instanceof MissingSecretsError) {
+          return res.status(503).json({ success: false, error: e.message })
+        }
+        // La clé restreinte du client n'a pas la permission « Refunds ».
+        // C'est un choix légitime de sa part : tout le reste continue de
+        // fonctionner, y compris l'enregistrement automatique d'un
+        // remboursement fait depuis son dashboard (le webhook ne consomme
+        // aucune permission). Le message doit donc dire quoi faire, pas
+        // ressembler à une panne.
+        if (e?.type === 'StripePermissionError' || e?.statusCode === 403) {
+          console.error(`[${site.id}] Remboursement refusé (permission) ${orderId}:`, e.message)
+          return res.status(403).json({
+            success: false,
+            error:
+              'La clé Stripe de ce site n’autorise pas les remboursements. Remboursez depuis le dashboard Stripe (l’opération sera enregistrée ici automatiquement), ou demandez une clé restreinte avec la permission « Refunds — Écriture ».',
+          })
+        }
+        // Refus Stripe (paiement trop ancien, déjà remboursé, solde
+        // insuffisant) : le message est le seul qui dise au commerçant quoi
+        // faire, on le remonte tel quel plutôt qu'un « erreur serveur ».
+        if (e?.type === 'StripeInvalidRequestError' || e?.type === 'StripeCardError') {
+          console.error(`[${site.id}] Refus remboursement ${orderId}:`, e.message)
+          return res.status(400).json({ success: false, error: `Stripe : ${e.message}` })
+        }
+        console.error(`[${site.id}] POST admin refund ${orderId}:`, e)
+        return res.status(500).json({ success: false, error: 'Erreur serveur' })
+      }
+    },
+  )
 
   router.get(
     '/orders/:orderId/receipt',

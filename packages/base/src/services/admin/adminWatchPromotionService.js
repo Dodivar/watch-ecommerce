@@ -95,7 +95,7 @@ async function resolveUniqueCampaignSlug(name, excludeCampaignId = null) {
     if (!data?.length) return candidate
   }
 
-  throw new Error('Impossible de générer un identifiant URL unique pour cet événement')
+  throw new Error('Impossible de générer un identifiant URL unique pour cette campagne')
 }
 
 /**
@@ -254,7 +254,7 @@ export async function saveWatchPromotionCampaignDraft(payload, campaignId = null
 
 function validateWatchPromotionCampaignPayload(payload) {
   const name = String(payload.name || '').trim()
-  if (!name) throw new Error('Le titre de l\'événement est requis')
+  if (!name) throw new Error('Le titre de la campagne est requis')
 
   const defaultDiscountPercent = parseInt(String(payload.defaultDiscountPercent), 10)
   if (!Number.isFinite(defaultDiscountPercent) || defaultDiscountPercent < 1 || defaultDiscountPercent > 99) {
@@ -600,7 +600,7 @@ export async function saveWatchPromotionMenuConfig(entries) {
     }
 
     if (showInMenu && liveStatus === 'scheduled') {
-      // Pré-configuration autorisée ; le lien n'apparaît qu'une fois l'événement actif.
+      // Pré-configuration autorisée ; le lien n'apparaît qu'une fois la campagne active.
     }
 
     const { error } = await supabase
@@ -668,7 +668,7 @@ const PROMOTED_WATCH_COLUMNS =
   'id, ad_code, name, brand, model, reference, price, promotion_price, discount_percent, is_available, is_sold, stock_quantity'
 
 /**
- * Rattachements montre ↔ campagne pour les événements en cours ou à venir.
+ * Rattachements montre ↔ campagne pour les campagnes en cours ou à venir.
  *
  * Le statut stocké peut être en retard sur l'horloge (une campagne « active » dont la
  * date de fin est passée reste `active` en base jusqu'à sa prochaine écriture) : on
@@ -730,7 +730,7 @@ export async function getActiveCampaignMembershipsForAdmin() {
 }
 
 /**
- * Campagne à afficher pour chaque montre engagée dans un événement en cours ou à venir.
+ * Campagne à afficher pour chaque montre engagée dans une campagne en cours ou à venir.
  * @param {Array<{ watchId: string, campaign: object }>} [memberships]
  * @returns {Promise<Map<string, object>>}
  */

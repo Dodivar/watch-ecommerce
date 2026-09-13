@@ -1,4 +1,4 @@
-import { resolveHomeHeroConfig } from './homeHero.js'
+import { isHomeHeroRenderable, resolveHomeHeroConfig } from './homeHero.js'
 import { resolveHomeSections } from './homeSections.js'
 import { resolveHomeNouvellesConfig } from './homeNouvelles.js'
 import { resolveHomeSelectionsConfig } from './homeSelections.js'
@@ -79,7 +79,17 @@ export function resolveSiteConfig(rawSiteConfig, locale) {
   features = {
     ...features,
     homeNouvelles: homeSections.includes('nouvelles'),
+    // Même condition que le filtre `collectionHighlight` de `filterHomeSectionsByFeatures` :
+    // le drapeau suit exactement ce que l'accueil rend, pour que l'écran d'admin qui pilote
+    // ce bloc ne s'affiche pas là où le bloc est absent.
+    homeCollectionHighlight:
+      features.collection && homeSections.includes('collectionHighlight'),
     googleReviews: googleReviews.enabled,
+    // Le hero « vitrine » est le seul à exposer une montre : sans lui, l'écran admin
+    // « Montre en vitrine » n'aurait rien à piloter. `homeSections` a déjà écarté les ids
+    // inconnus, `isHomeHeroRenderable` le hero sans titre — les deux cas où rien n'est rendu.
+    homeVitrine:
+      homeSections.includes('hero') && hero.variant === 'vitrine' && isHomeHeroRenderable(hero),
   }
   const checkoutRaw = siteConfig.checkout || {}
   const shippingResolved = resolveCheckoutShipping(checkoutRaw)

@@ -25,7 +25,21 @@ const {
 const { fulfillOrderPayment, releaseOrderReservation, applyRetailStockDecrement } = require('../orders/fulfillment')
 const { createDraftOrderViaRpc } = require('../orders/createDraftOrder')
 const { buildOrderFollowUpUrl } = require('../orders/orderLinks')
-const { sendOrderConfirmationEmails } = require('../orders/email')
+const {
+  sendOrderConfirmationEmails,
+  sendRefundEmail,
+  sendReturnRequestEmails,
+} = require('../orders/email')
+const {
+  extractRefundsFromEvent,
+  recordStripeRefund,
+} = require('../orders/refunds')
+const {
+  buildReturnRequestUpdate,
+  computeRefundDeadline,
+  computeWithdrawalWindow,
+  validateReturnRequest,
+} = require('../orders/returns')
 const { recordNewsletterOptIn, isOptInTruthy } = require('../newsletter/optIn')
 const { generateOrderReceiptPdf, receiptPdfFilename } = require('../orders/receiptPdf')
 const { resolveReceiptConfig } = require('../orders/receiptBranding')
@@ -384,6 +398,10 @@ function buildOrdersRouter(registry) {
                 discountCents: discountRow.discount_cents,
               }
             : null,
+          // État du dossier retour : la page de suivi propose la rétractation au
+          // client tant que la fenêtre est ouverte, et lui montre ensuite où en
+          // est son remboursement sans qu'il ait à écrire.
+          return: buildReturnSummary(currentOrder),
         },
         lines,
       })
@@ -781,6 +799,99 @@ function buildOrdersRouter(registry) {
     }
   })
 
+  /**
+   * Résumé du dossier retour exposé au client sur la page de suivi.
+   * @param {object} order Ligne `orders`
+   */
+  function buildReturnSummary(order) {
+    const window = computeWithdrawalWindow(order)
+    const refundDeadline = computeRefundDeadline(order.return_requested_at)
+
+    return {
+      status: order.return_status || 'none',
+      requestedAt: order.return_requested_at || null,
+      refundedAt: order.refunded_at || null,
+      refundAmountCents: order.refund_amount_cents ?? null,
+      withdrawalOpen: Boolean(window?.isOpen),
+      withdrawalDeadline: window ? window.deadline.toISOString() : null,
+      refundDeadline: refundDeadline ? refundDeadline.deadline.toISOString() : null,
+    }
+  }
+
+  /**
+   * Demande de rétractation déclenchée par le client depuis la page de suivi.
+   *
+   * Le lien de suivi durable est accepté (`allowFollowUp`) : c'est précisément
+   * celui que le client a sous la main des semaines après l'achat, quand le
+   * droit de rétractation s'exerce. Il n'ouvre toujours ni paiement, ni
+   * annulation, ni modification de la commande — seulement l'ouverture d'un
+   * dossier que l'admin instruit ensuite.
+   *
+   * Le serveur horodate lui-même la notification : c'est cette date qui fait
+   * courir les 14 jours de remboursement, elle ne peut pas venir du client.
+   */
+  router.post(
+    '/:orderId/return-request',
+    resolveSite(registry),
+    checkoutRateLimiter,
+    async (req, res) => {
+      const site = req.site
+      const orderId = req.params.orderId
+      const token = extractAccessToken(req)
+
+      try {
+        const supabase = getSupabaseClient(site)
+        const order = await loadOrderForSite(supabase, site.id, orderId)
+        if (!order) {
+          return res.status(404).json({ success: false, error: 'Commande introuvable' })
+        }
+
+        const access = requireOrderAccess(site, order, token, { allowFollowUp: true })
+        if (!access.ok) {
+          return res.status(access.status).json({ success: false, error: access.error })
+        }
+
+        const validation = validateReturnRequest(order)
+        if (!validation.ok) {
+          return res.status(validation.status).json({ success: false, error: validation.error })
+        }
+        if (validation.alreadyOpen) {
+          return res.json({ success: true, alreadyOpen: true, return: buildReturnSummary(order) })
+        }
+
+        const update = buildReturnRequestUpdate({ reason: req.body?.reason })
+        const { error } = await supabase
+          .from('orders')
+          .update(update)
+          .eq('id', orderId)
+          .eq('site_id', site.id)
+        if (error) throw error
+
+        const updatedOrder = { ...order, ...update }
+
+        // L'e-mail matérialise la demande des deux côtés ; il ne doit pas faire
+        // échouer l'enregistrement, qui est ce qui porte la date légale.
+        try {
+          await sendReturnRequestEmails(site, updatedOrder, {
+            reason: update.return_reason || null,
+            refundDeadline: computeRefundDeadline(update.return_requested_at)?.deadline || null,
+            trackingUrl: buildOrderFollowUpUrl(site, orderId, token),
+          })
+        } catch (mailErr) {
+          console.error(`[${site.id}] Email rétractation ${orderId}:`, mailErr)
+        }
+
+        return res.json({ success: true, return: buildReturnSummary(updatedOrder) })
+      } catch (e) {
+        if (e instanceof MissingSecretsError) {
+          return res.status(503).json({ success: false, error: e.message })
+        }
+        console.error(`[${site.id}] POST return-request:`, e)
+        return res.status(500).json({ success: false, error: 'Erreur serveur' })
+      }
+    },
+  )
+
   router.post('/:orderId/cancel', resolveSite(registry), checkoutRateLimiter, async (req, res) => {
     const site = req.site
     const orderId = req.params.orderId
@@ -1014,8 +1125,57 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
   console.log(`[${site.id}] ✅ Commande ${orderId} payée (PI ${paymentIntent.id})`)
 }
 
+
+/**
+ * Traite un événement Stripe de remboursement (`charge.refunded`,
+ * `refund.updated`, `charge.refund.updated`).
+ *
+ * C'est ici que la base rattrape TOUS les remboursements, y compris ceux que
+ * l'application n'a pas déclenchés : celui fait au dashboard un jour de panne,
+ * celui émis par le commerçant par habitude. Sans ce chemin, un remboursement
+ * hors application n'existerait pas pour la comptabilité.
+ *
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {object} site Registry entry
+ * @param {object} event Événement Stripe
+ * @param {{ stripe?: object }} [clients]
+ */
+async function handleRefundEvent(supabase, site, event, clients = {}) {
+  const refunds = await extractRefundsFromEvent(event?.data?.object, { stripe: clients.stripe })
+  if (refunds.length === 0) {
+    console.warn(`[${site.id}] Événement ${event?.type} sans remboursement exploitable`)
+    return
+  }
+
+  for (const refund of refunds) {
+    const result = await recordStripeRefund(supabase, site, refund)
+    if (!result.recorded) continue
+
+    console.log(
+      `[${site.id}] Remboursement ${refund.id} (${result.row.status}) ` +
+        `commande ${result.order.id} — ${result.row.amount_cents} ${result.row.currency}`,
+    )
+
+    // Email sur transition réelle vers `succeeded` uniquement : un rejeu de
+    // webhook, ou le passage `pending` → `pending`, n'écrit pas deux fois au
+    // client. Ne doit jamais faire échouer le webhook — l'argent est parti.
+    if (result.statusChangedTo === 'succeeded') {
+      try {
+        await sendRefundEmail(site, result.order, {
+          amountCents: result.row.amount_cents,
+          refundedTotalCents: result.totals.succeededCents,
+          isPartial: !result.totals.isFullyRefunded,
+        })
+      } catch (mailErr) {
+        console.error(`[${site.id}] Email remboursement ${refund.id}:`, mailErr)
+      }
+    }
+  }
+}
+
 module.exports = {
   buildOrdersRouter,
+  handleRefundEvent,
   handlePaymentIntentSucceeded,
   requireOrderAccess,
   mintOrderFollowUpUrl,

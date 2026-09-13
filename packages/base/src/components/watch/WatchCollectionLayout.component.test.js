@@ -2,10 +2,17 @@
  * @vitest-environment happy-dom
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { RouterLinkStub, config, mount } from '@vue/test-utils'
 
 import WatchCollectionLayout from './WatchCollectionLayout.vue'
 import { WATCH_COLLECTION_LAYOUTS } from '@/constants/watchCollectionLayouts.js'
+
+/**
+ * `WatchCard` et `WatchListRow` posent un vrai `<a href>` sur le titre (maillage interne
+ * suivable par les crawlers) : sans routeur monté, `RouterLink` échoue. Le stub de VTU rend
+ * une ancre et expose la cible via `props('to')`.
+ */
+config.global.stubs.RouterLink = RouterLinkStub
 
 const getSiteConfigMock = vi.hoisted(() => vi.fn())
 
