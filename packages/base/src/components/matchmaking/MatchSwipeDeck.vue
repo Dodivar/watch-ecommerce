@@ -312,6 +312,12 @@ onBeforeUnmount(() => {
 /* Portrait, borné par la hauteur d'écran pour garder les boutons visibles sans défiler
    (en-tête du site + titre + rangée de boutons ≈ 40 % d'un écran de téléphone). */
 .matchmaking-stack {
+  /* Contexte d'empilement propre : les cartes se numérotent entre elles (30 pour la pile,
+     40 pour celle du dessus) et ces valeurs, laissées dans le contexte racine, passaient
+     devant l'en-tête collant du site (`z-20`). Isolées ici, elles ne sortent plus de la
+     pile. `isolation` ne change que l'ordre de peinture : les cartes en `absolute inset-0`
+     se calent toujours sur ce même bloc. */
+  isolation: isolate;
   height: min(56vh, 640px);
   height: min(56dvh, 640px);
   min-height: 360px;
