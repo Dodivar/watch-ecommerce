@@ -24,6 +24,7 @@ const {
 } = require('../orders/paymentIntentSync')
 const { fulfillOrderPayment, releaseOrderReservation, applyRetailStockDecrement } = require('../orders/fulfillment')
 const { createDraftOrderViaRpc } = require('../orders/createDraftOrder')
+const { reacquireOrderReservation } = require('../orders/reservation')
 const { buildOrderFollowUpUrl } = require('../orders/orderLinks')
 const {
   sendOrderConfirmationEmails,
@@ -656,6 +657,24 @@ function buildOrdersRouter(registry) {
         return res.status(400).json({ success: false, error: 'Commande non payable' })
       }
 
+      // Le `status` ne dit rien de la disponibilité : la réservation posée à
+      // l'ouverture du checkout a pu expirer, et la montre être vendue à
+      // quelqu'un d'autre pendant que le client restait sur la page. Le
+      // checkout rappelle `/pay` juste avant `confirmPayment`, donc ce contrôle
+      // est celui qui précède immédiatement le débit.
+      const reserveMinutes = getReserveMinutes(site)
+      const reservation = await reacquireOrderReservation(supabase, {
+        orderId,
+        reserveMinutes,
+      })
+      if (!reservation.ok) {
+        console.warn(
+          `[${site.id}] paiement refusé sur ${orderId} :`,
+          reservation.blocked.map((b) => `${b.watchId ?? '?'}=${b.reason}`).join(', '),
+        )
+        return res.status(409).json({ success: false, error: reservation.error })
+      }
+
       const { quote } = await recalculateAndPersist(supabase, site, order)
       if (quote.totalCents < 50) {
         return res.status(400).json({ success: false, error: 'Montant invalide' })
@@ -716,18 +735,22 @@ function buildOrdersRouter(registry) {
         paymentIntent = await stripe.paymentIntents.create(createPayload)
       }
 
-      await supabase
-        .from('orders')
-        .update({
-          status: 'pending_payment',
-          stripe_payment_intent_id: paymentIntent.id,
-          subtotal_cents: quote.subtotalCents,
-          shipping_cents: quote.shippingCents,
-          discount_cents: quote.discountCents,
-          total_cents: quote.totalCents,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', orderId)
+      const paidUpdate = {
+        status: 'pending_payment',
+        stripe_payment_intent_id: paymentIntent.id,
+        subtotal_cents: quote.subtotalCents,
+        shipping_cents: quote.shippingCents,
+        discount_cents: quote.discountCents,
+        total_cents: quote.totalCents,
+        updated_at: new Date().toISOString(),
+      }
+      // Réservation reprise : `expires_at` suivait l'ancienne échéance et
+      // affichait une commande périmée alors que les montres sont tenues.
+      if (reservation.refreshed) {
+        paidUpdate.expires_at = new Date(Date.now() + reserveMinutes * 60 * 1000).toISOString()
+      }
+
+      await supabase.from('orders').update(paidUpdate).eq('id', orderId)
 
       res.json({
         success: true,
