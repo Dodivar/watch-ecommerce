@@ -9,6 +9,7 @@ import { useMenuCampaigns, prefetchMenuCampaigns } from '@/composables/useMenuCa
 import { navigationUsesCatalogBrands, navigationUsesMenuCampaigns } from '@/site/mainNavigation.js'
 import { parseSearchQuery } from '@/utils/watchSearch.js'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher.vue'
+import SocialIconLinks from '@/components/layout/SocialIconLinks.vue'
 import { t } from '@/i18n'
 
 const props = defineProps({
@@ -20,6 +21,8 @@ const props = defineProps({
   purchaseEnabled: { type: Boolean, default: false },
   /** Tap-to-call CTA affiché en bas du menu racine. `null` si le site n'a pas de téléphone. */
   phone: { type: Object, default: null },
+  /** Icônes réseaux sociaux en bas du menu racine (`social.showInHeader` du manifest). */
+  showSocial: { type: Boolean, default: false },
 })
 
 const open = defineModel('open', { type: Boolean, default: false })
@@ -361,6 +364,16 @@ function brandRoute(brandName) {
                 <Phone class="w-5 h-5 shrink-0" :stroke-width="2" />
                 <span>{{ phone.display }}</span>
               </a>
+
+              <!-- Réseaux sociaux — mêmes liens que l'en-tête desktop, en blanc sur le
+                   fond du menu. -->
+              <SocialIconLinks
+                v-if="showSocial"
+                class="mnav-reveal-item mt-6 shrink-0 justify-center gap-4"
+                :style="{ animationDelay: 120 + navItems.length * 60 + 'ms' }"
+                link-class="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
+                icon-class="h-6 w-6"
+              />
             </div>
 
             <!-- Niveau 1 : sous-liens d'un groupe -->

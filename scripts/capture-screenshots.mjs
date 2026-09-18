@@ -31,7 +31,7 @@ import { chromium } from '@playwright/test'
 
 import { REPO_ROOT, getSiteId } from '../vite/resolve-site.mjs'
 
-const DEFAULT_ROUTES = ['/', '/collection', '/blog', '/estimation', '/contact']
+const DEFAULT_ROUTES = ['/', '/collection', '/blog', '/rachat', '/contact']
 
 const VIEWPORTS = {
   desktop: { width: 1440, height: 900, deviceScaleFactor: 1 },

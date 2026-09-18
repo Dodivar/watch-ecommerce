@@ -16,6 +16,7 @@ const LABELS_FR = {
   shipping: 'Livraison',
   deliveryAddress: 'Adresse de livraison',
   pickupLocation: 'Point de retrait',
+  pickupByAppointment: 'Remise en main propre, sur rendez-vous convenu ensemble',
   method: 'Mode',
   item: 'Article',
   reference: 'Réf.',

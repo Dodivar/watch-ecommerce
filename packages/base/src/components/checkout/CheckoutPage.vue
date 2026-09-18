@@ -193,7 +193,9 @@ const shippingPendingLabel = computed(() =>
     : "Saisir une adresse d'expédition",
 )
 
-const shippingLineLabel = computed(() => (isPickup.value ? 'Retrait' : 'Expédition'))
+const shippingLineLabel = computed(() =>
+  isPickup.value ? t('checkout.fulfillmentPickup') : t('checkout.fulfillmentShip'),
+)
 
 const canSyncOrder = computed(() => {
   if (!String(email.value).trim()) return false
@@ -1152,7 +1154,9 @@ onUnmounted(() => {
 
             <section ref="shippingSectionRef" class="space-y-4">
               <h2 class="font-semibold text-lg text-gray-900">
-                {{ isPickup ? 'Retrait en boutique' : 'Livraison' }}
+                {{
+                  isPickup ? t('checkout.pickupSectionTitle') : t('checkout.deliverySectionTitle')
+                }}
               </h2>
 
               <div
@@ -1183,7 +1187,7 @@ onUnmounted(() => {
                   @click="fulfillmentMode = 'pickup'"
                 >
                   <MapPin class="h-5 w-5" :stroke-width="1.5" />
-                  Retrait
+                  {{ t('checkout.fulfillmentPickup') }}
                 </button>
               </div>
 
@@ -1255,6 +1259,7 @@ onUnmounted(() => {
                   v-if="selectedMethod?.pickupLocation"
                   :name="selectedMethod.pickupLocation.name"
                   :address="selectedMethod.pickupLocation.address"
+                  :whatsapp="Boolean(selectedMethod.pickupLocation.whatsapp)"
                   :estimated-days="selectedMethod.estimatedDays"
                 />
 
@@ -1375,6 +1380,7 @@ onUnmounted(() => {
                       class="flex-1 min-w-0"
                       :name="method.pickupLocation.name"
                       :address="method.pickupLocation.address"
+                      :whatsapp="Boolean(method.pickupLocation.whatsapp)"
                       :estimated-days="method.estimatedDays"
                     />
                   </div>

@@ -16,7 +16,7 @@ import { filterHomeSectionsByFeatures, resolveHomeSections } from './homeSection
  *       to: '/services',
  *       items: [
  *         { label: 'Recherche personnalisée', to: '/recherche', feature: 'recherche' },
- *         { label: 'Estimation', to: '/estimation', feature: 'estimation' },
+ *         { label: 'Estimation', to: '/rachat', feature: 'estimation' },
  *       ],
  *     },
  *     {
@@ -265,7 +265,7 @@ function getDefaultMainNavigation(features, site) {
       sub.push({ label: 'Recherche personnalisée', to: '/recherche' })
     }
     if (features.estimation) {
-      sub.push({ label: 'Estimation', to: '/estimation' })
+      sub.push({ label: 'Estimation', to: '/rachat' })
     }
     if (sub.length > 0) {
       items.push({ type: 'group', label: 'Nos services', items: sub })
@@ -340,7 +340,7 @@ function getDefaultFooterNavigation(features) {
     items.push({ label: 'Recherche personnalisée', to: '/recherche' })
   }
   if (features.estimation) {
-    items.push({ label: 'Estimation', to: '/estimation' })
+    items.push({ label: 'Estimation', to: '/rachat' })
   }
   if (features.blog) {
     items.push({ label: 'Blog', to: '/blog' })

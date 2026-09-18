@@ -5,6 +5,7 @@ import { VueDatePicker } from '@vuepic/vue-datepicker'
 import { fr } from 'date-fns/locale'
 import '@vuepic/vue-datepicker/dist/main.css'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { resolveWatchCatalogConfig } from '@/site/watchCatalogDisplay.js'
 import { buildGoogleMapsDirectionsUrl } from '@/utils/googleMapsLinks.js'
 import { resolveStoreOpeningHours } from '@/utils/formatStoreOpeningHours.js'
 import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
@@ -44,6 +45,13 @@ const site = getSiteConfig()
 const brandDisplayName = site.brand.displayName || site.brand.legalName
 const storeMap = site.storeMap
 
+/**
+ * Vitrine sans point de vente : le lieu se convient avec l'acheteur. On n'affiche alors
+ * ni adresse, ni horaires, ni itinéraire — et le téléphone devient obligatoire, faute
+ * de quoi il n'y a aucun moyen de fixer le rendez-vous.
+ */
+const locationIsAgreed = resolveWatchCatalogConfig(site).appointmentLocation === 'agreed'
+
 const modalState = ref('form')
 const isSubmitting = ref(false)
 const errorMessage = ref('')
@@ -82,16 +90,20 @@ const slotOptions = computed(() =>
 )
 
 const directionsUrl = computed(() =>
-  buildGoogleMapsDirectionsUrl({
-    address: storeMap?.directionsAddress || site.legal?.address,
-    placeId: storeMap?.googlePlaceId,
-    lat: storeMap?.center?.lat,
-    lng: storeMap?.center?.lng,
-    query: storeMap?.googlePlaceQuery,
-  }),
+  locationIsAgreed
+    ? ''
+    : buildGoogleMapsDirectionsUrl({
+        address: storeMap?.directionsAddress || site.legal?.address,
+        placeId: storeMap?.googlePlaceId,
+        lat: storeMap?.center?.lat,
+        lng: storeMap?.center?.lng,
+        query: storeMap?.googlePlaceQuery,
+      }),
 )
 
-const storeOpeningHours = computed(() => resolveStoreOpeningHours(storeMap?.openingHours))
+const storeOpeningHours = computed(() =>
+  locationIsAgreed ? { hasHours: false } : resolveStoreOpeningHours(storeMap?.openingHours),
+)
 
 watch(
   () => props.open,
@@ -252,7 +264,8 @@ onUnmounted(() => {
               <p><span class="font-semibold">{{ t('appointment.slotLabel') }}</span> {{ submittedSummary.timeSlotLabel }}</p>
               <p class="pt-1">
                 <span class="font-semibold">{{ t('appointment.storeLabel') }}</span>
-                <span v-html="site.contact.footerAddressHtml" />
+                <span v-if="locationIsAgreed">{{ t('appointment.locationAgreed') }}</span>
+                <span v-else v-html="site.contact.footerAddressHtml" />
               </p>
               <p v-if="storeOpeningHours.hasHours" class="pt-1">
                 <span class="font-semibold">{{ t('appointment.hoursLabel') }}</span>
@@ -304,7 +317,8 @@ onUnmounted(() => {
               <p class="text-sm font-semibold text-text-main">{{ brandDisplayName }}</p>
               <div class="flex gap-2 items-start text-sm text-gray-700">
                 <MapPin class="w-5 h-5 shrink-0 mt-0.5 text-primary" :stroke-width="2" />
-                <span v-html="site.contact.footerAddressHtml" />
+                <span v-if="locationIsAgreed">{{ t('appointment.locationAgreed') }}</span>
+                <span v-else v-html="site.contact.footerAddressHtml" />
               </div>
               <div
                 v-if="storeOpeningHours.hasHours"
@@ -367,7 +381,7 @@ onUnmounted(() => {
 
               <div>
                 <label for="appointment-tel" class="block text-sm font-medium text-text-main mb-1">
-                  {{ t('form.phone') }}
+                  {{ t('form.phone') }}<template v-if="locationIsAgreed"> *</template>
                 </label>
                 <input
                   id="appointment-tel"
@@ -376,6 +390,7 @@ onUnmounted(() => {
                   type="tel"
                   maxlength="20"
                   autocomplete="tel"
+                  :required="locationIsAgreed"
                   class="w-full rounded-md border border-cream-300 px-3 py-2 text-text-main focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>

@@ -41,9 +41,9 @@ export default {
         de: 'Ist die Schätzung meiner Uhr wirklich kostenlos?',
       }),
       answer: t({
-        fr: 'Oui, <strong>l\'estimation est 100% gratuite et sans aucun engagement</strong>. Vous êtes libres d\'accepter ou de refuser notre proposition, sans aucune pression. Nous vous fournissons une estimation transparente et argumentée dans les 24 heures suivant votre demande. Pour en savoir plus sur notre méthode d\'estimation, consultez notre <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">page détaillée expliquant notre processus d\'estimation</a>.',
-        en: 'Yes — <strong>the valuation is completely free and comes with no obligation</strong>. You are free to accept or decline our offer, with no pressure whatsoever. We provide a transparent, reasoned valuation within 24 hours of your request. To learn more about our method, see our <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">detailed page explaining our valuation process</a>.',
-        de: 'Ja, <strong>die Schätzung ist völlig kostenlos und unverbindlich</strong>. Sie können unser Angebot ohne jeden Druck annehmen oder ablehnen. Sie erhalten innerhalb von 24 Stunden nach Ihrer Anfrage eine transparente und begründete Schätzung. Mehr zu unserer Methode finden Sie auf unserer <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">ausführlichen Seite zum Schätzverfahren</a>.',
+        fr: 'Oui, <strong>l\'estimation est 100% gratuite et sans aucun engagement</strong>. Vous êtes libres d\'accepter ou de refuser notre proposition, sans aucune pression. Nous vous fournissons une estimation transparente et argumentée dans les 24 heures suivant votre demande. Pour en savoir plus sur notre méthode d\'estimation, consultez notre <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">page détaillée expliquant notre processus de rachat</a>.',
+        en: 'Yes — <strong>the valuation is completely free and comes with no obligation</strong>. You are free to accept or decline our offer, with no pressure whatsoever. We provide a transparent, reasoned valuation within 24 hours of your request. To learn more about our method, see our <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">detailed page explaining our purchase process</a>.',
+        de: 'Ja, <strong>die Schätzung ist völlig kostenlos und unverbindlich</strong>. Sie können unser Angebot ohne jeden Druck annehmen oder ablehnen. Sie erhalten innerhalb von 24 Stunden nach Ihrer Anfrage eine transparente und begründete Schätzung. Mehr zu unserer Methode finden Sie auf unserer <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">ausführlichen Seite zum Ankaufsverfahren</a>.',
       }),
     },
     {
@@ -54,9 +54,9 @@ export default {
         de: 'Wie wird die Schätzung meiner Uhr berechnet?',
       }),
       answer: t({
-        fr: 'Nous basons notre estimation sur plusieurs critères : l\'état de votre montre, sa cote actuelle sur le marché (Chrono24, ventes aux enchères, etc.), sa rareté, et la présence de la boîte et des papiers. Nous vous fournissons une estimation transparente et argumentée. Pour comprendre en détail notre méthode en 5 étapes, consultez notre <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">page d\'explication du processus d\'estimation</a>.',
-        en: 'We base our valuation on several criteria: the condition of your watch, its current market value (Chrono24, auction results and so on), its rarity, and whether box and papers are present. We give you a transparent, reasoned valuation. For a detailed look at our five-step method, see our <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">page explaining the valuation process</a>.',
-        de: 'Unsere Schätzung stützt sich auf mehrere Kriterien: den Zustand Ihrer Uhr, ihren aktuellen Marktwert (Chrono24, Auktionsergebnisse usw.), ihre Seltenheit sowie das Vorhandensein von Box und Papieren. Sie erhalten eine transparente, begründete Schätzung. Unsere fünfstufige Methode erläutern wir ausführlich auf unserer <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">Seite zum Schätzverfahren</a>.',
+        fr: 'Nous basons notre estimation sur plusieurs critères : l\'état de votre montre, sa cote actuelle sur le marché (Chrono24, ventes aux enchères, etc.), sa rareté, et la présence de la boîte et des papiers. Nous vous fournissons une estimation transparente et argumentée. Pour comprendre en détail notre méthode en 5 étapes, consultez notre <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">page d\'explication du processus de rachat</a>.',
+        en: 'We base our valuation on several criteria: the condition of your watch, its current market value (Chrono24, auction results and so on), its rarity, and whether box and papers are present. We give you a transparent, reasoned valuation. For a detailed look at our five-step method, see our <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">page explaining the purchase process</a>.',
+        de: 'Unsere Schätzung stützt sich auf mehrere Kriterien: den Zustand Ihrer Uhr, ihren aktuellen Marktwert (Chrono24, Auktionsergebnisse usw.), ihre Seltenheit sowie das Vorhandensein von Box und Papieren. Sie erhalten eine transparente, begründete Schätzung. Unsere fünfstufige Methode erläutern wir ausführlich auf unserer <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">Seite zum Ankaufsverfahren</a>.',
       }),
     },
     {
@@ -133,20 +133,20 @@ export default {
       }),
       answer: t({
         fr: `<ul class="list-decimal space-y-2 ml-4">
-      <li>Vous remplissez notre <a href="/estimation" class="text-primary hover:text-green-700 underline font-medium">formulaire d'estimation gratuite</a> en ligne ou nous contactez directement.</li>
-      <li>Nous analysons votre demande et vous envoyons une estimation détaillée sous 24h. <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">Découvrez notre méthode d'estimation</a>.</li>
+      <li>Vous remplissez notre <a href="/rachat" class="text-primary hover:text-green-700 underline font-medium">formulaire de rachat gratuit</a> en ligne ou nous contactez directement.</li>
+      <li>Nous analysons votre demande et vous envoyons une estimation détaillée sous 24h. <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">Découvrez notre méthode d'estimation</a>.</li>
       <li>Si vous acceptez notre proposition, nous organisons le transport de la montre pour qu'elle nous parvienne.</li>
       <li>Après réception de la montre, nous la vérifions et vous envoyons le paiement.</li>
     </ul>`,
         en: `<ul class="list-decimal space-y-2 ml-4">
-      <li>You fill in our <a href="/estimation" class="text-primary hover:text-green-700 underline font-medium">free valuation form</a> online, or contact us directly.</li>
-      <li>We review your request and send you a detailed valuation within 24 hours. <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">See how we value watches</a>.</li>
+      <li>You fill in our <a href="/rachat" class="text-primary hover:text-green-700 underline font-medium">free purchase-offer form</a> online, or contact us directly.</li>
+      <li>We review your request and send you a detailed valuation within 24 hours. <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">See how we value watches</a>.</li>
       <li>If you accept our offer, we arrange transport so the watch reaches us safely.</li>
       <li>Once the watch arrives, we check it and send your payment.</li>
     </ul>`,
         de: `<ul class="list-decimal space-y-2 ml-4">
-      <li>Sie füllen unser <a href="/estimation" class="text-primary hover:text-green-700 underline font-medium">kostenloses Schätzformular</a> online aus oder kontaktieren uns direkt.</li>
-      <li>Wir prüfen Ihre Anfrage und senden Ihnen innerhalb von 24 Stunden eine detaillierte Schätzung. <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">So schätzen wir Uhren</a>.</li>
+      <li>Sie füllen unser <a href="/rachat" class="text-primary hover:text-green-700 underline font-medium">kostenloses Ankaufsformular</a> online aus oder kontaktieren uns direkt.</li>
+      <li>Wir prüfen Ihre Anfrage und senden Ihnen innerhalb von 24 Stunden eine detaillierte Schätzung. <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">So schätzen wir Uhren</a>.</li>
       <li>Nehmen Sie unser Angebot an, organisieren wir den Transport der Uhr zu uns.</li>
       <li>Nach Eingang der Uhr prüfen wir sie und überweisen Ihnen den Betrag.</li>
     </ul>`,
@@ -160,9 +160,9 @@ export default {
         de: 'Kaufen Sie Uhren aller Marken an?',
       }),
       answer: t({
-        fr: 'Nous rachetons principalement les <strong>montres de marques prestigieuses</strong> comme Rolex, Omega, Cartier, Breitling, Audemars Piguet, Patek Philippe, Tag Heuer, Tudor, et bien d\'autres. Si vous avez un doute sur votre montre, n\'hésitez pas à nous envoyer les informations via notre <a href="/estimation" class="text-primary hover:text-green-700 underline font-medium">formulaire d\'estimation gratuite</a>, nous vous répondrons rapidement.',
-        en: 'We mainly buy <strong>watches from prestigious brands</strong> such as Rolex, Omega, Cartier, Breitling, Audemars Piguet, Patek Philippe, Tag Heuer, Tudor and many others. If you are unsure about your watch, send us the details through our <a href="/estimation" class="text-primary hover:text-green-700 underline font-medium">free valuation form</a> and we will get back to you quickly.',
-        de: 'Wir kaufen vor allem <strong>Uhren renommierter Marken</strong> wie Rolex, Omega, Cartier, Breitling, Audemars Piguet, Patek Philippe, Tag Heuer, Tudor und viele weitere. Wenn Sie sich bei Ihrer Uhr unsicher sind, senden Sie uns die Angaben über unser <a href="/estimation" class="text-primary hover:text-green-700 underline font-medium">kostenloses Schätzformular</a> — wir antworten Ihnen zügig.',
+        fr: 'Nous rachetons principalement les <strong>montres de marques prestigieuses</strong> comme Rolex, Omega, Cartier, Breitling, Audemars Piguet, Patek Philippe, Tag Heuer, Tudor, et bien d\'autres. Si vous avez un doute sur votre montre, n\'hésitez pas à nous envoyer les informations via notre <a href="/rachat" class="text-primary hover:text-green-700 underline font-medium">formulaire de rachat gratuit</a>, nous vous répondrons rapidement.',
+        en: 'We mainly buy <strong>watches from prestigious brands</strong> such as Rolex, Omega, Cartier, Breitling, Audemars Piguet, Patek Philippe, Tag Heuer, Tudor and many others. If you are unsure about your watch, send us the details through our <a href="/rachat" class="text-primary hover:text-green-700 underline font-medium">free purchase-offer form</a> and we will get back to you quickly.',
+        de: 'Wir kaufen vor allem <strong>Uhren renommierter Marken</strong> wie Rolex, Omega, Cartier, Breitling, Audemars Piguet, Patek Philippe, Tag Heuer, Tudor und viele weitere. Wenn Sie sich bei Ihrer Uhr unsicher sind, senden Sie uns die Angaben über unser <a href="/rachat" class="text-primary hover:text-green-700 underline font-medium">kostenloses Ankaufsformular</a> — wir antworten Ihnen zügig.',
       }),
     },
     {
@@ -186,9 +186,9 @@ export default {
         de: 'Woran erkenne ich, dass Sie ein seriöser Anbieter sind?',
       }),
       answer: t({
-        fr: 'Notre activité est déclarée (SIRET visible sur le site), et nous avons déjà accompagné de nombreux collectionneurs satisfaits. Nous vous invitons à consulter nos avis Google, à vérifier notre profil professionnel et à nous contacter pour toute question. Nous sommes transparents sur nos méthodes, comme en témoigne notre <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">page détaillée expliquant notre processus d\'estimation</a>.',
-        en: 'Our business is formally registered (the SIRET number is shown on the site) and we have already worked with many satisfied collectors. We invite you to read our Google reviews, check our professional profile and contact us with any question. We are open about our methods, as our <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">detailed page explaining our valuation process</a> shows.',
-        de: 'Unser Unternehmen ist offiziell registriert (die SIRET-Nummer steht auf der Website), und wir haben bereits viele zufriedene Sammler begleitet. Lesen Sie gern unsere Google-Bewertungen, prüfen Sie unser Unternehmensprofil und sprechen Sie uns bei Fragen an. Wir legen unsere Methoden offen, wie unsere <a href="/estimation/processus" class="text-primary hover:text-green-700 underline font-medium">ausführliche Seite zum Schätzverfahren</a> zeigt.',
+        fr: 'Notre activité est déclarée (SIRET visible sur le site), et nous avons déjà accompagné de nombreux collectionneurs satisfaits. Nous vous invitons à consulter nos avis Google, à vérifier notre profil professionnel et à nous contacter pour toute question. Nous sommes transparents sur nos méthodes, comme en témoigne notre <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">page détaillée expliquant notre processus de rachat</a>.',
+        en: 'Our business is formally registered (the SIRET number is shown on the site) and we have already worked with many satisfied collectors. We invite you to read our Google reviews, check our professional profile and contact us with any question. We are open about our methods, as our <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">detailed page explaining our purchase process</a> shows.',
+        de: 'Unser Unternehmen ist offiziell registriert (die SIRET-Nummer steht auf der Website), und wir haben bereits viele zufriedene Sammler begleitet. Lesen Sie gern unsere Google-Bewertungen, prüfen Sie unser Unternehmensprofil und sprechen Sie uns bei Fragen an. Wir legen unsere Methoden offen, wie unsere <a href="/rachat/processus" class="text-primary hover:text-green-700 underline font-medium">ausführliche Seite zum Ankaufsverfahren</a> zeigt.',
       }),
     },
   ],

@@ -78,7 +78,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // Stocker la route précédente pour EstimationProcess
-  if (to.path === '/estimation/processus' && from.path) {
+  if (to.path === '/rachat/processus' && from.path) {
     sessionStorage.setItem('estimationProcessPreviousRoute', from.path)
   }
 

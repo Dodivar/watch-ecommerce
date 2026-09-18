@@ -33,7 +33,7 @@ describe('resolveMainNavigation', () => {
             label: 'Services',
             items: [
               { label: 'Recherche', to: '/recherche', feature: 'recherche' },
-              { label: 'Estimation', to: '/estimation', feature: 'estimation' },
+              { label: 'Estimation', to: '/rachat', feature: 'estimation' },
             ],
           },
         ],

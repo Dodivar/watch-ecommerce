@@ -323,7 +323,7 @@ onMounted(() => {
               {{ t('crossSell.valuationText') }}
             </p>
             <RouterLink
-              to="/estimation"
+              to="/rachat"
               class="inline-flex items-center bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-all"
             >
               {{ t('crossSell.valuationCta') }}

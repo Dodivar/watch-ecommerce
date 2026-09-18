@@ -50,8 +50,8 @@ export const STATIC_ROUTE_SEO_SECTIONS = {
 export const STATIC_ROUTES_WITHOUT_OWN_COPY = [
   '/contact',
   '/recherche',
-  '/estimation',
-  '/estimation/processus',
+  '/rachat',
+  '/rachat/processus',
 ]
 
 /**

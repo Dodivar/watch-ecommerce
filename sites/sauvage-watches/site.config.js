@@ -27,6 +27,153 @@ export default {
     enabled: true,
     defaultLocale: 'fr',
     locales: ['fr', 'en', 'de'],
+
+    /**
+     * Surcharges du catalogue d'interface du socle (`packages/base/src/i18n/messages/`).
+     * Deux renommages propres à Sauvage :
+     *
+     * 1. « Collection » devient « Montres en stock » — le stock appartient à la maison,
+     *    et le mot le dit mieux qu'un terme de catalogue.
+     * 2. Le service d'« estimation » devient le « rachat de votre montre » : Sauvage ne
+     *    vend pas une expertise, elle achète des montres. L'estimation reste nommée là
+     *    où elle décrit une étape du processus, pas l'offre commerciale.
+     */
+    messages: {
+      fr: {
+        'home.collectionTitle': 'Montres en stock',
+        'crossSell.ourCollection': 'Nos montres en stock',
+
+        'checkout.fulfillmentPickup': 'Rendez-vous',
+        'checkout.pickupSectionTitle': 'Remise en main propre',
+
+        'home.valuationTitle': 'Rachat de votre montre',
+        'home.valuationText':
+          'Nous rachetons votre montre au juste prix : proposition sous 24 h, sans engagement.',
+        'home.valuationCta': 'Vendre ma montre',
+
+        'crossSell.valuation': 'Rachat de votre montre',
+        'crossSell.valuationText':
+          'Nous rachetons votre montre. Estimation gratuite, proposition claire et paiement rapide.',
+        'crossSell.valuationCta': 'Vendre ma montre',
+
+        'valuation.pageTitle': 'Rachat de votre montre',
+        'valuation.pageLead':
+          'Remplissez ce formulaire pour recevoir notre proposition de rachat, gratuite et sans engagement',
+        'valuation.howWeEstimate': 'Comment fixons-nous notre proposition de rachat ?',
+        'valuation.submit': 'Vendre ma montre',
+
+        'process.pageTitle': 'Comment fixons-nous notre proposition de rachat ?',
+        'process.introTail':
+          "C'est pourquoi nous vous expliquons en détail comment nous fixons notre proposition de rachat, de manière précise et équitable.",
+        'process.step1Text':
+          "Dès réception de votre formulaire, notre équipe examine toutes les informations fournies : marque, modèle, année, numéro de série, état général et accessoires (boîte, papiers). Chaque détail compte pour une proposition juste.",
+        'process.step5Title': 'Proposition de rachat',
+        'process.step5Text':
+          'Après avoir croisé toutes ces informations, nous vous adressons une proposition de rachat détaillée et transparente. Elle est valable trente jours et peut être ajustée après un examen physique de la montre.',
+        'process.factorsTitle': 'Les facteurs qui influencent notre proposition',
+        'process.ctaTitle': 'Prêt à vendre votre montre ?',
+        'process.ctaText':
+          'Remplissez notre formulaire gratuit et recevez notre proposition de rachat sous 24 à 48 h.',
+        'process.ctaButton': 'Demander une proposition de rachat',
+        'process.marketPricesText':
+          'Nos propositions sont fondées sur les prix réels du marché, pas sur des prix gonflés.',
+        'process.freeValuation': 'Proposition gratuite',
+        'process.freeValuationText':
+          'Aucun engagement de votre part : notre proposition est entièrement gratuite.',
+
+        'thanks.estimation':
+          'Nous avons bien reçu votre demande de rachat. Un membre de notre équipe vous contactera sous 24 h avec notre proposition.',
+      },
+      en: {
+        'home.collectionTitle': 'Watches in stock',
+        'crossSell.ourCollection': 'Our watches in stock',
+
+        'checkout.fulfillmentPickup': 'Appointment',
+        'checkout.pickupSectionTitle': 'Handover in person',
+
+        'home.valuationTitle': 'We buy your watch',
+        'home.valuationText':
+          'We buy your watch at a fair price: an offer within 24 hours, with no obligation.',
+        'home.valuationCta': 'Sell my watch',
+
+        'crossSell.valuation': 'We buy your watch',
+        'crossSell.valuationText':
+          'We buy your watch. Free valuation, a clear offer and fast payment.',
+        'crossSell.valuationCta': 'Sell my watch',
+
+        'valuation.pageTitle': 'We buy your watch',
+        'valuation.pageLead':
+          'Fill in this form to receive our purchase offer, free and with no obligation',
+        'valuation.howWeEstimate': 'How do we set our purchase offer?',
+        'valuation.submit': 'Sell my watch',
+
+        'process.pageTitle': 'How do we set our purchase offer?',
+        'process.introTail':
+          'That is why we explain in detail how we arrive at our purchase offer, precisely and fairly.',
+        'process.step1Text':
+          'As soon as we receive your form, our team reviews everything you have provided: brand, model, year, serial number, overall condition and accessories (box, papers). Every detail counts towards a fair offer.',
+        'process.step5Title': 'Purchase offer',
+        'process.step5Text':
+          'Having cross-checked all of this, we send you a detailed and transparent purchase offer. It is valid for thirty days and may be adjusted after a physical inspection of the watch.',
+        'process.factorsTitle': 'What influences our offer',
+        'process.ctaTitle': 'Ready to sell your watch?',
+        'process.ctaText':
+          'Fill in our free form and receive our purchase offer within 24 to 48 hours.',
+        'process.ctaButton': 'Request a purchase offer',
+        'process.marketPricesText':
+          'Our offers are based on real market prices, not inflated ones.',
+        'process.freeValuation': 'Free offer',
+        'process.freeValuationText': 'No obligation on your part: our offer is entirely free.',
+
+        'thanks.estimation':
+          'We have received your request. A member of our team will contact you within 24 hours with our purchase offer.',
+      },
+      de: {
+        'home.collectionTitle': 'Uhren auf Lager',
+        'crossSell.ourCollection': 'Unsere Uhren auf Lager',
+
+        'checkout.fulfillmentPickup': 'Termin',
+        'checkout.pickupSectionTitle': 'Persönliche Übergabe',
+
+        'home.valuationTitle': 'Ankauf Ihrer Uhr',
+        'home.valuationText':
+          'Wir kaufen Ihre Uhr zum fairen Preis: ein Angebot innerhalb von 24 Stunden, unverbindlich.',
+        'home.valuationCta': 'Meine Uhr verkaufen',
+
+        'crossSell.valuation': 'Ankauf Ihrer Uhr',
+        'crossSell.valuationText':
+          'Wir kaufen Ihre Uhr an. Kostenlose Schätzung, klares Angebot und schnelle Zahlung.',
+        'crossSell.valuationCta': 'Meine Uhr verkaufen',
+
+        'valuation.pageTitle': 'Ankauf Ihrer Uhr',
+        'valuation.pageLead':
+          'Füllen Sie dieses Formular aus und erhalten Sie unser Ankaufsangebot — kostenlos und unverbindlich',
+        'valuation.howWeEstimate': 'Wie ermitteln wir unser Ankaufsangebot?',
+        'valuation.submit': 'Meine Uhr verkaufen',
+
+        'process.pageTitle': 'Wie ermitteln wir unser Ankaufsangebot?',
+        'process.introTail':
+          'Deshalb erklären wir Ihnen ausführlich, wie wir unser Ankaufsangebot genau und fair ermitteln.',
+        'process.step1Text':
+          'Sobald Ihr Formular bei uns eingeht, prüft unser Team alle Angaben: Marke, Modell, Jahr, Seriennummer, Gesamtzustand und Zubehör (Box, Papiere). Jedes Detail zählt für ein faires Angebot.',
+        'process.step5Title': 'Ankaufsangebot',
+        'process.step5Text':
+          'Nach Abgleich all dieser Informationen unterbreiten wir Ihnen ein detailliertes und transparentes Ankaufsangebot. Es gilt dreißig Tage und kann nach einer physischen Prüfung der Uhr angepasst werden.',
+        'process.factorsTitle': 'Was unser Angebot beeinflusst',
+        'process.ctaTitle': 'Bereit, Ihre Uhr zu verkaufen?',
+        'process.ctaText':
+          'Füllen Sie unser kostenloses Formular aus und erhalten Sie unser Ankaufsangebot innerhalb von 24 bis 48 Stunden.',
+        'process.ctaButton': 'Ankaufsangebot anfordern',
+        'process.marketPricesText':
+          'Unsere Angebote beruhen auf echten Marktpreisen, nicht auf überhöhten Preisen.',
+        'process.freeValuation': 'Kostenloses Angebot',
+        'process.freeValuationText':
+          'Keinerlei Verpflichtung Ihrerseits: Unser Angebot ist vollständig kostenlos.',
+
+        'thanks.estimation':
+          'Wir haben Ihre Anfrage erhalten. Ein Mitglied unseres Teams meldet sich innerhalb von 24 Stunden mit unserem Ankaufsangebot bei Ihnen.',
+      },
+    },
   },
 
   /** Design tokens → CSS variables via vite/site-from-config.mjs + Tailwind theme.extend */
@@ -92,7 +239,14 @@ export default {
   contact: {
     whatsappE164: '+33612843926',
     email: 'contact@sauvage-watches.fr',
-    footerAddressHtml: '32 Allée de la Robertsau<br />67000 Strasbourg, France',
+    /**
+     * Pas d'adresse publique : Sauvage ne reçoit pas en boutique, les rendez-vous se
+     * tiennent en un lieu convenu avec l'acheteur. Clé absente = le socle masque la ligne
+     * d'adresse (pied de page, page Contact, modale de rendez-vous) et affiche les
+     * réseaux sociaux à la place. L'adresse du siège reste déclarée dans `legal.address`,
+     * où les mentions légales et les CGV l'exigent.
+     */
+    footerAddressHtml: null,
   },
 
   storeMap: {
@@ -149,20 +303,30 @@ export default {
   },
 
   social: {
-    footerTiktokUrl: 'https://www.tiktok.com/@sauvagewatches',
+    /**
+     * Emplacements où les réseaux s'affichent en plus du pied de page et de la page
+     * Contact, où ils figurent déjà. Bloc absent sur les autres vitrines : rien ne
+     * change chez elles.
+     */
+    show: {
+      /** En-tête desktop et menu mobile, en icônes seules. */
+      header: true,
+      /** Bloc « Besoin d'aide ? » des pages rachat et recherche. */
+      contactCta: true,
+    },
     suivezNous: {
       instagramUrl: 'https://www.instagram.com/sauvage_watches',
       instagramHandle: '@sauvage_watches',
-      tiktokUrl: 'https://www.tiktok.com/@sauvagewatches',
-      tiktokHandle: '@sauvagewatches',
+      facebookUrl: 'https://www.facebook.com/profile.php?id=61592137302130',
+      facebookHandle: 'Sauvage Watches',
     },
   },
 
   copy: {
     footerTagline: t({
-      fr: "Votre partenaire pour l'achat et la mise à disposition de montres de luxe authentifiées. Recherche personnalisée, estimation rapide, transparence garantie.",
-      en: 'Your partner for buying and sourcing authenticated luxury watches. Personalised sourcing, fast valuation, guaranteed transparency.',
-      de: 'Ihr Partner für den Kauf und die Beschaffung authentifizierter Luxusuhren. Persönliche Suche, schnelle Schätzung, garantierte Transparenz.',
+      fr: "Votre partenaire pour l'achat et la mise à disposition de montres de luxe authentifiées. Recherche personnalisée, rachat rapide, transparence garantie.",
+      en: 'Your partner for buying and sourcing authenticated luxury watches. Personalised sourcing, fast buy-back, guaranteed transparency.',
+      de: 'Ihr Partner für den Kauf und die Beschaffung authentifizierter Luxusuhren. Persönliche Suche, schneller Ankauf, garantierte Transparenz.',
     }),
     /** Footer legal line (verbatim for template parity). */
     copyrightLine: t({
@@ -227,8 +391,14 @@ export default {
   /** Profil catalogue revente : année, état, contenu et référence visibles sur cartes et fiches. */
   watchCatalog: {
     mode: 'resale',
-    /** Bouton « Prendre rendez-vous » sur les fiches montre (boutique Robertsau). */
+    /** Bouton « Prendre rendez-vous » sur les fiches montre. */
     appointment: true,
+    /**
+     * Pas de point de vente : le lieu du rendez-vous se convient avec l'acheteur.
+     * La modale masque alors adresse, horaires et itinéraire, et rend le téléphone
+     * obligatoire. Valeur par défaut ailleurs : `'store'`.
+     */
+    appointmentLocation: 'agreed',
     /** Année affichée en badge dans le coin haut-gauche de l'image ('corner') ou à droite du prix ('inline'). */
     yearBadgePosition: 'corner',
   },
@@ -273,9 +443,15 @@ export default {
             en: 'Ready within 48 h of payment confirmation, by appointment',
             de: 'Innerhalb von 48 Std. nach Zahlungsbestätigung verfügbar, nach Vereinbarung',
           }),
+          /**
+           * Pas d'adresse : la remise se fait en main propre, en un lieu convenu avec
+           * l'acheteur. `whatsapp: true` remplace le bloc adresse du checkout par un
+           * encart « rendez-vous par WhatsApp » et ajoute le bouton correspondant à
+           * l'e-mail de confirmation de commande (voir `backend/emails/`).
+           */
           pickupLocation: {
             name: 'Sauvage Watches',
-            address: '32 Allée de la Robertsau, 67000 Strasbourg',
+            whatsapp: true,
           },
         },
       ],
@@ -312,19 +488,19 @@ export default {
     hero: {
       variant: 'vitrine',
       eyebrow: t({
-        fr: 'Revendeur horloger — Strasbourg',
-        en: 'Watch dealer — Strasbourg',
-        de: 'Uhrenhändler — Straßburg',
+        fr: "Achat & vente de montres d'exception",
+        en: 'Buying & selling exceptional watches',
+        de: 'An- und Verkauf außergewöhnlicher Uhren',
       }),
       title: t({
-        fr: 'Des montres authentifiées, choisies une par une.',
-        en: 'Authenticated watches, chosen one by one.',
-        de: 'Authentifizierte Uhren, Stück für Stück ausgewählt.',
+        fr: 'Des montres de prestige, sélectionnées pour vous.',
+        en: 'Prestige watches, selected for you.',
+        de: 'Prestigeuhren, für Sie ausgewählt.',
       }),
       subtitle: t({
-        fr: 'Nous achetons, vérifions et détenons nos montres. Chaque pièce est contrôlée, garantie un an et disponible immédiatement.',
-        en: 'We buy, check and hold our watches ourselves. Every piece is inspected, comes with a one-year warranty and is available immediately.',
-        de: 'Wir kaufen, prüfen und besitzen unsere Uhren selbst. Jedes Stück wird kontrolliert, hat ein Jahr Garantie und ist sofort verfügbar.',
+        fr: 'Nous achetons, vérifions et détenons nos montres. Chaque pièce est contrôlée et disponible immédiatement.',
+        en: 'We buy, check and hold our watches ourselves. Every piece is inspected and available immediately.',
+        de: 'Wir kaufen, prüfen und besitzen unsere Uhren selbst. Jedes Stück wird kontrolliert und ist sofort verfügbar.',
       }),
       primaryCta: {
         label: t({
@@ -335,21 +511,21 @@ export default {
         to: '/collection',
       },
       secondaryCta: {
-        label: t({ fr: 'Recherche personnalisée', en: 'Watch sourcing', de: 'Uhrensuche' }),
-        to: '/recherche',
+        label: t({ fr: 'Je vends ma montre', en: 'Sell my watch', de: 'Ich verkaufe meine Uhr' }),
+        to: '/rachat',
       },
       /** Trois points de réassurance maximum : le variant `vitrine` leur associe une icône. */
       highlights: [
         t({ fr: 'Montre certifiée', en: 'Certified watch', de: 'Zertifizierte Uhr' }),
         t({
-          fr: 'Garantie un an sur chaque montre',
-          en: 'One-year warranty on every watch',
-          de: 'Ein Jahr Garantie auf jede Uhr',
+          fr: 'Chaque montre est garantie',
+          en: 'Every watch is guaranteed',
+          de: 'Jede Uhr ist garantiert',
         }),
         t({
-          fr: 'Visite sur rendez-vous',
-          en: 'Viewings by appointment',
-          de: 'Besichtigung nach Vereinbarung',
+          fr: 'Remise en main propre sur rendez-vous',
+          en: 'Handover in person, by appointment',
+          de: 'Persönliche Übergabe nach Vereinbarung',
         }),
       ],
     },
@@ -411,8 +587,12 @@ export default {
             feature: 'recherche',
           },
           {
-            label: t({ fr: 'Estimation', en: 'Valuation', de: 'Schätzung' }),
-            to: '/estimation',
+            label: t({
+              fr: 'Rachat de votre montre',
+              en: 'We buy your watch',
+              de: 'Ankauf Ihrer Uhr',
+            }),
+            to: '/rachat',
             feature: 'estimation',
           },
         ],
@@ -458,8 +638,12 @@ export default {
         feature: 'recherche',
       },
       {
-        label: t({ fr: 'Estimation', en: 'Valuation', de: 'Schätzung' }),
-        to: '/estimation',
+        label: t({
+          fr: 'Rachat de votre montre',
+          en: 'We buy your watch',
+          de: 'Ankauf Ihrer Uhr',
+        }),
+        to: '/rachat',
         feature: 'estimation',
       },
       { label: 'Blog', to: '/blog', feature: 'blog' },
@@ -541,6 +725,19 @@ export default {
   brandLogos: {},
 
   seo: {
+    /**
+     * Le service d'estimation est devenu le rachat : les anciennes URLs restent servies
+     * en 301 pour les liens partagés et le référencement déjà acquis. Le routeur fait la
+     * même redirection côté application (`buildAppRoutes.js`) ; celle-ci vaut pour les
+     * robots, qui n'exécutent pas forcément le JavaScript.
+     */
+    legacyRedirects: {
+      static: [
+        { source: '/estimation', destination: '/rachat' },
+        { source: '/estimation/processus', destination: '/rachat/processus' },
+      ],
+    },
+
     /** Static shell before Vue hydrates @vueuse/head (fallback / crawlers). */
     indexHtml: {
       title: t({
@@ -549,9 +746,9 @@ export default {
         de: 'Sauvage - Luxusuhren',
       }),
       metaDescription: t({
-        fr: 'Sauvage - Expert en services de montres de luxe. Collection de montres garanties 1 an, estimation gratuite. Rolex, Breitling, Tag Heuer, Cartier et plus.',
-        en: 'Sauvage - Luxury watch specialists. A collection of watches with a 1-year warranty, free valuation. Rolex, Breitling, Tag Heuer, Cartier and more.',
-        de: 'Sauvage - Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, kostenlose Schätzung. Rolex, Breitling, Tag Heuer, Cartier und mehr.',
+        fr: 'Sauvage - Expert en services de montres de luxe. Collection de montres garanties 1 an, rachat de votre montre. Rolex, Breitling, Tag Heuer, Cartier et plus.',
+        en: 'Sauvage - Luxury watch specialists. A collection of watches with a 1-year warranty, we buy your watch. Rolex, Breitling, Tag Heuer, Cartier and more.',
+        de: 'Sauvage - Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, Ankauf Ihrer Uhr. Rolex, Breitling, Tag Heuer, Cartier und mehr.',
       }),
       keywords: t({
         fr: 'recherche personnalisée de montre, rachat montre, montre de luxe, montre occasion, Rolex, Breitling, Tag Heuer, Cartier, montre garantie',
@@ -565,9 +762,9 @@ export default {
         de: 'Sauvage - Luxusuhren',
       }),
       ogDescription: t({
-        fr: 'Expert en services de montres de luxe. Collection de montres garanties 1 an, estimation gratuite.',
-        en: 'Luxury watch specialists. A collection of watches with a 1-year warranty, free valuation.',
-        de: 'Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, kostenlose Schätzung.',
+        fr: 'Expert en services de montres de luxe. Collection de montres garanties 1 an, rachat de votre montre.',
+        en: 'Luxury watch specialists. A collection of watches with a 1-year warranty, we buy your watch.',
+        de: 'Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, Ankauf Ihrer Uhr.',
       }),
       twitterCard: 'summary_large_image',
       twitterTitle: t({
@@ -576,9 +773,9 @@ export default {
         de: 'Sauvage - Luxusuhren',
       }),
       twitterDescription: t({
-        fr: 'Expert en services de montres de luxe. Collection de montres garanties 1 an, estimation gratuite.',
-        en: 'Luxury watch specialists. A collection of watches with a 1-year warranty, free valuation.',
-        de: 'Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, kostenlose Schätzung.',
+        fr: 'Expert en services de montres de luxe. Collection de montres garanties 1 an, rachat de votre montre.',
+        en: 'Luxury watch specialists. A collection of watches with a 1-year warranty, we buy your watch.',
+        de: 'Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, Ankauf Ihrer Uhr.',
       }),
       /** Repli : `og:locale` réel est dérivé de la langue active (voir `i18n/locales.js`). */
       ogLocale: 'fr_FR',
@@ -594,9 +791,9 @@ export default {
         de: 'Sauvage - Ankauf von Luxusuhren | Kollektion mit Garantie',
       }),
       metaDescription: t({
-        fr: 'Montres de luxe garanties 1 an : Rolex, Breitling, Tag Heuer, Cartier. Estimation gratuite, recherche personnalisée et accompagnement expert.',
-        en: 'Luxury watches with a 1-year warranty: Rolex, Breitling, Tag Heuer, Cartier. Free valuation, personalised sourcing and expert guidance.',
-        de: 'Luxusuhren mit 1 Jahr Garantie: Rolex, Breitling, Tag Heuer, Cartier. Kostenlose Schätzung, persönliche Suche und fachkundige Beratung.',
+        fr: 'Montres de luxe garanties 1 an : Rolex, Breitling, Tag Heuer, Cartier. Rachat de votre montre, recherche personnalisée et accompagnement expert.',
+        en: 'Luxury watches with a 1-year warranty: Rolex, Breitling, Tag Heuer, Cartier. We buy your watch, personalised sourcing and expert guidance.',
+        de: 'Luxusuhren mit 1 Jahr Garantie: Rolex, Breitling, Tag Heuer, Cartier. Ankauf Ihrer Uhr, persönliche Suche und fachkundige Beratung.',
       }),
       ogTitle: t({
         fr: 'Sauvage - Rachat de Montres de Luxe | Collection Garantie',
@@ -604,9 +801,9 @@ export default {
         de: 'Sauvage - Ankauf von Luxusuhren | Kollektion mit Garantie',
       }),
       ogDescription: t({
-        fr: 'Découvrez notre collection de montres de luxe garanties 1 an. Estimation gratuite, recherche personnalisée et accompagnement expert.',
-        en: 'Discover our collection of luxury watches with a 1-year warranty. Free valuation, personalised sourcing and expert guidance.',
-        de: 'Entdecken Sie unsere Kollektion von Luxusuhren mit 1 Jahr Garantie. Kostenlose Schätzung, persönliche Suche und fachkundige Beratung.',
+        fr: 'Découvrez notre collection de montres de luxe garanties 1 an. Rachat de votre montre, recherche personnalisée et accompagnement expert.',
+        en: 'Discover our collection of luxury watches with a 1-year warranty. We buy your watch, personalised sourcing and expert guidance.',
+        de: 'Entdecken Sie unsere Kollektion von Luxusuhren mit 1 Jahr Garantie. Ankauf Ihrer Uhr, persönliche Suche und fachkundige Beratung.',
       }),
       twitterTitle: t({
         fr: 'Sauvage - Rachat de Montres de Luxe',
@@ -614,9 +811,9 @@ export default {
         de: 'Sauvage - Ankauf von Luxusuhren',
       }),
       twitterDescription: t({
-        fr: 'Découvrez notre collection de montres de luxe garanties 1 an. Estimation gratuite, recherche personnalisée.',
-        en: 'Discover our collection of luxury watches with a 1-year warranty. Free valuation, personalised sourcing.',
-        de: 'Entdecken Sie unsere Kollektion von Luxusuhren mit 1 Jahr Garantie. Kostenlose Schätzung, persönliche Suche.',
+        fr: 'Découvrez notre collection de montres de luxe garanties 1 an. Rachat de votre montre, recherche personnalisée.',
+        en: 'Discover our collection of luxury watches with a 1-year warranty. We buy your watch, personalised sourcing.',
+        de: 'Entdecken Sie unsere Kollektion von Luxusuhren mit 1 Jahr Garantie. Ankauf Ihrer Uhr, persönliche Suche.',
       }),
     },
     blog: {
@@ -823,9 +1020,9 @@ export default {
         de: 'FAQ | Häufige Fragen | Sauvage',
       }),
       metaDescription: t({
-        fr: 'Réponses aux questions les plus fréquentes sur Sauvage : recherche personnalisée, estimation gratuite, collection, garanties et services horlogers.',
-        en: 'Answers to the most common questions about Sauvage: personalised sourcing, free valuation, collection, warranties and watchmaking services.',
-        de: 'Antworten auf die häufigsten Fragen zu Sauvage: persönliche Suche, kostenlose Schätzung, Kollektion, Garantien und Uhrmacherleistungen.',
+        fr: 'Réponses aux questions les plus fréquentes sur Sauvage : recherche personnalisée, rachat de votre montre, collection, garanties et services horlogers.',
+        en: 'Answers to the most common questions about Sauvage: personalised sourcing, watch buy-back, collection, warranties and watchmaking services.',
+        de: 'Antworten auf die häufigsten Fragen zu Sauvage: persönliche Suche, Ankauf Ihrer Uhr, Kollektion, Garantien und Uhrmacherleistungen.',
       }),
       ogTitle: t({
         fr: 'FAQ | Sauvage Watches',
@@ -833,9 +1030,9 @@ export default {
         de: 'FAQ | Sauvage Watches',
       }),
       ogDescription: t({
-        fr: 'Estimation, recherche personnalisée, collection et garanties — retrouvez toutes les réponses à vos questions.',
-        en: 'Valuation, personalised sourcing, collection and warranties — find all the answers here.',
-        de: 'Schätzung, persönliche Suche, Kollektion und Garantien — hier finden Sie alle Antworten.',
+        fr: 'Rachat, recherche personnalisée, collection et garanties — retrouvez toutes les réponses à vos questions.',
+        en: 'Buy-back, personalised sourcing, collection and warranties — find all the answers here.',
+        de: 'Ankauf, persönliche Suche, Kollektion und Garantien — hier finden Sie alle Antworten.',
       }),
       twitterTitle: t({
         fr: 'FAQ — Sauvage Watches',
@@ -843,9 +1040,9 @@ export default {
         de: 'FAQ — Sauvage Watches',
       }),
       twitterDescription: t({
-        fr: 'Questions fréquentes sur nos services de montres de luxe, estimation et collection garantie.',
-        en: 'Frequently asked questions about our luxury watch services, valuation and warranted collection.',
-        de: 'Häufige Fragen zu unseren Luxusuhren-Leistungen, zur Schätzung und zur Kollektion mit Garantie.',
+        fr: 'Questions fréquentes sur nos services de montres de luxe, rachat et collection garantie.',
+        en: 'Frequently asked questions about our luxury watch services, buy-back and warranted collection.',
+        de: 'Häufige Fragen zu unseren Luxusuhren-Leistungen, zum Ankauf und zur Kollektion mit Garantie.',
       }),
     },
     aPropos: {

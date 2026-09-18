@@ -398,10 +398,18 @@ export default {
   // — Tunnel de commande
   'checkout.contactDetails': 'Contact',
   'checkout.shippingMethod': 'Mode d’expédition',
+  // Vocabulaire du retrait — renommé par les vitrines sans boutique (voir `i18n.messages`).
+  'checkout.fulfillmentPickup': 'Retrait',
+  'checkout.fulfillmentShip': 'Expédition',
+  'checkout.pickupSectionTitle': 'Retrait en boutique',
+  'checkout.deliverySectionTitle': 'Livraison',
+  'checkout.pickupByWhatsapp':
+    'La remise se fait en main propre, en un lieu convenu ensemble. Nous vous écrivons sur WhatsApp après le paiement pour fixer le rendez-vous.',
   'checkout.payment': 'Paiement',
   'checkout.total': 'Total',
   'checkout.shipping': 'Livraison',
   'checkout.freeShipping': 'Gratuite',
+  'checkout.freeBadge': 'Gratuit',
   'checkout.acceptTerms': "J'accepte les",
 
   'checkout.discount': 'Remise',
@@ -524,6 +532,8 @@ export default {
   'appointment.confirmationSent': 'Un email de confirmation vous a été envoyé. Notre équipe vous recontactera si nécessaire.',
   'appointment.submitError': "Une erreur s'est produite lors de l'envoi de votre demande.",
   'appointment.directions': 'Itinéraire GPS',
+  'appointment.locationAgreed':
+    'Le lieu du rendez-vous sera convenu ensemble : nous vous rappelons pour le fixer.',
   'form.requiredFields': '* Champs obligatoires',
   'carousel.slide': 'Diapositive {current} sur {total}',
   'carousel.imagePosition': 'Image {current} sur {total}',

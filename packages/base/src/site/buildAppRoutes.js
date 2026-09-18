@@ -65,8 +65,8 @@ const COMPONENTS_BY_PATH = {
   '/': HomeView,
   '/merci': Merci,
   '/recherche': Recherche,
-  '/estimation': EstimationPage,
-  '/estimation/processus': EstimationProcess,
+  '/rachat': EstimationPage,
+  '/rachat/processus': EstimationProcess,
   '/collection/recherche': WatchSearchResultsPage,
   '/collection/marques': BrandsIndexPage,
   '/collection/:brandSlug': WatchesCollection,
@@ -130,6 +130,8 @@ const COMPONENTS_BY_PATH = {
 }
 
 const REDIRECTS_BY_PATH = {
+  '/estimation': '/rachat',
+  '/estimation/processus': '/rachat/processus',
   '/paiement-succes': '/commande/succes',
   '/paiement-annule': { path: '/commande/annulee' },
   '/admin/watches/stats': '/admin/stats',

@@ -13,9 +13,9 @@ export const SITEMAP_STATIC_ROUTE_DEFS = [
   { path: '/blog', feature: 'blog', priority: '0.8', changefreq: 'weekly' },
   { path: '/recherche', feature: 'recherche', priority: '0.7', changefreq: 'monthly' },
   { path: '/coup-de-foudre', feature: 'watchMatchmaking', priority: '0.8', changefreq: 'weekly' },
-  { path: '/estimation', feature: 'estimation', priority: '0.7', changefreq: 'monthly' },
+  { path: '/rachat', feature: 'estimation', priority: '0.7', changefreq: 'monthly' },
   {
-    path: '/estimation/processus',
+    path: '/rachat/processus',
     feature: 'estimationProcess',
     priority: '0.65',
     changefreq: 'monthly',

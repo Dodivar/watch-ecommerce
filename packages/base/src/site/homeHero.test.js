@@ -90,7 +90,7 @@ describe('isHomeHeroCtaVisible', () => {
   it('suit la feature de la page visée', () => {
     expect(isHomeHeroCtaVisible({ label: 'Voir', to: '/collection' }, features)).toBe(true)
     expect(isHomeHeroCtaVisible({ label: 'Chercher', to: '/recherche' }, features)).toBe(false)
-    expect(isHomeHeroCtaVisible({ label: 'Estimer', to: '/estimation' }, features)).toBe(true)
+    expect(isHomeHeroCtaVisible({ label: 'Vendre', to: '/rachat' }, features)).toBe(true)
   })
 
   it('affiche le contact sauf si la feature est explicitement coupée', () => {

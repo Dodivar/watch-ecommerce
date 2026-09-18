@@ -7,6 +7,10 @@ export const APP_ROUTE_META = [
   { path: '/' },
   { path: '/merci', feature: 'merci' },
   { path: '/recherche', feature: 'recherche' },
+  { path: '/rachat', feature: 'estimation' },
+  { path: '/rachat/processus', feature: 'estimationProcess' },
+  // Anciennes URLs du service : redirigées côté application, et en 301 côté Vercel pour
+  // les vitrines qui déclarent `seo.legacyRedirects.static`.
   { path: '/estimation', feature: 'estimation' },
   { path: '/estimation/processus', feature: 'estimationProcess' },
   { path: '/collection/recherche', feature: 'collection' },
