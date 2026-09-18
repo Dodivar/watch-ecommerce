@@ -546,7 +546,12 @@
       </div>
 
       <!-- Accessories (resale only) -->
-      <div v-if="catalogDisplay.showDeliveryContent" class="grid lg:grid-cols-2 gap-8 mb-12">
+      <!-- Sans accessoire renseigné, la section n'annonce rien : elle disparaît plutôt
+           que d'afficher un titre suivi du vide. -->
+      <div
+        v-if="catalogDisplay.showDeliveryContent && watchItem.details?.accessories?.length"
+        class="grid lg:grid-cols-2 gap-8 mb-12"
+      >
         <div class="bg-white rounded-md shadow-lg p-6">
           <h3 class="text-lg lg:text-xl font-semibold text-gray-900 mb-4">{{ t('watch.deliveryContent') }}</h3>
           <div class="space-y-3">

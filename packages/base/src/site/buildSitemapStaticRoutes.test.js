@@ -105,7 +105,7 @@ describe('buildSitemapStaticRoutes', () => {
 
     expect(paths).not.toContain('/blog')
     expect(paths).not.toContain('/recherche')
-    expect(paths).not.toContain('/estimation')
+    expect(paths).not.toContain('/rachat')
     expect(paths).toContain('/services')
     expect(paths).toContain('/guide-horloger')
     expect(paths).toContain('/faq')

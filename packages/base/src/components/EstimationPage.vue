@@ -11,7 +11,7 @@
           </p>
           <RouterLink
             v-if="features.estimationProcess"
-            to="/estimation/processus"
+            to="/rachat/processus"
             class="inline-flex items-center text-primary hover:text-green-700 transition-colors text-sm font-medium underline"
           >
             <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

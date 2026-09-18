@@ -89,11 +89,20 @@ export function resolveWatchCatalogConfig(siteConfig) {
 
   const appointmentEnabled = !isResale || raw.appointment === true
 
+  /**
+   * Où se tient le rendez-vous : `'store'` (défaut) à l'adresse de la boutique, ou
+   * `'agreed'` quand la vitrine n'a pas de point de vente et convient du lieu avec
+   * l'acheteur. En `'agreed'`, la modale masque adresse, horaires et itinéraire, et
+   * exige un téléphone — sans lieu fixe, c'est le seul moyen de fixer le rendez-vous.
+   */
+  const appointmentLocation = raw.appointmentLocation === 'agreed' ? 'agreed' : 'store'
+
   return {
     mode,
     isResale,
     isRetail: !isResale,
     appointmentEnabled,
+    appointmentLocation,
     trustHighlights: Array.isArray(raw.trustHighlights) ? raw.trustHighlights : [],
     guarantees:
       raw.guarantees != null && typeof raw.guarantees === 'object'

@@ -126,6 +126,11 @@ function lineImageSrcSet(line) {
 
 const followUpMessage = computed(() => {
   if (shippingMethodType.value === 'pickup') {
+    // Remise en main propre sans point de vente : annoncer un lieu de retrait serait faux,
+    // le rendez-vous se convient par WhatsApp (voir `pickupLocation.whatsapp` du manifest).
+    if (pickupLocation.value?.whatsapp) {
+      return t('checkout.pickupByWhatsapp')
+    }
     const place = pickupLocation.value?.name
     return place
       ? `Notre équipe prépare votre commande. Vous pourrez la retirer à ${place} dès qu’elle sera prête — nous vous contacterons par email.`

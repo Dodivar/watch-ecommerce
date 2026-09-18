@@ -68,7 +68,7 @@ const features = getSiteConfig().features
           <p class="text-gray-600 mb-3">
             {{ t('home.valuationText') }}
           </p>
-          <RouterLink to="/estimation" class="text-primary font-semibold hover:underline">
+          <RouterLink to="/rachat" class="text-primary font-semibold hover:underline">
             {{ t('home.valuationCta') }}
           </RouterLink>
         </div>

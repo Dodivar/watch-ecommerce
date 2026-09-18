@@ -55,7 +55,9 @@
                     <span>{{ EMAIL_CONTACT }}</span>
                   </a>
                 </li>
-                <li class="flex gap-2 items-start">
+                <!-- Pas d'adresse déclarée = pas de lieu public à annoncer : la ligne
+                     disparaît (les réseaux sociaux ci-dessous restent le point de contact). -->
+                <li v-if="site.contact?.footerAddressHtml" class="flex gap-2 items-start">
                   <MapPin class="w-5 h-5 shrink-0 mt-0.5" :stroke-width="2" />
                   <span v-html="site.contact.footerAddressHtml"></span>
                 </li>

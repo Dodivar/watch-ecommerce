@@ -317,7 +317,12 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
         y += 12
       }
       if (shipping.methodType === 'pickup' && shipping.pickupLocation) {
-        const pickupLines = [shipping.pickupLocation.name, shipping.pickupLocation.address].filter(Boolean)
+        // Sans adresse, la remise se fait en main propre en un lieu convenu avec l'acheteur :
+        // le reçu le dit, plutôt que de laisser un point de retrait réduit à un nom.
+        const pickupPlace = shipping.pickupLocation.whatsapp
+          ? labels.pickupByAppointment
+          : shipping.pickupLocation.address
+        const pickupLines = [shipping.pickupLocation.name, pickupPlace].filter(Boolean)
         doc.text(`${labels.pickupLocation} :`, PAGE_MARGIN, y)
         y += 12
         doc.text(pickupLines.join('\n'), PAGE_MARGIN, y)

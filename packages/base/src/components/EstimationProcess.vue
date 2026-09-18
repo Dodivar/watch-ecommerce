@@ -210,7 +210,7 @@
               {{ t('process.ctaText') }}
             </p>
             <RouterLink
-              to="/estimation"
+              to="/rachat"
               class="inline-flex items-center bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-cream-100 transition-all"
             >
               {{ t('process.ctaButton') }}
@@ -246,9 +246,9 @@ onMounted(() => {
 })
 
 const goBack = () => {
-  // Si on vient de la page d'estimation, rediriger explicitement vers /estimation
-  if (previousRoute.value === '/estimation') {
-    router.push('/estimation')
+  // Si on vient de la page de rachat, y rediriger explicitement
+  if (previousRoute.value === '/rachat') {
+    router.push('/rachat')
   } else {
     // Sinon, utiliser l'historique du navigateur
     router.back()

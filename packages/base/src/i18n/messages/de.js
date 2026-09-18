@@ -388,10 +388,17 @@ export default {
   // — Tunnel de commande
   'checkout.contactDetails': 'Ihre Kontaktdaten',
   'checkout.shippingMethod': 'Versandart',
+  'checkout.fulfillmentPickup': 'Abholung',
+  'checkout.fulfillmentShip': 'Versand',
+  'checkout.pickupSectionTitle': 'Abholung im Geschäft',
+  'checkout.deliverySectionTitle': 'Lieferung',
+  'checkout.pickupByWhatsapp':
+    'Die Übergabe erfolgt persönlich an einem gemeinsam vereinbarten Ort. Wir schreiben Ihnen nach der Zahlung über WhatsApp, um den Termin zu vereinbaren.',
   'checkout.payment': 'Zahlung',
   'checkout.total': 'Gesamt',
   'checkout.shipping': 'Versand',
   'checkout.freeShipping': 'Kostenlos',
+  'checkout.freeBadge': 'Kostenlos',
   'checkout.acceptTerms': 'Ich akzeptiere die',
 
   'checkout.discount': 'Rabatt',
@@ -514,6 +521,8 @@ export default {
   'appointment.confirmationSent': 'Eine Bestätigungs-E-Mail wurde an Sie gesendet. Unser Team meldet sich bei Bedarf.',
   'appointment.submitError': 'Beim Senden Ihrer Anfrage ist ein Fehler aufgetreten.',
   'appointment.directions': 'Route berechnen',
+  'appointment.locationAgreed':
+    'Den Treffpunkt vereinbaren wir gemeinsam — wir rufen Sie dafür an.',
   'form.requiredFields': '* Pflichtfelder',
   'carousel.slide': 'Folie {current} von {total}',
   'carousel.imagePosition': 'Bild {current} von {total}',

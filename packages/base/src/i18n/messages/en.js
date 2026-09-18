@@ -388,10 +388,17 @@ export default {
   // — Tunnel de commande
   'checkout.contactDetails': 'Your details',
   'checkout.shippingMethod': 'Shipping method',
+  'checkout.fulfillmentPickup': 'Collection',
+  'checkout.fulfillmentShip': 'Shipping',
+  'checkout.pickupSectionTitle': 'Collection in store',
+  'checkout.deliverySectionTitle': 'Delivery',
+  'checkout.pickupByWhatsapp':
+    'Handover happens in person, at a place we agree on together. We will message you on WhatsApp after payment to arrange the appointment.',
   'checkout.payment': 'Payment',
   'checkout.total': 'Total',
   'checkout.shipping': 'Shipping',
   'checkout.freeShipping': 'Free',
+  'checkout.freeBadge': 'Free',
   'checkout.acceptTerms': 'I accept the',
 
   'checkout.discount': 'Discount',
@@ -514,6 +521,8 @@ export default {
   'appointment.confirmationSent': 'A confirmation email has been sent to you. Our team will get back to you if needed.',
   'appointment.submitError': 'Something went wrong while sending your request.',
   'appointment.directions': 'Get directions',
+  'appointment.locationAgreed':
+    'We will agree on the meeting place together — we will call you to arrange it.',
   'form.requiredFields': '* Required fields',
   'carousel.slide': 'Slide {current} of {total}',
   'carousel.imagePosition': 'Image {current} of {total}',

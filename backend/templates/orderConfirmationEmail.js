@@ -53,6 +53,45 @@ function buildAddressHtml(address) {
 }
 
 /**
+ * Lien WhatsApp pré-rempli vers le vendeur, pour les remises en main propre dont le lieu
+ * se convient avec l'acheteur (`pickupLocation.whatsapp` du manifest).
+ *
+ * Le message nomme la montre et le numéro de commande : le vendeur sait de quoi il s'agit
+ * dès la première ligne, sans faire répéter le client.
+ *
+ * @param {object} site Site registry entry
+ * @param {object} order
+ * @param {object[]} lines Lignes `order_lines`
+ * @param {object|null} shipping Ligne `order_shipping`
+ * @returns {string} URL wa.me, ou chaîne vide si le cas ne s'applique pas
+ */
+function buildPickupWhatsappUrl(site, order, lines, shipping) {
+  if (shipping?.method_type !== 'pickup') return ''
+
+  const methods = site.config?.checkout?.shipping?.methods || []
+  const method = methods.find((m) => m.id === shipping.method_id)
+  if (!method?.pickupLocation?.whatsapp) return ''
+
+  const number = String(site.config?.contact?.whatsappE164 || '').replace(/[^0-9]/g, '')
+  if (!number) return ''
+
+  const watchLabel = (lines || [])
+    .map((l) => [l.name, l.reference].filter(Boolean).join(' — '))
+    .filter(Boolean)
+    .join(', ')
+
+  const message = [
+    'Bonjour, je viens de passer la commande ' + order.id + '.',
+    watchLabel ? 'Montre : ' + watchLabel + '.' : '',
+    'Je souhaite convenir d’un rendez-vous pour la remise en main propre.',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  return 'https://wa.me/' + number + '?text=' + encodeURIComponent(message)
+}
+
+/**
  * @param {object} site Site registry entry
  * @param {object} order
  * @param {object[]} lines Lignes `order_lines` (`image_url` porte l'instantané de la fiche)
@@ -144,6 +183,23 @@ function createOrderConfirmationEmail(site, order, lines, forMerchant = false, e
         )
       : ''
 
+  // Réservé au client : le commerçant a déjà le numéro et l'admin sous la main.
+  const pickupWhatsappUrl = forMerchant
+    ? ''
+    : buildPickupWhatsappUrl(site, order, lines, shipping)
+  const pickupWhatsappHtml = pickupWhatsappUrl
+    ? section(
+        branding,
+        'Convenir du rendez-vous',
+        paragraph(
+          branding,
+          `La remise se fait en main propre, en un lieu convenu ensemble. Écrivez-nous sur
+           WhatsApp pour fixer le rendez-vous — le message est déjà rédigé, il ne reste
+           qu'à l'envoyer.`,
+        ) + buttonRow([button(branding, pickupWhatsappUrl, 'Prendre rendez-vous sur WhatsApp')]),
+      )
+    : ''
+
   const followUpHtml = followUpUrl
     ? section(
         branding,
@@ -176,6 +232,7 @@ function createOrderConfirmationEmail(site, order, lines, forMerchant = false, e
     ${itemsSectionHtml}
     ${discountHtml}
     ${shippingHtml}
+    ${pickupWhatsappHtml}
     ${followUpHtml}
   `
 

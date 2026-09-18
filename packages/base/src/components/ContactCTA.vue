@@ -2,8 +2,13 @@
 import { t } from '@/i18n'
 import { Mail } from '@lucide/vue'
 import { WHATSAPP_NUMBER, EMAIL_CONTACT } from '@/config'
+import { getSiteConfig } from '@/site/getSiteConfig.js'
+import SocialIconLinks from '@/components/layout/SocialIconLinks.vue'
 
 defineOptions({ name: 'ContactCTA' })
+
+/** Opt-in par vitrine : sans `social.show.contactCta`, le bloc garde WhatsApp et e-mail seuls. */
+const showSocial = Boolean(getSiteConfig().social?.show?.contactCta)
 </script>
 
 <template>
@@ -31,6 +36,14 @@ defineOptions({ name: 'ContactCTA' })
           Email
         </a>
       </div>
+
+      <!-- Réseaux sociaux : second point d'entrée, plus discret que les deux boutons. -->
+      <SocialIconLinks
+        v-if="showSocial"
+        class="mt-5 justify-center gap-2"
+        link-class="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+        icon-class="h-6 w-6"
+      />
     </div>
   </div>
 </template>

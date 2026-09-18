@@ -17,7 +17,7 @@ const CONFIG_DRIVEN_VARIANTS = new Set(['compact', 'vitrine'])
 const CTA_FEATURE_BY_PATH = {
   '/collection': 'collection',
   '/recherche': 'recherche',
-  '/estimation': 'estimation',
+  '/rachat': 'estimation',
 }
 
 /**
