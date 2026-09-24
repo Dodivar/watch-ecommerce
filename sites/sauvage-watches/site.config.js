@@ -551,6 +551,7 @@ export default {
       brand: true,
       audience: true,
       caseSize: true,
+      dialColor: true,
     },
   },
 

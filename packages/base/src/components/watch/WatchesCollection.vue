@@ -383,7 +383,7 @@ import { useWatchListing } from '@/composables/useWatchListing.js'
 import { useNouvellesWatchIds } from '@/composables/useNouvellesWatchIds.js'
 import { isValidCollectionPublicQuerySlug, getStaticWatchAudienceFilterOptions } from '@/constants/watchAudiences.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
-import { getBraceletColorLabel, getBraceletMaterialLabel } from '@/i18n/watchSpecs.js'
+import { getBraceletColorLabel, getBraceletMaterialLabel, getDialColorLabel } from '@/i18n/watchSpecs.js'
 import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
 import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredData.js'
 import { buildBrandCollectionPath, buildBrandCollectionUrl, resolveBrandSlugFromRoute } from '@/utils/collectionRoutes.js'
@@ -556,6 +556,7 @@ const collectionFilterFingerprint = computed(() =>
     listing.selectedEventSlug,
     [...listing.selectedBraceletColors].slice().sort().join('|'),
     [...listing.selectedBraceletMaterials].slice().sort().join('|'),
+    [...listing.selectedDialColors].slice().sort().join('|'),
     [...listing.selectedCaseSizes].slice().sort().join('\u0000'),
     listing.priceMin,
     listing.priceMax,
@@ -665,6 +666,7 @@ const filterSections = computed(() => {
     caseSize: cfg.caseSize,
     braceletColor: cfg.braceletColor,
     braceletMaterial: cfg.braceletMaterial,
+    dialColor: cfg.dialColor,
     promotion: cfg.promotion,
   }
 })
@@ -727,6 +729,15 @@ const activeFilterChips = computed(() => {
     })
   }
 
+  for (const color of listing.selectedDialColors) {
+    chips.push({
+      id: `dialColor:${color}`,
+      type: 'dialColor',
+      value: color,
+      label: getDialColorLabel(color),
+    })
+  }
+
   if (listing.selectedAudience !== 'all') {
     chips.push({
       id: `audience:${listing.selectedAudience}`,
@@ -782,6 +793,11 @@ function removeActiveFilter(chip) {
     case 'braceletMaterial':
       listing.selectedBraceletMaterials = listing.selectedBraceletMaterials.filter(
         (material) => material !== chip.value,
+      )
+      break
+    case 'dialColor':
+      listing.selectedDialColors = listing.selectedDialColors.filter(
+        (color) => color !== chip.value,
       )
       break
     case 'audience':
