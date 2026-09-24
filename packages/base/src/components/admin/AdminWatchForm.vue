@@ -6,11 +6,12 @@ import { getI18nConfig } from '@/i18n'
 import { getWatchAudiencesForAdminForm } from '@/services/watchService'
 import { DEFAULT_WATCH_AUDIENCE_SLUG, getStaticWatchAudienceAdminOptions } from '@/constants/watchAudiences'
 import { WATCH_BRACELET_COLORS, normalizeBraceletColors } from '@/constants/watchBraceletColors'
+import { WATCH_DIAL_COLORS, parseDialColor, serializeDialColor } from '@/constants/watchDialColors'
 import {
   WATCH_BRACELET_MATERIALS,
   normalizeBraceletMaterials,
 } from '@/constants/watchBraceletMaterials'
-import { getBraceletColorLabel, getBraceletMaterialLabel } from '@/i18n/watchSpecs.js'
+import { getBraceletColorLabel, getBraceletMaterialLabel, getDialColorLabel } from '@/i18n/watchSpecs.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import {
   computeDiscountPercentFromPrices,
@@ -198,6 +199,8 @@ const loadWatch = async () => {
       order: img.order,
     })).sort((a, b) => a.order - b.order)
 
+    loadDialColor(formData.value.details.dialColor)
+
     // Load linked articles
     linkedArticles.value = watch.articles || []
 
@@ -220,6 +223,48 @@ const toggleBraceletColor = (slug) => {
   const index = colors.indexOf(slug)
   if (index > -1) colors.splice(index, 1)
   else colors.push(slug)
+}
+
+const dialColorOptions = WATCH_DIAL_COLORS
+
+/**
+ * La colonne `dial_color` reste du texte libre : les pastilles et le champ « Autre » ne sont
+ * qu'une vue dessus, réécrite dans `formData.details.dialColor` à chaque modification (et
+ * seulement alors, pour ne pas reformuler une saisie existante qu'on n'a pas touchée).
+ */
+const dialColorSlugs = ref([])
+const dialColorOther = ref('')
+const isDialColorOtherOpen = ref(false)
+
+const loadDialColor = (raw) => {
+  const { slugs, other } = parseDialColor(raw)
+  dialColorSlugs.value = slugs
+  dialColorOther.value = other
+  isDialColorOtherOpen.value = other !== ''
+}
+
+const syncDialColor = () => {
+  formData.value.details.dialColor = serializeDialColor(
+    dialColorSlugs.value,
+    isDialColorOtherOpen.value ? dialColorOther.value : '',
+  )
+}
+
+const toggleDialColor = (slug) => {
+  const index = dialColorSlugs.value.indexOf(slug)
+  if (index > -1) dialColorSlugs.value.splice(index, 1)
+  else dialColorSlugs.value.push(slug)
+  syncDialColor()
+}
+
+const onDialColorOtherInput = (event) => {
+  dialColorOther.value = event.target.value
+  syncDialColor()
+}
+
+const toggleDialColorOther = () => {
+  isDialColorOtherOpen.value = !isDialColorOtherOpen.value
+  syncDialColor()
 }
 
 const toggleBraceletMaterial = (slug) => {
@@ -890,6 +935,73 @@ onMounted(async () => {
                 </button>
               </div>
             </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Couleur du cadran
+                <span class="font-normal text-gray-400">(plusieurs possibles pour un cadran bicolore)</span>
+              </label>
+              <div class="flex flex-wrap items-center gap-4">
+                <button
+                  v-for="color in dialColorOptions"
+                  :key="color.slug"
+                  type="button"
+                  class="flex flex-col items-center gap-1.5 focus:outline-none"
+                  :aria-pressed="dialColorSlugs.includes(color.slug)"
+                  :title="getDialColorLabel(color.slug)"
+                  @click="toggleDialColor(color.slug)"
+                >
+                  <span
+                    class="relative inline-flex h-11 w-11 items-center justify-center rounded-full ring-offset-2 transition-all"
+                    :class="
+                      dialColorSlugs.includes(color.slug)
+                        ? 'ring-2 ring-primary'
+                        : 'ring-1 ring-gray-300 hover:ring-gray-400'
+                    "
+                  >
+                    <span
+                      class="h-9 w-9 rounded-full shadow-inner"
+                      :style="{ backgroundImage: color.gradient }"
+                    />
+                    <svg
+                      v-if="dialColorSlugs.includes(color.slug)"
+                      class="absolute h-5 w-5 text-white drop-shadow"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <span class="text-xs text-gray-600">{{ getDialColorLabel(color.slug) }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="flex flex-col items-center gap-1.5 focus:outline-none"
+                  :aria-pressed="isDialColorOtherOpen"
+                  title="Autre couleur"
+                  @click="toggleDialColorOther"
+                >
+                  <span
+                    class="relative inline-flex h-11 w-11 items-center justify-center rounded-full ring-offset-2 transition-all"
+                    :class="isDialColorOtherOpen ? 'ring-2 ring-primary' : 'ring-1 ring-gray-300 hover:ring-gray-400'"
+                  >
+                    <span
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-dashed border-gray-400 bg-white text-lg leading-none text-gray-500"
+                    >+</span>
+                  </span>
+                  <span class="text-xs text-gray-600">Autre</span>
+                </button>
+              </div>
+              <input
+                v-if="isDialColorOtherOpen"
+                :value="dialColorOther"
+                type="text"
+                placeholder="Ex: Saumon, Bleu glacier, Nacre…"
+                class="mt-3 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                @input="onDialColorOtherInput"
+              />
+            </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Diamètre du boîtier</label>
               <div class="relative">
@@ -909,15 +1021,6 @@ onMounted(async () => {
                 v-model="formData.details.thickness"
                 type="text"
                 placeholder="Ex: 12.5 mm"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Couleur cadran</label>
-              <input
-                v-model="formData.details.dialColor"
-                type="text"
-                placeholder="Ex: Noir"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>

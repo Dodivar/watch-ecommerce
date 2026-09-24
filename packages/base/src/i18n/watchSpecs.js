@@ -25,6 +25,7 @@
 
 import { getBraceletColorBySlug } from '@/constants/watchBraceletColors'
 import { getBraceletMaterialBySlug } from '@/constants/watchBraceletMaterials'
+import { getDialColorBySlug } from '@/constants/watchDialColors'
 import { resolveSpecKey, normalizeSpecText } from '@/constants/watchSpecVocabulary'
 import { t as defaultT, tc as defaultTc } from './index.js'
 
@@ -61,6 +62,18 @@ export function getBraceletMaterialLabel(slug) {
  */
 export function getBraceletColorLabel(slug) {
   const color = getBraceletColorBySlug(slug)
+  return color ? defaultT(color.labelKey) : slug
+}
+
+/**
+ * Libellé traduit d'une couleur de cadran, depuis son slug (repli sur le slug brut si
+ * inconnu). Même signature à un seul argument que `getBraceletColorLabel`.
+ *
+ * @param {string} slug
+ * @returns {string}
+ */
+export function getDialColorLabel(slug) {
+  const color = getDialColorBySlug(slug)
   return color ? defaultT(color.labelKey) : slug
 }
 
