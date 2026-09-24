@@ -200,6 +200,15 @@ export function parseDialColor(raw) {
 }
 
 /**
+ * Slugs des pastilles reconnues dans une valeur brute de `dial_color` (filtre collection).
+ * @param {unknown} raw
+ * @returns {string[]}
+ */
+export function getDialColorSlugs(raw) {
+  return parseDialColor(raw).slugs
+}
+
+/**
  * Inverse de `parseDialColor` : la valeur texte à écrire en base (`''` si rien).
  * @param {string[]} slugs
  * @param {string} [other]

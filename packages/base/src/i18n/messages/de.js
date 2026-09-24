@@ -221,6 +221,8 @@ export default {
   'collection.filterProducts': 'Produkte filtern',
   'collection.noCaseSize': 'Kein Gehäusedurchmesser bei den vorrätigen Uhren hinterlegt.',
   'collection.noBraceletColor': 'Keine Armbandfarbe bei den vorrätigen Uhren hinterlegt.',
+  'collection.dialColor': 'Zifferblattfarbe',
+  'collection.noDialColor': 'Keine Zifferblattfarbe bei den vorrätigen Uhren hinterlegt.',
   'collection.noBraceletMaterial': 'Kein Armbandmaterial bei den vorrätigen Uhren hinterlegt.',
   'collection.allFemale': 'Alle',
   'collection.allMale': 'Alle',

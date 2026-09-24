@@ -221,6 +221,8 @@ export default {
   'collection.filterProducts': 'Filter products',
   'collection.noCaseSize': 'No case diameter recorded on the watches in stock.',
   'collection.noBraceletColor': 'No strap colour recorded on the watches in stock.',
+  'collection.dialColor': 'Dial colour',
+  'collection.noDialColor': 'No dial colour recorded on the watches in stock.',
   'collection.noBraceletMaterial': 'No strap material recorded on the watches in stock.',
   'collection.allFemale': 'All',
   'collection.allMale': 'All',

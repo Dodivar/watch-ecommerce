@@ -230,6 +230,8 @@ export default {
   'collection.filterProducts': 'Filtrer les produits',
   'collection.noCaseSize': 'Aucun diamètre renseigné sur les montres en stock.',
   'collection.noBraceletColor': 'Aucune couleur de bracelet renseignée sur les montres en stock.',
+  'collection.dialColor': 'Couleur du cadran',
+  'collection.noDialColor': 'Aucune couleur de cadran renseignée sur les montres en stock.',
   'collection.noBraceletMaterial': 'Aucune matière de bracelet renseignée sur les montres en stock.',
   'collection.allFemale': 'Toutes',
   'collection.allMale': 'Tous',
