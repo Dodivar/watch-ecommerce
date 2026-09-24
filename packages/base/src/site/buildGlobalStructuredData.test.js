@@ -87,4 +87,41 @@ describe('buildGlobalStructuredData', () => {
     expect(typeOf(schemas, 'Organization')).toBeDefined()
     expect(typeOf(schemas, 'WebSite')).toBeDefined()
   })
+
+  describe('zone d’intervention', () => {
+    const serviceArea = { cities: ['Strasbourg', ' Metz ', ''], region: 'Grand Est' }
+
+    it('déclare villes et région dans areaServed de l’organisation', () => {
+      const config = siteConfig({ serviceArea })
+      const org = typeOf(buildGlobalStructuredData(config, BASE), 'Organization')
+      expect(org.areaServed).toEqual([
+        { '@type': 'City', name: 'Strasbourg' },
+        { '@type': 'City', name: 'Metz' },
+        { '@type': 'AdministrativeArea', name: 'Grand Est' },
+      ])
+    })
+
+    it('la reprend sur l’établissement quand il existe', () => {
+      const config = siteConfig({ serviceArea })
+      const business = typeOf(buildGlobalStructuredData(config, BASE), 'LocalBusiness')
+      expect(business.areaServed).toHaveLength(3)
+    })
+
+    /** Sauvage : pas de boutique publique, la zone reste portée par l'organisation. */
+    it('reste sur l’organisation quand la carte est désactivée', () => {
+      const config = siteConfig({
+        serviceArea,
+        storeMap: { enabled: false, directionsAddress: '14 Place, 67000 Strasbourg' },
+      })
+      const schemas = buildGlobalStructuredData(config, BASE)
+      expect(typeOf(schemas, 'LocalBusiness')).toBeUndefined()
+      expect(typeOf(schemas, 'Organization').areaServed).toHaveLength(3)
+    })
+
+    it('omet areaServed sans bloc serviceArea', () => {
+      const schemas = buildGlobalStructuredData(siteConfig(), BASE)
+      expect(typeOf(schemas, 'Organization').areaServed).toBeUndefined()
+      expect(typeOf(schemas, 'LocalBusiness').areaServed).toBeUndefined()
+    })
+  })
 })

@@ -6,6 +6,7 @@ import { handleFormSubmit, prepareSearchFormData } from '@/services/emailService
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import BudgetSlider from './BudgetSlider.vue'
 import ContactCTA from './ContactCTA.vue'
+import ServiceAreaNote from './ServiceAreaNote.vue'
 import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
 import { t } from '@/i18n'
 
@@ -337,6 +338,7 @@ onMounted(() => {
 
       <!-- Call-to-action supplémentaire -->
       <ContactCTA />
+      <ServiceAreaNote />
     </div>
   </section>
 </template>
