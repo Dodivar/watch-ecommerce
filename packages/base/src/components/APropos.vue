@@ -414,6 +414,7 @@
             </p>
           </div>
         </div>
+        <ServiceAreaNote />
       </div>
     </section>
 
@@ -465,6 +466,7 @@ import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import StoreLocationMap from '@/components/StoreLocationMap.vue'
 import AProposRetail from '@/components/AProposRetail.vue'
+import ServiceAreaNote from '@/components/ServiceAreaNote.vue'
 import { t } from '@/i18n'
 
 const site = getSiteConfig()

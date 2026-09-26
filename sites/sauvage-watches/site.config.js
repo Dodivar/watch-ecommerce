@@ -252,7 +252,7 @@ export default {
   /**
    * Zone d'intervention — référencement local sur les villes où Sauvage se déplace pour
    * ses rendez-vous. `title` et `text` s'affichent en petit en bas des pages Contact,
-   * Rachat et Recherche (jamais sur l'accueil) ; `cities` et `region` alimentent
+   * Rachat, Recherche et À propos (jamais sur l'accueil) ; `cities` et `region` alimentent
    * l'`areaServed` du JSON-LD `Organization`. Bloc absent = rien d'affiché.
    */
   serviceArea: {
@@ -585,6 +585,7 @@ export default {
       brand: true,
       audience: true,
       caseSize: true,
+      braceletColor: true,
       dialColor: true,
     },
   },
