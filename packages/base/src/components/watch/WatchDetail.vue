@@ -496,7 +496,20 @@
               </div>
               <div v-if="hasValue(watchItem.details?.dialColor)" class="flex gap-4 py-2 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.dialColor') }}</span>
-                <span class="font-medium text-gray-900 flex-1">{{ translateSpecList('color', watchItem.details.dialColor) }}</span>
+                <div class="flex flex-wrap items-center gap-3 flex-1">
+                  <span
+                    v-for="(part, index) in dialColorParts"
+                    :key="index"
+                    class="inline-flex items-center gap-2 font-medium text-gray-900"
+                  >
+                    <span
+                      v-if="part.gradient"
+                      class="h-5 w-5 rounded-full shadow-inner ring-1 ring-gray-300"
+                      :style="{ backgroundImage: part.gradient }"
+                    />
+                    {{ part.label }}
+                  </span>
+                </div>
               </div>
               <div v-if="hasValue(watchItem.details?.crystal)" class="flex gap-4 py-2 border-b border-gray-200">
                 <span class="text-gray-600 min-w-[140px] flex-shrink-0">{{ t('watch.crystal') }}</span>
@@ -863,6 +876,7 @@ import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { buildWatchPath, isLegacyWatchIdParam } from '@/utils/watchSlug.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
 import { getBraceletColorBySlug } from '@/constants/watchBraceletColors'
+import { getDialColorByText, splitDialColor } from '@/constants/watchDialColors'
 
 const site = getSiteConfig()
 const siteCopy = site.copy
@@ -901,6 +915,7 @@ import { t } from '@/i18n'
 import {
   formatWaterResistance,
   getBraceletColorLabel,
+  getDialColorLabel,
   getBraceletMaterialLabel,
   translateAccessory,
   translateDuration,
@@ -1317,6 +1332,19 @@ const displayPrice = computed(() => {
   if (!watchItem.value) return 0
   return getEffectiveWatchPrice(watchItem.value)
 })
+
+/**
+ * Couleur du cadran terme par terme : pastille pour les couleurs du référentiel, texte seul
+ * (traduit si le vocabulaire le connaît) pour une couleur saisie dans « Autre ».
+ */
+const dialColorParts = computed(() =>
+  splitDialColor(watchItem.value?.details?.dialColor).map((part) => {
+    const color = getDialColorByText(part)
+    return color
+      ? { label: getDialColorLabel(color.slug), gradient: color.gradient }
+      : { label: translateSpec('color', part), gradient: null }
+  }),
+)
 
 // Helper function to check if a value exists and is not empty
 const hasValue = (value) => {

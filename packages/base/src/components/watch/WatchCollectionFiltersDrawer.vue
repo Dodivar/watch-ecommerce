@@ -282,6 +282,74 @@
             </div>
           </section>
 
+          <!-- Couleur du cadran -->
+          <section v-if="sections.dialColor" class="border-b border-gray-100">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 py-4 text-left"
+              @click="toggleSection('dialColor')"
+            >
+              <span class="flex items-center gap-2 font-medium text-text-main">
+                {{ t('collection.dialColor') }}
+                <span
+                  v-if="listing.getDraftSectionCount('dialColor') > 0"
+                  class="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-text-main px-1.5 py-0.5 text-xs font-semibold text-white"
+                >
+                  {{ listing.getDraftSectionCount('dialColor') }}
+                </span>
+              </span>
+              <ChevronDown
+                class="h-5 w-5 shrink-0 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': expanded.dialColor }"
+                :stroke-width="2"
+              />
+            </button>
+            <div v-show="expanded.dialColor" class="pb-4">
+              <p
+                v-if="listing.availableDialColors.length === 0"
+                class="text-sm text-gray-500"
+              >
+                {{ t('collection.noDialColor') }}
+              </p>
+              <div v-else class="flex flex-wrap gap-5">
+                <button
+                  v-for="color in listing.availableDialColors"
+                  :key="color.slug"
+                  type="button"
+                  class="flex flex-col items-center gap-1.5 focus:outline-none"
+                  :aria-pressed="listing.tempSelectedDialColors.includes(color.slug)"
+                  :title="getDialColorLabel(color.slug)"
+                  @click="listing.toggleDialColor(color.slug)"
+                >
+                  <span
+                    class="relative inline-flex h-11 w-11 items-center justify-center rounded-full ring-offset-2 transition-all"
+                    :class="
+                      listing.tempSelectedDialColors.includes(color.slug)
+                        ? 'ring-2 ring-primary'
+                        : 'ring-1 ring-gray-300 hover:ring-gray-400'
+                    "
+                  >
+                    <span
+                      class="h-9 w-9 rounded-full shadow-inner"
+                      :style="{ backgroundImage: color.gradient }"
+                    />
+                    <svg
+                      v-if="listing.tempSelectedDialColors.includes(color.slug)"
+                      class="absolute h-5 w-5 text-white drop-shadow"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  <span class="text-xs text-text-main">{{ getDialColorLabel(color.slug) }}</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
           <!-- Matière du bracelet -->
           <section v-if="sections.braceletMaterial" class="border-b border-gray-100">
             <button
@@ -439,7 +507,7 @@ import { computed, reactive, ref, watch, onMounted, onUnmounted } from 'vue'
 import { ChevronDown, ChevronLeft } from '@lucide/vue'
 import { getWatchAudiencesForCollectionFilter } from '@/services/watchService'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
-import { getBraceletColorLabel, getBraceletMaterialLabel } from '@/i18n/watchSpecs.js'
+import { getBraceletColorLabel, getBraceletMaterialLabel, getDialColorLabel } from '@/i18n/watchSpecs.js'
 import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
 import { t } from '@/i18n'
@@ -458,6 +526,7 @@ const props = defineProps({
       caseSize: true,
       braceletColor: true,
       braceletMaterial: true,
+      dialColor: true,
       promotion: true,
     }),
   },
@@ -488,6 +557,7 @@ const expanded = reactive({
   caseSize: false,
   braceletColor: false,
   braceletMaterial: false,
+  dialColor: false,
   audience: false,
   promotion: false,
 })
@@ -537,6 +607,7 @@ watch(
       expanded.caseSize = false
       expanded.braceletColor = false
       expanded.braceletMaterial = false
+      expanded.dialColor = false
       expanded.audience = false
       expanded.promotion = false
       document.addEventListener('keydown', onEscape)

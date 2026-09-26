@@ -53,6 +53,22 @@ function buildPostalAddress(nap) {
 }
 
 /**
+ * `areaServed` schema.org depuis `serviceArea` du manifest : une `City` par ville, puis la
+ * région en `AdministrativeArea`. Rien de déclaré = `undefined`, la clé est omise.
+ *
+ * @param {{ cities?: unknown, region?: unknown } | undefined} serviceArea
+ */
+function buildAreaServed(serviceArea) {
+  const cities = Array.isArray(serviceArea?.cities) ? serviceArea.cities : []
+  const places = cities
+    .filter((name) => typeof name === 'string' && name.trim())
+    .map((name) => ({ '@type': 'City', name: name.trim() }))
+  const region = typeof serviceArea?.region === 'string' ? serviceArea.region.trim() : ''
+  if (region) places.push({ '@type': 'AdministrativeArea', name: region })
+  return places.length ? places : undefined
+}
+
+/**
  * Schémas JSON-LD globaux (WebSite + LocalBusiness) injectés sur toutes les pages publiques.
  * @param {Record<string, unknown>} siteConfig
  * @param {string} baseUrl
@@ -66,6 +82,7 @@ export function buildGlobalStructuredData(siteConfig, baseUrl) {
   const nap = resolveSiteNap(siteConfig)
   const siteName = brand.displayName || brand.legalName || nap.name
   const logoUrl = resolveLogoUrl(siteConfig, baseUrl)
+  const areaServed = buildAreaServed(siteConfig?.serviceArea)
 
   const organization = {
     '@context': 'https://schema.org',
@@ -82,6 +99,9 @@ export function buildGlobalStructuredData(siteConfig, baseUrl) {
   if (logoUrl) organization.logo = logoUrl
   if (nap.telephone) organization.telephone = nap.telephone
   if (nap.email) organization.email = nap.email
+  // Zone d'intervention : portée par l'organisation, car une vitrine sans boutique publique
+  // (Sauvage) n'émet pas de `LocalBusiness`.
+  if (areaServed) organization.areaServed = areaServed
 
   const orgSameAs = [
     social?.suivezNous?.instagramUrl,
@@ -149,6 +169,7 @@ export function buildGlobalStructuredData(siteConfig, baseUrl) {
 
   if (nap.telephone) localBusiness.telephone = nap.telephone
   if (nap.email) localBusiness.email = nap.email
+  if (areaServed) localBusiness.areaServed = areaServed
 
   if (storeMap.center?.lat != null && storeMap.center?.lng != null) {
     localBusiness.geo = {

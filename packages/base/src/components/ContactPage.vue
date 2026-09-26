@@ -206,6 +206,8 @@
             </form>
           </div>
         </div>
+
+        <ServiceAreaNote />
       </div>
     </section>
   </div>
@@ -221,6 +223,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import StoreLocationMap from '@/components/StoreLocationMap.vue'
 import GoogleReviewsBlock from '@/components/reviews/GoogleReviewsBlock.vue'
 import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
+import ServiceAreaNote from '@/components/ServiceAreaNote.vue'
 import { handleFormSubmit, prepareContactFormData } from '@/services/emailService'
 import { t } from '@/i18n'
 

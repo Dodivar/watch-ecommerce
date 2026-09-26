@@ -249,6 +249,40 @@ export default {
     footerAddressHtml: null,
   },
 
+  /**
+   * Zone d'intervention — référencement local sur les villes où Sauvage se déplace pour
+   * ses rendez-vous. `title` et `text` s'affichent en petit en bas des pages Contact,
+   * Rachat et Recherche (jamais sur l'accueil) ; `cities` et `region` alimentent
+   * l'`areaServed` du JSON-LD `Organization`. Bloc absent = rien d'affiché.
+   */
+  serviceArea: {
+    title: t({
+      fr: 'Zone d’intervention — Alsace & Grand Est',
+      en: 'Service area — Alsace & Grand Est',
+      de: 'Einsatzgebiet — Elsass & Grand Est',
+    }),
+    text: t({
+      fr: 'Nous intervenons à Strasbourg, Colmar, Mulhouse, Haguenau, Sélestat, Saint-Louis, Nancy, Metz, Reims, Épinal, Thionville, Troyes et dans l’ensemble du Grand Est.',
+      en: 'We operate in Strasbourg, Colmar, Mulhouse, Haguenau, Sélestat, Saint-Louis, Nancy, Metz, Reims, Épinal, Thionville, Troyes and throughout the Grand Est region.',
+      de: 'Wir sind in Straßburg, Colmar, Mülhausen, Hagenau, Schlettstadt, Saint-Louis, Nancy, Metz, Reims, Épinal, Diedenhofen, Troyes und in der gesamten Region Grand Est für Sie da.',
+    }),
+    cities: [
+      'Strasbourg',
+      'Colmar',
+      'Mulhouse',
+      'Haguenau',
+      'Sélestat',
+      'Saint-Louis',
+      'Nancy',
+      'Metz',
+      'Reims',
+      'Épinal',
+      'Thionville',
+      'Troyes',
+    ],
+    region: 'Grand Est',
+  },
+
   storeMap: {
     /** Pas de carte publique : l'adresse ne sort pas des mentions légales (visites sur rendez-vous). */
     enabled: false,
@@ -551,6 +585,7 @@ export default {
       brand: true,
       audience: true,
       caseSize: true,
+      dialColor: true,
     },
   },
 

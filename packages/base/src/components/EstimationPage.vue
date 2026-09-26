@@ -348,6 +348,7 @@
 
       <!-- Call-to-action supplémentaire -->
       <ContactCTA />
+      <ServiceAreaNote />
     </div>
   </section>
   </div>
@@ -362,6 +363,7 @@ import { createPreviewElement } from '@/services/imagePreviewService'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import TooltipInfo from './TooltipInfo.vue'
 import ContactCTA from './ContactCTA.vue'
+import ServiceAreaNote from './ServiceAreaNote.vue'
 import { t } from '@/i18n'
 const router = useRouter()
 const features = getSiteConfig().features
