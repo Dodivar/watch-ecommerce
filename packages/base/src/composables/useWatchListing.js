@@ -9,7 +9,11 @@ import {
 } from '@/utils/caseSize'
 import { WATCH_BRACELET_COLORS } from '@/constants/watchBraceletColors'
 import { WATCH_BRACELET_MATERIALS } from '@/constants/watchBraceletMaterials'
-import { WATCH_DIAL_COLORS, getDialColorSlugs } from '@/constants/watchDialColors'
+import {
+  DIAL_COLOR_OTHER,
+  WATCH_DIAL_COLORS,
+  getDialColorFilterSlugs,
+} from '@/constants/watchDialColors'
 import { compareWatchesByRecent } from '@/utils/watchSort.js'
 import {
   getCatalogWatchPrice,
@@ -68,10 +72,10 @@ function watchMatchesBraceletMaterial(watchModel, selectedMaterials) {
 
 /**
  * Une montre correspond si son cadran porte AU MOINS une des couleurs cochées. `dial_color`
- * étant du texte libre, seules les couleurs reconnues comme pastilles comptent.
+ * étant du texte libre, ce qui n'est pas reconnu comme pastille répond à la case « Autre ».
  */
 function watchMatchesDialColors(watchModel, selectedColors) {
-  const colors = getDialColorSlugs(watchModel.details?.dialColor)
+  const colors = getDialColorFilterSlugs(watchModel.details?.dialColor)
   if (colors.length === 0) return false
   return selectedColors.some((c) => colors.includes(c))
 }
@@ -303,13 +307,17 @@ export function useWatchListing() {
     return WATCH_BRACELET_MATERIALS.filter((m) => present.has(m.slug))
   })
 
-  /** Couleurs de cadran présentes dans la collection, ordonnées comme le référentiel. */
+  /**
+   * Couleurs de cadran présentes dans la collection, ordonnées comme le référentiel, puis
+   * « Autre » si des cadrans portent une couleur saisie hors pastilles.
+   */
   const availableDialColors = computed(() => {
     const present = new Set()
     for (const watch of scopedWatches.value) {
-      for (const slug of getDialColorSlugs(watch.details?.dialColor)) present.add(slug)
+      for (const slug of getDialColorFilterSlugs(watch.details?.dialColor)) present.add(slug)
     }
-    return WATCH_DIAL_COLORS.filter((c) => present.has(c.slug))
+    const colors = WATCH_DIAL_COLORS.filter((c) => present.has(c.slug))
+    return present.has(DIAL_COLOR_OTHER.slug) ? [...colors, DIAL_COLOR_OTHER] : colors
   })
 
   /** Compte filtres **appliqués** (hors tri), pour le badge « Filtrer ». */

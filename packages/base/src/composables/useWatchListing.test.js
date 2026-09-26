@@ -30,9 +30,20 @@ describe('useWatchListing — couleur du cadran', () => {
     makeWatch('d', ''),
   ]
 
-  it('ne propose que les couleurs présentes, dans l’ordre du référentiel', () => {
+  it('ne propose que les couleurs présentes, dans l’ordre du référentiel, « Autre » en dernier', () => {
     const listing = listingWith(watches)
+    expect(listing.availableDialColors.map((c) => c.slug)).toEqual(['black', 'white', 'other'])
+  })
+
+  it('omet « Autre » quand toutes les saisies sont des pastilles', () => {
+    const listing = listingWith([makeWatch('a', 'Noir'), makeWatch('b', 'Blanc')])
     expect(listing.availableDialColors.map((c) => c.slug)).toEqual(['black', 'white'])
+  })
+
+  it('range sous « Autre » les cadrans saisis hors pastilles', () => {
+    const listing = listingWith([...watches, makeWatch('e', 'Noir / Nacre')])
+    listing.selectedDialColors = ['other']
+    expect(listing.filteredWatches.map((w) => w.id).sort()).toEqual(['c', 'e'])
   })
 
   it('garde les montres dont le cadran porte au moins une couleur cochée', () => {

@@ -143,6 +143,17 @@ export const WATCH_DIAL_COLORS = [
   },
 ]
 
+/**
+ * Option « Autre » du filtre collection : regroupe les cadrans dont une partie de la saisie
+ * n'est pas une pastille (« Bleu glacier », « Nacre »…). Hors de `WATCH_DIAL_COLORS` : ce
+ * n'est pas une couleur qu'on écrit en base, seulement une case du filtre.
+ */
+export const DIAL_COLOR_OTHER = {
+  slug: 'other',
+  labelKey: 'watchSpec.color.other',
+  gradient: 'conic-gradient(#e0685c, #f2c81f, #6fa77a, #4a7eb5, #a57fd0, #e0685c)',
+}
+
 const DIAL_COLOR_BY_SLUG = new Map(WATCH_DIAL_COLORS.map((c) => [c.slug, c]))
 const DIAL_COLOR_BY_SPEC_KEY = new Map(WATCH_DIAL_COLORS.map((c) => [c.labelKey, c]))
 
@@ -206,6 +217,17 @@ export function parseDialColor(raw) {
  */
 export function getDialColorSlugs(raw) {
   return parseDialColor(raw).slugs
+}
+
+/**
+ * Cases du filtre collection cochées par une valeur brute de `dial_color` : les pastilles
+ * reconnues, plus `DIAL_COLOR_OTHER.slug` si une partie de la saisie reste du texte libre.
+ * @param {unknown} raw
+ * @returns {string[]}
+ */
+export function getDialColorFilterSlugs(raw) {
+  const { slugs, other } = parseDialColor(raw)
+  return other ? [...slugs, DIAL_COLOR_OTHER.slug] : slugs
 }
 
 /**

@@ -25,7 +25,7 @@
 
 import { getBraceletColorBySlug } from '@/constants/watchBraceletColors'
 import { getBraceletMaterialBySlug } from '@/constants/watchBraceletMaterials'
-import { getDialColorBySlug } from '@/constants/watchDialColors'
+import { DIAL_COLOR_OTHER, getDialColorBySlug } from '@/constants/watchDialColors'
 import { resolveSpecKey, normalizeSpecText } from '@/constants/watchSpecVocabulary'
 import { t as defaultT, tc as defaultTc } from './index.js'
 
@@ -73,7 +73,8 @@ export function getBraceletColorLabel(slug) {
  * @returns {string}
  */
 export function getDialColorLabel(slug) {
-  const color = getDialColorBySlug(slug)
+  const color =
+    getDialColorBySlug(slug) || (slug === DIAL_COLOR_OTHER.slug ? DIAL_COLOR_OTHER : null)
   return color ? defaultT(color.labelKey) : slug
 }
 

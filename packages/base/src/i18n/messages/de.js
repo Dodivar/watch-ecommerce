@@ -871,6 +871,7 @@ export default {
   'watchSpec.color.orange': 'Orange',
   'watchSpec.color.yellow': 'Gelb',
   'watchSpec.color.copper': 'Kupfer',
+  'watchSpec.color.other': 'Andere',
   'watchSpec.crystal.sapphire': 'Saphirglas',
   'watchSpec.crystal.mineral': 'Mineralglas',
   'watchSpec.crystal.acrylic': 'Acrylglas',
