@@ -160,11 +160,17 @@ html[data-ui-color-scheme='dark'] :is(
  * pas au contenu :
  *
  *   1. Bandes pleine largeur de la boutique : `section.bg-white` et
- *      `<div class="min-h-screen bg-white">`. Volontairement limité à `section`
- *      et `.min-h-screen` : `aside.bg-white` (récapitulatif de commande) et
- *      `footer.bg-white` (pied du tiroir panier) sont des cartes, pas des
- *      bandes, et doivent rester blanches. L'administration est exclue : ses
- *      `section.bg-white` sont des panneaux (tableau de bord, promotions).
+ *      `<div class="min-h-screen bg-white">`. Ce qui distingue une bande d'une
+ *      carte, c'est la FORME, pas la balise : une bande occupe toute la largeur
+ *      et n'a jamais d'angles arrondis, une carte est toujours `rounded-*` —
+ *      d'où le `:not([class*='rounded'])`, sans quoi un panneau écrit
+ *      `<section class="bg-white rounded-lg">` (le bloc « Paiement » du
+ *      checkout) se ferait repeindre en vert et ses libellés Stripe, rendus
+ *      dans une iframe hors de portée de ce fichier, deviendraient illisibles.
+ *      `aside.bg-white` (récapitulatif de commande) et `footer.bg-white` (pied
+ *      du tiroir panier) sont des cartes eux aussi, et restent blancs.
+ *      L'administration est exclue : ses `section.bg-white` sont des panneaux
+ *      (tableau de bord, promotions).
  *   2. Menu latéral de l'administration — l'équivalent de l'en-tête du site.
  *   3. Boutons secondaires de la barre de titre de l'administration : posés
  *      sur le vert, ils passent en boutons fantômes (cf. plus bas), comme les
@@ -173,7 +179,7 @@ html[data-ui-color-scheme='dark'] :is(
  * Les fonds propres à chaque cas sont posés plus bas ; ce bloc ne fixe que le
  * jeu de variables hérité par leur contenu.
  */
-html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *):not(.home-band--light),
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *):not(.home-band--light):not([class*='rounded']),
 html[data-ui-color-scheme='dark'] aside.admin-sidebar,
 html[data-ui-color-scheme='dark'] .admin-topbar :is(a, button).bg-white {
   color: var(--ui-text);
@@ -222,7 +228,7 @@ html[data-ui-color-scheme='dark'] .admin-topbar :is(a, button).bg-white {
 }
 
 /** Cas 1 : la bande porte le fond de page. */
-html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *):not(.home-band--light) {
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *):not(.home-band--light):not([class*='rounded']) {
   background-color: var(--ui-page);
 }
 
@@ -398,7 +404,16 @@ html[data-ui-color-scheme='dark'] :is(
 
 /* ------------------------------------------------------------------ textes */
 
-html[data-ui-color-scheme='dark'] :is(.text-text-main, .text-black, .text-gray-900, .text-gray-800) {
+/*
+ * `[&_strong]:text-text-main` (pages légales) compile en
+ * `.\[\&_strong\]\:text-text-main strong` : un sélecteur à part, que la liste
+ * d'utilitaires ci-dessus ne couvre pas. Sans cette ligne, les mots mis en
+ * avant des mentions légales, de la politique de confidentialité et des CGU
+ * (`Sauvage Watches`, `Vercel Inc.`, « droit français »…) restent en noir sur
+ * le vert de page, donc illisibles.
+ */
+html[data-ui-color-scheme='dark'] :is(.text-text-main, .text-black, .text-gray-900, .text-gray-800),
+html[data-ui-color-scheme='dark'] .\[\&_strong\]\:text-text-main strong {
   color: var(--ui-text);
 }
 html[data-ui-color-scheme='dark'] .text-gray-700 {
@@ -539,7 +554,7 @@ html[data-ui-color-scheme='dark'] :is(.shadow, .shadow-sm, .shadow-md, .shadow-l
 html[data-ui-color-scheme='dark'] :is(.bg-white, .bg-gray-50, .bg-gray-100):is(.shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .watch-shadow) {
   box-shadow: var(--ui-shadow);
 }
-html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *):not(.home-band--light) {
+html[data-ui-color-scheme='dark'] :is(section, .min-h-screen).bg-white:not(.admin-scope *):not(.home-band--light):not([class*='rounded']) {
   box-shadow: none;
 }
 
