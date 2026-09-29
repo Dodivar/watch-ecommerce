@@ -1113,12 +1113,10 @@ async function handlePaymentIntentSucceeded(supabase, site, paymentIntent) {
   let pdfBuffer = null
   if (resolveReceiptConfig(site).enabled) {
     try {
-      pdfBuffer = await generateOrderReceiptPdf(
-        site,
-        orderForEmail,
-        lineRows || [],
-        receiptExtras,
-      )
+      pdfBuffer = await generateOrderReceiptPdf(site, orderForEmail, lineRows || [], {
+        ...receiptExtras,
+        supabase,
+      })
       if (pdfBuffer) {
         await persistOrderReceiptPdf(supabase, site, orderForEmail, lineRows || [], {
           ...receiptExtras,

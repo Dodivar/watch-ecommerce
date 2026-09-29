@@ -123,6 +123,7 @@ function buildReceiptData(site, order, lines, extras = {}) {
     unitPriceCents: line.unit_price_cents ?? 0,
     lineTotalCents: (line.unit_price_cents ?? 0) * (line.quantity || 1),
     imageUrl: line.image_url || null,
+    watchId: line.watch_id || null,
   }))
 
   const billingLines = formatAddressLines(order.billing_address)
