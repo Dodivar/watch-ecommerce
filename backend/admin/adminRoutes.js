@@ -5,6 +5,7 @@ const {
   listOrderRefunds,
   recordStripeRefund,
   refundableCents,
+  syncOrderRefundsFromStripe,
   validateRefundRequest,
 } = require('../orders/refunds')
 const { sendRefundEmail } = require('../orders/email')
@@ -239,6 +240,49 @@ function buildAdminRouter(registry) {
   })
 
   /**
+   * Enregistre les remboursements que Stripe connaît et la base non.
+   *
+   * Ne bloque jamais le remboursement : une clé restreinte sans lecture des
+   * Refunds, ou Stripe injoignable, retombe sur le contrôle habituel (Stripe
+   * refusera de toute façon de rembourser au-delà de l'encaissé).
+   *
+   * @returns {Promise<boolean>} `true` si au moins un remboursement a été rattrapé
+   */
+  async function reconcileStripeRefunds(site, supabase, order) {
+    if (order?.status !== 'paid' || !order.stripe_payment_intent_id) return false
+
+    let results
+    try {
+      results = await syncOrderRefundsFromStripe(getStripeClient(site), supabase, site, order)
+    } catch (syncErr) {
+      console.warn(`[${site.id}] Rattrapage remboursements Stripe ${order.id}:`, syncErr.message)
+      return false
+    }
+
+    const caughtUp = results.filter((result) => result.recorded && result.statusChangedTo)
+    for (const result of caughtUp) {
+      console.log(
+        `[${site.id}] Remboursement ${result.row.stripe_refund_id} (${result.row.status}) ` +
+          `rattrapé depuis Stripe — commande ${order.id}`,
+      )
+      // Même règle que le webhook, qui aurait dû faire ce travail : le client
+      // est prévenu d'un remboursement abouti, une seule fois.
+      if (result.statusChangedTo === 'succeeded') {
+        try {
+          await sendRefundEmail(site, order, {
+            amountCents: result.row.amount_cents,
+            refundedTotalCents: result.totals.succeededCents,
+            isPartial: !result.totals.isFullyRefunded,
+          })
+        } catch (mailErr) {
+          console.error(`[${site.id}] Email remboursement ${result.row.stripe_refund_id}:`, mailErr)
+        }
+      }
+    }
+    return caughtUp.length > 0
+  }
+
+  /**
    * Remboursement d'une commande, déclenché depuis le panel.
    *
    * Réservé au rôle `admin` : c'est la seule action du panel qui fait sortir de
@@ -254,6 +298,11 @@ function buildAdminRouter(registry) {
    *      réseau rembourse deux fois ;
    *   3. enregistrement immédiat de la ligne `order_refunds`, que le webhook
    *      viendra confirmer ou corriger (un Refund naît parfois `pending`).
+   *
+   * Avant tout cela, les remboursements déjà présents chez Stripe sont
+   * rattrapés (`syncOrderRefundsFromStripe`) : un remboursement fait au
+   * dashboard dont le webhook n'est jamais arrivé est enregistré ici, et le
+   * reste à rembourser est calculé contre la réalité Stripe.
    */
   router.post(
     '/orders/:orderId/refund',
@@ -274,10 +323,21 @@ function buildAdminRouter(registry) {
           .maybeSingle()
         if (orderError) throw orderError
 
+        const reconciled = await reconcileStripeRefunds(site, supabase, order)
+
         const existingRefunds = order ? await listOrderRefunds(supabase, orderId) : []
         const validation = validateRefundRequest(order, existingRefunds, { amountCents })
         if (!validation.ok) {
-          return res.status(validation.status).json({ success: false, error: validation.error })
+          // Le panel affiche un état périmé : il doit se recharger, et l'admin
+          // savoir que le remboursement a eu lieu hors application.
+          const error = reconciled
+            ? validation.status === 409
+              ? 'Cette commande avait déjà été remboursée depuis Stripe : le remboursement vient d’être enregistré, la commande est à jour.'
+              : `Un remboursement fait depuis Stripe vient d’être enregistré. ${validation.error}`
+            : validation.error
+          return res
+            .status(validation.status)
+            .json({ success: false, error, reconciled })
         }
 
         const stripe = getStripeClient(site)
