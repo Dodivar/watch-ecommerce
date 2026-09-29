@@ -106,13 +106,16 @@ export function getTranslatableLocales() {
  * (`resolveDescription` dans watchService) traite les deux pareil, mais une table sans
  * lignes vides dit clairement ce qui est réellement traduit.
  *
+ * L'échec est renvoyé plutôt que seulement journalisé : sans cela le formulaire annonce
+ * « Montre mise à jour avec succès » alors que l'anglais et l'allemand sont perdus.
+ *
  * @param {string} watchId
  * @param {Record<string, string>} translations  Texte par code langue.
- * @returns {Promise<void>}
+ * @returns {Promise<string | null>}  Message à afficher à l'admin, `null` si tout est enregistré.
  */
-async function saveWatchTranslations(watchId, translations) {
+export async function saveWatchTranslations(watchId, translations) {
   const locales = getTranslatableLocales()
-  if (!locales.length) return
+  if (!locales.length) return null
 
   const rows = []
   const emptied = []
@@ -126,7 +129,10 @@ async function saveWatchTranslations(watchId, translations) {
     const { error } = await supabase
       .from('watch_translations')
       .upsert(rows, { onConflict: 'watch_id,locale' })
-    if (error) console.error('Erreur lors de l’enregistrement des traductions:', error)
+    if (error) {
+      console.error('Erreur lors de l’enregistrement des traductions:', error)
+      return describeTranslationError(error)
+    }
   }
 
   if (emptied.length) {
@@ -135,8 +141,28 @@ async function saveWatchTranslations(watchId, translations) {
       .delete()
       .eq('watch_id', watchId)
       .in('locale', emptied)
-    if (error) console.error('Erreur lors de la suppression des traductions:', error)
+    if (error) {
+      console.error('Erreur lors de la suppression des traductions:', error)
+      return describeTranslationError(error)
+    }
   }
+
+  return null
+}
+
+/**
+ * Message admin pour un échec d'écriture dans `watch_translations`.
+ * @param {{ code?: string, message?: string }} error
+ * @returns {string}
+ */
+function describeTranslationError(error) {
+  const locales = getTranslatableLocales().map((locale) => locale.toUpperCase()).join('/')
+  // PGRST205 = table absente : la migration `watch_translations` n'est pas appliquée sur ce
+  // projet Supabase (voir supabase/migrations/README.md).
+  if (error?.code === 'PGRST205') {
+    return `Descriptions ${locales} non enregistrées : la table watch_translations n'existe pas dans la base de ce site.`
+  }
+  return `Descriptions ${locales} non enregistrées : ${error?.message || 'erreur inconnue'}`
 }
 
 /**
@@ -201,14 +227,19 @@ export async function createWatch(watchData) {
       }
     }
 
-    // 5. Enregistrer les descriptions traduites
-    await saveWatchTranslations(watchId, watchData.descriptionTranslations)
+    // 5. Enregistrer les descriptions traduites. La montre existe déjà : un échec ici est un
+    // avertissement, pas un échec de création (le formulaire recréerait sinon un doublon).
+    const translationWarning = await saveWatchTranslations(
+      watchId,
+      watchData.descriptionTranslations,
+    )
 
     // 6. Les images seront uploadées séparément via uploadWatchImage
 
     return {
       success: true,
       data: { id: watchId },
+      ...(translationWarning ? { warning: translationWarning } : {}),
     }
   } catch (error) {
     console.error('Erreur dans createWatch:', error)
@@ -344,8 +375,19 @@ export async function updateWatch(watchId, watchData) {
     }
 
     // 4. Mettre à jour les descriptions traduites
+    // Le reste de la fiche est enregistré : on le dit, pour que l'admin ne ressaisisse que
+    // les traductions (le formulaire reste ouvert, le texte saisi n'est pas perdu).
     if (watchData.descriptionTranslations !== undefined) {
-      await saveWatchTranslations(watchId, watchData.descriptionTranslations)
+      const translationError = await saveWatchTranslations(
+        watchId,
+        watchData.descriptionTranslations,
+      )
+      if (translationError) {
+        return {
+          success: false,
+          error: `Montre enregistrée, mais ${translationError.charAt(0).toLowerCase()}${translationError.slice(1)}`,
+        }
+      }
     }
 
     return {

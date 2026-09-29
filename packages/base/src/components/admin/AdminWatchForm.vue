@@ -523,9 +523,11 @@ const performSubmit = async () => {
 
     if (result.success) {
       success.value = isEditMode.value ? 'Montre mise à jour avec succès' : 'Montre créée avec succès'
+      // Montre créée mais traductions refusées : laisser le temps de lire l'avertissement.
+      if (result.warning) error.value = result.warning
       setTimeout(() => {
         router.push('/admin/watches')
-      }, 1500)
+      }, result.warning ? 6000 : 1500)
     } else {
       error.value = result.error || 'Erreur lors de la sauvegarde'
     }
