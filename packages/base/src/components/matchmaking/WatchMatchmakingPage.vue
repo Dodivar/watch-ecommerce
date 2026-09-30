@@ -38,7 +38,7 @@
         </h1>
         <p class="mt-4 text-gray-600">{{ t('matchmaking.empty.text') }}</p>
       </div>
-      <MatchCtaFooter :preferences="mm.session.preferences" class="mt-8" />
+      <MatchCtaFooter :criteria="mm.alertCriteria" class="mt-8" />
     </div>
 
     <MatchOnboarding v-else-if="mm.phase === 'onboarding'" :mm="mm" />

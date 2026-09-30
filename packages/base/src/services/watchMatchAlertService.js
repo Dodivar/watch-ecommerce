@@ -2,7 +2,8 @@
  * Alerte « nouvelle montre » — phase 2 de l'expérience « coup de foudre ».
  *
  * Seule donnée du parcours autorisée à quitter le navigateur : l'e-mail et les **préférences**
- * (`MatchPreferences`), rien d'autre. L'historique de swipe (`seen`, `liked`, `passed`) reste
+ * (`MatchPreferences`, y compris `offered` — les options affichées, qui ne disent rien de la
+ * personne), rien d'autre. L'historique de swipe (`seen`, `liked`, `passed`) reste
  * dans `matchSessionStorage.js` et n'entre jamais dans ce payload — c'est une règle de la
  * fonctionnalité, pas un oubli. `buildMatchAlertPayload` est exporté pour que le test puisse le
  * vérifier sur pièce, et `sanitizePreferences` est rejoué côté backend : un client n'est pas
@@ -80,4 +81,129 @@ export async function saveMatchAlert(input) {
     throw new Error(data.error || data.message || "Échec de l'enregistrement")
   }
   return data
+}
+
+/* ------------------------------------------------- Page « mes préférences » */
+
+/** Chemin de la page — le même que construit le backend (`ALERT_PREFERENCES_PATH`). */
+export const MATCH_ALERT_PREFERENCES_PATH = '/coup-de-foudre/mes-preferences'
+
+/** Endpoint des préférences d'une alerte (jeton en en-tête `X-Alert-Token`). */
+export const MATCH_ALERT_PREFERENCES_ENDPOINT = '/api/watch-match-alerts/preferences'
+
+/**
+ * Clé de session du jeton. `sessionStorage` et non `localStorage` : le jeton vaut accès à
+ * l'alerte, il n'a pas à survivre à l'onglet. Il y est posé pour qu'un rechargement de la page
+ * — dont l'URL ne le porte plus — ne tombe pas sur « lien invalide ».
+ */
+const TOKEN_STORAGE_KEY = `watch-ecommerce:match-alert-token:${SITE_ID}`
+
+/**
+ * Jeton porté par l'ancre du lien d'e-mail (`#token=…`).
+ * @param {string} hash `location.hash` ou `route.hash`
+ * @returns {string}
+ */
+export function readAlertTokenFromHash(hash) {
+  const params = new URLSearchParams(String(hash || '').replace(/^#/, ''))
+  return (params.get('token') || '').trim()
+}
+
+/** @param {string} token */
+export function rememberAlertToken(token) {
+  try {
+    sessionStorage.setItem(TOKEN_STORAGE_KEY, token)
+  } catch {
+    // Stockage indisponible (navigation privée stricte) : la page fonctionne jusqu'au
+    // prochain rechargement, qui demandera de rouvrir le lien.
+  }
+}
+
+/**
+ * Retire le jeton de l'URL **au démarrage**, avant `initAnalytics()` (`main.js`).
+ *
+ * Le garde de route de la page ne suffit pas au premier chargement : le pixel Meta met sa
+ * page vue en file dès l'initialisation, et GA envoie la sienne à la fin du chargement de son
+ * script — tous deux lisent l'URL courante, ancre comprise. Ce nettoyage synchrone passe avant
+ * eux. Limité à la page « mes préférences » : une ancre ailleurs ne regarde pas les alertes.
+ *
+ * @param {Pick<Location, 'hash' | 'pathname' | 'search'>} [loc]
+ * @param {Pick<History, 'state' | 'replaceState'>} [hist]
+ * @returns {string} Le jeton retiré, ou `''`
+ */
+export function consumeAlertTokenFromLocation(loc = window.location, hist = window.history) {
+  const path = String(loc?.pathname || '').replace(/\/+$/, '')
+  if (!path.endsWith(MATCH_ALERT_PREFERENCES_PATH)) return ''
+  const token = readAlertTokenFromHash(loc.hash)
+  if (!token) return ''
+  rememberAlertToken(token)
+  hist.replaceState(hist.state, '', `${loc.pathname}${loc.search}`)
+  return token
+}
+
+/** @returns {string} */
+export function recallAlertToken() {
+  try {
+    return sessionStorage.getItem(TOKEN_STORAGE_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+
+/**
+ * Erreur d'une requête « préférences », porteuse du code rendu par le backend
+ * (`INVALID_TOKEN`, `UNKNOWN_TOKEN`, `INACTIVE`, `UNAVAILABLE`…) : la page choisit son écran
+ * sur ce code, pas sur un message.
+ */
+export class MatchAlertPreferencesError extends Error {
+  /** @param {string} code */
+  constructor(code) {
+    super(code)
+    this.name = 'MatchAlertPreferencesError'
+    this.code = code
+  }
+}
+
+/**
+ * @param {string} token
+ * @param {{ method?: string, body?: unknown }} [init]
+ */
+async function requestPreferences(token, { method = 'GET', body } = {}) {
+  const response = await fetch(`${getBackendApiUrl()}${MATCH_ALERT_PREFERENCES_ENDPOINT}`, {
+    method,
+    headers: {
+      Accept: 'application/json',
+      'X-Site-Id': SITE_ID,
+      'X-Alert-Token': token,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  const data = await readApiResponseBody(response)
+  if (!response.ok || data.success === false) {
+    const fallback = response.status === 503 ? 'UNAVAILABLE' : 'SERVER_ERROR'
+    throw new MatchAlertPreferencesError(data.code || fallback)
+  }
+  return data
+}
+
+/**
+ * @param {string} token
+ * @returns {Promise<{ status: string, email: string, locale: string, criteria: object | null }>}
+ */
+export function fetchMatchAlertPreferences(token) {
+  return requestPreferences(token)
+}
+
+/**
+ * Remplace les préférences de l'alerte. Même frontière que l'inscription : seules les
+ * préférences partent, `offered` compris (les options que la page vient d'afficher).
+ *
+ * @param {string} token
+ * @param {unknown} criteria
+ */
+export function updateMatchAlertPreferences(token, criteria) {
+  return requestPreferences(token, {
+    method: 'PUT',
+    body: { criteria: sanitizePreferences(criteria) },
+  })
 }

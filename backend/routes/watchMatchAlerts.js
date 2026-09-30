@@ -27,6 +27,39 @@ function buildAlertUnsubscribeUrl(apiBase, token) {
   return `${apiBase}/api/watch-match-alerts/unsubscribe?token=${encodeURIComponent(token)}`
 }
 
+/** `watch_match_alerts.unsubscribe_token` est un `uuid` (`gen_random_uuid()`). */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * `dorian@example.fr` → `d•••@example.fr`. Assez pour que la personne reconnaisse son
+ * adresse, pas assez pour qu'un lien transféré la divulgue.
+ * @param {string} email
+ */
+function maskEmail(email) {
+  const [local, domain] = String(email || '').split('@')
+  if (!local || !domain) return ''
+  return `${local.slice(0, 1)}•••@${domain}`
+}
+
+/**
+ * Page vitrine « mes préférences ». Doit rester alignée sur `APP_ROUTE_META`
+ * (`packages/base/src/site/appRouteMeta.js`) — un test y veille.
+ */
+const ALERT_PREFERENCES_PATH = '/coup-de-foudre/mes-preferences'
+
+/**
+ * Lien de l'e-mail vers la page « mes préférences ». Le jeton voyage dans l'**ancre** : jamais
+ * envoyée aux serveurs (ni journaux d'hébergement, ni en-tête `Referer`), et retirée de l'URL
+ * par la page avant toute mesure d'audience.
+ *
+ * @param {string} storefrontBase Origine de la vitrine, sans slash final
+ * @param {string} token
+ * @param {string} [localePrefix] `''` pour la langue par défaut, `/en` sinon
+ */
+function buildAlertPreferencesUrl(storefrontBase, token, localePrefix = '') {
+  return `${storefrontBase}${localePrefix}${ALERT_PREFERENCES_PATH}#token=${encodeURIComponent(token)}`
+}
+
 /**
  * En-têtes de désinscription un clic (RFC 8058) exigés par Gmail/Yahoo. Le POST « one-click »
  * est servi par `POST /unsubscribe`.
@@ -248,11 +281,133 @@ function buildWatchMatchAlertsRouter() {
     }
   })
 
+  // -------------------------------------------------------------------------
+  // Public — page vitrine « mes préférences » (lien de chaque e-mail d'alerte)
+  //
+  // Le jeton arrive par l'en-tête `X-Alert-Token`, jamais dans l'URL : la page le lit dans
+  // l'ancre du lien et le garde hors de la barre d'adresse (voir `ALERT_PREFERENCES_PATH`).
+  // GET lit, PUT remplace les préférences. Aucune des deux ne réactive une alerte éteinte :
+  // se réinscrire demande un nouveau consentement, que seul le parcours recueille.
+  // -------------------------------------------------------------------------
+
+  const preferencesLimiter = createRateLimiter({ windowMs: 10 * 60 * 1000, max: 30 })
+
+  /**
+   * Garde commune aux deux routes. Renvoie le client Supabase et le jeton, ou `null` après
+   * avoir répondu. Le format est vérifié **avant** la base : la colonne est un `uuid`, et une
+   * valeur mal formée y ferait une erreur Postgres — un 500 là où il faut un 400.
+   *
+   * @returns {Promise<{ supabase: object, token: string } | null>}
+   */
+  async function guardPreferencesRequest(req, res) {
+    const site = req.site
+    if (!isMatchAlertsEnabled(site)) {
+      res.status(404).json({ success: false, code: 'DISABLED' })
+      return null
+    }
+    const clientIp = req.ip || req.socket?.remoteAddress || 'inconnue'
+    if (!preferencesLimiter.check(`${site.id}:${clientIp}`)) {
+      res.status(429).json({ success: false, code: 'RATE_LIMITED' })
+      return null
+    }
+    const token = String(req.headers?.['x-alert-token'] || '').trim()
+    if (!UUID_RE.test(token)) {
+      res.status(400).json({ success: false, code: 'INVALID_TOKEN' })
+      return null
+    }
+    try {
+      return { supabase: getSupabaseClient(site), token }
+    } catch (e) {
+      if (e instanceof MissingSecretsError) {
+        res.status(503).json({ success: false, code: 'UNAVAILABLE' })
+        return null
+      }
+      throw e
+    }
+  }
+
+  router.get('/preferences', async (req, res) => {
+    const site = req.site
+    try {
+      const guard = await guardPreferencesRequest(req, res)
+      if (!guard) return
+      const { sanitizePreferences } = await loadMatchCore()
+      const { data: alert, error } = await guard.supabase
+        .from('watch_match_alerts')
+        .select('email, status, locale, criteria')
+        .eq('site_id', site.id)
+        .eq('unsubscribe_token', guard.token)
+        .maybeSingle()
+      if (error) throw error
+      if (!alert) return res.status(404).json({ success: false, code: 'UNKNOWN_TOKEN' })
+
+      const active = alert.status === 'active'
+      return res.json({
+        success: true,
+        status: alert.status,
+        // Masquée : le lien peut être transféré, la page n'a pas à révéler l'adresse entière.
+        email: maskEmail(alert.email),
+        locale: alert.locale,
+        // Une alerte éteinte n'a plus de préférences (voir `POST /unsubscribe`).
+        criteria: active ? sanitizePreferences(alert.criteria) : null,
+      })
+    } catch (e) {
+      console.error(`[${site.id}] watch match alert preferences (read):`, e.message)
+      return res.status(500).json({ success: false, code: 'SERVER_ERROR' })
+    }
+  })
+
+  router.put('/preferences', async (req, res) => {
+    const site = req.site
+    try {
+      const guard = await guardPreferencesRequest(req, res)
+      if (!guard) return
+      const { sanitizePreferences } = await loadMatchCore()
+      // Même frontière que l'inscription : seuls les champs de `MatchPreferences` passent,
+      // `offered` compris — c'est lui qui dit ce que la page vient d'afficher.
+      const criteria = sanitizePreferences(req.body?.criteria)
+      const nowIso = new Date().toISOString()
+
+      const { data: updated, error } = await guard.supabase
+        .from('watch_match_alerts')
+        .update({ criteria, updated_at: nowIso })
+        .eq('site_id', site.id)
+        .eq('unsubscribe_token', guard.token)
+        // Écriture conditionnelle, comme la désinscription : une alerte éteinte entre la
+        // lecture et l'enregistrement ne se rallume pas par la bande. `consent_at` n'est pas
+        // touché : modifier ses goûts n'est pas redonner son accord.
+        .eq('status', 'active')
+        .select('id')
+      if (error) throw error
+
+      if (!updated || updated.length === 0) {
+        const { data: existing, error: lookupError } = await guard.supabase
+          .from('watch_match_alerts')
+          .select('id')
+          .eq('site_id', site.id)
+          .eq('unsubscribe_token', guard.token)
+          .maybeSingle()
+        if (lookupError) throw lookupError
+        return existing
+          ? res.status(409).json({ success: false, code: 'INACTIVE' })
+          : res.status(404).json({ success: false, code: 'UNKNOWN_TOKEN' })
+      }
+
+      return res.json({ success: true, criteria })
+    } catch (e) {
+      console.error(`[${site.id}] watch match alert preferences (update):`, e.message)
+      return res.status(500).json({ success: false, code: 'SERVER_ERROR' })
+    }
+  })
+
   return router
 }
 
 module.exports = {
   buildWatchMatchAlertsRouter,
   buildAlertUnsubscribeUrl,
+  buildAlertPreferencesUrl,
+  ALERT_PREFERENCES_PATH,
+  maskEmail,
   alertUnsubscribeHeaders,
 }

@@ -47,17 +47,32 @@ function formatWatchPrice(watch, lang, currency = 'EUR') {
 /**
  * Carte d'une montre : image, marque, nom, prix, lien.
  *
- * @param {object} watch     Montre (`buildMatchWatchFromRow`) enrichie d'`imageUrl` et `url`
+ * Une montre annoncée alors qu'elle sort des choix proposés au visiteur (`watch.unasked`, voir
+ * `unaskedCriteria`) le dit sur sa carte, avec le lien pour revoir ses préférences : on lui
+ * écrit pour une nouveauté qu'il n'a pas pu choisir, autant être clair sur la raison.
+ *
+ * @param {object} watch     Montre (`buildMatchWatchFromRow`) enrichie d'`imageUrl`, `url`
+ *   et `unasked` (critères jamais soumis au visiteur)
  * @param {object} branding  Sortie de `resolveEmailBranding`
- * @param {{ seeWatch: string }} copy
+ * @param {{ seeWatch: string, newBrand?: string, newOption?: string, editPreferences?: string }} copy
  * @param {string} lang
  * @param {string} currency
+ * @param {string} [preferencesUrl]
  * @returns {string}
  */
-function watchCard(watch, branding, copy, lang, currency) {
+function watchCard(watch, branding, copy, lang, currency, preferencesUrl = '') {
   const price = formatWatchPrice(watch, lang, currency)
   const title = [watch.brand, watch.name].filter(Boolean).join(' ')
   const font = branding.fonts.bodyStack
+  const unasked = Array.isArray(watch.unasked) ? watch.unasked : []
+  const noteText = unasked.includes('brand') ? copy.newBrand : copy.newOption
+  const noteLink = preferencesUrl
+    ? ` <a href="${escapeHtml(preferencesUrl)}" style="color:${branding.accentText};text-decoration:underline;white-space:nowrap;">${escapeHtml(copy.editPreferences)}</a>`
+    : ''
+  const note =
+    unasked.length && noteText
+      ? `<div style="font-family:${font};font-size:13px;line-height:1.5;color:${branding.mutedColor};margin-top:10px;padding:8px 10px;border-left:3px solid ${branding.accentColor};background-color:${branding.cardColor};">${escapeHtml(noteText)}${noteLink}</div>`
+      : ''
 
   const image = watch.imageUrl
     ? `<td class="stack" width="132" style="width:132px;padding:0 18px 0 0;vertical-align:top;">
@@ -78,6 +93,7 @@ function watchCard(watch, branding, copy, lang, currency) {
                 </div>
                 ${watch.reference ? `<div style="font-family:${font};font-size:13px;color:${branding.mutedColor};margin-top:5px;">${escapeHtml(watch.reference)}</div>` : ''}
                 ${price ? `<div style="font-family:${font};font-size:17px;font-weight:700;color:${branding.accentText};margin-top:10px;">${escapeHtml(price)}</div>` : ''}
+                ${note}
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;margin-top:14px;">
                   <tr>
                     <td align="center" bgcolor="${branding.accentColor}" style="border-radius:${branding.radius.button};">
@@ -99,13 +115,14 @@ function watchCard(watch, branding, copy, lang, currency) {
  * @param {object[]} params.watches       Montres correspondantes, avec `url` et `imageUrl`
  * @param {object} params.copy            Sortie de `buildMatchAlertEmailCopy`
  * @param {string} params.unsubscribeUrl  Lien de désinscription (obligatoire, RGPD)
+ * @param {string} [params.preferencesUrl] Page vitrine « mes préférences » (jeton en ancre)
  * @param {string} [params.browseUrl]     Lien vitrine vers la collection
  * @param {string} [params.currency]
  * @returns {string}
  */
 function createWatchMatchAlertEmail(
   site,
-  { watches, copy, unsubscribeUrl, browseUrl = '', currency = 'EUR' },
+  { watches, copy, unsubscribeUrl, preferencesUrl = '', browseUrl = '', currency = 'EUR' },
 ) {
   const branding = resolveEmailBranding(site)
   const font = branding.fonts.bodyStack
@@ -115,7 +132,15 @@ function createWatchMatchAlertEmail(
     ? `<img src="${escapeHtml(branding.logoImageUrl)}" alt="${escapeHtml(branding.logoAlt)}" width="180" style="display:block;margin:0 auto;max-height:64px;max-width:200px;width:auto;height:auto;border:0;" />`
     : `<div style="font-family:${branding.fonts.headingStack};font-size:24px;font-weight:${branding.fonts.headingWeight};color:${branding.headerTextColor};letter-spacing:1.5px;text-transform:uppercase;line-height:1.2;">${escapeHtml(branding.logoText)}</div>`
 
-  const cards = shown.map((watch) => watchCard(watch, branding, copy, copy.lang, currency)).join('')
+  const cards = shown
+    .map((watch) => watchCard(watch, branding, copy, copy.lang, currency, preferencesUrl))
+    .join('')
+
+  const preferencesHtml = preferencesUrl
+    ? `<p style="font-family:${font};margin:6px 0;font-size:12px;">
+         <a href="${escapeHtml(preferencesUrl)}" style="color:${branding.mutedColor};text-decoration:underline;">${escapeHtml(copy.editPreferences)}</a>
+       </p>`
+    : ''
 
   const moreHtml = copy.more
     ? `<p style="font-family:${font};color:${branding.mutedColor};font-size:14px;margin:4px 0 18px;">${escapeHtml(copy.more)}</p>`
@@ -180,6 +205,7 @@ function createWatchMatchAlertEmail(
             <td class="px" align="center" style="padding:22px 32px 28px;border-top:1px solid ${branding.borderColor};">
               <div style="font-family:${branding.fonts.headingStack};font-size:14px;font-weight:${branding.fonts.headingWeight};color:${branding.textColor};margin:0 0 6px;">${escapeHtml(branding.brandName)}</div>
               <p style="font-family:${font};margin:6px 0;font-size:12px;color:${branding.mutedColor};line-height:1.6;">${escapeHtml(copy.reason)}</p>
+              ${preferencesHtml}
               <p style="font-family:${font};margin:6px 0;font-size:12px;">
                 <a href="${escapeHtml(unsubscribeUrl)}" style="color:${branding.mutedColor};text-decoration:underline;">${escapeHtml(copy.unsubscribe)}</a>
               </p>

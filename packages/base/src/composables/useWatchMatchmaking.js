@@ -6,6 +6,7 @@ import { enrichWatchesWithActiveCampaignPricing } from '@/utils/watchPromotionCa
 import {
   MATCH_ROUND_SIZE,
   buildMatchFacets,
+  buildOfferedOptions,
   createEmptyPreferences,
   rankPool,
   sanitizePreferences,
@@ -54,6 +55,15 @@ export function useWatchMatchmaking() {
   const watchById = computed(() => new Map(pool.value.map((w) => [w.id, w])))
   const facets = computed(() => buildMatchFacets(pool.value))
   const activeCriteria = computed(() => facets.value.activeCriteria)
+  /**
+   * Ce qui part avec l'e-mail d'alerte : les préférences, plus les options affichées pour y
+   * répondre. L'alerte survit au stock du jour ; sans `offered`, elle lirait un choix fait
+   * parmi trois marques comme le refus de toutes les autres.
+   */
+  const alertCriteria = computed(() => ({
+    ...session.preferences,
+    offered: buildOfferedOptions(facets.value),
+  }))
 
   const ranking = computed(() => rankPool(pool.value, session.preferences))
   const seenSet = computed(() => new Set(session.seen))
@@ -333,6 +343,7 @@ export function useWatchMatchmaking() {
     session,
     facets,
     activeCriteria,
+    alertCriteria,
     currentStepIndex,
     deck,
     currentWatch,

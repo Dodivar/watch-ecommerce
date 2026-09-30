@@ -4,7 +4,9 @@ import {
   MATCH_CRITERIA,
   MATCH_ROUND_SIZE,
   buildBudgetSuggestions,
+  buildAlertPreferenceFacets,
   buildMatchFacets,
+  buildOfferedOptions,
   createEmptyPreferences,
   hasAnyPreference,
   isWatchInBudget,
@@ -84,6 +86,78 @@ const SAUVAGE_LIKE_POOL = [
     },
   }),
 ]
+
+describe('buildOfferedOptions', () => {
+  it('ne retient que les écrans affichés, avec leurs options', () => {
+    const facets = buildMatchFacets(SAUVAGE_LIKE_POOL)
+    const offered = buildOfferedOptions(facets)
+    // Bracelet et boîtier n'avaient qu'une option : écrans sautés, rien n'a été demandé.
+    expect(Object.keys(offered).sort()).toEqual(
+      facets.activeCriteria.filter((id) => id !== 'budget').sort(),
+    )
+    expect(offered.brand).toEqual(['audemars piguet', 'rolex'])
+    expect(offered).not.toHaveProperty('bracelet')
+  })
+
+  it('traverse `sanitizePreferences` telle quelle (c’est elle que relit le backend)', () => {
+    const offered = buildOfferedOptions(buildMatchFacets(SAUVAGE_LIKE_POOL))
+    expect(sanitizePreferences({ brand: ['rolex'], offered }).offered).toEqual(offered)
+  })
+})
+
+describe('buildAlertPreferenceFacets', () => {
+  it('propose le stock, pas toute la palette : ce qui est affiché et décoché vaut refus', () => {
+    const facets = buildAlertPreferenceFacets(SAUVAGE_LIKE_POOL, sanitizePreferences({}))
+    expect(facets.color.options.map((o) => o.value)).toEqual(
+      buildMatchFacets(SAUVAGE_LIKE_POOL).color.options.map((o) => o.value),
+    )
+  })
+
+  it('garde à l’écran une maison cochée qui n’est plus en stock, avec un libellé lisible', () => {
+    const facets = buildAlertPreferenceFacets(
+      SAUVAGE_LIKE_POOL,
+      sanitizePreferences({ brand: ['patek philippe'] }),
+    )
+    const option = facets.brand.options.find((o) => o.value === 'patek philippe')
+    expect(option.label).toBe('Patek Philippe')
+    // Et `offered` l'enregistrera comme affichée : décochée, elle devient un refus assumé.
+    expect(buildOfferedOptions(facets).brand).toContain('patek philippe')
+  })
+
+  it('affiche un critère à une seule option dès qu’il porte un choix', () => {
+    const facets = buildAlertPreferenceFacets(
+      SAUVAGE_LIKE_POOL,
+      sanitizePreferences({ bracelet: ['leather'] }),
+    )
+    expect(buildMatchFacets(SAUVAGE_LIKE_POOL).bracelet.active).toBe(false)
+    expect(facets.bracelet.active).toBe(true)
+    expect(facets.activeCriteria).toContain('bracelet')
+  })
+
+  it('élargit le curseur au-delà du budget enregistré, sans butée sur ses bornes', () => {
+    const base = buildMatchFacets(SAUVAGE_LIKE_POOL).budget
+    const cap = base.max * 3
+    const facets = buildAlertPreferenceFacets(
+      SAUVAGE_LIKE_POOL,
+      sanitizePreferences({ budget: { min: base.min + 500, max: cap } }),
+    )
+    // Plancher du curseur à 0, plafond un cran au-dessus : ni le plancher ni le plafond
+    // enregistrés ne tombent sur une butée, qui les effacerait à la première retouche.
+    expect(facets.budget.min).toBe(0)
+    expect(facets.budget.max).toBeGreaterThan(cap)
+    // Les tranches, calculées sur le stock, réintroduiraient un plancher figé.
+    expect(facets.budget.suggestions).toEqual([])
+  })
+
+  it('garde le plafond du stock quand le budget enregistré est ouvert', () => {
+    const base = buildMatchFacets(SAUVAGE_LIKE_POOL).budget
+    const facets = buildAlertPreferenceFacets(
+      SAUVAGE_LIKE_POOL,
+      sanitizePreferences({ budget: { min: 0, max: null } }),
+    )
+    expect(facets.budget.max).toBe(base.max)
+  })
+})
 
 describe('buildMatchFacets', () => {
   it('regroupe « ROLEX » et « Rolex » en une seule marque, libellée par la casse majoritaire', () => {

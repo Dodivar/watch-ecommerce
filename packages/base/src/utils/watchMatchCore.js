@@ -37,6 +37,11 @@ import { getEffectiveWatchPrice } from './watchPricing.js'
  * @property {string[]} caseMaterial Clés `watchSpec.material.*`
  * @property {string[]} color        Slugs de couleur (voir `MATCH_COLOR_OPTIONS`)
  * @property {string[]} movement     Clés `watchSpec.movement.*`
+ * @property {Partial<Record<Exclude<MatchCriterionId, 'budget'>, string[]>>} [offered]
+ *   Options **affichées** au visiteur, critère par critère, au moment où il a répondu. Absent
+ *   du parcours ; n'accompagne que l'inscription à l'alerte, qui en a besoin pour ne pas lire
+ *   un choix fait dans le stock du jour comme le refus de tout le reste (voir
+ *   `measureAffinity`). Absent (alertes plus anciennes) = toutes les valeurs comptent.
  *
  * @typedef {object} MatchOption
  * @property {string} value
@@ -104,6 +109,64 @@ export const MATCH_COLOR_OPTIONS = [
     labelKey: 'watchSpec.color.salmon',
     specKey: 'watchSpec.color.salmon',
     gradient: 'linear-gradient(135deg, #fde3d6 0%, #f3b59e 35%, #d9846a 70%, #a85a45 100%)',
+  },
+  // Couleurs que le vocabulaire des cadrans sait déjà lire (`watchSpecVocabulary.js`) mais
+  // qu'aucune montre du stock ne porte encore. Sans elles, un cadran rouge mis en vente demain
+  // n'aurait *aucune* couleur aux yeux de l'alerte. Côté parcours, rien ne change tant qu'elles
+  // sont absentes du stock : `buildMatchFacets` ne propose que les couleurs présentes.
+  {
+    value: 'red',
+    labelKey: 'watchSpec.color.red',
+    specKey: 'watchSpec.color.red',
+    gradient: 'linear-gradient(135deg, #f7c9c9 0%, #e06464 35%, #b02a2a 70%, #6e1414 100%)',
+  },
+  {
+    value: 'burgundy',
+    labelKey: 'watchSpec.color.burgundy',
+    specKey: 'watchSpec.color.burgundy',
+    gradient: 'linear-gradient(135deg, #d9a3ad 0%, #9c3b4f 35%, #6b1e30 70%, #3d0e1a 100%)',
+  },
+  {
+    value: 'pink',
+    labelKey: 'watchSpec.color.pink',
+    specKey: 'watchSpec.color.pink',
+    gradient: 'linear-gradient(135deg, #fde4ee 0%, #f5b3cc 35%, #e27fa6 70%, #b4507a 100%)',
+  },
+  {
+    value: 'purple',
+    labelKey: 'watchSpec.color.purple',
+    specKey: 'watchSpec.color.purple',
+    gradient: 'linear-gradient(135deg, #e3d4f2 0%, #a784cc 35%, #6e4a99 70%, #3f2861 100%)',
+  },
+  {
+    value: 'turquoise',
+    labelKey: 'watchSpec.color.turquoise',
+    specKey: 'watchSpec.color.turquoise',
+    gradient: 'linear-gradient(135deg, #d2f4f1 0%, #7fd6cf 35%, #2fa89f 70%, #16655f 100%)',
+  },
+  {
+    value: 'beige',
+    labelKey: 'watchSpec.color.beige',
+    specKey: 'watchSpec.color.beige',
+    gradient: 'linear-gradient(135deg, #faf5ea 0%, #ece0c8 35%, #d4c2a0 70%, #a8946f 100%)',
+  },
+  {
+    value: 'orange',
+    labelKey: 'watchSpec.color.orange',
+    specKey: 'watchSpec.color.orange',
+    gradient: 'linear-gradient(135deg, #fde0c2 0%, #f7a55a 35%, #e0741f 70%, #a14b0c 100%)',
+  },
+  {
+    value: 'yellow',
+    labelKey: 'watchSpec.color.yellow',
+    specKey: 'watchSpec.color.yellow',
+    gradient: 'linear-gradient(135deg, #fff8cc 0%, #fbe77a 35%, #e8c62a 70%, #a88a0c 100%)',
+  },
+  {
+    value: 'copper',
+    labelKey: 'watchSpec.color.copper',
+    specKey: 'watchSpec.color.copper',
+    gradient: 'linear-gradient(135deg, #f5d3bd 0%, #d98e5f 35%, #b0602f 70%, #6f3a17 100%)',
   },
 ]
 
@@ -279,7 +342,29 @@ export function sanitizePreferences(raw) {
     prefs[criterion.id] = [...new Set(stringArray(values))]
   }
 
+  const offered = sanitizeOffered(/** @type {any} */ (raw).offered)
+  if (offered) prefs.offered = offered
+
   return prefs
+}
+
+/**
+ * Seuls les critères de liste connus survivent, et seulement quand ils portent un tableau :
+ * un critère absent de `offered` retombe sur la règle d'avant (toutes ses valeurs comptent).
+ *
+ * @param {unknown} raw
+ * @returns {MatchPreferences['offered'] | null}
+ */
+function sanitizeOffered(raw) {
+  if (!raw || typeof raw !== 'object') return null
+  /** @type {NonNullable<MatchPreferences['offered']>} */
+  const offered = {}
+  for (const criterion of MATCH_CRITERIA) {
+    if (criterion.kind !== 'multi') continue
+    const values = /** @type {any} */ (raw)[criterion.id]
+    if (Array.isArray(values)) offered[criterion.id] = [...new Set(stringArray(values))]
+  }
+  return Object.keys(offered).length > 0 ? offered : null
 }
 
 /**
@@ -319,9 +404,59 @@ export function isWatchInBudget(watch, budget) {
 }
 
 /**
+ * **Question jamais posée.** Quand `preferences.offered` dit ce qui était affiché, une montre
+ * dont *aucune* valeur n'y figurait n'a jamais été soumise au visiteur sur ce critère. Celui
+ * qui a coché « Rolex » parmi Rolex et Tudor n'a rien dit d'Omega : une Omega mise en vente
+ * ensuite ne le contredit pas. La traiter comme « inconnue » ne suffirait pas : son poids
+ * resterait au dénominateur et la tiendrait sous `MATCH_ALERT_THRESHOLD`. Une valeur affichée
+ * mais pas cochée, elle, reste une contradiction : là, le visiteur a répondu.
+ *
+ * Seul prédicat de la règle : `measureAffinity` s'en sert pour décider, `unaskedCriteria` pour
+ * que l'e-mail puisse le dire — les deux ne peuvent donc pas diverger.
+ *
+ * @param {Exclude<MatchCriterionId, 'budget'>} criterionId
+ * @param {string[]} values  Valeurs de la montre (`VALUES_OF`)
+ * @param {string[]} wanted  Valeurs cochées
+ * @param {MatchPreferences} preferences
+ * @returns {boolean}
+ */
+function wasNeverAsked(criterionId, values, wanted, preferences) {
+  const offered = preferences?.offered?.[criterionId]
+  return (
+    Array.isArray(offered) &&
+    values.length > 0 &&
+    !values.some((v) => offered.includes(v) || wanted.includes(v))
+  )
+}
+
+/**
+ * Critères exprimés sur lesquels cette montre n'a jamais été soumise au visiteur — une maison
+ * ou une couleur arrivée après son inscription. Sert à le lui dire dans l'e-mail, et à
+ * l'inviter à revoir ses préférences.
+ *
+ * @param {any} watch
+ * @param {MatchPreferences} preferences
+ * @returns {Array<Exclude<MatchCriterionId, 'budget'>>}
+ */
+export function unaskedCriteria(watch, preferences) {
+  const ids = []
+  for (const criterion of MATCH_CRITERIA) {
+    if (criterion.kind !== 'multi') continue
+    const wanted = preferences?.[criterion.id]
+    if (!Array.isArray(wanted) || wanted.length === 0) continue
+    const values = VALUES_OF[criterion.id](watch)
+    if (wasNeverAsked(criterion.id, values, wanted, preferences)) ids.push(criterion.id)
+  }
+  return ids
+}
+
+/**
  * Score **et** poids total réellement demandé par le visiteur. Le second sert à ramener le
  * premier sur une échelle comparable d'une personne à l'autre : un score de 3 ne dit rien tant
  * qu'on ignore si le visiteur a exprimé un critère ou cinq.
+ *
+ * Un critère sur lequel la montre n'a jamais été soumise au visiteur (voir `wasNeverAsked`)
+ * sort du calcul — ni du score, ni du poids exprimé.
  *
  * @param {any} watch
  * @param {MatchPreferences} preferences
@@ -334,8 +469,9 @@ export function measureAffinity(watch, preferences) {
     if (criterion.kind !== 'multi') continue
     const wanted = preferences?.[criterion.id]
     if (!Array.isArray(wanted) || wanted.length === 0) continue
-    expressedWeight += criterion.weight
     const values = VALUES_OF[criterion.id](watch)
+    if (wasNeverAsked(criterion.id, values, wanted, preferences)) continue
+    expressedWeight += criterion.weight
     if (values.length === 0) continue
     const matches = values.some((v) => wanted.includes(v))
     score += matches ? criterion.weight : -criterion.weight / 2
@@ -357,7 +493,8 @@ export function scoreWatch(watch, preferences) {
 
 /**
  * Part du poids exprimé qu'une montre satisfait positivement, de `-0.5` (elle contredit tout)
- * à `1` (elle coche tout). `null` quand le visiteur n'a exprimé aucun critère de type liste :
+ * à `1` (elle coche tout). `null` quand le visiteur n'a exprimé aucun critère de type liste, ou
+ * qu'aucun ne s'applique à cette montre (voir « question jamais posée », `measureAffinity`) :
  * il n'y a alors rien à rapporter, seul le budget parle.
  *
  * @param {any} watch
@@ -387,7 +524,9 @@ export const MATCH_ALERT_THRESHOLD = 0.5
  *
  * Le budget reste le seul filtre dur, comme dans le deck. Ensuite :
  * - aucun critère de liste exprimé → le budget suffit (le visiteur a demandé à être prévenu
- *   des nouveautés : lui écrire répond à sa demande, ce n'est pas un envoi non sollicité) ;
+ *   des nouveautés : lui écrire répond à sa demande, ce n'est pas un envoi non sollicité).
+ *   Même chose pour une montre sur laquelle aucune question ne lui a été posée — une marque ou
+ *   une couleur arrivée après son inscription : c'est précisément la nouveauté attendue ;
  * - sinon, il faut atteindre `threshold` du poids exprimé.
  *
  * Les deux cas limites sont des branches écrites, pas des effets de bord d'une comparaison :

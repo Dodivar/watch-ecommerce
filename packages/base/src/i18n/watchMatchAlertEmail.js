@@ -55,25 +55,38 @@ function translatorFor(locale) {
 /**
  * Textes de l'e-mail de nouveauté, accordés au nombre de montres annoncées.
  *
+ * `hasUnasked` : au moins une montre annoncée sort des choix proposés au visiteur (voir
+ * `unaskedCriteria`). L'introduction ne peut plus dire « elle correspond à vos préférences » :
+ * elle le dit autrement, plutôt que d'affirmer une chose fausse.
+ *
  * @param {unknown} locale
- * @param {{ count: number, hiddenCount?: number, brandName?: string }} params
+ * @param {{ count: number, hiddenCount?: number, brandName?: string, hasUnasked?: boolean }} params
  *   `hiddenCount` : montres correspondantes non détaillées dans l'e-mail (voir le template).
  * @returns {{ lang: string, subject: string, title: string, intro: string, seeWatch: string,
- *   more: string, browse: string, reason: string, unsubscribe: string }}
+ *   more: string, browse: string, reason: string, unsubscribe: string, newBrand: string,
+ *   newOption: string, editPreferences: string }}
  */
-export function buildMatchAlertEmailCopy(locale, { count, hiddenCount = 0, brandName = '' } = {}) {
+export function buildMatchAlertEmailCopy(
+  locale,
+  { count, hiddenCount = 0, brandName = '', hasUnasked = false } = {},
+) {
   const { t, tc, locale: lang } = translatorFor(locale)
   const total = Number.isFinite(count) && count > 0 ? count : 1
   return {
     lang,
     subject: tc('matchmaking.alertEmail.subject', total, { brand: brandName }),
     title: tc('matchmaking.alertEmail.title', total),
-    intro: t('matchmaking.alertEmail.intro'),
+    intro: hasUnasked
+      ? tc('matchmaking.alertEmail.introNew', total)
+      : t('matchmaking.alertEmail.intro'),
     seeWatch: t('matchmaking.alertEmail.seeWatch'),
     more: hiddenCount > 0 ? tc('matchmaking.alertEmail.more', hiddenCount) : '',
     browse: t('matchmaking.alertEmail.browse'),
     reason: t('matchmaking.alertEmail.reason'),
     unsubscribe: t('matchmaking.alertEmail.unsubscribe'),
+    newBrand: t('matchmaking.alertEmail.newBrand'),
+    newOption: t('matchmaking.alertEmail.newOption'),
+    editPreferences: t('matchmaking.alertEmail.editPreferences'),
   }
 }
 
