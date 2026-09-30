@@ -235,8 +235,11 @@ function describeSavedOption(id, value) {
  * Deux ajouts au stock, pour que la page reflète l'alerte et non le seul catalogue :
  * - les valeurs **déjà cochées** restent affichées même sorties du stock, pour pouvoir être
  *   décochées ; un critère qui en porte reste donc affiché même sans deux options ;
- * - le **budget** s'élargit au budget enregistré, sans quoi le curseur le ramènerait dans les
- *   bornes du jour et la première retouche le réécrirait en silence.
+ * - le **budget** part de 0 et monte au-delà du plafond enregistré. `MatchPreferenceStep` lit
+ *   une poignée en butée comme « pas de borne » (plancher 0, plafond ouvert) : si le curseur
+ *   s'arrêtait pile sur le budget enregistré, un simple passage dans un champ le réécrirait.
+ *   Plancher à 0 et plafond chiffré ne peuvent donc jamais tomber sur une butée qui les
+ *   effacerait ; seuls un plancher déjà nul et un plafond déjà ouvert y sont.
  *
  * @param {any[]} pool
  * @param {MatchPreferences | null | undefined} preferences
@@ -247,20 +250,21 @@ export function buildAlertPreferenceFacets(pool, preferences) {
   const prefs = preferences ?? createEmptyPreferences()
 
   const saved = prefs.budget
-  let { min, max } = base.budget
+  const stepAbove = (value) => value + (value < 10000 ? 100 : 500)
+  let max = base.budget.max
   if (saved) {
-    min = base.pool ? Math.min(min, saved.min) : saved.min
-    if (saved.max !== null && saved.max !== undefined) max = Math.max(max, saved.max)
+    const hasCap = saved.max !== null && saved.max !== undefined
+    if (hasCap && saved.max >= max) max = stepAbove(saved.max)
+    if (max <= saved.min) max = stepAbove(saved.min)
   }
-  const widened = min !== base.budget.min || max !== base.budget.max
   const budget = {
     ...base.budget,
-    min,
+    min: 0,
     max,
-    active: max > min,
-    // Les tranches sont les terciles du stock : hors de ses bornes, elles ne tomberaient plus
-    // juste sur celles du curseur.
-    suggestions: widened ? [] : base.budget.suggestions,
+    active: max > 0,
+    // Les tranches sont les terciles du stock, à plancher non nul : « jusqu'à X » y
+    // enregistrerait de nouveau le prix de la montre la moins chère du jour.
+    suggestions: [],
   }
 
   const facets = { pool: base.pool, budget }

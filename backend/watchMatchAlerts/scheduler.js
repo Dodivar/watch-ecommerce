@@ -54,6 +54,8 @@ const ALERT_WINDOW_HOURS = 48
  */
 function alertLocalePrefix(site, locale) {
   const i18n = site?.config?.raw?.i18n || {}
+  // `enabled: false` explicite = site monolingue, quoi que déclare `locales` (`resolveI18nConfig`).
+  if (i18n.enabled === false) return ''
   const locales = Array.isArray(i18n.locales) ? i18n.locales : []
   const defaultLocale = i18n.defaultLocale || locales[0]
   if (!locale || locale === defaultLocale || !locales.includes(locale)) return ''

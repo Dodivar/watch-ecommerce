@@ -980,6 +980,8 @@ describe('isMatchAlertsEnabled', () => {
     expect(alertLocalePrefix(i18nSite, 'fr')).toBe('')
     expect(alertLocalePrefix(i18nSite, 'de')).toBe('')
     expect(alertLocalePrefix(makeSite(), 'en')).toBe('')
+    i18nSite.config.raw.i18n.enabled = false
+    expect(alertLocalePrefix(i18nSite, 'en')).toBe('')
   })
 
   it('garde une fenêtre de balayage courte devant la durée de vie du catalogue', () => {

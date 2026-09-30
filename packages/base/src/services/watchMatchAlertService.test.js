@@ -1,9 +1,14 @@
+/**
+ * @vitest-environment happy-dom
+ */
 import { describe, expect, it } from 'vitest'
 
 import {
   MATCH_ALERT_PREFERENCES_PATH,
   buildMatchAlertPayload,
+  consumeAlertTokenFromLocation,
   readAlertTokenFromHash,
+  recallAlertToken,
 } from './watchMatchAlertService.js'
 import { APP_ROUTE_META } from '@/site/appRouteMeta.js'
 
@@ -13,6 +18,26 @@ describe('page « mes préférences » — côté vitrine', () => {
     expect(readAlertTokenFromHash('token=abc')).toBe('abc')
     expect(readAlertTokenFromHash('')).toBe('')
     expect(readAlertTokenFromHash('#autre=1')).toBe('')
+  })
+
+  it('retire le jeton de l’URL au démarrage, et seulement sur la page des préférences', () => {
+    const calls = []
+    const hist = { state: { s: 1 }, replaceState: (...args) => calls.push(args) }
+    const token = consumeAlertTokenFromLocation(
+      { pathname: '/en/coup-de-foudre/mes-preferences', search: '?a=1', hash: '#token=abc' },
+      hist,
+    )
+    expect(token).toBe('abc')
+    expect(calls).toEqual([[{ s: 1 }, '', '/en/coup-de-foudre/mes-preferences?a=1']])
+    expect(recallAlertToken()).toBe('abc')
+
+    expect(
+      consumeAlertTokenFromLocation(
+        { pathname: '/collection', search: '', hash: '#token=x' },
+        hist,
+      ),
+    ).toBe('')
+    expect(calls).toHaveLength(1)
   })
 
   it('pointe vers une route réellement déclarée', () => {

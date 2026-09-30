@@ -134,16 +134,28 @@ describe('buildAlertPreferenceFacets', () => {
     expect(facets.activeCriteria).toContain('bracelet')
   })
 
-  it('élargit le curseur au budget enregistré au lieu de le ramener au stock du jour', () => {
+  it('élargit le curseur au-delà du budget enregistré, sans butée sur ses bornes', () => {
+    const base = buildMatchFacets(SAUVAGE_LIKE_POOL).budget
+    const cap = base.max * 3
+    const facets = buildAlertPreferenceFacets(
+      SAUVAGE_LIKE_POOL,
+      sanitizePreferences({ budget: { min: base.min + 500, max: cap } }),
+    )
+    // Plancher du curseur à 0, plafond un cran au-dessus : ni le plancher ni le plafond
+    // enregistrés ne tombent sur une butée, qui les effacerait à la première retouche.
+    expect(facets.budget.min).toBe(0)
+    expect(facets.budget.max).toBeGreaterThan(cap)
+    // Les tranches, calculées sur le stock, réintroduiraient un plancher figé.
+    expect(facets.budget.suggestions).toEqual([])
+  })
+
+  it('garde le plafond du stock quand le budget enregistré est ouvert', () => {
     const base = buildMatchFacets(SAUVAGE_LIKE_POOL).budget
     const facets = buildAlertPreferenceFacets(
       SAUVAGE_LIKE_POOL,
-      sanitizePreferences({ budget: { min: 0, max: base.max * 3 } }),
+      sanitizePreferences({ budget: { min: 0, max: null } }),
     )
-    expect(facets.budget.min).toBe(0)
-    expect(facets.budget.max).toBe(base.max * 3)
-    // Les tranches, calculées sur le stock, ne tomberaient plus juste.
-    expect(facets.budget.suggestions).toEqual([])
+    expect(facets.budget.max).toBe(base.max)
   })
 })
 

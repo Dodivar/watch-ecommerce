@@ -118,6 +118,28 @@ export function rememberAlertToken(token) {
   }
 }
 
+/**
+ * Retire le jeton de l'URL **au démarrage**, avant `initAnalytics()` (`main.js`).
+ *
+ * Le garde de route de la page ne suffit pas au premier chargement : le pixel Meta met sa
+ * page vue en file dès l'initialisation, et GA envoie la sienne à la fin du chargement de son
+ * script — tous deux lisent l'URL courante, ancre comprise. Ce nettoyage synchrone passe avant
+ * eux. Limité à la page « mes préférences » : une ancre ailleurs ne regarde pas les alertes.
+ *
+ * @param {Pick<Location, 'hash' | 'pathname' | 'search'>} [loc]
+ * @param {Pick<History, 'state' | 'replaceState'>} [hist]
+ * @returns {string} Le jeton retiré, ou `''`
+ */
+export function consumeAlertTokenFromLocation(loc = window.location, hist = window.history) {
+  const path = String(loc?.pathname || '').replace(/\/+$/, '')
+  if (!path.endsWith(MATCH_ALERT_PREFERENCES_PATH)) return ''
+  const token = readAlertTokenFromHash(loc.hash)
+  if (!token) return ''
+  rememberAlertToken(token)
+  hist.replaceState(hist.state, '', `${loc.pathname}${loc.search}`)
+  return token
+}
+
 /** @returns {string} */
 export function recallAlertToken() {
   try {
