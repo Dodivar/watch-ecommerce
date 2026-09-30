@@ -27,11 +27,16 @@ siteClients.getSupabaseClient = () => {
 }
 
 // Chargé APRÈS le remplacement ci-dessus.
-const { buildWatchMatchAlertsRouter } = require('../../backend/routes/watchMatchAlerts.js')
+const {
+  buildWatchMatchAlertsRouter,
+  maskEmail,
+  ALERT_PREFERENCES_PATH,
+} = require('../../backend/routes/watchMatchAlerts.js')
 const { recordMatchAlertOptIn } = require('../../backend/watchMatchAlerts/optIn.js')
 const {
   runMatchAlerts,
   isMatchAlertsEnabled,
+  alertLocalePrefix,
   ALERT_WINDOW_HOURS,
 } = require('../../backend/watchMatchAlerts/scheduler.js')
 const { loadMatchCore } = require('../../backend/watchMatchAlerts/core.js')
@@ -177,7 +182,15 @@ function makeSite(overrides = {}) {
 }
 
 /** Requête Express minimale. */
-function makeReq({ method = 'POST', url = '/subscribe', body = {}, query = {}, site, ip } = {}) {
+function makeReq({
+  method = 'POST',
+  url = '/subscribe',
+  body = {},
+  query = {},
+  headers = {},
+  site,
+  ip,
+} = {}) {
   return {
     method,
     url,
@@ -187,7 +200,7 @@ function makeReq({ method = 'POST', url = '/subscribe', body = {}, query = {}, s
     ip: ip || '10.0.0.1',
     socket: { remoteAddress: '10.0.0.1' },
     protocol: 'https',
-    headers: {},
+    headers,
     get: () => 'api.demo.fr',
   }
 }
@@ -532,6 +545,130 @@ describe('désinscription par jeton', () => {
   })
 })
 
+/* ------------------------------------------------------- Page « mes préférences » */
+
+describe('page « mes préférences » (jeton en en-tête)', () => {
+  const TOKEN = '6f1c2a4e-8b3d-4c5e-9f10-a1b2c3d4e5f6'
+  let router
+  let site
+
+  beforeEach(() => {
+    router = buildWatchMatchAlertsRouter()
+    site = makeSite()
+    currentSupabase = makeSupabase({
+      watch_match_alerts: [
+        {
+          id: 'a1',
+          site_id: 'demo',
+          email: 'client@example.fr',
+          status: 'active',
+          locale: 'en',
+          criteria: { brand: ['rolex'], seen: ['w1'] },
+          consent_at: '2026-09-01T00:00:00.000Z',
+          unsubscribe_token: TOKEN,
+        },
+      ],
+    })
+  })
+
+  function read(token = TOKEN) {
+    return call(
+      router,
+      makeReq({ method: 'GET', url: '/preferences', headers: { 'x-alert-token': token }, site }),
+    )
+  }
+
+  function save(criteria, token = TOKEN) {
+    return call(
+      router,
+      makeReq({
+        method: 'PUT',
+        url: '/preferences',
+        headers: { 'x-alert-token': token },
+        body: { criteria },
+        site,
+      }),
+    )
+  }
+
+  it('lit les préférences sans rien écrire, e-mail masqué', async () => {
+    const res = await read()
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toMatchObject({ success: true, status: 'active', locale: 'en' })
+    expect(res.body.email).toBe('c•••@example.fr')
+    expect(res.body.criteria.brand).toEqual(['rolex'])
+    // La lecture repasse par `sanitizePreferences` : rien d'autre ne ressort de la base.
+    expect(res.body.criteria).not.toHaveProperty('seen')
+    expect(currentSupabase.writes).toHaveLength(0)
+  })
+
+  it('refuse un jeton mal formé AVANT toute requête (la colonne est un uuid)', async () => {
+    // Postgres rejetterait la valeur : sans ce contrôle, un lien abîmé ferait un 500.
+    currentSupabase.from = () => {
+      throw new Error('la base ne devait pas être interrogée')
+    }
+    expect((await read('tok-1')).statusCode).toBe(400)
+    expect((await save({ brand: [] }, '')).statusCode).toBe(400)
+  })
+
+  it('répond 404 sur un jeton inconnu', async () => {
+    const res = await read('00000000-0000-4000-8000-000000000000')
+    expect(res.statusCode).toBe(404)
+    expect(res.body.code).toBe('UNKNOWN_TOKEN')
+  })
+
+  it('ne rend pas de préférences pour une alerte désinscrite', async () => {
+    currentSupabase.db.watch_match_alerts[0].status = 'unsubscribed'
+    const res = await read()
+    expect(res.body).toMatchObject({ status: 'unsubscribed', criteria: null })
+  })
+
+  it('remplace les préférences, `offered` compris, sans toucher au consentement', async () => {
+    const res = await save({
+      brand: ['omega'],
+      budget: { min: 0, max: 9000 },
+      offered: { brand: ['omega', 'rolex'] },
+      liked: ['w1'],
+    })
+    expect(res.statusCode).toBe(200)
+    const [row] = currentSupabase.db.watch_match_alerts
+    expect(row.criteria.brand).toEqual(['omega'])
+    expect(row.criteria.offered).toEqual({ brand: ['omega', 'rolex'] })
+    expect(row.criteria).not.toHaveProperty('liked')
+    expect(row.consent_at).toBe('2026-09-01T00:00:00.000Z')
+    expect(row.status).toBe('active')
+  })
+
+  it('ne rallume pas une alerte éteinte : écriture conditionnelle et 409', async () => {
+    currentSupabase.db.watch_match_alerts[0].status = 'unsubscribed'
+    currentSupabase.db.watch_match_alerts[0].criteria = {}
+    const res = await save({ brand: ['omega'] })
+    expect(res.statusCode).toBe(409)
+    expect(res.body.code).toBe('INACTIVE')
+    const [row] = currentSupabase.db.watch_match_alerts
+    expect(row).toMatchObject({ status: 'unsubscribed', criteria: {} })
+    const update = currentSupabase.writes.find((w) => w.op === 'update')
+    expect(update.cols).toContain('status')
+  })
+
+  it('répond 503 quand le site n’a pas ses secrets', async () => {
+    currentSupabase = null
+    expect((await read()).statusCode).toBe(503)
+  })
+
+  it('construit le même chemin que la vitrine sert', async () => {
+    const { MATCH_ALERT_PREFERENCES_PATH } = await import(
+      '../../packages/base/src/services/watchMatchAlertService.js'
+    )
+    expect(ALERT_PREFERENCES_PATH).toBe(MATCH_ALERT_PREFERENCES_PATH)
+  })
+
+  it('masque l’adresse sans la rendre méconnaissable', () => {
+    expect(maskEmail('dorian@example.fr')).toBe('d•••@example.fr')
+    expect(maskEmail('pas-une-adresse')).toBe('')
+  })
+})
+
 /* ------------------------------------------------------------------ Envoi */
 
 describe('runMatchAlerts', () => {
@@ -695,6 +832,33 @@ describe('runMatchAlerts', () => {
     expect(retry.calls).toHaveLength(0)
   })
 
+  it('joint le lien « mes préférences », jeton en ancre et dans la langue de l’alerte', async () => {
+    const i18nSite = makeSite()
+    i18nSite.config.raw.i18n = { defaultLocale: 'fr', locales: ['fr', 'en', 'de'] }
+    const sender = makeSender()
+    await run(makeSupabase(), sender, {
+      site: i18nSite,
+      alerts: [makeAlert({ locale: 'en' }), makeAlert({ id: 'alert-2', unsubscribe_token: 't2' })],
+    })
+    expect(sender.calls[0].preferencesUrl).toBe(
+      `https://demo.fr/en${ALERT_PREFERENCES_PATH}#token=tok-1`,
+    )
+    // Langue par défaut : pas de préfixe.
+    expect(sender.calls[1].preferencesUrl).toBe(`https://demo.fr${ALERT_PREFERENCES_PATH}#token=t2`)
+  })
+
+  it('dit sur chaque montre si elle sort des choix proposés au visiteur', async () => {
+    const sender = makeSender()
+    await run(makeSupabase(), sender, {
+      alerts: [
+        makeAlert({ criteria: { brand: ['rolex'], offered: { brand: ['rolex', 'tudor'] } } }),
+      ],
+      watches: [makeWatch({ id: 'rolex' }), makeWatch({ id: 'omega', brand: 'Omega' })],
+    })
+    const byId = Object.fromEntries(sender.calls[0].watches.map((w) => [w.id, w.unasked]))
+    expect(byId).toEqual({ rolex: [], omega: ['brand'] })
+  })
+
   it('un échec sur une alerte n’empêche pas les autres de partir', async () => {
     const supabase = makeSupabase()
     const sender = makeSender((params) =>
@@ -753,6 +917,48 @@ describe("e-mail d'alerte", () => {
     expect(copy.more).toBe('Et 3 autres montres correspondent aussi à vos critères.')
   })
 
+  it('explique, sur la carte concernée seulement, pourquoi une montre hors choix est annoncée', async () => {
+    const copy = await copyFor('fr', { count: 2, brandName: 'Demo', hasUnasked: true })
+    const html = createWatchMatchAlertEmail(site, {
+      watches: [
+        makeWatch({ id: 'rolex', unasked: [] }),
+        makeWatch({ id: 'omega', brand: 'Omega', unasked: ['brand'] }),
+      ],
+      copy,
+      unsubscribeUrl: 'https://api.demo.fr/u',
+      preferencesUrl: 'https://demo.fr/coup-de-foudre/mes-preferences#token=tok-1',
+    })
+    expect(html.match(/Une maison arrivée chez nous après votre inscription\./g)).toHaveLength(1)
+    // Lien sur la carte + lien de pied de page.
+    expect(html.match(/mes-preferences#token=tok-1/g)).toHaveLength(2)
+    // L'introduction ne prétend plus que tout « correspond à vos préférences ».
+    expect(copy.intro).not.toContain('correspond aux préférences')
+    expect(copy.intro).toContain('Certaines sortent')
+  })
+
+  it('garde l’introduction d’origine quand tout correspond, avec le lien en pied de page', async () => {
+    const copy = await copyFor('fr', { count: 1, brandName: 'Demo' })
+    const html = createWatchMatchAlertEmail(site, {
+      watches: [makeWatch({ unasked: [] })],
+      copy,
+      unsubscribeUrl: 'https://api.demo.fr/u',
+      preferencesUrl: 'https://demo.fr/p#token=x',
+    })
+    expect(copy.intro).toContain('correspond aux préférences')
+    expect(html).not.toContain('Une maison arrivée')
+    expect(html).toContain('Modifier mes préférences')
+  })
+
+  it('une nouveauté hors marque (une couleur) reçoit la formule générale', async () => {
+    const copy = await copyFor('en', { count: 1, hasUnasked: true })
+    const html = createWatchMatchAlertEmail(site, {
+      watches: [makeWatch({ unasked: ['color'] })],
+      copy,
+      unsubscribeUrl: 'https://api.demo.fr/u',
+    })
+    expect(html).toContain('A choice we could not offer you yet.')
+  })
+
   it('affiche le prix promotionnel quand il existe', () => {
     expect(formatWatchPrice({ price: 12000, promotionPrice: 9500 }, 'fr')).toContain('9')
     expect(formatWatchPrice({ price: null }, 'fr')).toBe('')
@@ -765,6 +971,15 @@ describe('isMatchAlertsEnabled', () => {
     expect(isMatchAlertsEnabled(makeSite({ features: { watchMatchAlerts: false } }))).toBe(false)
     expect(isMatchAlertsEnabled(makeSite({ features: { watchMatchmaking: false } }))).toBe(false)
     expect(isMatchAlertsEnabled({ config: {} })).toBe(false)
+  })
+
+  it('ne préfixe que les langues servies par le site, hors langue par défaut', () => {
+    const i18nSite = makeSite()
+    i18nSite.config.raw.i18n = { defaultLocale: 'fr', locales: ['fr', 'en'] }
+    expect(alertLocalePrefix(i18nSite, 'en')).toBe('/en')
+    expect(alertLocalePrefix(i18nSite, 'fr')).toBe('')
+    expect(alertLocalePrefix(i18nSite, 'de')).toBe('')
+    expect(alertLocalePrefix(makeSite(), 'en')).toBe('')
   })
 
   it('garde une fenêtre de balayage courte devant la durée de vie du catalogue', () => {

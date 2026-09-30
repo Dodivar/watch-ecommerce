@@ -1080,6 +1080,40 @@ export default {
     'Something went wrong while unsubscribing. Please try again in a moment.',
   'matchmaking.alertUnsubscribe.unavailableTitle': 'Service unavailable',
   'matchmaking.alertUnsubscribe.unavailableText': 'Unsubscribing is temporarily unavailable.',
+  // — Alerte coup de foudre : montre hors des choix proposés, et page « mes préférences »
+  'matchmaking.alertEmail.introNew': {
+    one: 'It has just arrived and goes beyond what we could offer you when you chose your preferences — see if it speaks to you.',
+    other:
+      'They have just arrived. Some go beyond what we could offer you when you chose your preferences — see if they speak to you.',
+  },
+  'matchmaking.alertEmail.newBrand': 'A maison that joined us after you signed up.',
+  'matchmaking.alertEmail.newOption': 'A choice we could not offer you yet.',
+  'matchmaking.alertEmail.editPreferences': 'Edit my preferences',
+  'matchmaking.alertPrefs.pageTitle': 'My alert preferences',
+  'matchmaking.alertPrefs.title': 'Your alert preferences',
+  'matchmaking.alertPrefs.lede':
+    'We write to you as soon as a new watch matches them. Adjust them whenever your taste changes.',
+  'matchmaking.alertPrefs.recipient': 'Alert sent to {email}',
+  'matchmaking.alertPrefs.ruleTitle': 'How we choose',
+  'matchmaking.alertPrefs.ruleText':
+    'The choices shown follow our current stock. What you leave unticked will not be sent to you; a maison or a colour we do not carry yet will be flagged when it arrives.',
+  'matchmaking.alertPrefs.noCriteria':
+    'No preference ticked: you will receive all our new arrivals within your budget.',
+  'matchmaking.alertPrefs.save': 'Save',
+  'matchmaking.alertPrefs.saving': 'Saving…',
+  'matchmaking.alertPrefs.saved': 'Saved. Your next alerts will follow these preferences.',
+  'matchmaking.alertPrefs.saveError': 'Saving failed. Please try again in a moment.',
+  'matchmaking.alertPrefs.restart': 'Start the experience again',
+  'matchmaking.alertPrefs.unsubscribe': 'Stop these alerts',
+  'matchmaking.alertPrefs.loading': 'Loading your preferences…',
+  'matchmaking.alertPrefs.invalidTitle': 'This link is no longer valid',
+  'matchmaking.alertPrefs.invalidText':
+    'Open the link in the latest email you received, or go through the experience again to save a new alert.',
+  'matchmaking.alertPrefs.inactiveTitle': 'This alert is switched off',
+  'matchmaking.alertPrefs.inactiveText':
+    'You no longer receive our emails. To switch it back on, go through the experience again and leave us your address.',
+  'matchmaking.alertPrefs.unavailableTitle': 'Temporarily unavailable',
+  'matchmaking.alertPrefs.unavailableText': 'Please try again in a few minutes.',
   // — Mise à jour du site (bandeau « nouvelle version »)
   'update.available': 'A new version of the site is available.',
   'update.reload': 'Reload',

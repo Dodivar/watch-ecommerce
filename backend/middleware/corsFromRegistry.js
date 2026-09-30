@@ -66,6 +66,8 @@ function corsFromRegistry(registry) {
       'X-Requested-With',
       'Origin',
       'X-Site-Id',
+      // Jeton de la page « mes préférences » des alertes coup de foudre (hors URL).
+      'X-Alert-Token',
     ],
     credentials: true,
     preflightContinue: false,

@@ -159,6 +159,8 @@ export function watchDetailsDbRow(watch = SAMPLE_WATCH) {
     frequency: '28 800 A/h',
     case_condition: 'Très bon',
     dial_condition: 'Impeccable',
+    // Surcharges par montre (couleurs, bracelets…) pour les parcours qui ont besoin d'un stock varié.
+    ...watch.details,
   }
 }
 

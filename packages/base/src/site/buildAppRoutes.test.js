@@ -55,6 +55,17 @@ describe('buildAppRoutes', () => {
     expect(paths).not.toContain('/coup-de-foudre')
   })
 
+  it('n’ouvre la page « mes préférences » qu’avec les alertes', () => {
+    const withoutAlerts = getActiveRoutePaths({ ...DEFAULT_SITE_FEATURES, watchMatchmaking: true })
+    expect(withoutAlerts).not.toContain('/coup-de-foudre/mes-preferences')
+    const withAlerts = getActiveRoutePaths({
+      ...DEFAULT_SITE_FEATURES,
+      watchMatchmaking: true,
+      watchMatchAlerts: true,
+    })
+    expect(withAlerts).toContain('/coup-de-foudre/mes-preferences')
+  })
+
   it('inclut /coup-de-foudre quand watchMatchmaking est true', () => {
     const paths = getActiveRoutePaths({ ...DEFAULT_SITE_FEATURES, watchMatchmaking: true })
     expect(paths).toContain('/coup-de-foudre')

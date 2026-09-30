@@ -1084,6 +1084,42 @@ export default {
   'matchmaking.alertUnsubscribe.unavailableTitle': 'Dienst nicht verfügbar',
   'matchmaking.alertUnsubscribe.unavailableText':
     'Die Abmeldung ist vorübergehend nicht möglich.',
+  // — Alerte coup de foudre : montre hors des choix proposés, et page « mes préférences »
+  'matchmaking.alertEmail.introNew': {
+    one: 'Sie ist gerade eingetroffen und geht über das hinaus, was wir Ihnen bei der Wahl Ihrer Vorlieben anbieten konnten – sehen Sie selbst, ob sie Sie anspricht.',
+    other:
+      'Sie sind gerade eingetroffen. Einige gehen über das hinaus, was wir Ihnen bei der Wahl Ihrer Vorlieben anbieten konnten – sehen Sie selbst, ob sie Sie ansprechen.',
+  },
+  'matchmaking.alertEmail.newBrand': 'Eine Manufaktur, die nach Ihrer Anmeldung zu uns kam.',
+  'matchmaking.alertEmail.newOption': 'Eine Auswahl, die wir Ihnen noch nicht anbieten konnten.',
+  'matchmaking.alertEmail.editPreferences': 'Meine Vorlieben ändern',
+  'matchmaking.alertPrefs.pageTitle': 'Meine Benachrichtigungen',
+  'matchmaking.alertPrefs.title': 'Ihre Vorlieben für Benachrichtigungen',
+  'matchmaking.alertPrefs.lede':
+    'Wir schreiben Ihnen, sobald eine neue Uhr dazu passt. Passen Sie sie an, wenn sich Ihr Geschmack ändert.',
+  'matchmaking.alertPrefs.recipient': 'Benachrichtigung an {email}',
+  'matchmaking.alertPrefs.ruleTitle': 'So wählen wir aus',
+  'matchmaking.alertPrefs.ruleText':
+    'Die angebotene Auswahl folgt unserem aktuellen Bestand. Was Sie nicht ankreuzen, schicken wir Ihnen nicht; eine Manufaktur oder Farbe, die wir noch nicht führen, melden wir Ihnen bei ihrer Ankunft.',
+  'matchmaking.alertPrefs.noCriteria':
+    'Keine Vorliebe angekreuzt: Sie erhalten alle Neuheiten in Ihrem Budget.',
+  'matchmaking.alertPrefs.save': 'Speichern',
+  'matchmaking.alertPrefs.saving': 'Wird gespeichert…',
+  'matchmaking.alertPrefs.saved':
+    'Gespeichert. Ihre nächsten Benachrichtigungen folgen diesen Vorlieben.',
+  'matchmaking.alertPrefs.saveError':
+    'Speichern fehlgeschlagen. Bitte versuchen Sie es gleich noch einmal.',
+  'matchmaking.alertPrefs.restart': 'Erneut starten',
+  'matchmaking.alertPrefs.unsubscribe': 'Diese Benachrichtigungen abbestellen',
+  'matchmaking.alertPrefs.loading': 'Ihre Vorlieben werden geladen…',
+  'matchmaking.alertPrefs.invalidTitle': 'Dieser Link ist nicht mehr gültig',
+  'matchmaking.alertPrefs.invalidText':
+    'Öffnen Sie den Link aus der zuletzt erhaltenen E-Mail oder durchlaufen Sie die Auswahl erneut, um eine neue Benachrichtigung zu speichern.',
+  'matchmaking.alertPrefs.inactiveTitle': 'Diese Benachrichtigung ist deaktiviert',
+  'matchmaking.alertPrefs.inactiveText':
+    'Sie erhalten keine E-Mails mehr von uns. Um sie wieder zu aktivieren, durchlaufen Sie die Auswahl erneut und hinterlassen Ihre Adresse.',
+  'matchmaking.alertPrefs.unavailableTitle': 'Vorübergehend nicht verfügbar',
+  'matchmaking.alertPrefs.unavailableText': 'Bitte versuchen Sie es in einigen Minuten erneut.',
   // — Mise à jour du site (bandeau « nouvelle version »)
   'update.available': 'Eine neue Version der Website ist verfügbar.',
   'update.reload': 'Neu laden',

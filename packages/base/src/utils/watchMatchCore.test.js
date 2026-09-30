@@ -24,6 +24,7 @@ import {
   matchesPreferences,
   measureAffinity,
   sanitizePreferences,
+  unaskedCriteria,
   watchValuesFor,
 } from './watchMatchCore.js'
 
@@ -243,6 +244,18 @@ describe('matchesPreferences — question jamais posée (`offered`)', () => {
       details: { braceletColors: ['silver'], dialColor: 'Rouge' },
     })
     expect(measureAffinity(watch, wanted)).toEqual({ score: 2, expressedWeight: 5 })
+  })
+
+  it('`unaskedCriteria` nomme ce que le visiteur n’a jamais pu choisir, et rien d’autre', () => {
+    const omegaRouge = makeWatch({ brand: 'Omega', details: { dialColor: 'Rouge' } })
+    expect(unaskedCriteria(omegaRouge, wanted)).toEqual(['brand', 'color'])
+    // Tudor/argent étaient affichés : refusés, pas « jamais demandés ».
+    const tudor = makeWatch({ brand: 'Tudor', details: { dialColor: 'Argent' } })
+    expect(unaskedCriteria(tudor, wanted)).toEqual([])
+    // Couleur inconnue : on ne peut rien en dire.
+    expect(unaskedCriteria(makeWatch({ brand: 'Omega' }), wanted)).toEqual(['brand'])
+    // Sans `offered`, rien n'est jamais « hors choix ».
+    expect(unaskedCriteria(omegaRouge, prefs({ brand: ['rolex'] }))).toEqual([])
   })
 
   it('sans `offered` (alertes plus anciennes), la règle d’avant s’applique', () => {

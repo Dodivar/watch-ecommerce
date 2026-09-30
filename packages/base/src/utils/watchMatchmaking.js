@@ -32,6 +32,7 @@ import {
   MATCH_COLOR_OPTIONS,
   MATCH_CRITERIA,
   createEmptyPreferences,
+  getMatchColorOption,
   isWatchInBudget,
   scoreWatch,
   watchValuesFor,
@@ -190,6 +191,94 @@ export function buildMatchFacets(pool) {
     caseMaterial: multi('caseMaterial', caseMaterialOptions),
     color: multi('color', colorOptions),
     movement: multi('movement', movementOptions),
+  }
+
+  return {
+    ...facets,
+    activeCriteria: MATCH_CRITERIA.filter((c) => facets[c.id].active).map((c) => c.id),
+  }
+}
+
+/**
+ * Option lisible pour une valeur déjà cochée qui n'est plus au stock : sans elle, la page
+ * « mes préférences » ne pourrait ni l'afficher ni la faire décocher. `null` pour une valeur
+ * que plus aucun référentiel ne connaît.
+ *
+ * @param {Exclude<MatchCriterionId, 'budget'>} id
+ * @param {string} value
+ * @returns {MatchOption | null}
+ */
+function describeSavedOption(id, value) {
+  if (id === 'brand') {
+    // Seule la clé normalisée est stockée (« audemars piguet ») : on lui rend des majuscules.
+    const label = value.replace(/(^|[\s-])(\p{L})/gu, (_, sep, ch) => sep + ch.toUpperCase())
+    return { value, label }
+  }
+  if (id === 'bracelet') {
+    const material = WATCH_BRACELET_MATERIALS.find((m) => m.slug === value)
+    return material ? { value, labelKey: material.labelKey } : null
+  }
+  if (id === 'color') {
+    const color = getMatchColorOption(value)
+    return color ? { value, labelKey: color.labelKey, gradient: color.gradient } : null
+  }
+  return { value, labelKey: value }
+}
+
+/**
+ * Facettes de la page « mes préférences » d'une alerte. Même règle que le parcours — on ne
+ * propose que ce que le stock porte — parce que tout ce qui est affiché et laissé décoché vaut
+ * refus (voir « question jamais posée », `watchMatchCore.js`) : afficher toute la palette
+ * transformerait chaque couleur absente en « non », et resserrerait l'alerte au lieu de
+ * l'élargir.
+ *
+ * Deux ajouts au stock, pour que la page reflète l'alerte et non le seul catalogue :
+ * - les valeurs **déjà cochées** restent affichées même sorties du stock, pour pouvoir être
+ *   décochées ; un critère qui en porte reste donc affiché même sans deux options ;
+ * - le **budget** s'élargit au budget enregistré, sans quoi le curseur le ramènerait dans les
+ *   bornes du jour et la première retouche le réécrirait en silence.
+ *
+ * @param {any[]} pool
+ * @param {MatchPreferences | null | undefined} preferences
+ * @returns {ReturnType<typeof buildMatchFacets>}
+ */
+export function buildAlertPreferenceFacets(pool, preferences) {
+  const base = buildMatchFacets(pool)
+  const prefs = preferences ?? createEmptyPreferences()
+
+  const saved = prefs.budget
+  let { min, max } = base.budget
+  if (saved) {
+    min = base.pool ? Math.min(min, saved.min) : saved.min
+    if (saved.max !== null && saved.max !== undefined) max = Math.max(max, saved.max)
+  }
+  const widened = min !== base.budget.min || max !== base.budget.max
+  const budget = {
+    ...base.budget,
+    min,
+    max,
+    active: max > min,
+    // Les tranches sont les terciles du stock : hors de ses bornes, elles ne tomberaient plus
+    // juste sur celles du curseur.
+    suggestions: widened ? [] : base.budget.suggestions,
+  }
+
+  const facets = { pool: base.pool, budget }
+  for (const criterion of MATCH_CRITERIA) {
+    if (criterion.kind !== 'multi') continue
+    const chosen = Array.isArray(prefs[criterion.id]) ? prefs[criterion.id] : []
+    const stock = base[criterion.id].options
+    const inStock = new Set(stock.map((o) => o.value))
+    const extra = chosen
+      .filter((value) => !inStock.has(value))
+      .map((value) => describeSavedOption(criterion.id, value))
+      .filter(Boolean)
+    const options = [...stock, ...extra]
+    facets[criterion.id] = {
+      id: criterion.id,
+      active: options.length >= 2 || chosen.length > 0,
+      options,
+    }
   }
 
   return {

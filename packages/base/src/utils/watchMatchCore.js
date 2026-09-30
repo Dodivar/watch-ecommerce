@@ -404,16 +404,59 @@ export function isWatchInBudget(watch, budget) {
 }
 
 /**
+ * **Question jamais posée.** Quand `preferences.offered` dit ce qui était affiché, une montre
+ * dont *aucune* valeur n'y figurait n'a jamais été soumise au visiteur sur ce critère. Celui
+ * qui a coché « Rolex » parmi Rolex et Tudor n'a rien dit d'Omega : une Omega mise en vente
+ * ensuite ne le contredit pas. La traiter comme « inconnue » ne suffirait pas : son poids
+ * resterait au dénominateur et la tiendrait sous `MATCH_ALERT_THRESHOLD`. Une valeur affichée
+ * mais pas cochée, elle, reste une contradiction : là, le visiteur a répondu.
+ *
+ * Seul prédicat de la règle : `measureAffinity` s'en sert pour décider, `unaskedCriteria` pour
+ * que l'e-mail puisse le dire — les deux ne peuvent donc pas diverger.
+ *
+ * @param {Exclude<MatchCriterionId, 'budget'>} criterionId
+ * @param {string[]} values  Valeurs de la montre (`VALUES_OF`)
+ * @param {string[]} wanted  Valeurs cochées
+ * @param {MatchPreferences} preferences
+ * @returns {boolean}
+ */
+function wasNeverAsked(criterionId, values, wanted, preferences) {
+  const offered = preferences?.offered?.[criterionId]
+  return (
+    Array.isArray(offered) &&
+    values.length > 0 &&
+    !values.some((v) => offered.includes(v) || wanted.includes(v))
+  )
+}
+
+/**
+ * Critères exprimés sur lesquels cette montre n'a jamais été soumise au visiteur — une maison
+ * ou une couleur arrivée après son inscription. Sert à le lui dire dans l'e-mail, et à
+ * l'inviter à revoir ses préférences.
+ *
+ * @param {any} watch
+ * @param {MatchPreferences} preferences
+ * @returns {Array<Exclude<MatchCriterionId, 'budget'>>}
+ */
+export function unaskedCriteria(watch, preferences) {
+  const ids = []
+  for (const criterion of MATCH_CRITERIA) {
+    if (criterion.kind !== 'multi') continue
+    const wanted = preferences?.[criterion.id]
+    if (!Array.isArray(wanted) || wanted.length === 0) continue
+    const values = VALUES_OF[criterion.id](watch)
+    if (wasNeverAsked(criterion.id, values, wanted, preferences)) ids.push(criterion.id)
+  }
+  return ids
+}
+
+/**
  * Score **et** poids total réellement demandé par le visiteur. Le second sert à ramener le
  * premier sur une échelle comparable d'une personne à l'autre : un score de 3 ne dit rien tant
  * qu'on ignore si le visiteur a exprimé un critère ou cinq.
  *
- * **Question jamais posée.** Quand `preferences.offered` dit ce qui était affiché, une montre
- * dont *aucune* valeur n'y figurait sort du critère — ni du score, ni du poids exprimé. Le
- * visiteur qui a coché « Rolex » parmi Rolex et Tudor n'a rien dit d'Omega : une Omega mise en
- * vente ensuite ne le contredit pas. La traiter comme « inconnue » ne suffirait pas : son poids
- * resterait au dénominateur et la tiendrait sous `MATCH_ALERT_THRESHOLD`. Une valeur affichée
- * mais pas cochée, elle, reste une contradiction : là, le visiteur a répondu.
+ * Un critère sur lequel la montre n'a jamais été soumise au visiteur (voir `wasNeverAsked`)
+ * sort du calcul — ni du score, ni du poids exprimé.
  *
  * @param {any} watch
  * @param {MatchPreferences} preferences
@@ -427,14 +470,7 @@ export function measureAffinity(watch, preferences) {
     const wanted = preferences?.[criterion.id]
     if (!Array.isArray(wanted) || wanted.length === 0) continue
     const values = VALUES_OF[criterion.id](watch)
-    const offered = preferences?.offered?.[criterion.id]
-    if (
-      Array.isArray(offered) &&
-      values.length > 0 &&
-      !values.some((v) => offered.includes(v) || wanted.includes(v))
-    ) {
-      continue
-    }
+    if (wasNeverAsked(criterion.id, values, wanted, preferences)) continue
     expressedWeight += criterion.weight
     if (values.length === 0) continue
     const matches = values.some((v) => wanted.includes(v))

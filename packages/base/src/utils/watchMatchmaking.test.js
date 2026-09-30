@@ -4,6 +4,7 @@ import {
   MATCH_CRITERIA,
   MATCH_ROUND_SIZE,
   buildBudgetSuggestions,
+  buildAlertPreferenceFacets,
   buildMatchFacets,
   buildOfferedOptions,
   createEmptyPreferences,
@@ -101,6 +102,48 @@ describe('buildOfferedOptions', () => {
   it('traverse `sanitizePreferences` telle quelle (c’est elle que relit le backend)', () => {
     const offered = buildOfferedOptions(buildMatchFacets(SAUVAGE_LIKE_POOL))
     expect(sanitizePreferences({ brand: ['rolex'], offered }).offered).toEqual(offered)
+  })
+})
+
+describe('buildAlertPreferenceFacets', () => {
+  it('propose le stock, pas toute la palette : ce qui est affiché et décoché vaut refus', () => {
+    const facets = buildAlertPreferenceFacets(SAUVAGE_LIKE_POOL, sanitizePreferences({}))
+    expect(facets.color.options.map((o) => o.value)).toEqual(
+      buildMatchFacets(SAUVAGE_LIKE_POOL).color.options.map((o) => o.value),
+    )
+  })
+
+  it('garde à l’écran une maison cochée qui n’est plus en stock, avec un libellé lisible', () => {
+    const facets = buildAlertPreferenceFacets(
+      SAUVAGE_LIKE_POOL,
+      sanitizePreferences({ brand: ['patek philippe'] }),
+    )
+    const option = facets.brand.options.find((o) => o.value === 'patek philippe')
+    expect(option.label).toBe('Patek Philippe')
+    // Et `offered` l'enregistrera comme affichée : décochée, elle devient un refus assumé.
+    expect(buildOfferedOptions(facets).brand).toContain('patek philippe')
+  })
+
+  it('affiche un critère à une seule option dès qu’il porte un choix', () => {
+    const facets = buildAlertPreferenceFacets(
+      SAUVAGE_LIKE_POOL,
+      sanitizePreferences({ bracelet: ['leather'] }),
+    )
+    expect(buildMatchFacets(SAUVAGE_LIKE_POOL).bracelet.active).toBe(false)
+    expect(facets.bracelet.active).toBe(true)
+    expect(facets.activeCriteria).toContain('bracelet')
+  })
+
+  it('élargit le curseur au budget enregistré au lieu de le ramener au stock du jour', () => {
+    const base = buildMatchFacets(SAUVAGE_LIKE_POOL).budget
+    const facets = buildAlertPreferenceFacets(
+      SAUVAGE_LIKE_POOL,
+      sanitizePreferences({ budget: { min: 0, max: base.max * 3 } }),
+    )
+    expect(facets.budget.min).toBe(0)
+    expect(facets.budget.max).toBe(base.max * 3)
+    // Les tranches, calculées sur le stock, ne tomberaient plus juste.
+    expect(facets.budget.suggestions).toEqual([])
   })
 })
 
