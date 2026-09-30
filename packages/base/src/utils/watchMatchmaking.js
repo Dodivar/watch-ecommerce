@@ -198,6 +198,23 @@ export function buildMatchFacets(pool) {
   }
 }
 
+/**
+ * Options que les écrans ont réellement affichées, pour `MatchPreferences.offered`. Seuls les
+ * critères actifs y figurent : un écran sauté n'a rien demandé, et sa préférence reste vide.
+ *
+ * @param {ReturnType<typeof buildMatchFacets>} facets
+ * @returns {NonNullable<MatchPreferences['offered']>}
+ */
+export function buildOfferedOptions(facets) {
+  /** @type {NonNullable<MatchPreferences['offered']>} */
+  const offered = {}
+  for (const id of facets?.activeCriteria ?? []) {
+    const facet = facets[id]
+    if (Array.isArray(facet?.options)) offered[id] = facet.options.map((o) => o.value)
+  }
+  return offered
+}
+
 /* ------------------------------------------------------------------ Classement */
 
 /**

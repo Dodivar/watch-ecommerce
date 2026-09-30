@@ -201,6 +201,81 @@ describe('matchesPreferences — critères exprimés', () => {
   })
 })
 
+describe('matchesPreferences — question jamais posée (`offered`)', () => {
+  // Le visiteur a coché Rolex et noir le jour où le stock n'offrait que Rolex/Tudor et
+  // noir/argent. L'alerte est relue des mois plus tard, face à un catalogue qui a bougé.
+  const wanted = prefs({
+    brand: ['rolex'],
+    color: ['black'],
+    offered: { brand: ['rolex', 'tudor'], color: ['black', 'silver'] },
+  })
+
+  it("une marque qui n'était pas proposée ne contredit pas : le visiteur n'en a rien dit", () => {
+    // Sans `offered`, cette Omega noire valait −1,5 + 2 = 0,5 / 5 = 0,1 → aucun e-mail.
+    const watch = makeWatch({ brand: 'Omega', details: { dialColor: 'Noir' } })
+    expect(measureAffinity(watch, wanted)).toEqual({ score: 2, expressedWeight: 2 })
+    expect(matchesPreferences(watch, wanted)).toBe(true)
+  })
+
+  it('une montre entièrement hors des options proposées ne relève que du budget', () => {
+    const watch = makeWatch({ brand: 'Omega', details: { dialColor: 'Rouge' } })
+    expect(affinityRatio(watch, wanted)).toBeNull()
+    expect(matchesPreferences(watch, wanted)).toBe(true)
+    expect(matchesPreferences(watch, { ...wanted, budget: { min: 0, max: 3000 } })).toBe(false)
+  })
+
+  it('une option proposée mais pas cochée reste une contradiction : là, le visiteur a répondu', () => {
+    const watch = makeWatch({ brand: 'Tudor', details: { dialColor: 'Argent' } })
+    expect(measureAffinity(watch, wanted)).toEqual({ score: -2.5, expressedWeight: 5 })
+    expect(matchesPreferences(watch, wanted)).toBe(false)
+  })
+
+  it('une caractéristique inconnue reste inconnue, `offered` ou pas', () => {
+    // Rolex (3) coché, couleur absente de la fiche → 3/5, comme avant.
+    const watch = makeWatch({ brand: 'Rolex' })
+    expect(affinityRatio(watch, wanted)).toBeCloseTo(0.6)
+  })
+
+  it('une montre multicolore compte dès qu’une de ses couleurs était proposée', () => {
+    // Argent était proposé (et pas coché), rouge ne l'était pas : la couleur reste jugée.
+    const watch = makeWatch({
+      brand: 'Rolex',
+      details: { braceletColors: ['silver'], dialColor: 'Rouge' },
+    })
+    expect(measureAffinity(watch, wanted)).toEqual({ score: 2, expressedWeight: 5 })
+  })
+
+  it('sans `offered` (alertes plus anciennes), la règle d’avant s’applique', () => {
+    const legacy = prefs({ brand: ['rolex'], color: ['black'] })
+    const watch = makeWatch({ brand: 'Omega', details: { dialColor: 'Rouge' } })
+    expect(matchesPreferences(watch, legacy)).toBe(false)
+  })
+})
+
+describe('MATCH_COLOR_OPTIONS — couleurs pas encore en stock', () => {
+  it('reconnaît un cadran dont la couleur ne figure ni parmi les bracelets ni dans le stock', () => {
+    for (const [dialColor, slug] of [
+      ['Rouge', 'red'],
+      ['Bordeaux', 'burgundy'],
+      ['Rose', 'pink'],
+      ['Violet', 'purple'],
+      ['Turquoise', 'turquoise'],
+      ['Beige', 'beige'],
+      ['Orange', 'orange'],
+      ['Jaune', 'yellow'],
+      ['Cuivre', 'copper'],
+    ]) {
+      expect(watchValuesFor('color', makeWatch({ details: { dialColor } }))).toEqual([slug])
+    }
+  })
+
+  it('« or rose » reste l’or rose des bracelets, pas le rose', () => {
+    expect(watchValuesFor('color', makeWatch({ details: { dialColor: 'Or rose' } }))).toEqual([
+      'rose_gold',
+    ])
+  })
+})
+
 describe('sanitizePreferences', () => {
   it("n'emporte que les préférences : l'historique de swipe ne peut pas traverser", () => {
     const clean = sanitizePreferences({
@@ -237,6 +312,15 @@ describe('sanitizePreferences', () => {
       max: null,
     })
     expect(sanitizePreferences({ budget: { min: 8000 } }).budget).toEqual({ min: 8000, max: null })
+  })
+
+  it('garde `offered` pour les seuls critères de liste connus, et l’omet s’il est vide', () => {
+    const clean = sanitizePreferences({
+      offered: { brand: ['rolex', 'rolex', 3], budget: [1000], seen: ['w1'], color: 'black' },
+    })
+    expect(clean.offered).toEqual({ brand: ['rolex'] })
+    expect(sanitizePreferences({ offered: { seen: ['w1'] } })).not.toHaveProperty('offered')
+    expect(sanitizePreferences({ offered: 'tout' })).not.toHaveProperty('offered')
   })
 
   it('déduplique et rejette les valeurs non textuelles', () => {

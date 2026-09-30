@@ -5,6 +5,7 @@ import {
   MATCH_ROUND_SIZE,
   buildBudgetSuggestions,
   buildMatchFacets,
+  buildOfferedOptions,
   createEmptyPreferences,
   hasAnyPreference,
   isWatchInBudget,
@@ -84,6 +85,24 @@ const SAUVAGE_LIKE_POOL = [
     },
   }),
 ]
+
+describe('buildOfferedOptions', () => {
+  it('ne retient que les écrans affichés, avec leurs options', () => {
+    const facets = buildMatchFacets(SAUVAGE_LIKE_POOL)
+    const offered = buildOfferedOptions(facets)
+    // Bracelet et boîtier n'avaient qu'une option : écrans sautés, rien n'a été demandé.
+    expect(Object.keys(offered).sort()).toEqual(
+      facets.activeCriteria.filter((id) => id !== 'budget').sort(),
+    )
+    expect(offered.brand).toEqual(['audemars piguet', 'rolex'])
+    expect(offered).not.toHaveProperty('bracelet')
+  })
+
+  it('traverse `sanitizePreferences` telle quelle (c’est elle que relit le backend)', () => {
+    const offered = buildOfferedOptions(buildMatchFacets(SAUVAGE_LIKE_POOL))
+    expect(sanitizePreferences({ brand: ['rolex'], offered }).offered).toEqual(offered)
+  })
+})
 
 describe('buildMatchFacets', () => {
   it('regroupe « ROLEX » et « Rolex » en une seule marque, libellée par la casse majoritaire', () => {

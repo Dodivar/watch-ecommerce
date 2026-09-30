@@ -7,7 +7,8 @@
  * survit au catalogue sur lequel elle a été réglée (`watch_match_alerts.criteria`), alors que
  * les bornes du curseur, elles, sont recalculées à chaque visite depuis le stock du moment
  * (`buildMatchFacets`). D'où la règle testée ici : poignée haute au bout = borne **ouverte**,
- * `max: null`, et non le prix de la montre la plus chère du jour.
+ * `max: null`, et non le prix de la montre la plus chère du jour ; poignée basse au départ =
+ * plancher `0`, et non le prix de la moins chère.
  */
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
@@ -51,6 +52,24 @@ describe('MatchPreferenceStep — budget', () => {
     const wrapper = mountStep()
     wrapper.vm.sliderRange = [4000, 6000]
     expect(lastEmitted(wrapper)).toEqual({ min: 4000, max: 6000 })
+  })
+
+  it('ouvre la borne basse (plancher 0) quand la poignée est au minimum', () => {
+    const wrapper = mountStep()
+    wrapper.vm.sliderRange = [FACET.min, 6000]
+    expect(lastEmitted(wrapper)).toEqual({ min: 0, max: 6000 })
+  })
+
+  it('tient la promesse de la tranche « jusqu’à » : elle ne se referme pas en bas', async () => {
+    const wrapper = mountStep()
+    await wrapper.findAll('button')[0].trigger('click')
+    expect(lastEmitted(wrapper)).toEqual({ min: 0, max: 3000 })
+  })
+
+  it('replace un plancher à 0 au minimum du curseur, tranche comprise', () => {
+    const wrapper = mountStep({ min: 0, max: 3000 })
+    expect(wrapper.vm.sliderRange).toEqual([FACET.min, 3000])
+    expect(wrapper.findAll('button')[0].attributes('aria-pressed')).toBe('true')
   })
 
   it("n'enregistre rien quand les deux poignées couvrent tout le pool", () => {

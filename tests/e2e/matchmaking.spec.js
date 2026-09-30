@@ -272,4 +272,56 @@ test.describe('Coup de foudre', () => {
     // de la montre la plus chère en stock le jour de l'inscription.
     expect(stored.preferences.budget).toEqual({ min: 11000, max: null })
   })
+
+  test('l’alerte emporte les options affichées et un budget sans plancher figé', async ({
+    page,
+  }) => {
+    await seedBrowser(page, { cartLines: [] })
+    await stubSupabaseCatalog(page, { watches: [SAMPLE_WATCH, SECOND_WATCH, THIRD_WATCH] })
+    /** @type {any} */
+    let payload = null
+    await page.route('**/api/watch-match-alerts/subscribe', async (route) => {
+      payload = route.request().postDataJSON()
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      })
+    })
+
+    await page.goto('/coup-de-foudre')
+
+    // Seule la borne haute descend : le plancher n'est pas le prix de la montre la moins chère.
+    await page.getByLabel('Maximum').fill('6000')
+    await page.getByLabel('Maximum').blur()
+    const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STORAGE_KEY)
+    expect(stored.preferences.budget).toEqual({ min: 0, max: 6000 })
+
+    // Marque : « Sauvage » cochée parmi les deux maisons affichées.
+    await page.getByRole('button', { name: 'Continuer' }).click()
+    await page.getByRole('button', { name: 'Sauvage', exact: true }).click()
+    const start = page.getByRole('button', { name: 'Voir les montres' })
+    for (let guard = 0; guard < 6 && !(await start.isVisible()); guard += 1) {
+      await page.getByRole('button', { name: 'Continuer' }).click()
+    }
+    await start.click()
+
+    // Deux montres dans le budget, puis l'écran de fin et son formulaire d'alerte.
+    await expect(page.getByText('1 sur 2')).toBeVisible()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByText('2 sur 2')).toBeVisible()
+    await page.keyboard.press('ArrowRight')
+
+    await page.getByPlaceholder('Votre e-mail').fill('alerte@example.fr')
+    await page.getByRole('checkbox', { name: /J’accepte de recevoir/ }).check()
+    await page.getByRole('button', { name: 'Me prévenir' }).click()
+    await expect(page.getByText(/C’est noté/)).toBeVisible()
+
+    expect(payload.criteria.brand).toEqual(['sauvage'])
+    expect(payload.criteria.budget).toEqual({ min: 0, max: 6000 })
+    // Orion était affichée et pas cochée : l'alerte le saura. Une maison qui n'existe pas
+    // encore au catalogue n'y figure pas — elle ne sera donc pas lue comme un refus.
+    expect(payload.criteria.offered.brand).toEqual(['orion', 'sauvage'])
+    expect(payload.criteria).not.toHaveProperty('seen')
+  })
 })

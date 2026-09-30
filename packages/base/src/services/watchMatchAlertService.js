@@ -2,7 +2,8 @@
  * Alerte « nouvelle montre » — phase 2 de l'expérience « coup de foudre ».
  *
  * Seule donnée du parcours autorisée à quitter le navigateur : l'e-mail et les **préférences**
- * (`MatchPreferences`), rien d'autre. L'historique de swipe (`seen`, `liked`, `passed`) reste
+ * (`MatchPreferences`, y compris `offered` — les options affichées, qui ne disent rien de la
+ * personne), rien d'autre. L'historique de swipe (`seen`, `liked`, `passed`) reste
  * dans `matchSessionStorage.js` et n'entre jamais dans ce payload — c'est une règle de la
  * fonctionnalité, pas un oubli. `buildMatchAlertPayload` est exporté pour que le test puisse le
  * vérifier sur pièce, et `sanitizePreferences` est rejoué côté backend : un client n'est pas
