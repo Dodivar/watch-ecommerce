@@ -157,6 +157,25 @@ describe('AdminOrderReturnPanel — remboursement', () => {
     )
   })
 
+  it('recharge la commande quand le backend vient de rattraper un remboursement Stripe', async () => {
+    const reconciled = new Error(
+      'Cette commande avait déjà été remboursée depuis Stripe : le remboursement vient d’être enregistré, la commande est à jour.',
+    )
+    reconciled.reconciled = true
+    refundOrderMock.mockRejectedValue(reconciled)
+    const wrapper = await mountPanel()
+    getOrderRefundsMock.mockClear()
+
+    await wrapper.get('[data-testid="refund-button"]').trigger('click')
+    await wrapper.get('[data-testid="refund-confirm-button"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="refund-error"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="refund-success"]').text()).toMatch(/déjà été remboursée/)
+    expect(getOrderRefundsMock).toHaveBeenCalledWith('order-1')
+    expect(wrapper.emitted('updated')).toHaveLength(1)
+  })
+
   it('cache le remboursement au rôle modérateur', async () => {
     roleRef.current = 'moderator'
 

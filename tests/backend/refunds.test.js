@@ -10,6 +10,7 @@ const {
   refundableCents,
   resolveOrderForRefund,
   summarizeRefundRows,
+  syncOrderRefundsFromStripe,
   validateRefundRequest,
 } = require('../../backend/orders/refunds.js')
 
@@ -413,5 +414,58 @@ describe('extractRefundsFromEvent', () => {
 
     expect(list).toHaveBeenCalledWith({ charge: 'ch_1', limit: 100 })
     expect(refunds.map((r) => r.id)).toEqual(['re_11'])
+  })
+})
+
+describe('syncOrderRefundsFromStripe', () => {
+  function stripeWithRefunds(refunds) {
+    return { refunds: { list: vi.fn().mockResolvedValue({ data: refunds }) } }
+  }
+
+  it('enregistre un remboursement fait au dashboard dont le webhook n’est jamais arrivé', async () => {
+    const supabase = fakeSupabase({ orders: [{ ...PAID_ORDER }] })
+    const stripe = stripeWithRefunds([stripeRefund()])
+
+    const results = await syncOrderRefundsFromStripe(stripe, supabase, SITE, PAID_ORDER)
+
+    expect(stripe.refunds.list).toHaveBeenCalledWith({
+      payment_intent: 'pi_3ABC123def',
+      limit: 100,
+    })
+    expect(results).toHaveLength(1)
+    expect(results[0].statusChangedTo).toBe('succeeded')
+    expect(supabase.state.refunds[0]).toMatchObject({ source: 'stripe_dashboard' })
+    expect(supabase.state.orders[0].refund_amount_cents).toBe(450000)
+    // Le reste à rembourser est désormais calculé contre la réalité Stripe.
+    expect(validateRefundRequest(PAID_ORDER, supabase.state.refunds, {})).toMatchObject({
+      ok: false,
+      status: 409,
+    })
+  })
+
+  it('ne signale rien quand la base est déjà à jour', async () => {
+    const supabase = fakeSupabase({ orders: [{ ...PAID_ORDER }] })
+    await recordStripeRefund(supabase, SITE, stripeRefund())
+
+    const results = await syncOrderRefundsFromStripe(
+      stripeWithRefunds([stripeRefund()]),
+      supabase,
+      SITE,
+      PAID_ORDER,
+    )
+
+    expect(results[0].statusChangedTo).toBeNull()
+    expect(supabase.state.refunds).toHaveLength(1)
+  })
+
+  it('n’interroge pas Stripe pour une commande sans PaymentIntent', async () => {
+    const stripe = stripeWithRefunds([])
+    const results = await syncOrderRefundsFromStripe(stripe, fakeSupabase(), SITE, {
+      ...PAID_ORDER,
+      stripe_payment_intent_id: null,
+    })
+
+    expect(results).toEqual([])
+    expect(stripe.refunds.list).not.toHaveBeenCalled()
   })
 })

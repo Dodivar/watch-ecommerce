@@ -237,8 +237,16 @@ async function confirmRefund() {
     await loadRefunds(props.order.id)
     emit('updated')
   } catch (err) {
-    refundError.value = err.message || 'Remboursement impossible'
     isConfirmingRefund.value = false
+    if (err.reconciled) {
+      // Remboursement déjà fait côté Stripe, enregistré à l'instant par le
+      // backend : on affiche l'état réel au lieu d'une erreur.
+      refundSuccess.value = err.message
+      await loadRefunds(props.order.id)
+      emit('updated')
+    } else {
+      refundError.value = err.message || 'Remboursement impossible'
+    }
   } finally {
     isRefunding.value = false
   }

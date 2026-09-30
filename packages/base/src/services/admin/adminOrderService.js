@@ -297,7 +297,11 @@ export async function refundOrder(orderId, { amountCents = null, reason = null, 
 
   const data = await readApiResponseBody(response)
   if (!response.ok || data?.success === false) {
-    throw new Error(data.error || data.message || 'Remboursement impossible')
+    const error = new Error(data.error || data.message || 'Remboursement impossible')
+    // Remboursement fait hors application, que le backend vient d'enregistrer :
+    // l'appelant doit recharger la commande plutôt que de laisser l'état périmé.
+    error.reconciled = Boolean(data?.reconciled)
+    throw error
   }
   return data
 }

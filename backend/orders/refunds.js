@@ -323,6 +323,38 @@ async function recordStripeRefund(supabase, site, refund, options = {}) {
 }
 
 /**
+ * Rattrape depuis Stripe les remboursements d'une commande que la base ignore.
+ *
+ * Le webhook est le chemin nominal, mais il peut manquer (endpoint mal
+ * configuré, événement non abonné, panne). Un remboursement fait au dashboard
+ * n'existe alors pas ici, et le panel proposerait de rembourser une seconde
+ * fois. Relire les Refunds du PaymentIntent avant d'agir referme ce trou —
+ * y compris pour un remboursement partiel, que Stripe n'aurait pas refusé.
+ *
+ * Idempotent : `recordStripeRefund` converge par `stripe_refund_id`.
+ *
+ * @param {object} stripe Client Stripe du site
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {object} site
+ * @param {object} order Ligne `orders`
+ * @returns {Promise<Array<Awaited<ReturnType<typeof recordStripeRefund>>>>}
+ */
+async function syncOrderRefundsFromStripe(stripe, supabase, site, order) {
+  if (!order?.stripe_payment_intent_id) return []
+
+  const page = await stripe.refunds.list({
+    payment_intent: order.stripe_payment_intent_id,
+    limit: 100,
+  })
+
+  const results = []
+  for (const refund of page?.data || []) {
+    results.push(await recordStripeRefund(supabase, site, refund, { order }))
+  }
+  return results
+}
+
+/**
  * Déclenche un remboursement Stripe pour une commande.
  *
  * La clé d'idempotence est obligatoire : sans elle, un double-clic ou un
@@ -407,5 +439,6 @@ module.exports = {
   refundableCents,
   resolveOrderForRefund,
   summarizeRefundRows,
+  syncOrderRefundsFromStripe,
   validateRefundRequest,
 }
