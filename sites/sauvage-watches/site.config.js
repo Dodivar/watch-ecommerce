@@ -400,10 +400,14 @@ export default {
     }),
   },
 
-  /** Mot de passe page « site en construction » (voir `MaintenancePage.vue`). */
-  // maintenance: {
-  //   password: 'dodi',
-  // },
+  /**
+   * Page « site en construction » (voir `MaintenancePage.vue`) : `enabled: false` ouvre le site à tous ;
+   * `true` (ou absent) le verrouille derrière `password`.
+   */
+  maintenance: {
+    enabled: false,
+    password: 'dodi',
+  },
 
   integrations: {
     cookieConsentStorageKey: 'sauvage_cookie_consent_v1',
