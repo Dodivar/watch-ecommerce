@@ -89,23 +89,23 @@ export default {
           {
             type: 'lines',
             lines: [
-              '**HOSTINGER INTERNATIONAL LIMITED**',
-              '61 Lordou Vironos Street',
-              '6023 Larnaca',
-              'Chypre',
+              '**Vercel Inc.**',
+              '340 South Lemon Avenue, bureau 4133',
+              'Walnut, CA 91789',
+              'États-Unis',
             ],
           },
           {
             type: 'p',
-            text: 'Téléphone : +370 645 03378',
-          },
-          {
-            type: 'p',
-            text: 'Site internet : [Hostinger](https://www.hostinger.fr)',
+            text: 'Site internet : [vercel.com](https://vercel.com)',
           },
           {
             type: 'p',
             text: 'Les coordonnées et informations légales actualisées de l’hébergeur peuvent être consultées directement sur son site officiel.',
+          },
+          {
+            type: 'p',
+            text: 'Le nom de domaine sauvage-watches.fr est enregistré auprès de **Hostinger International Limited** ([hostinger.fr](https://www.hostinger.fr)), qui n’héberge pas le site.',
           },
         ],
       },
