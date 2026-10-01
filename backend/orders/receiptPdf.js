@@ -8,6 +8,10 @@ const { fetchWatchImageUrl } = require('../utils/watchImages')
 const THUMB_SIZE = 48
 const HERO_SIZE = 96
 const PAGE_MARGIN = 48
+const LOGO_MAX_WIDTH = 120
+const LOGO_MAX_HEIGHT = 40
+/** Tout le texte du reçu est noir : les gris et beiges se lisent mal sur le blanc, et à l'impression. */
+const TEXT_COLOR = '#000000'
 /** Côté max des photos intégrées : 3× la vignette la plus grande, net à l'impression. */
 const EMBED_IMAGE_MAX_PX = HERO_SIZE * 3
 
@@ -83,6 +87,24 @@ function readLocalImage(filePath) {
 }
 
 /**
+ * Le logo du site est souvent un carré (icône de manifeste) : une marque large
+ * posée sur un fond uni. On rogne ce fond pour que la marque occupe la place
+ * réservée, au lieu de rester minuscule au centre d'un aplat beige. Un logo
+ * non rognable est utilisé tel quel.
+ *
+ * @param {Buffer|null} buffer
+ * @returns {Promise<Buffer|null>}
+ */
+async function trimLogo(buffer) {
+  if (!buffer) return null
+  try {
+    return await sharp(buffer).trim().png().toBuffer()
+  } catch {
+    return buffer
+  }
+}
+
+/**
  * Photos des lignes, prêtes pour PDFKit.
  *
  * `image_url` est l'instantané de la fiche au moment de la commande ; le
@@ -123,7 +145,7 @@ async function loadLineImages(receipt, options = {}) {
 function drawImagePlaceholder(doc, x, y, size, buffer, panelColor) {
   if (buffer) {
     try {
-      doc.image(buffer, x, y, { width: size, height: size, fit: [size, size] })
+      doc.image(buffer, x, y, { fit: [size, size], align: 'center', valign: 'center' })
       return
     } catch {
       /* fall through to placeholder */
@@ -173,28 +195,28 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
     // Header
     if (logoBuffer) {
       try {
-        doc.image(logoBuffer, PAGE_MARGIN, y, { height: 40, fit: [120, 40] })
+        doc.image(logoBuffer, PAGE_MARGIN, y, { fit: [LOGO_MAX_WIDTH, LOGO_MAX_HEIGHT] })
       } catch {
-        doc.font('Helvetica-Bold').fontSize(14).fillColor(branding.accentColor)
+        doc.font('Helvetica-Bold').fontSize(14).fillColor(TEXT_COLOR)
         doc.text(branding.brandName, PAGE_MARGIN, y)
       }
     } else {
-      doc.font('Helvetica-Bold').fontSize(14).fillColor(branding.accentColor)
+      doc.font('Helvetica-Bold').fontSize(14).fillColor(TEXT_COLOR)
       doc.text(branding.brandName, PAGE_MARGIN, y)
     }
 
-    doc.font('Helvetica-Bold').fontSize(16).fillColor(branding.textColor)
+    doc.font('Helvetica-Bold').fontSize(16).fillColor(TEXT_COLOR)
     doc.text(branding.documentTitle, PAGE_MARGIN, y, {
       width: contentWidth,
       align: 'right',
     })
     y += 28
-    doc.font('Helvetica').fontSize(9).fillColor('#666666')
+    doc.font('Helvetica').fontSize(9).fillColor(TEXT_COLOR)
     doc.text(labels.receiptSubtitle, PAGE_MARGIN, y, { width: contentWidth, align: 'right' })
     y += 24
 
     // Metadata
-    doc.font('Helvetica').fontSize(10).fillColor(branding.textColor)
+    doc.font('Helvetica').fontSize(10).fillColor(TEXT_COLOR)
     doc.text(`${labels.orderNumber} : ${order.id}`, PAGE_MARGIN, y)
     y += 14
     doc.text(`${labels.paymentDate} : ${receipt.formatDate(order.paidAt)}`, PAGE_MARGIN, y)
@@ -210,7 +232,7 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
       const heroBuffer = lineImages.get(0)
       if (heroBuffer) {
         try {
-          doc.image(heroBuffer, PAGE_MARGIN, y, { width: HERO_SIZE, height: HERO_SIZE, fit: [HERO_SIZE, HERO_SIZE] })
+          doc.image(heroBuffer, PAGE_MARGIN, y, { fit: [HERO_SIZE, HERO_SIZE], align: 'center', valign: 'center' })
           y += HERO_SIZE + 12
         } catch {
           /* skip */
@@ -222,12 +244,12 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
     const colWidth = contentWidth / 2 - 8
     const addressStartY = y
 
-    doc.font('Helvetica-Bold').fontSize(10).fillColor(branding.accentColor)
+    doc.font('Helvetica-Bold').fontSize(10).fillColor(TEXT_COLOR)
     doc.text(labels.seller, PAGE_MARGIN, y)
     doc.text(labels.customer, PAGE_MARGIN + colWidth + 16, y)
     y += 14
 
-    doc.font('Helvetica').fontSize(9).fillColor(branding.textColor)
+    doc.font('Helvetica').fontSize(9).fillColor(TEXT_COLOR)
     const sellerLines = [seller.name, seller.address, seller.email]
     if (seller.siret) sellerLines.push(`${labels.siret} : ${seller.siret}`)
     if (seller.vatNumber) sellerLines.push(`${labels.vatNumber} : ${seller.vatNumber}`)
@@ -252,7 +274,7 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
     const colDesc = contentWidth - colThumb - colRef - colQty - colUnit - colLine
 
     doc.rect(PAGE_MARGIN, y, contentWidth, 20).fillColor(branding.panelColor).fill()
-    doc.font('Helvetica-Bold').fontSize(8).fillColor('#555555')
+    doc.font('Helvetica-Bold').fontSize(8).fillColor(TEXT_COLOR)
     let colX = PAGE_MARGIN + 4
     if (branding.showWatchImages) colX += colThumb
     doc.text(labels.item, colX, y + 6, { width: colDesc })
@@ -268,7 +290,7 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
     })
     y += 24
 
-    doc.font('Helvetica').fontSize(9).fillColor(branding.textColor)
+    doc.font('Helvetica').fontSize(9).fillColor(TEXT_COLOR)
     for (let i = 0; i < lines.length; i += 1) {
       const line = lines[i]
       const rowY = y
@@ -318,7 +340,7 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
     const totalsX = pageWidth - PAGE_MARGIN - 220
     const totalsWidth = 220
     y += 8
-    doc.font('Helvetica').fontSize(10).fillColor(branding.textColor)
+    doc.font('Helvetica').fontSize(10).fillColor(TEXT_COLOR)
 
     const totalRows = [
       [labels.subtotal, receipt.formatMoney(totals.subtotalCents)],
@@ -348,24 +370,24 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
       .stroke()
     y += 8
 
-    doc.font('Helvetica-Bold').fontSize(11).fillColor(branding.accentColor)
+    doc.font('Helvetica-Bold').fontSize(11).fillColor(TEXT_COLOR)
     doc.text(labels.totalInclVat, totalsX, y, { width: totalsWidth / 2 })
     doc.text(receipt.formatMoney(totals.totalCents), totalsX, y, { width: totalsWidth, align: 'right' })
     y += 24
 
     // Discount detail
     if (discount?.code) {
-      doc.font('Helvetica').fontSize(9).fillColor('#15803d')
+      doc.font('Helvetica').fontSize(9).fillColor(TEXT_COLOR)
       doc.text(`${labels.promoCode} : ${discount.code}`, PAGE_MARGIN, y)
       y += 14
     }
 
     // Shipping block
     if (shipping) {
-      doc.font('Helvetica-Bold').fontSize(10).fillColor(branding.accentColor)
+      doc.font('Helvetica-Bold').fontSize(10).fillColor(TEXT_COLOR)
       doc.text(labels.shipping, PAGE_MARGIN, y)
       y += 14
-      doc.font('Helvetica').fontSize(9).fillColor(branding.textColor)
+      doc.font('Helvetica').fontSize(9).fillColor(TEXT_COLOR)
       if (shipping.methodLabel) {
         doc.text(`${labels.method} : ${shipping.methodLabel}`, PAGE_MARGIN, y)
         y += 12
@@ -391,10 +413,10 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
     }
 
     // Payment block
-    doc.font('Helvetica-Bold').fontSize(10).fillColor(branding.accentColor)
+    doc.font('Helvetica-Bold').fontSize(10).fillColor(TEXT_COLOR)
     doc.text(labels.payment, PAGE_MARGIN, y)
     y += 14
-    doc.font('Helvetica').fontSize(9).fillColor(branding.textColor)
+    doc.font('Helvetica').fontSize(9).fillColor(TEXT_COLOR)
     doc.text(`${labels.paymentMethod} : ${labels.cardViaStripe}`, PAGE_MARGIN, y)
     y += 12
     if (order.paymentIntentId) {
@@ -411,7 +433,7 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
       .stroke()
     y += 10
 
-    doc.font('Helvetica').fontSize(8).fillColor('#888888')
+    doc.font('Helvetica').fontSize(8).fillColor(TEXT_COLOR)
     if (branding.footerNote) {
       doc.text(branding.footerNote, PAGE_MARGIN, y, { width: contentWidth, align: 'center' })
       y += 12
@@ -438,7 +460,7 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
  * @returns {Promise<Buffer>}
  */
 async function generateReceiptPdfBuffer(receipt, options = {}) {
-  const logoBuffer = readLocalImage(receipt.branding.logoPath)
+  const logoBuffer = await trimLogo(readLocalImage(receipt.branding.logoPath))
   const lineImages = await loadLineImages(receipt, options)
   return renderReceiptPdf(receipt, logoBuffer, lineImages)
 }

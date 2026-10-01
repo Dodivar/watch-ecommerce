@@ -421,6 +421,8 @@ export default {
     /** Achats en ligne (Stripe) sur les fiches montre ; désactiver aussi `VITE_PURCHASE_ENABLED=false` en prod si besoin. */
     purchase: true,
     paymentReturn: true,
+    /** Page « À propos » désactivée : ni route, ni lien de menu ou de pied de page, ni plan du site. */
+    about: false,
     adminWatchPromotions: true,
     /** Archive publique des montres vendues (`/ventes`) — preuve sociale + SEO. */
     soldArchive: true,
@@ -649,12 +651,6 @@ export default {
         ],
       },
       { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
-      {
-        type: 'link',
-        label: t({ fr: 'À propos', en: 'About', de: 'Über uns' }),
-        to: '/a-propos',
-        feature: 'about',
-      },
       { type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' },
       {
         type: 'link',
@@ -698,11 +694,6 @@ export default {
         feature: 'estimation',
       },
       { label: 'Blog', to: '/blog', feature: 'blog' },
-      {
-        label: t({ fr: 'À propos', en: 'About', de: 'Über uns' }),
-        to: '/a-propos',
-        feature: 'about',
-      },
       {
         label: t({ fr: 'Contact', en: 'Contact', de: 'Kontakt' }),
         to: '/contact',
