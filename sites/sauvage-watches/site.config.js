@@ -400,8 +400,12 @@ export default {
     }),
   },
 
-  /** Mot de passe page « site en construction » (voir `MaintenancePage.vue`). */
+  /**
+   * Page « site en construction » (voir `MaintenancePage.vue`) : `enabled: false` ouvre le site à tous ;
+   * `true` (ou absent) le verrouille derrière `password`.
+   */
   maintenance: {
+    enabled: false,
     password: 'dodi',
   },
 

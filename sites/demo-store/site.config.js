@@ -128,12 +128,12 @@ export default {
    */
   /**
    * Page « site en construction » : mot de passe pour débloquer l’accès public.
+   * `enabled: false` ouvre le site à tous ; `true` (ou absent) le verrouille derrière `password`.
    * Définir `password` par client dans son `site.config.js` ; sinon le défaut du socle s’applique.
-   *
-   * maintenance: {
-   *   password: 'mot-de-passe-client',
-   * },
    */
+  maintenance: {
+    enabled: true,
+  },
 
   features: {
     collection: true,

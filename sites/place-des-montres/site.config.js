@@ -971,6 +971,7 @@ export default {
   },
 
   maintenance: {
+    enabled: true,
     password: 'dodi',
   },
 

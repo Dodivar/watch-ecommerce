@@ -44,6 +44,8 @@ Gabarit de départ : [`_template/`](_template/README.md).
   Voir [documentation/i18n/README.md](../documentation/i18n/README.md).
 - **`backend`** — URL du service Render et paramètres d'emails. Les secrets ne sont **jamais**
   dans le manifest : ils vivent en variables d'environnement `SITE_<ID>__<KEY>` côté Render.
+- **`maintenance`** — `enabled: false` ouvre le site à tous ; `true` (ou absent) le verrouille
+  derrière `password` (défaut du socle si omis). Retirer l'objet **ne** déverrouille **pas** le site.
 
 ## Après modification
 

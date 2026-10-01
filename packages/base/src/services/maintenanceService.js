@@ -29,6 +29,11 @@ export function checkMaintenancePassword(inputPassword) {
  * @returns {boolean} - True si l'utilisateur est authentifié
  */
 export function isAuthenticated() {
+  // `maintenance.enabled: false` → site ouvert à tous (absent ou true → verrou actif).
+  if (getSiteConfig().maintenance?.enabled === false) {
+    return true
+  }
+
   const key = getStorageKey()
   // Vérifier dans sessionStorage (perdure pendant la session du navigateur)
   const sessionAuth = sessionStorage.getItem(key)
