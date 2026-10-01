@@ -1,5 +1,7 @@
 <template>
-  <div class="min-h-screen bg-white">
+  <!-- Texte propre au client (manifest `legalDocuments.mentions`) ; sinon texte générique du socle. -->
+  <LegalDocument v-if="customDocument" :doc="customDocument" />
+  <div v-else class="min-h-screen bg-white">
     <section class="py-12 border-b border-gray-100">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 class="text-3xl lg:text-4xl font-bold text-text-main mb-3">
@@ -114,6 +116,7 @@
 
 <script setup>
 import { t } from '@/i18n'
+import LegalDocument from '@/components/legal/LegalDocument.vue'
 import { computed } from 'vue'
 import { useHead } from '@vueuse/head'
 import {
@@ -128,6 +131,7 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 const hasLegalDetails = computed(() => Boolean(LEGAL_ADDRESS || LEGAL_SIRET))
 
 const seo = getSiteConfig().seo.mentions
+const customDocument = getSiteConfig().legalDocuments?.mentions ?? null
 
 useHead({
   title: seo.title,

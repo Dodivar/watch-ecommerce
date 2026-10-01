@@ -57,7 +57,7 @@ Le middleware `resolveSite` détermine `req.site` selon la priorité suivante :
 | Source                      | Usage                                                      |
 | --------------------------- | ---------------------------------------------------------- |
 | `req.params.siteId`         | Webhook Stripe (`/api/stripe/webhook/:siteId`)             |
-| Header `X-Site-Id`          | Tests / curl / dev                                         |
+| Header `X-Site-Id`          | Posé par tous les fronts ; aussi tests / curl / dev        |
 | Header `Origin`             | Cas standard : appel front → backend                       |
 | Header `Host`               | Fallback (rare)                                            |
 | `DEV_DEFAULT_SITE_ID` (dev) | Fallback dev quand aucun matche (défaut `sauvage-watches`) |
@@ -65,6 +65,26 @@ Le middleware `resolveSite` détermine `req.site` selon la priorité suivante :
 
 
 L'origine acceptée est calculée pour chaque site à partir de `urls.production`, `urls.staging`, `urls.development` (et leur variante `www.`) plus `backend.cors.extraAllowedOrigins`. Aucune liste hardcodée dans le code.
+
+### Recoupement du site déclaré avec l'`Origin`
+
+`:siteId` et `X-Site-Id` sont **déclarés par l'appelant** ; l'`Origin` d'une requête navigateur
+est posée par le navigateur, hors de portée du script de la page. Quand les deux se
+contredisent, la requête est **refusée** (`400 { error: "Site déclaré incompatible avec
+l'Origin de la requête" }`) au lieu d'être arbitrée : sur un backend mutualisé, sans ce
+recoupement, une page servie par la vitrine A obtient le contexte de la vitrine B — donc son
+compte Mailjet et sa base — sur les routes résolues par origine et sans authentification
+(`/api/send-email`, `/api/newsletter/subscribe`, `POST /api/orders`).
+
+Deux exceptions, voulues :
+
+| Cas | Comportement | Pourquoi |
+| --- | --- | --- |
+| Requête **sans `Origin`** (curl, serveur, webhook Stripe) | la déclaration fait foi | rien à recouper ; seule l'authentification de la route contraint l'appelant |
+| `Origin` revendiquée par **plusieurs** sites | la déclaration fait foi | les quatre manifests déclarent `http://localhost:5173` en `urls.development` : l'origine ne prouve rien, donc elle n'infirme rien. `registry.ambiguousOrigins` les recense |
+
+Les routes authentifiées ne dépendaient pas de ce recoupement : leur jeton est vérifié contre
+le Supabase du site résolu, donc en déclarer un autre ne fait qu'invalider le jeton.
 
 ## Configuration par client (`sites/<id>/site.config.js`)
 
@@ -295,6 +315,7 @@ complément : le `schedule` GitHub est « best effort » et se désactive après
 - **Webhooks Stripe** : signature vérifiée avec `SITE_<ID>__STRIPE_WEBHOOK_SECRET`. Échec → 400 (non-réessai par Stripe). Erreur métier après réception → 500 (Stripe réessaie). Idempotence via `stripe_processed_events`.
 - **Tokens d'annulation** : signés HMAC avec `SITE_<ID>__PAYMENT_CANCEL_SECRET` ; isolés par site. Le token de suivi durable ouvre en plus la demande de rétractation (`POST /api/orders/:id/return-request`) : elle n'ouvre qu'un dossier, jamais un paiement, une annulation ni une modification de commande.
 - **Remboursements** : `POST /api/admin/orders/:id/refund` est la seule route qui fait sortir de l'argent. Réservée au rôle `admin`, journalisée (`admin_access_log`), montant borné contre la commande relue en service role (remboursements en vol déduits) et clé d'idempotence Stripe obligatoire. Le panel n'écrit jamais les colonnes de remboursement : la base lui en retire le droit (`revoke update … grant update (colonnes de suivi)`).
+- **Site déclaré recoupé avec l'`Origin`** : un `X-Site-Id` (ou `:siteId`) qui contredit une origine attribuée à un seul site fait échouer la requête en 400, avec un warning serveur dédoublonné. Voir [Recoupement du site déclaré](#recoupement-du-site-déclaré-avec-lorigin).
 - **Aucun secret partagé entre sites** : chaque siteId a son propre Stripe / Supabase / Mailjet.
 
 ## Maintenance

@@ -299,7 +299,7 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
 exports[`site contract: sauvage-watches > charge et résout le manifest sans erreur 1`] = `
 {
   "features": {
-    "about": true,
+    "about": false,
     "admin": true,
     "adminWatchPromotions": true,
     "blog": true,
@@ -359,10 +359,6 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
       "to": "/blog",
     },
     {
-      "label": "À propos",
-      "to": "/a-propos",
-    },
-    {
       "label": "Contact",
       "to": "/contact",
     },
@@ -396,11 +392,6 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     {
       "label": "Blog",
       "to": "/blog",
-      "type": "link",
-    },
-    {
-      "label": "À propos",
-      "to": "/a-propos",
       "type": "link",
     },
     {

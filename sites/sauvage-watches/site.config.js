@@ -3,6 +3,7 @@
  * Template extraction — all brand-specific defaults for `sites/sauvage-watches` live here.
  */
 import faq from './faq.config.js'
+import legalDocuments from './legal.config.js'
 import { t } from '../../packages/base/src/site/i18nValue.js'
 
 export default {
@@ -43,6 +44,8 @@ export default {
         'home.collectionTitle': 'Montres en stock',
         'crossSell.ourCollection': 'Nos montres en stock',
 
+        'legal.terms': 'CGV',
+        'checkout.termsLink': 'conditions générales de vente',
         'checkout.fulfillmentPickup': 'Rendez-vous',
         'checkout.pickupSectionTitle': 'Remise en main propre',
 
@@ -88,6 +91,8 @@ export default {
         'home.collectionTitle': 'Watches in stock',
         'crossSell.ourCollection': 'Our watches in stock',
 
+        'legal.terms': 'Terms of sale',
+        'checkout.termsLink': 'terms and conditions of sale',
         'checkout.fulfillmentPickup': 'Appointment',
         'checkout.pickupSectionTitle': 'Handover in person',
 
@@ -132,6 +137,8 @@ export default {
         'home.collectionTitle': 'Uhren auf Lager',
         'crossSell.ourCollection': 'Unsere Uhren auf Lager',
 
+        'legal.terms': 'AGB',
+        'checkout.termsLink': 'Allgemeinen Geschäftsbedingungen',
         'checkout.fulfillmentPickup': 'Termin',
         'checkout.pickupSectionTitle': 'Persönliche Übergabe',
 
@@ -329,6 +336,14 @@ export default {
     siret: '931 523 393 00011',
   },
 
+  /**
+   * Textes juridiques fournis par le client (mentions légales, confidentialité, CGV). Quand un
+   * document est présent, la page le rend à la place du texte générique du socle.
+   * La route `/conditions-generales-utilisation` porte ici les CGV : l'URL est conservée parce
+   * que le checkout, le sitemap et les liens existants y renvoient.
+   */
+  legalDocuments,
+
   urls: {
     production: 'https://www.sauvage-watches.fr',
     staging: 'https://recette.sauvage-watches.fr',
@@ -406,6 +421,8 @@ export default {
     /** Achats en ligne (Stripe) sur les fiches montre ; désactiver aussi `VITE_PURCHASE_ENABLED=false` en prod si besoin. */
     purchase: true,
     paymentReturn: true,
+    /** Page « À propos » désactivée : ni route, ni lien de menu ou de pied de page, ni plan du site. */
+    about: false,
     adminWatchPromotions: true,
     /** Archive publique des montres vendues (`/ventes`) — preuve sociale + SEO. */
     soldArchive: true,
@@ -634,12 +651,6 @@ export default {
         ],
       },
       { type: 'link', label: 'Blog', to: '/blog', feature: 'blog' },
-      {
-        type: 'link',
-        label: t({ fr: 'À propos', en: 'About', de: 'Über uns' }),
-        to: '/a-propos',
-        feature: 'about',
-      },
       { type: 'link', label: 'FAQ', to: '/faq', feature: 'faq' },
       {
         type: 'link',
@@ -683,11 +694,6 @@ export default {
         feature: 'estimation',
       },
       { label: 'Blog', to: '/blog', feature: 'blog' },
-      {
-        label: t({ fr: 'À propos', en: 'About', de: 'Über uns' }),
-        to: '/a-propos',
-        feature: 'about',
-      },
       {
         label: t({ fr: 'Contact', en: 'Contact', de: 'Kontakt' }),
         to: '/contact',
@@ -1162,9 +1168,9 @@ export default {
         de: 'Impressum | Sauvage Watches',
       }),
       ogDescription: t({
-        fr: 'Informations sur l’éditeur du site, l’hébergeur Vercel et le cadre applicable.',
-        en: 'Information about the site publisher, the host Vercel and the applicable framework.',
-        de: 'Angaben zum Herausgeber der Website, zum Hoster Vercel und zum geltenden Rahmen.',
+        fr: 'Informations sur l’éditeur du site, son hébergeur et le cadre applicable.',
+        en: 'Information about the site publisher, its host and the applicable framework.',
+        de: 'Angaben zum Herausgeber der Website, zum Hoster und zum geltenden Rahmen.',
       }),
       twitterTitle: t({
         fr: 'Mentions légales | Sauvage Watches',
@@ -1179,34 +1185,34 @@ export default {
     },
     cgu: {
       title: t({
-        fr: 'Conditions générales d’utilisation | Sauvage Watches',
-        en: 'Terms of use | Sauvage Watches',
-        de: 'Nutzungsbedingungen | Sauvage Watches',
+        fr: 'Conditions générales de vente | Sauvage Watches',
+        en: 'Terms of sale | Sauvage Watches',
+        de: 'Allgemeine Geschäftsbedingungen | Sauvage Watches',
       }),
       metaDescription: t({
-        fr: 'CGU du site Sauvage Watches : accès, services, commande et paiement, responsabilité, droit applicable.',
-        en: 'Sauvage Watches terms of use: access, services, ordering and payment, liability, governing law.',
-        de: 'Nutzungsbedingungen von Sauvage Watches: Zugang, Leistungen, Bestellung und Zahlung, Haftung, anwendbares Recht.',
+        fr: 'CGV de Sauvage Watches : commande, paiement, livraison, rétractation, garanties légales et commerciale, médiation.',
+        en: 'Sauvage Watches terms of sale: ordering, payment, delivery, withdrawal, statutory and commercial warranties, mediation.',
+        de: 'AGB von Sauvage Watches: Bestellung, Zahlung, Lieferung, Widerruf, gesetzliche und kommerzielle Garantien, Mediation.',
       }),
       ogTitle: t({
-        fr: 'Conditions générales d’utilisation | Sauvage Watches',
-        en: 'Terms of use | Sauvage Watches',
-        de: 'Nutzungsbedingungen | Sauvage Watches',
+        fr: 'Conditions générales de vente | Sauvage Watches',
+        en: 'Terms of sale | Sauvage Watches',
+        de: 'Allgemeine Geschäftsbedingungen | Sauvage Watches',
       }),
       ogDescription: t({
-        fr: 'Modalités d’utilisation du site, services proposés, propriété intellectuelle et contact.',
-        en: 'Site usage terms, services offered, intellectual property and contact.',
-        de: 'Nutzungsmodalitäten der Website, angebotene Leistungen, geistiges Eigentum und Kontakt.',
+        fr: 'Modalités de vente en ligne : commande, paiement, livraison, rétractation et garanties.',
+        en: 'Online sales terms: ordering, payment, delivery, withdrawal and warranties.',
+        de: 'Bedingungen für den Online-Verkauf: Bestellung, Zahlung, Lieferung, Widerruf und Garantien.',
       }),
       twitterTitle: t({
-        fr: 'Conditions générales d’utilisation | Sauvage Watches',
-        en: 'Terms of use | Sauvage Watches',
-        de: 'Nutzungsbedingungen | Sauvage Watches',
+        fr: 'Conditions générales de vente | Sauvage Watches',
+        en: 'Terms of sale | Sauvage Watches',
+        de: 'Allgemeine Geschäftsbedingungen | Sauvage Watches',
       }),
       twitterDescription: t({
-        fr: 'Règles d’accès et d’usage du site Sauvage Watches.',
-        en: 'Rules for accessing and using the Sauvage Watches site.',
-        de: 'Regeln für Zugang und Nutzung der Website Sauvage Watches.',
+        fr: 'Conditions de vente, livraison, rétractation et garanties de Sauvage Watches.',
+        en: 'Sauvage Watches sales, delivery, withdrawal and warranty terms.',
+        de: 'Verkaufs-, Liefer-, Widerrufs- und Garantiebedingungen von Sauvage Watches.',
       }),
     },
   },

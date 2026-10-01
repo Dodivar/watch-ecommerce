@@ -3,10 +3,15 @@
  *
  * Charge tous les `sites/<id>/site.config.js` du monorepo via dynamic import
  * (les manifests sont en ESM, le backend en CJS) puis construit des index :
- *   - byId       : siteId → SiteEntry
- *   - byOrigin   : Origin (ex. "https://sauvage-watches.fr") → SiteEntry
- *   - byHost     : host header → SiteEntry
- *   - allOrigins : Set<string> de toutes les origines autorisées (CORS dynamique)
+ *   - byId             : siteId → SiteEntry
+ *   - byOrigin         : Origin (ex. "https://sauvage-watches.fr") → SiteEntry
+ *   - byHost           : host header → SiteEntry
+ *   - allOrigins       : Set<string> de toutes les origines autorisées (CORS dynamique)
+ *   - ambiguousOrigins : Set<string> des origines revendiquées par plusieurs sites
+ *
+ * Une origine ambiguë reste autorisée en CORS et garde son entrée dans `byOrigin`
+ * (le premier site chargé l'emporte, comme avant) ; elle ne prouve simplement rien
+ * sur le locataire, ce dont `resolveSite` a besoin pour recouper `X-Site-Id`.
  *
  * Chaque entrée expose la config normalisée et les secrets résolus depuis l'env.
  */
@@ -82,6 +87,7 @@ async function loadSiteConfig(siteId) {
  *   byOrigin: Map<string, SiteEntry>,
  *   byHost: Map<string, SiteEntry>,
  *   allOrigins: Set<string>,
+ *   ambiguousOrigins: Set<string>,
  *   list(): SiteEntry[]
  * }>}
  */
@@ -91,6 +97,7 @@ async function buildRegistry() {
   const byOrigin = new Map()
   const byHost = new Map()
   const allOrigins = new Set()
+  const ambiguousOrigins = new Set()
 
   for (const id of ids) {
     let normalized
@@ -115,6 +122,11 @@ async function buildRegistry() {
       const key = trimTrailingSlash(origin)
       if (!key) continue
       if (byOrigin.has(key) && byOrigin.get(key).id !== entry.id) {
+        // L'origine est revendiquée par au moins deux sites : on garde le premier dans
+        // `byOrigin`, mais on la marque pour que `resolveSite` refuse de s'en servir comme
+        // preuve d'appartenance. Cas courant : les quatre manifests déclarent
+        // `http://localhost:5173` en `urls.development`.
+        ambiguousOrigins.add(key)
         console.warn(
           `⚠️  [registry] Origin ${key} déjà associée à "${byOrigin.get(key).id}" — ignorée pour "${entry.id}".`,
         )
@@ -135,6 +147,7 @@ async function buildRegistry() {
     byOrigin,
     byHost,
     allOrigins,
+    ambiguousOrigins,
     list() {
       return Array.from(byId.values())
     },

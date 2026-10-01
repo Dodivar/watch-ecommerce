@@ -1,7 +1,10 @@
 const express = require('express')
 
 const { getStripeClient, getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
-const { resolveSiteFromRequest } = require('../middleware/resolveSite')
+const {
+  resolveSiteResult,
+  RESOLUTION_SITE_MISMATCH,
+} = require('../middleware/resolveSite')
 const { handlePaymentIntentSucceeded, handleRefundEvent } = require('./orders')
 
 /**
@@ -29,7 +32,17 @@ function buildStripeRouter(registry) {
   }
 
   async function handleStripeWebhook(req, res) {
-    const site = resolveSiteFromRequest(req, registry) || registry.byId.get('sauvage-watches')
+    const resolution = resolveSiteResult(req, registry)
+    if (resolution.reason === RESOLUTION_SITE_MISMATCH) {
+      // Stripe n'envoie pas d'`Origin` : ce cas est forcément un appel navigateur qui déclare
+      // le site d'un autre client. Surtout pas de repli sur le site par défaut ici.
+      console.error(
+        `❌ Webhook Stripe : site déclaré "${resolution.declaredId}" incompatible avec l'Origin ${resolution.origin}`,
+      )
+      return res.status(400).send('Site mismatch')
+    }
+
+    const site = resolution.site || registry.byId.get('sauvage-watches')
     if (!site) {
       console.error('❌ Webhook Stripe : site introuvable')
       return res.status(400).send('Unknown site')
