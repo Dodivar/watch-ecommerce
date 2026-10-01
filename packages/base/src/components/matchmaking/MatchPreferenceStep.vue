@@ -172,8 +172,8 @@ const tooltipMergeDistance = computed(() =>
 
 /**
  * Position des deux poignées. Une borne haute ouverte (`max: null`, voir `emitBudget`) se
- * représente par le maximum du curseur : c'est la même chose à l'écran, la nuance ne vit que
- * dans ce qui est enregistré.
+ * représente par le maximum du curseur, un plancher à 0 par son minimum : c'est la même chose
+ * à l'écran, la nuance ne vit que dans ce qui est enregistré.
  */
 function currentRange() {
   const budget = props.modelValue && !Array.isArray(props.modelValue) ? props.modelValue : null
@@ -217,7 +217,12 @@ function emitBudget(min, max) {
   // Poignée haute au bout = « à partir de », pas « jusqu'au prix de la montre la plus chère
   // en stock aujourd'hui ». Enregistrer ce plafond figerait l'alerte sur le catalogue du jour
   // et lui ferait manquer toute montre plus chère mise en vente ensuite.
-  emit('update:modelValue', { min: lo, max: hi >= props.facet.max ? null : hi })
+  // Même raisonnement à l'autre bout : poignée basse au départ = « jusqu'à », donc plancher 0,
+  // et non le prix de la montre la moins chère d'aujourd'hui.
+  emit('update:modelValue', {
+    min: lo <= props.facet.min ? 0 : lo,
+    max: hi >= props.facet.max ? null : hi,
+  })
 }
 
 function commitInputs() {

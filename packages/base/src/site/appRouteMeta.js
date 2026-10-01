@@ -21,6 +21,12 @@ export const APP_ROUTE_META = [
   { path: '/watch/:id', feature: 'collection' },
   { path: '/ventes', feature: 'soldArchive' },
   { path: '/coup-de-foudre', feature: 'watchMatchmaking' },
+  // Lien des e-mails d'alerte : hors sitemap et hors pré-rendu, la page est personnelle.
+  {
+    path: '/coup-de-foudre/mes-preferences',
+    feature: 'watchMatchmaking',
+    requiresFeatures: ['watchMatchAlerts'],
+  },
   { path: '/blog', feature: 'blog' },
   { path: '/blog/:id', feature: 'blog' },
   { path: '/a-propos', feature: 'about' },

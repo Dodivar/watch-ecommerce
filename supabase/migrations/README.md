@@ -277,6 +277,17 @@ qui n'a pas trouvé sa montre dans l'expérience `/coup-de-foudre` laisse son e-
   figer le prix de la montre la plus chère du jour lui ferait manquer, en silence, toute montre
   plus chère mise en vente ensuite. Les alertes créées avant cette règle gardent leur plafond
   chiffré — il n'est pas reconstituable, et rien ne le corrige rétroactivement
+- `criteria.budget.min` vaut `0` quand la poignée basse est restée au départ (« jusqu'à X »),
+  pour la même raison, à l'autre bout
+- `criteria.offered` liste, critère par critère, les options **affichées** quand la personne a
+  répondu (parcours ou page « mes préférences »). Une montre dont aucune valeur n'y figurait —
+  une maison ou une couleur arrivée depuis — ne compte pas comme refusée, et l'e-mail le dit.
+  Absent sur les alertes plus anciennes : la règle d'avant s'applique jusqu'au premier
+  enregistrement. Aucune migration : la colonne est déjà du JSON
+- `unsubscribe_token` sert aussi la page vitrine `/coup-de-foudre/mes-preferences`
+  (`GET`/`PUT /api/watch-match-alerts/preferences`) : lecture, et remplacement des préférences
+  d'une alerte **active**. Le lien d'e-mail porte le jeton dans l'ancre (`#token=`), jamais
+  envoyée à un serveur ; la page l'en retire, puis le transmet en en-tête `X-Alert-Token`
 - Table `watch_match_alert_notifications` : journal d'envoi à la ligne, une par couple
   (alerte, montre) — l'équivalent de `newsletter_campaign_recipients`
 - Policies RLS admin (`is_admin_user()`) ; l'opt-in public et l'envoi passent par le backend

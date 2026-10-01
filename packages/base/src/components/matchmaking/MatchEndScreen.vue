@@ -87,7 +87,7 @@
       </button>
     </div>
 
-    <MatchCtaFooter :preferences="mm.session.preferences" class="mt-8" />
+    <MatchCtaFooter :criteria="mm.alertCriteria" class="mt-8" />
   </section>
 </template>
 

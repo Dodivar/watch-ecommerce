@@ -32,6 +32,7 @@ import {
   MATCH_COLOR_OPTIONS,
   MATCH_CRITERIA,
   createEmptyPreferences,
+  getMatchColorOption,
   isWatchInBudget,
   scoreWatch,
   watchValuesFor,
@@ -196,6 +197,115 @@ export function buildMatchFacets(pool) {
     ...facets,
     activeCriteria: MATCH_CRITERIA.filter((c) => facets[c.id].active).map((c) => c.id),
   }
+}
+
+/**
+ * Option lisible pour une valeur déjà cochée qui n'est plus au stock : sans elle, la page
+ * « mes préférences » ne pourrait ni l'afficher ni la faire décocher. `null` pour une valeur
+ * que plus aucun référentiel ne connaît.
+ *
+ * @param {Exclude<MatchCriterionId, 'budget'>} id
+ * @param {string} value
+ * @returns {MatchOption | null}
+ */
+function describeSavedOption(id, value) {
+  if (id === 'brand') {
+    // Seule la clé normalisée est stockée (« audemars piguet ») : on lui rend des majuscules.
+    const label = value.replace(/(^|[\s-])(\p{L})/gu, (_, sep, ch) => sep + ch.toUpperCase())
+    return { value, label }
+  }
+  if (id === 'bracelet') {
+    const material = WATCH_BRACELET_MATERIALS.find((m) => m.slug === value)
+    return material ? { value, labelKey: material.labelKey } : null
+  }
+  if (id === 'color') {
+    const color = getMatchColorOption(value)
+    return color ? { value, labelKey: color.labelKey, gradient: color.gradient } : null
+  }
+  return { value, labelKey: value }
+}
+
+/**
+ * Facettes de la page « mes préférences » d'une alerte. Même règle que le parcours — on ne
+ * propose que ce que le stock porte — parce que tout ce qui est affiché et laissé décoché vaut
+ * refus (voir « question jamais posée », `watchMatchCore.js`) : afficher toute la palette
+ * transformerait chaque couleur absente en « non », et resserrerait l'alerte au lieu de
+ * l'élargir.
+ *
+ * Deux ajouts au stock, pour que la page reflète l'alerte et non le seul catalogue :
+ * - les valeurs **déjà cochées** restent affichées même sorties du stock, pour pouvoir être
+ *   décochées ; un critère qui en porte reste donc affiché même sans deux options ;
+ * - le **budget** part de 0 et monte au-delà du plafond enregistré. `MatchPreferenceStep` lit
+ *   une poignée en butée comme « pas de borne » (plancher 0, plafond ouvert) : si le curseur
+ *   s'arrêtait pile sur le budget enregistré, un simple passage dans un champ le réécrirait.
+ *   Plancher à 0 et plafond chiffré ne peuvent donc jamais tomber sur une butée qui les
+ *   effacerait ; seuls un plancher déjà nul et un plafond déjà ouvert y sont.
+ *
+ * @param {any[]} pool
+ * @param {MatchPreferences | null | undefined} preferences
+ * @returns {ReturnType<typeof buildMatchFacets>}
+ */
+export function buildAlertPreferenceFacets(pool, preferences) {
+  const base = buildMatchFacets(pool)
+  const prefs = preferences ?? createEmptyPreferences()
+
+  const saved = prefs.budget
+  const stepAbove = (value) => value + (value < 10000 ? 100 : 500)
+  let max = base.budget.max
+  if (saved) {
+    const hasCap = saved.max !== null && saved.max !== undefined
+    if (hasCap && saved.max >= max) max = stepAbove(saved.max)
+    if (max <= saved.min) max = stepAbove(saved.min)
+  }
+  const budget = {
+    ...base.budget,
+    min: 0,
+    max,
+    active: max > 0,
+    // Les tranches sont les terciles du stock, à plancher non nul : « jusqu'à X » y
+    // enregistrerait de nouveau le prix de la montre la moins chère du jour.
+    suggestions: [],
+  }
+
+  const facets = { pool: base.pool, budget }
+  for (const criterion of MATCH_CRITERIA) {
+    if (criterion.kind !== 'multi') continue
+    const chosen = Array.isArray(prefs[criterion.id]) ? prefs[criterion.id] : []
+    const stock = base[criterion.id].options
+    const inStock = new Set(stock.map((o) => o.value))
+    const extra = chosen
+      .filter((value) => !inStock.has(value))
+      .map((value) => describeSavedOption(criterion.id, value))
+      .filter(Boolean)
+    const options = [...stock, ...extra]
+    facets[criterion.id] = {
+      id: criterion.id,
+      active: options.length >= 2 || chosen.length > 0,
+      options,
+    }
+  }
+
+  return {
+    ...facets,
+    activeCriteria: MATCH_CRITERIA.filter((c) => facets[c.id].active).map((c) => c.id),
+  }
+}
+
+/**
+ * Options que les écrans ont réellement affichées, pour `MatchPreferences.offered`. Seuls les
+ * critères actifs y figurent : un écran sauté n'a rien demandé, et sa préférence reste vide.
+ *
+ * @param {ReturnType<typeof buildMatchFacets>} facets
+ * @returns {NonNullable<MatchPreferences['offered']>}
+ */
+export function buildOfferedOptions(facets) {
+  /** @type {NonNullable<MatchPreferences['offered']>} */
+  const offered = {}
+  for (const id of facets?.activeCriteria ?? []) {
+    const facet = facets[id]
+    if (Array.isArray(facet?.options)) offered[id] = facet.options.map((o) => o.value)
+  }
+  return offered
 }
 
 /* ------------------------------------------------------------------ Classement */

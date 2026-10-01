@@ -272,4 +272,136 @@ test.describe('Coup de foudre', () => {
     // de la montre la plus chère en stock le jour de l'inscription.
     expect(stored.preferences.budget).toEqual({ min: 11000, max: null })
   })
+
+  test('l’alerte emporte les options affichées et un budget sans plancher figé', async ({
+    page,
+  }) => {
+    await seedBrowser(page, { cartLines: [] })
+    await stubSupabaseCatalog(page, { watches: [SAMPLE_WATCH, SECOND_WATCH, THIRD_WATCH] })
+    /** @type {any} */
+    let payload = null
+    await page.route('**/api/watch-match-alerts/subscribe', async (route) => {
+      payload = route.request().postDataJSON()
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      })
+    })
+
+    await page.goto('/coup-de-foudre')
+
+    // Seule la borne haute descend : le plancher n'est pas le prix de la montre la moins chère.
+    await page.getByLabel('Maximum').fill('6000')
+    await page.getByLabel('Maximum').blur()
+    const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STORAGE_KEY)
+    expect(stored.preferences.budget).toEqual({ min: 0, max: 6000 })
+
+    // Marque : « Sauvage » cochée parmi les deux maisons affichées.
+    await page.getByRole('button', { name: 'Continuer' }).click()
+    await page.getByRole('button', { name: 'Sauvage', exact: true }).click()
+    const start = page.getByRole('button', { name: 'Voir les montres' })
+    for (let guard = 0; guard < 6 && !(await start.isVisible()); guard += 1) {
+      await page.getByRole('button', { name: 'Continuer' }).click()
+    }
+    await start.click()
+
+    // Deux montres dans le budget, puis l'écran de fin et son formulaire d'alerte.
+    await expect(page.getByText('1 sur 2')).toBeVisible()
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByText('2 sur 2')).toBeVisible()
+    await page.keyboard.press('ArrowRight')
+
+    await page.getByPlaceholder('Votre e-mail').fill('alerte@example.fr')
+    await page.getByRole('checkbox', { name: /J’accepte de recevoir/ }).check()
+    await page.getByRole('button', { name: 'Me prévenir' }).click()
+    await expect(page.getByText(/C’est noté/)).toBeVisible()
+
+    expect(payload.criteria.brand).toEqual(['sauvage'])
+    expect(payload.criteria.budget).toEqual({ min: 0, max: 6000 })
+    // Orion était affichée et pas cochée : l'alerte le saura. Une maison qui n'existe pas
+    // encore au catalogue n'y figure pas — elle ne sera donc pas lue comme un refus.
+    expect(payload.criteria.offered.brand).toEqual(['orion', 'sauvage'])
+    expect(payload.criteria).not.toHaveProperty('seen')
+  })
+
+  /**
+   * Page « mes préférences », atteinte par le lien de chaque e-mail d'alerte. Le backend est
+   * simulé : ce qui compte ici est ce que la page envoie, et ce qu'elle laisse dans l'URL.
+   */
+  test.describe('mes préférences', () => {
+    const TOKEN = '6f1c2a4e-8b3d-4c5e-9f10-a1b2c3d4e5f6'
+
+    test('retire le jeton de l’URL et enregistre les options affichées', async ({ page }) => {
+      // Mesure acceptée : c'est précisément le cas où le jeton ne doit pas partir chez Google.
+      await seedBrowser(page, { cartLines: [], consent: { analytics: true, marketing: true } })
+      await stubSupabaseCatalog(page, { watches: [SAMPLE_WATCH, SECOND_WATCH, THIRD_WATCH] })
+      /** @type {any} */
+      let putBody = null
+      const tokens = []
+      await page.route('**/api/watch-match-alerts/preferences', async (route) => {
+        const request = route.request()
+        tokens.push(request.headers()['x-alert-token'])
+        if (request.method() === 'PUT') {
+          putBody = request.postDataJSON()
+          return route.fulfill({ json: { success: true } })
+        }
+        return route.fulfill({
+          json: {
+            success: true,
+            status: 'active',
+            email: 'c•••@example.fr',
+            locale: 'fr',
+            // Une maison cochée il y a des mois, qui n'est plus au catalogue.
+            criteria: { brand: ['patek philippe'], budget: null },
+          },
+        })
+      })
+
+      await page.goto(`/coup-de-foudre/mes-preferences#token=${TOKEN}`)
+      await expect(page.getByRole('heading', { name: 'Vos préférences d’alerte' })).toBeVisible()
+      // Le jeton ne reste pas dans la barre d'adresse (mesure d'audience, historique partagé).
+      expect(new URL(page.url()).hash).toBe('')
+      const measured = await page.evaluate(() => JSON.stringify(window.dataLayer ?? []))
+      expect(measured).not.toContain(TOKEN)
+      await expect(page.getByText('Alerte envoyée à c•••@example.fr')).toBeVisible()
+
+      const save = page.getByRole('button', { name: 'Enregistrer', exact: true })
+      await expect(save).toBeDisabled()
+
+      // Décochée, la maison hors stock reste à l'écran pour pouvoir être recochée.
+      const patek = page.getByRole('button', { name: 'Patek Philippe', exact: true })
+      await patek.click()
+      await expect(patek).toHaveAttribute('aria-pressed', 'false')
+      await page.getByRole('button', { name: 'Orion', exact: true }).click()
+      await save.click()
+      await expect(page.getByText(/C’est enregistré/)).toBeVisible()
+
+      expect(tokens.length).toBeGreaterThan(0)
+      expect(tokens.every((token) => token === TOKEN)).toBe(true)
+      expect(putBody.criteria.brand).toEqual(['orion'])
+      // Tout ce que la page a montré — Patek Philippe comprise, affichée puis décochée.
+      expect(putBody.criteria.offered.brand).toEqual(['orion', 'sauvage', 'patek philippe'])
+      await expect(save).toBeDisabled()
+    })
+
+    test('sans jeton, la page dit que le lien n’est plus valide', async ({ page }) => {
+      await seedBrowser(page, { cartLines: [] })
+      await stubSupabaseCatalog(page, { watches: [SAMPLE_WATCH] })
+      await page.goto('/coup-de-foudre/mes-preferences')
+      await expect(page.getByRole('heading', { name: 'Ce lien n’est plus valide' })).toBeVisible()
+    })
+
+    test('une alerte désinscrite ne se modifie pas', async ({ page }) => {
+      await seedBrowser(page, { cartLines: [] })
+      await stubSupabaseCatalog(page, { watches: [SAMPLE_WATCH] })
+      await page.route('**/api/watch-match-alerts/preferences', (route) =>
+        route.fulfill({
+          json: { success: true, status: 'unsubscribed', email: 'c•••@example.fr', criteria: null },
+        }),
+      )
+      await page.goto(`/coup-de-foudre/mes-preferences#token=${TOKEN}`)
+      await expect(page.getByRole('heading', { name: 'Cette alerte est désactivée' })).toBeVisible()
+    })
+  })
 })
