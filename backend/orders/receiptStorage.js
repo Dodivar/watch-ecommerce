@@ -67,7 +67,8 @@ async function persistOrderReceiptPdf(supabase, site, order, lines, extras = {})
     return order.receipt_storage_path
   }
 
-  const pdfBuffer = extras.pdfBuffer ?? (await generateOrderReceiptPdf(site, order, lines, extras))
+  const pdfBuffer =
+    extras.pdfBuffer ?? (await generateOrderReceiptPdf(site, order, lines, { ...extras, supabase }))
   if (!pdfBuffer) {
     return null
   }
@@ -115,7 +116,7 @@ async function resolveOrderReceiptPdfBuffer(supabase, site, order, lines, extras
     }
   }
 
-  const pdfBuffer = await generateOrderReceiptPdf(site, order, lines, extras)
+  const pdfBuffer = await generateOrderReceiptPdf(site, order, lines, { ...extras, supabase })
   if (!pdfBuffer) {
     return null
   }

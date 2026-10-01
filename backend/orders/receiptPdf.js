@@ -1,11 +1,15 @@
 const fs = require('fs')
 const PDFDocument = require('pdfkit')
+const sharp = require('sharp')
 
 const { buildReceiptData } = require('./receiptData')
+const { fetchWatchImageUrl } = require('../utils/watchImages')
 
 const THUMB_SIZE = 48
 const HERO_SIZE = 96
 const PAGE_MARGIN = 48
+/** Côté max des photos intégrées : 3× la vignette la plus grande, net à l'impression. */
+const EMBED_IMAGE_MAX_PX = HERO_SIZE * 3
 
 /**
  * @param {string|null|undefined} url
@@ -29,6 +33,43 @@ async function fetchImageBuffer(url, timeoutMs = 8000) {
 }
 
 /**
+ * PDFKit ne lit que le JPEG et le PNG. Le format est lu dans les octets, pas
+ * dans l'extension ni le content-type : les photos du catalogue sont désormais
+ * ré-encodées en WebP à l'upload.
+ *
+ * @param {Buffer|null|undefined} buffer
+ * @returns {boolean}
+ */
+function isPdfkitImage(buffer) {
+  if (!buffer || buffer.length < 4) return false
+  const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8
+  const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47
+  return isJpeg || isPng
+}
+
+/**
+ * Prépare une photo pour le reçu : convertie en JPEG (WebP, AVIF… sinon la
+ * vignette tombe sur le placeholder) et réduite, pour ne pas alourdir un PDF
+ * stocké puis envoyé par e-mail avec des photos pleine résolution.
+ *
+ * @param {Buffer|null} buffer
+ * @returns {Promise<Buffer|null>}
+ */
+async function toPdfImage(buffer) {
+  if (!buffer) return null
+  try {
+    return await sharp(buffer)
+      .rotate()
+      .resize(EMBED_IMAGE_MAX_PX, EMBED_IMAGE_MAX_PX, { fit: 'inside', withoutEnlargement: true })
+      .flatten({ background: '#ffffff' })
+      .jpeg({ quality: 82 })
+      .toBuffer()
+  } catch {
+    return isPdfkitImage(buffer) ? buffer : null
+  }
+}
+
+/**
  * @param {string|null|undefined} filePath
  * @returns {Buffer|null}
  */
@@ -42,16 +83,29 @@ function readLocalImage(filePath) {
 }
 
 /**
+ * Photos des lignes, prêtes pour PDFKit.
+ *
+ * `image_url` est l'instantané de la fiche au moment de la commande ; le
+ * fichier peut avoir disparu depuis (photo remplacée ou ré-encodée). Faute de
+ * mieux, on reprend alors la photo principale actuelle de la montre.
+ *
  * @param {object} receipt
+ * @param {{ supabase?: import('@supabase/supabase-js').SupabaseClient|null }} [options]
  * @returns {Promise<Map<number, Buffer>>}
  */
-async function loadLineImages(receipt) {
+async function loadLineImages(receipt, options = {}) {
   const map = new Map()
   if (!receipt.branding.showWatchImages) return map
 
   await Promise.all(
     receipt.lines.map(async (line, index) => {
-      const buffer = await fetchImageBuffer(line.imageUrl)
+      let buffer = await toPdfImage(await fetchImageBuffer(line.imageUrl))
+      if (!buffer && options.supabase && line.watchId) {
+        const currentUrl = await fetchWatchImageUrl(options.supabase, line.watchId)
+        if (currentUrl && currentUrl !== line.imageUrl) {
+          buffer = await toPdfImage(await fetchImageBuffer(currentUrl))
+        }
+      }
       if (buffer) map.set(index, buffer)
     }),
   )
@@ -380,11 +434,12 @@ function renderReceiptPdf(receipt, logoBuffer, lineImages) {
 
 /**
  * @param {object} receipt Built receipt DTO
+ * @param {{ supabase?: import('@supabase/supabase-js').SupabaseClient|null }} [options]
  * @returns {Promise<Buffer>}
  */
-async function generateReceiptPdfBuffer(receipt) {
+async function generateReceiptPdfBuffer(receipt, options = {}) {
   const logoBuffer = readLocalImage(receipt.branding.logoPath)
-  const lineImages = await loadLineImages(receipt)
+  const lineImages = await loadLineImages(receipt, options)
   return renderReceiptPdf(receipt, logoBuffer, lineImages)
 }
 
@@ -392,14 +447,17 @@ async function generateReceiptPdfBuffer(receipt) {
  * @param {object} site Registry entry
  * @param {object} order
  * @param {object[]} lines
- * @param {{ shipping?: object|null, discount?: object|null }} [extras]
+ * @param {{ shipping?: object|null, discount?: object|null,
+ *   supabase?: import('@supabase/supabase-js').SupabaseClient|null }} [extras]
+ *   `supabase` permet de retrouver la photo actuelle d'une montre dont
+ *   l'instantané `image_url` ne répond plus.
  * @returns {Promise<Buffer|null>}
  */
 async function generateOrderReceiptPdf(site, order, lines, extras = {}) {
   const receipt = buildReceiptData(site, order, lines, extras)
   if (!receipt.branding.enabled) return null
   if (order.status !== 'paid') return null
-  return generateReceiptPdfBuffer(receipt)
+  return generateReceiptPdfBuffer(receipt, { supabase: extras.supabase || null })
 }
 
 /**
@@ -414,5 +472,8 @@ module.exports = {
   generateOrderReceiptPdf,
   generateReceiptPdfBuffer,
   fetchImageBuffer,
+  isPdfkitImage,
+  loadLineImages,
   receiptPdfFilename,
+  toPdfImage,
 }

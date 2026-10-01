@@ -1093,6 +1093,41 @@ export default {
   'matchmaking.alertUnsubscribe.unavailableTitle': 'Service indisponible',
   'matchmaking.alertUnsubscribe.unavailableText':
     'La désinscription est momentanément indisponible.',
+  // — Alerte coup de foudre : montre hors des choix proposés, et page « mes préférences »
+  'matchmaking.alertEmail.introNew': {
+    one: 'Elle vient d’arriver et sort de ce que nous pouvions vous proposer quand vous avez choisi vos préférences : à vous de voir si elle vous parle.',
+    other:
+      'Elles viennent d’arriver. Certaines sortent de ce que nous pouvions vous proposer quand vous avez choisi vos préférences : à vous de voir si elles vous parlent.',
+  },
+  'matchmaking.alertEmail.newBrand': 'Une maison arrivée chez nous après votre inscription.',
+  'matchmaking.alertEmail.newOption': 'Un choix que nous ne pouvions pas encore vous proposer.',
+  'matchmaking.alertEmail.editPreferences': 'Modifier mes préférences',
+  'matchmaking.alertPrefs.pageTitle': 'Mes préférences d’alerte',
+  'matchmaking.alertPrefs.title': 'Vos préférences d’alerte',
+  'matchmaking.alertPrefs.lede':
+    'Nous vous écrivons dès qu’une nouvelle montre y répond. Ajustez-les quand vos envies changent.',
+  'matchmaking.alertPrefs.recipient': 'Alerte envoyée à {email}',
+  'matchmaking.alertPrefs.ruleTitle': 'Comment nous choisissons',
+  'matchmaking.alertPrefs.ruleText':
+    'Les choix proposés suivent notre stock du moment. Ce que vous laissez décoché ne vous sera pas envoyé ; une maison ou une couleur que nous n’avons pas encore vous sera signalée à son arrivée.',
+  'matchmaking.alertPrefs.noCriteria':
+    'Aucune préférence cochée : vous recevrez toutes nos nouveautés dans votre budget.',
+  'matchmaking.alertPrefs.save': 'Enregistrer',
+  'matchmaking.alertPrefs.saving': 'Enregistrement…',
+  'matchmaking.alertPrefs.saved':
+    'C’est enregistré. Les prochaines alertes suivront ces préférences.',
+  'matchmaking.alertPrefs.saveError': 'L’enregistrement a échoué. Réessayez dans un instant.',
+  'matchmaking.alertPrefs.restart': 'Refaire le parcours',
+  'matchmaking.alertPrefs.unsubscribe': 'Ne plus recevoir ces alertes',
+  'matchmaking.alertPrefs.loading': 'Chargement de vos préférences…',
+  'matchmaking.alertPrefs.invalidTitle': 'Ce lien n’est plus valide',
+  'matchmaking.alertPrefs.invalidText':
+    'Ouvrez le lien du dernier e-mail reçu, ou refaites le parcours pour enregistrer une nouvelle alerte.',
+  'matchmaking.alertPrefs.inactiveTitle': 'Cette alerte est désactivée',
+  'matchmaking.alertPrefs.inactiveText':
+    'Vous ne recevez plus nos e-mails. Pour la réactiver, refaites le parcours et laissez-nous votre adresse.',
+  'matchmaking.alertPrefs.unavailableTitle': 'Service momentanément indisponible',
+  'matchmaking.alertPrefs.unavailableText': 'Réessayez dans quelques minutes.',
   // — Mise à jour du site (bandeau « nouvelle version »)
   'update.available': 'Une nouvelle version du site est disponible.',
   'update.reload': 'Recharger',

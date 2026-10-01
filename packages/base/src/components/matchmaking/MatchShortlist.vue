@@ -154,7 +154,7 @@
       </button>
     </div>
 
-    <MatchCtaFooter :preferences="mm.session.preferences" class="mt-10" />
+    <MatchCtaFooter :criteria="mm.alertCriteria" class="mt-10" />
   </section>
 </template>
 

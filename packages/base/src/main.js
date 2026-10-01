@@ -8,8 +8,12 @@ import { createHead } from '@vueuse/head'
 import App from './App.vue'
 import router from './router'
 import { initAnalytics, trackPageView } from '@/services/analytics'
+import { consumeAlertTokenFromLocation } from '@/services/watchMatchAlertService.js'
 import { getActiveLocale, getActiveLocalePrefix } from '@/i18n/activeLocale.js'
 import { ensureReviewToolbar } from '@/services/review/vercelToolbar.js'
+
+// Lien des alertes coup de foudre : le jeton quitte l'URL avant qu'un traceur ne la lise.
+consumeAlertTokenFromLocation()
 
 // Pose les signaux Consent Mode et rejoue le choix mémorisé, avant tout chargement de traceur.
 initAnalytics()

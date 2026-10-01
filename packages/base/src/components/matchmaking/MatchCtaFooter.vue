@@ -96,8 +96,11 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { saveMatchAlert } from '@/services/watchMatchAlertService.js'
 
 const props = defineProps({
-  /** Préférences courantes (`MatchPreferences`) — la seule donnée qui accompagne l'e-mail. */
-  preferences: { type: Object, default: null },
+  /**
+   * Préférences courantes et options affichées (`MatchPreferences` avec `offered`, voir
+   * `alertCriteria` dans `useWatchMatchmaking`) — la seule donnée qui accompagne l'e-mail.
+   */
+  criteria: { type: Object, default: null },
 })
 
 const features = getSiteConfig().features
@@ -114,7 +117,7 @@ async function submitAlert() {
   try {
     await saveMatchAlert({
       email: email.value,
-      criteria: props.preferences,
+      criteria: props.criteria,
       website: website.value,
       consent: consent.value,
     })
