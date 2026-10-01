@@ -401,9 +401,9 @@ export default {
   },
 
   /** Mot de passe page « site en construction » (voir `MaintenancePage.vue`). */
-  maintenance: {
-    password: 'dodi',
-  },
+  // maintenance: {
+  //   password: 'dodi',
+  // },
 
   integrations: {
     cookieConsentStorageKey: 'sauvage_cookie_consent_v1',
