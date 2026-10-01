@@ -96,6 +96,12 @@ filets, boutons) dans ses valeurs d'origine : aucune cascade à maintenir compos
 habituels. Ils sont déjà traduits dans les deux contextes. N'écrire une règle explicite
 `html[data-ui-color-scheme='dark'] …` qu'en dernier recours.
 
+**Bande ou carte** : un `bg-white` pleine largeur (`section`, `.min-h-screen`) est repeint au fond
+de page — c'est du décor, pas du contenu. Le fichier reconnaît une carte à ses angles arrondis
+(`:not([class*='rounded'])`) : un panneau blanc doit donc porter un `rounded-*`, sinon il vire au
+vert et tout ce qu'il contient avec lui — y compris ce que ce fichier n'atteint pas, comme une
+iframe Stripe.
+
 Tout le fichier est préfixé par ce sélecteur : les sites au thème clair ne sont pas concernés.
 
 ## CSS global

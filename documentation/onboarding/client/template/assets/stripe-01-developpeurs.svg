@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" width="960" height="600" font-family="Segoe UI, Tahoma, Arial, sans-serif" role="img" aria-labelledby="ttl desc">
+  <title id="ttl">Stripe — trouver la section Développeurs et le sélecteur de mode</title>
+  <desc id="desc">Reproduction schématique du tableau de bord Stripe : colonne de navigation à gauche, entrée « Développeurs » en bas, sous-onglets « Clés API » et « Webhooks », et sélecteur Mode test en haut à droite.</desc>
+  <style>
+    .win{fill:#ffffff;stroke:#dfe3e8;stroke-width:1}
+    .chrome{fill:#eef1f4}
+    .side{fill:#f7f9fc}
+    .sep{stroke:#e3e8ee;stroke-width:1}
+    .nav{fill:#5c6a7a;font-size:15px}
+    .navOn{fill:#635bff;font-size:15px;font-weight:700}
+    .h1{fill:#1a1f36;font-size:26px;font-weight:700}
+    .lbl{fill:#1a1f36;font-size:15px}
+    .mut{fill:#8792a2;font-size:14px}
+    .mono{font-family:Consolas,Menlo,monospace;font-size:14px;fill:#1a1f36}
+    .cal{fill:#e03131}
+    .calT{fill:#ffffff;font-size:15px;font-weight:700}
+    .calL{fill:#c92a2a;font-size:14px;font-weight:600}
+    .lead{stroke:#e03131;stroke-width:2;fill:none}
+    .note{fill:#8792a2;font-size:12px;font-style:italic}
+  </style>
+
+  <rect class="win" x="8" y="8" width="944" height="560" rx="10"/>
+  <path class="chrome" d="M8 18a10 10 0 0 1 10-10h924a10 10 0 0 1 10 10v30H8z"/>
+  <circle cx="30" cy="30" r="5" fill="#ff5f57"/><circle cx="48" cy="30" r="5" fill="#febc2e"/><circle cx="66" cy="30" r="5" fill="#28c840"/>
+  <rect x="90" y="18" width="520" height="24" rx="12" fill="#ffffff" stroke="#dfe3e8"/>
+  <text class="mono" x="104" y="35">https://dashboard.stripe.com</text>
+  <line class="sep" x1="8" y1="48" x2="952" y2="48"/>
+
+  <!-- sidebar -->
+  <path class="side" d="M8 48h202v510a10 10 0 0 1-10 10H18a10 10 0 0 1-10-10z"/>
+  <line class="sep" x1="210" y1="48" x2="210" y2="568"/>
+  <circle cx="34" cy="76" r="11" fill="#635bff"/>
+  <text class="lbl" x="54" y="81" font-weight="700">Boutique du client</text>
+  <text class="nav" x="30" y="122">Accueil</text>
+  <text class="nav" x="30" y="152">Soldes</text>
+  <text class="nav" x="30" y="182">Transactions</text>
+  <text class="nav" x="30" y="212">Clients</text>
+  <text class="nav" x="30" y="242">Produits</text>
+  <text class="nav" x="30" y="272">Rapports</text>
+  <line class="sep" x1="24" y1="296" x2="194" y2="296"/>
+  <rect x="18" y="310" width="184" height="34" rx="6" fill="#ecebff"/>
+  <text class="navOn" x="30" y="332">Développeurs</text>
+  <text class="navOn" x="46" y="372">Clés API</text>
+  <text class="nav" x="46" y="402">Webhooks</text>
+  <text class="nav" x="46" y="432">Événements</text>
+  <text class="nav" x="46" y="462">Journaux</text>
+
+  <!-- topbar -->
+  <line class="sep" x1="210" y1="100" x2="952" y2="100"/>
+  <rect x="232" y="62" width="300" height="26" rx="13" fill="#f1f4f8" stroke="#e3e8ee"/>
+  <text class="mut" x="248" y="80">Rechercher…</text>
+  <rect x="700" y="60" width="140" height="30" rx="15" fill="#fff4e0" stroke="#f0b429"/>
+  <rect x="708" y="67" width="30" height="16" rx="8" fill="#f0b429"/>
+  <circle cx="730" cy="75" r="6" fill="#ffffff"/>
+  <text class="lbl" x="746" y="80" font-size="13">Mode test</text>
+  <circle cx="880" cy="75" r="14" fill="#d7dce3"/>
+
+  <!-- content -->
+  <text class="h1" x="240" y="150">Développeurs</text>
+  <text class="mut" x="240" y="180">Clés API, webhooks, événements et journaux de l’intégration.</text>
+
+  <rect x="240" y="210" width="330" height="120" rx="8" fill="#ffffff" stroke="#e3e8ee"/>
+  <text class="lbl" x="262" y="244" font-weight="700">Clés API</text>
+  <text class="mut" x="262" y="270">La clé publiable et la clé secrète</text>
+  <text class="mut" x="262" y="292">du compte.</text>
+  <text class="mono" x="262" y="318" fill="#635bff">dashboard.stripe.com/apikeys</text>
+
+  <rect x="596" y="210" width="330" height="120" rx="8" fill="#ffffff" stroke="#e3e8ee"/>
+  <text class="lbl" x="618" y="244" font-weight="700">Webhooks</text>
+  <text class="mut" x="618" y="270">Les notifications envoyées par</text>
+  <text class="mut" x="618" y="292">Stripe à la boutique.</text>
+  <text class="mono" x="618" y="318" fill="#635bff">dashboard.stripe.com/webhooks</text>
+
+  <!-- callouts -->
+  <circle class="cal" cx="678" cy="60" r="15"/><text class="calT" x="678" y="66" text-anchor="middle">1</text>
+  <path class="lead" d="M690 45 L690 28"/>
+  <text class="calL" x="690" y="22" text-anchor="middle">Mode test ou production ?</text>
+
+  <circle class="cal" cx="186" cy="327" r="15"/><text class="calT" x="186" y="333" text-anchor="middle">2</text>
+  <circle class="cal" cx="186" cy="366" r="14"/><text class="calT" x="186" y="372" text-anchor="middle">3</text>
+  <circle class="cal" cx="186" cy="396" r="14"/><text class="calT" x="186" y="402" text-anchor="middle">4</text>
+
+  <text class="note" x="240" y="540">Reproduction schématique — l’interface Stripe évolue ; les intitulés peuvent différer légèrement, l’emplacement reste le même.</text>
+</svg>
