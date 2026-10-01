@@ -22,6 +22,22 @@ describe('backend registry', () => {
     expect(registryIds.length).toBe(expectedIds.length)
   })
 
+  it('recense les origines revendiquées par plusieurs sites', async () => {
+    // `resolveSite` exclut ces origines du recoupement `X-Site-Id` / `Origin` : sans elles,
+    // le dev local de toutes les vitrines sauf la première serait refusé. Les quatre
+    // manifests déclarant `http://localhost:5173` en `urls.development`, l'ensemble ne peut
+    // pas être vide — s'il l'est, c'est que la dérivation d'origines a changé.
+    const registry = await buildRegistry()
+
+    expect(registry.ambiguousOrigins).toBeInstanceOf(Set)
+    expect(registry.ambiguousOrigins.has('http://localhost:5173')).toBe(true)
+
+    for (const key of registry.ambiguousOrigins) {
+      const claimants = registry.list().filter((entry) => entry.allowedOrigins.includes(key))
+      expect(claimants.length, `origine ${key} marquée ambiguë à tort`).toBeGreaterThan(1)
+    }
+  })
+
   it('expose config.id et des origines si urls.production est définie', async () => {
     const registry = await buildRegistry()
 
