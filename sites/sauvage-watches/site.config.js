@@ -721,8 +721,7 @@ export default {
       /** Override de contact.email pour l'expéditeur Mailjet. */
       fromAddress: 'contact@sauvage-watches.fr',
       /** Override de contact.email pour le destinataire interne Mailjet. */
-      toAddress: 'doryandillen@gmail.com',
-      //toAddress: 'contact@sauvage-watches.fr',
+      toAddress: 'contact@sauvage-watches.fr',
       template: {
         /** Override du logo texte affiché en en-tête de l'email (sinon brand.displayName.toUpperCase()). */
         logoText: 'SAUVAGE WATCHES',
