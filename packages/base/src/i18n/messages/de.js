@@ -1124,4 +1124,8 @@ export default {
   'update.available': 'Eine neue Version der Website ist verfügbar.',
   'update.reload': 'Neu laden',
   'update.dismiss': 'Schließen',
+  // — Suggestion de langue (affichée dans la langue proposée, pas dans celle de la page)
+  'localeSuggestion.message': 'Diese Website ist auch auf Deutsch verfügbar.',
+  'localeSuggestion.accept': 'Auf Deutsch ansehen',
+  'localeSuggestion.dismiss': 'Schließen',
 }

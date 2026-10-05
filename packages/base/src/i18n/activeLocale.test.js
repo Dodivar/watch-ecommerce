@@ -30,6 +30,12 @@ async function loadActiveLocale(siteConfig, browser = {}) {
   return import('./activeLocale.js')
 }
 
+/** Même environnement, pour le module de suggestion (qui lit `activeLocale.js`). */
+async function loadSuggestion(siteConfig, browser = {}) {
+  await loadActiveLocale(siteConfig, browser)
+  return import('./localeSuggestion.js')
+}
+
 beforeEach(() => localStorage.clear())
 afterEach(() => vi.restoreAllMocks())
 
@@ -52,21 +58,18 @@ describe('getActiveLocale()', () => {
     expect(getActiveLocale()).toBe('en')
   })
 
-  it('utilise la langue du navigateur à défaut de choix mémorisé', async () => {
-    const { getActiveLocale } = await loadActiveLocale(MULTILINGUAL, {
-      path: '/collection',
-      languages: ['de-CH', 'fr-FR'],
-    })
-    expect(getActiveLocale()).toBe('de')
-  })
-
-  it('retombe sur la langue par défaut si le navigateur ne propose rien d’activé', async () => {
-    const { getActiveLocale } = await loadActiveLocale(MULTILINGUAL, {
-      path: '/collection',
-      languages: ['es-ES', 'it-IT'],
-    })
-    expect(getActiveLocale()).toBe('fr')
-  })
+  // Googlebot rend avec un navigateur anglais : une URL sans préfixe qui suivrait la langue du
+  // navigateur serait indexée en anglais sous une canonique française.
+  it.each(['en-US', 'de-CH', 'es-ES'])(
+    'sert la langue par défaut sans préfixe, quelle que soit la langue du navigateur (%s)',
+    async (language) => {
+      const { getActiveLocale } = await loadActiveLocale(MULTILINGUAL, {
+        path: '/',
+        languages: [language],
+      })
+      expect(getActiveLocale()).toBe('fr')
+    },
+  )
 
   it('garde le back-office dans la langue par défaut', async () => {
     const { getActiveLocale } = await loadActiveLocale(MULTILINGUAL, {
@@ -93,15 +96,84 @@ describe('getActiveLocale()', () => {
     expect(getActiveLocale()).toBe('fr')
   })
 
-  it('n’applique pas la détection navigateur quand elle est désactivée', async () => {
-    const { getActiveLocale } = await loadActiveLocale(
+})
+
+describe('getSuggestedLocale()', () => {
+  it('propose la langue du navigateur sur une URL sans préfixe', async () => {
+    const { getSuggestedLocale } = await loadSuggestion(MULTILINGUAL, {
+      path: '/collection',
+      languages: ['de-CH', 'fr-FR'],
+    })
+    expect(getSuggestedLocale('/collection')).toBe('de')
+  })
+
+  it('ne propose rien si le navigateur parle déjà la langue active', async () => {
+    const { getSuggestedLocale } = await loadSuggestion(MULTILINGUAL, {
+      path: '/collection',
+      languages: ['fr-FR'],
+    })
+    expect(getSuggestedLocale('/collection')).toBeNull()
+  })
+
+  it('ne propose rien si le navigateur ne parle aucune langue du site', async () => {
+    const { getSuggestedLocale } = await loadSuggestion(MULTILINGUAL, {
+      path: '/collection',
+      languages: ['es-ES', 'it-IT'],
+    })
+    expect(getSuggestedLocale('/collection')).toBeNull()
+  })
+
+  it('ne remet pas en cause un préfixe d’URL', async () => {
+    const { getSuggestedLocale } = await loadSuggestion(MULTILINGUAL, {
+      path: '/de/collection',
+      languages: ['en-US'],
+    })
+    expect(getSuggestedLocale('/collection')).toBeNull()
+  })
+
+  it('ne remet pas en cause un choix mémorisé', async () => {
+    const { getSuggestedLocale } = await loadSuggestion(MULTILINGUAL, {
+      path: '/collection',
+      languages: ['de-DE'],
+      stored: 'fr',
+    })
+    expect(getSuggestedLocale('/collection')).toBeNull()
+  })
+
+  it('ne propose rien dans le back-office', async () => {
+    const { getSuggestedLocale } = await loadSuggestion(MULTILINGUAL, {
+      path: '/admin/orders',
+      languages: ['de-DE'],
+    })
+    expect(getSuggestedLocale('/admin/orders')).toBeNull()
+  })
+
+  it('ne propose rien quand la détection est désactivée', async () => {
+    const { getSuggestedLocale } = await loadSuggestion(
       {
         siteId: 'acme',
         i18n: { defaultLocale: 'fr', locales: ['fr', 'de'], detect: { navigator: 'off' } },
       },
       { path: '/collection', languages: ['de-DE'] },
     )
-    expect(getActiveLocale()).toBe('fr')
+    expect(getSuggestedLocale('/collection')).toBeNull()
+  })
+
+  it('ne propose rien sur un site monolingue', async () => {
+    const { getSuggestedLocale } = await loadSuggestion(
+      { siteId: 'jackned', locale: 'fr' },
+      { path: '/collection', languages: ['de-DE'] },
+    )
+    expect(getSuggestedLocale('/collection')).toBeNull()
+  })
+
+  it('rédige la suggestion dans la langue proposée', async () => {
+    const { createSuggestionTranslator } = await loadSuggestion(MULTILINGUAL, {
+      path: '/collection',
+      languages: ['en-US'],
+    })
+    expect(createSuggestionTranslator('en').t('localeSuggestion.accept')).toBe('View in English')
+    expect(createSuggestionTranslator('de').t('localeSuggestion.accept')).toBe('Auf Deutsch ansehen')
   })
 })
 

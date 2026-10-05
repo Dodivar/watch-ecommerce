@@ -27,7 +27,7 @@ Options facultatives :
 | --- | --- | --- |
 | `excludePathPrefixes` | `['/admin']` | Chemins jamais préfixés par une langue (le back-office reste en français). |
 | `untranslatedRoutes` | `['/montre/', '/watch/', '/blog/']` | Routes dont le contenu vient de la base : canonique vers la langue par défaut, pas d'alternates `hreflang`. |
-| `detect` | `{ storage: true, navigator: 'suggest' }` | `navigator: 'off'` désactive la détection par le navigateur. |
+| `detect` | `{ storage: true, navigator: 'suggest' }` | `navigator: 'off'` désactive la suggestion de langue (la langue du navigateur ne change jamais le rendu). |
 | `storageKey` | `<siteId>_locale_v1` | Clé `localStorage` du choix explicite. |
 | `messages` | `{}` | Surcharges du catalogue d'interface, par langue. |
 
@@ -120,12 +120,18 @@ et `x-default`, `api/sitemap.js` liste chaque page statique dans les trois langu
 
 ## 5. Détection et changement de langue
 
-Ordre de résolution : **préfixe d'URL → choix mémorisé → `navigator.languages` → `defaultLocale`**.
+Ordre de résolution : **préfixe d'URL → choix mémorisé → `defaultLocale`**.
 
-La détection choisit la langue **rendue** mais ne redirige jamais d'elle-même : une URL non
-déterministe pour un robot d'indexation contredirait la canonique que la page vient d'émettre.
-Un visiteur germanophone arrivant sur `/` voit donc l'allemand à l'URL française, avec le
-sélecteur et les alternates pour rejoindre `/de/`.
+La langue du navigateur **ne choisit pas la langue rendue**. Googlebot rend les pages avec un
+Chromium en anglais : une URL sans préfixe qui suivrait `navigator.languages` serait indexée en
+anglais (titre et extrait compris) sous une canonique française. `/` sert donc toujours la langue
+par défaut, pour tout le monde.
+
+La langue du navigateur sert à **suggérer** : un visiteur germanophone arrivant sur `/` voit un
+bandeau, rédigé en allemand, qui lui propose `/de/` (`LocaleSuggestionBanner.vue`,
+`i18n/localeSuggestion.js`). Accepter ou fermer le bandeau est mémorisé comme un choix explicite ;
+il ne revient pas. Le bandeau porte `data-nosnippet` pour ne jamais alimenter l'extrait Google.
+`detect.navigator: 'off'` supprime la suggestion.
 
 Changer de langue déclenche une **navigation complète**, assumée : le manifest est un singleton
 capturé au montage par une soixantaine de composants, et la base d'historique est figée à la

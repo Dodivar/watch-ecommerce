@@ -1118,4 +1118,8 @@ export default {
   'update.available': 'A new version of the site is available.',
   'update.reload': 'Reload',
   'update.dismiss': 'Dismiss',
+  // — Suggestion de langue (affichée dans la langue proposée, pas dans celle de la page)
+  'localeSuggestion.message': 'This site is also available in English.',
+  'localeSuggestion.accept': 'View in English',
+  'localeSuggestion.dismiss': 'Dismiss',
 }
