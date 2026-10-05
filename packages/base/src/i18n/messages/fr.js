@@ -1132,4 +1132,8 @@ export default {
   'update.available': 'Une nouvelle version du site est disponible.',
   'update.reload': 'Recharger',
   'update.dismiss': 'Fermer',
+  // — Suggestion de langue (affichée dans la langue proposée, pas dans celle de la page)
+  'localeSuggestion.message': 'Ce site est aussi disponible en français.',
+  'localeSuggestion.accept': 'Voir en français',
+  'localeSuggestion.dismiss': 'Fermer',
 }

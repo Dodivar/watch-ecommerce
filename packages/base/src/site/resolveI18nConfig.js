@@ -36,7 +36,7 @@ const DEFAULT_UNTRANSLATED_ROUTE_PREFIXES = ['/montre/', '/watch/', '/blog/']
  * @property {import('../i18n/locales.js').Locale} defaultLocale
  * @property {import('../i18n/locales.js').Locale[]} locales  Non vide, `defaultLocale` en tête.
  * @property {string[]} excludePathPrefixes  Chemins servis sans préfixe de langue.
- * @property {{ storage: boolean, navigator: 'suggest' | 'redirect' | 'off' }} detect
+ * @property {{ storage: boolean, navigator: 'suggest' | 'off' }} detect
  * @property {string} storageKey          Clé `localStorage` du choix explicite de l’utilisateur.
  * @property {string[]} untranslatedRoutes  Préfixes dont la canonique reste en langue par défaut.
  * @property {Record<string, Record<string, string>>} messages  Surcharges du catalogue UI par langue.
@@ -83,7 +83,7 @@ export function resolveI18nConfig(siteConfig) {
   if (!enabled) return monolingual(defaultLocale, siteId)
 
   const detectRaw = raw.detect != null && typeof raw.detect === 'object' ? raw.detect : {}
-  const navigatorMode = ['suggest', 'redirect', 'off'].includes(detectRaw.navigator)
+  const navigatorMode = ['suggest', 'off'].includes(detectRaw.navigator)
     ? detectRaw.navigator
     : 'suggest'
 
