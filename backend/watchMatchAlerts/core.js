@@ -73,4 +73,23 @@ function isMatchAlertsEnabled(site) {
   return features.watchMatchAlerts === true && features.watchMatchmaking === true
 }
 
-module.exports = { loadMatchCore, isMatchAlertsEnabled, BASE_SRC }
+/**
+ * Préfixe d'URL de la vitrine pour la langue de l'alerte (`/en`), vide pour la langue par
+ * défaut ou une langue que le site ne sert pas. Même règle que `localePrefix` côté vitrine
+ * (`packages/base/src/i18n/localePaths.js`), lue dans le manifest brut comme `features`.
+ *
+ * @param {object} site
+ * @param {string | null | undefined} locale
+ * @returns {string}
+ */
+function alertLocalePrefix(site, locale) {
+  const i18n = site?.config?.raw?.i18n || {}
+  // `enabled: false` explicite = site monolingue, quoi que déclare `locales` (`resolveI18nConfig`).
+  if (i18n.enabled === false) return ''
+  const locales = Array.isArray(i18n.locales) ? i18n.locales : []
+  const defaultLocale = i18n.defaultLocale || locales[0]
+  if (!locale || locale === defaultLocale || !locales.includes(locale)) return ''
+  return `/${locale}`
+}
+
+module.exports = { loadMatchCore, isMatchAlertsEnabled, alertLocalePrefix, BASE_SRC }

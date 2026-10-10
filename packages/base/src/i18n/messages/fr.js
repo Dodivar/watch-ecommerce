@@ -1078,11 +1078,12 @@ export default {
   'matchmaking.alertUnsubscribe.confirmText':
     'Confirmez pour ne plus être prévenu(e) des montres qui correspondent à vos préférences.',
   'matchmaking.alertUnsubscribe.confirmButton': 'Confirmer la désinscription',
-  'matchmaking.alertUnsubscribe.doneTitle': 'Désinscription confirmée',
+  'matchmaking.alertUnsubscribe.doneTitle': 'C’est noté',
   'matchmaking.alertUnsubscribe.doneText':
-    'Vous ne recevrez plus ces alertes. Vos préférences ont été effacées. À bientôt !',
+    'Votre décision a bien été prise en compte : vous ne recevrez plus ces alertes, et vos préférences ont été effacées.',
   'matchmaking.alertUnsubscribe.alreadyTitle': 'Déjà désinscrit(e)',
-  'matchmaking.alertUnsubscribe.alreadyText': 'Vous ne recevez plus ces alertes.',
+  'matchmaking.alertUnsubscribe.alreadyText':
+    'Votre décision avait déjà été prise en compte : vous ne recevez plus ces alertes.',
   'matchmaking.alertUnsubscribe.invalidTitle': 'Lien invalide',
   'matchmaking.alertUnsubscribe.invalidText': 'Ce lien de désinscription est incomplet.',
   'matchmaking.alertUnsubscribe.unknownTitle': 'Lien inconnu',
@@ -1093,6 +1094,12 @@ export default {
   'matchmaking.alertUnsubscribe.unavailableTitle': 'Service indisponible',
   'matchmaking.alertUnsubscribe.unavailableText':
     'La désinscription est momentanément indisponible.',
+  // — Page vitrine de désinscription (`/coup-de-foudre/desabonnement`)
+  'matchmaking.alertUnsubscribe.pageTitle': 'Se désabonner des alertes',
+  'matchmaking.alertUnsubscribe.checking': 'Vérification du lien…',
+  'matchmaking.alertUnsubscribe.working': 'Désinscription…',
+  'matchmaking.alertUnsubscribe.managePrefs': 'Plutôt ajuster mes préférences',
+  'matchmaking.alertUnsubscribe.browse': 'Voir la collection',
   // — Alerte coup de foudre : montre hors des choix proposés, et page « mes préférences »
   'matchmaking.alertEmail.introNew': {
     one: 'Elle vient d’arriver et sort de ce que nous pouvions vous proposer quand vous avez choisi vos préférences : à vous de voir si elle vous parle.',

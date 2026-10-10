@@ -88,6 +88,15 @@ export async function saveMatchAlert(input) {
 /** Chemin de la page — le même que construit le backend (`ALERT_PREFERENCES_PATH`). */
 export const MATCH_ALERT_PREFERENCES_PATH = '/coup-de-foudre/mes-preferences'
 
+/**
+ * Page de désinscription, cible du lien « Ne plus recevoir ces alertes » des e-mails — le même
+ * chemin que construit le backend (`ALERT_UNSUBSCRIBE_PATH`).
+ */
+export const MATCH_ALERT_UNSUBSCRIBE_PATH = '/coup-de-foudre/desabonnement'
+
+/** Pages qui reçoivent le jeton dans l'ancre de leur lien d'e-mail. */
+const TOKEN_PAGE_PATHS = [MATCH_ALERT_PREFERENCES_PATH, MATCH_ALERT_UNSUBSCRIBE_PATH]
+
 /** Endpoint des préférences d'une alerte (jeton en en-tête `X-Alert-Token`). */
 export const MATCH_ALERT_PREFERENCES_ENDPOINT = '/api/watch-match-alerts/preferences'
 
@@ -124,7 +133,8 @@ export function rememberAlertToken(token) {
  * Le garde de route de la page ne suffit pas au premier chargement : le pixel Meta met sa
  * page vue en file dès l'initialisation, et GA envoie la sienne à la fin du chargement de son
  * script — tous deux lisent l'URL courante, ancre comprise. Ce nettoyage synchrone passe avant
- * eux. Limité à la page « mes préférences » : une ancre ailleurs ne regarde pas les alertes.
+ * eux. Limité aux pages des alertes (préférences, désinscription) : une ancre ailleurs ne
+ * regarde pas les alertes.
  *
  * @param {Pick<Location, 'hash' | 'pathname' | 'search'>} [loc]
  * @param {Pick<History, 'state' | 'replaceState'>} [hist]
@@ -132,7 +142,7 @@ export function rememberAlertToken(token) {
  */
 export function consumeAlertTokenFromLocation(loc = window.location, hist = window.history) {
   const path = String(loc?.pathname || '').replace(/\/+$/, '')
-  if (!path.endsWith(MATCH_ALERT_PREFERENCES_PATH)) return ''
+  if (!TOKEN_PAGE_PATHS.some((page) => path.endsWith(page))) return ''
   const token = readAlertTokenFromHash(loc.hash)
   if (!token) return ''
   rememberAlertToken(token)
@@ -167,8 +177,8 @@ export class MatchAlertPreferencesError extends Error {
  * @param {string} token
  * @param {{ method?: string, body?: unknown }} [init]
  */
-async function requestPreferences(token, { method = 'GET', body } = {}) {
-  const response = await fetch(`${getBackendApiUrl()}${MATCH_ALERT_PREFERENCES_ENDPOINT}`, {
+async function requestPreferences(token, { method = 'GET', body, path = '' } = {}) {
+  const response = await fetch(`${getBackendApiUrl()}${MATCH_ALERT_PREFERENCES_ENDPOINT}${path}`, {
     method,
     headers: {
       Accept: 'application/json',
@@ -206,4 +216,15 @@ export function updateMatchAlertPreferences(token, criteria) {
     method: 'PUT',
     body: { criteria: sanitizePreferences(criteria) },
   })
+}
+
+/**
+ * Éteint l'alerte — après le clic de confirmation de la page de désinscription, jamais au
+ * chargement : certains scanners de liens exécutent le JavaScript des pages qu'ils visitent.
+ *
+ * @param {string} token
+ * @returns {Promise<{ status: 'unsubscribed', alreadyUnsubscribed: boolean }>}
+ */
+export function unsubscribeMatchAlert(token) {
+  return requestPreferences(token, { method: 'POST', path: '/unsubscribe' })
 }

@@ -1066,11 +1066,12 @@ export default {
   'matchmaking.alertUnsubscribe.confirmText':
     'Confirm to stop being notified about watches matching your preferences.',
   'matchmaking.alertUnsubscribe.confirmButton': 'Confirm unsubscribe',
-  'matchmaking.alertUnsubscribe.doneTitle': 'Unsubscribe confirmed',
+  'matchmaking.alertUnsubscribe.doneTitle': 'Noted',
   'matchmaking.alertUnsubscribe.doneText':
-    'You will no longer receive these alerts. Your preferences have been erased. See you soon!',
+    'Your choice has been recorded: you will no longer receive these alerts, and your preferences have been erased.',
   'matchmaking.alertUnsubscribe.alreadyTitle': 'Already unsubscribed',
-  'matchmaking.alertUnsubscribe.alreadyText': 'You no longer receive these alerts.',
+  'matchmaking.alertUnsubscribe.alreadyText':
+    'Your choice had already been recorded: you no longer receive these alerts.',
   'matchmaking.alertUnsubscribe.invalidTitle': 'Invalid link',
   'matchmaking.alertUnsubscribe.invalidText': 'This unsubscribe link is incomplete.',
   'matchmaking.alertUnsubscribe.unknownTitle': 'Unknown link',
@@ -1080,6 +1081,12 @@ export default {
     'Something went wrong while unsubscribing. Please try again in a moment.',
   'matchmaking.alertUnsubscribe.unavailableTitle': 'Service unavailable',
   'matchmaking.alertUnsubscribe.unavailableText': 'Unsubscribing is temporarily unavailable.',
+  // — Page vitrine de désinscription (`/coup-de-foudre/desabonnement`)
+  'matchmaking.alertUnsubscribe.pageTitle': 'Unsubscribe from alerts',
+  'matchmaking.alertUnsubscribe.checking': 'Checking your link…',
+  'matchmaking.alertUnsubscribe.working': 'Unsubscribing…',
+  'matchmaking.alertUnsubscribe.managePrefs': 'Adjust my preferences instead',
+  'matchmaking.alertUnsubscribe.browse': 'Browse the collection',
   // — Alerte coup de foudre : montre hors des choix proposés, et page « mes préférences »
   'matchmaking.alertEmail.introNew': {
     one: 'It has just arrived and goes beyond what we could offer you when you chose your preferences — see if it speaks to you.',
