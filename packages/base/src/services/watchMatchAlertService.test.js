@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   MATCH_ALERT_PREFERENCES_PATH,
+  MATCH_ALERT_UNSUBSCRIBE_PATH,
   buildMatchAlertPayload,
   consumeAlertTokenFromLocation,
   readAlertTokenFromHash,
@@ -40,8 +41,23 @@ describe('page « mes préférences » — côté vitrine', () => {
     expect(calls).toHaveLength(1)
   })
 
-  it('pointe vers une route réellement déclarée', () => {
-    expect(APP_ROUTE_META.map((r) => r.path)).toContain(MATCH_ALERT_PREFERENCES_PATH)
+  it('retire aussi le jeton sur la page de désinscription', () => {
+    const calls = []
+    const hist = { state: null, replaceState: (...args) => calls.push(args) }
+    expect(
+      consumeAlertTokenFromLocation(
+        { pathname: '/coup-de-foudre/desabonnement', search: '', hash: '#token=def' },
+        hist,
+      ),
+    ).toBe('def')
+    expect(calls).toEqual([[null, '', '/coup-de-foudre/desabonnement']])
+    expect(recallAlertToken()).toBe('def')
+  })
+
+  it('pointe vers des routes réellement déclarées', () => {
+    const paths = APP_ROUTE_META.map((r) => r.path)
+    expect(paths).toContain(MATCH_ALERT_PREFERENCES_PATH)
+    expect(paths).toContain(MATCH_ALERT_UNSUBSCRIBE_PATH)
   })
 
   it('laisse `offered` traverser le payload d’inscription', () => {
