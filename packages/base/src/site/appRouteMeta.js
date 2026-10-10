@@ -27,6 +27,12 @@ export const APP_ROUTE_META = [
     feature: 'watchMatchmaking',
     requiresFeatures: ['watchMatchAlerts'],
   },
+  // Cible du lien « Ne plus recevoir ces alertes » : personnelle elle aussi, même régime.
+  {
+    path: '/coup-de-foudre/desabonnement',
+    feature: 'watchMatchmaking',
+    requiresFeatures: ['watchMatchAlerts'],
+  },
   { path: '/blog', feature: 'blog' },
   { path: '/blog/:id', feature: 'blog' },
   { path: '/a-propos', feature: 'about' },

@@ -26,13 +26,14 @@ const { getSupabaseClient, getMailjetClient, MissingSecretsError } = require('..
 const { splitMailjetResults } = require('../routes/newsletter')
 const {
   buildAlertUnsubscribeUrl,
+  buildAlertUnsubscribePageUrl,
   buildAlertPreferencesUrl,
   alertUnsubscribeHeaders,
 } = require('../routes/watchMatchAlerts')
 const { resolveStorefrontBase } = require('../orders/orderLinks')
 const { createWatchMatchAlertEmail, MAX_WATCH_CARDS } = require('../templates/watchMatchAlertEmail')
 const { publicWatchImageUrl } = require('../utils/watchImages')
-const { loadMatchCore, isMatchAlertsEnabled } = require('./core')
+const { loadMatchCore, isMatchAlertsEnabled, alertLocalePrefix } = require('./core')
 
 const TICK_MS = 5 * 60 * 1000
 
@@ -42,25 +43,6 @@ const TICK_MS = 5 * 60 * 1000
  * salve de rattrapage.
  */
 const ALERT_WINDOW_HOURS = 48
-
-/**
- * Préfixe d'URL de la vitrine pour la langue de l'alerte (`/en`), vide pour la langue par
- * défaut ou une langue que le site ne sert pas. Même règle que `localePrefix` côté vitrine
- * (`packages/base/src/i18n/localePaths.js`), lue dans le manifest brut comme `features`.
- *
- * @param {object} site
- * @param {string | null | undefined} locale
- * @returns {string}
- */
-function alertLocalePrefix(site, locale) {
-  const i18n = site?.config?.raw?.i18n || {}
-  // `enabled: false` explicite = site monolingue, quoi que déclare `locales` (`resolveI18nConfig`).
-  if (i18n.enabled === false) return ''
-  const locales = Array.isArray(i18n.locales) ? i18n.locales : []
-  const defaultLocale = i18n.defaultLocale || locales[0]
-  if (!locale || locale === defaultLocale || !locales.includes(locale)) return ''
-  return `/${locale}`
-}
 
 /**
  * Montres nouvellement mises en ligne et encore disponibles, dans la fenêtre de balayage.
@@ -117,7 +99,10 @@ async function findRecentWatches({ supabase, storefrontBase, now = new Date() })
 /**
  * Envoi de l'e-mail d'alerte à un destinataire.
  * @param {{ site: object, mailjet: *, alert: object, watches: object[], matchedCount: number,
- *   unsubscribeUrl: string, preferencesUrl?: string, storefrontBase: string }} params
+ *   unsubscribeUrl: string, unsubscribePageUrl?: string, preferencesUrl?: string,
+ *   storefrontBase: string }} params
+ *   `unsubscribeUrl` : URL backend des en-têtes one-click (RFC 8058).
+ *   `unsubscribePageUrl` : lien visible de l'e-mail, vers la vitrine ; à défaut, `unsubscribeUrl`.
  * @returns {Promise<{ sent: boolean, error?: string, retryable?: boolean }>}
  */
 async function sendMatchAlertEmail({
@@ -127,6 +112,7 @@ async function sendMatchAlertEmail({
   watches,
   matchedCount,
   unsubscribeUrl,
+  unsubscribePageUrl = '',
   preferencesUrl = '',
   storefrontBase,
 }) {
@@ -147,7 +133,7 @@ async function sendMatchAlertEmail({
   const html = createWatchMatchAlertEmail(site, {
     watches,
     copy,
-    unsubscribeUrl,
+    unsubscribeUrl: unsubscribePageUrl || unsubscribeUrl,
     preferencesUrl,
     browseUrl: `${storefrontBase}/collection`,
     currency: site.config.checkout?.currency || 'EUR',
@@ -247,11 +233,17 @@ async function runMatchAlerts({
       const toAnnounce = matched
         .filter((watch) => claimedIds.has(watch.id))
         .map((watch) => ({ ...watch, unasked: unaskedCriteria(watch, preferences) }))
-      const unsubscribeUrl = buildAlertUnsubscribeUrl(apiBase, alert.unsubscribe_token)
+      const localePrefix = alertLocalePrefix(site, alert.locale)
+      const unsubscribeUrl = buildAlertUnsubscribeUrl(apiBase, site.id, alert.unsubscribe_token)
+      const unsubscribePageUrl = buildAlertUnsubscribePageUrl(
+        storefrontBase,
+        alert.unsubscribe_token,
+        localePrefix,
+      )
       const preferencesUrl = buildAlertPreferencesUrl(
         storefrontBase,
         alert.unsubscribe_token,
-        alertLocalePrefix(site, alert.locale),
+        localePrefix,
       )
 
       const result = await sendFn({
@@ -261,6 +253,7 @@ async function runMatchAlerts({
         watches: toAnnounce,
         matchedCount: toAnnounce.length,
         unsubscribeUrl,
+        unsubscribePageUrl,
         preferencesUrl,
         storefrontBase,
       })

@@ -1,13 +1,14 @@
 /**
  * Langue active de la page, résolue une fois puis figée.
  *
- * Ordre de résolution : **préfixe d’URL → choix explicite mémorisé → `navigator.languages`
- * → `i18n.defaultLocale`**.
+ * Ordre de résolution : **préfixe d’URL → choix explicite mémorisé → `i18n.defaultLocale`**.
  *
- * Le préfixe gagne toujours : c’est lui qui rend une URL partageable et indexable. La détection
- * navigateur, elle, ne fait que **choisir la langue rendue** ; elle ne redirige jamais (voir
- * `localeSuggestion.js`). Rediriger sur `Accept-Language` rendrait `/collection` non déterministe
- * pour un crawler et contredirait la balise `canonical` que la page vient d’émettre.
+ * Le préfixe gagne toujours : c’est lui qui rend une URL partageable et indexable. La langue du
+ * navigateur n’entre **pas** dans la résolution : Googlebot rend les pages avec un Chromium en
+ * anglais, et une URL sans préfixe qui suivrait `navigator.languages` serait indexée dans cette
+ * langue (titre et extrait anglais sous une canonique française). Elle n’alimente que la
+ * suggestion de changement de langue (voir `localeSuggestion.js`), qui ne modifie ni le rendu
+ * ni l’URL.
  *
  * Le module lit le manifest **brut** (`@site-config`) et non `getSiteConfig()` : c’est
  * précisément `getSiteConfig()` qui a besoin de la langue pour aplatir le manifest.
@@ -81,6 +82,7 @@ export function setStoredLocale(locale) {
 
 /**
  * Première langue du navigateur qui fait partie des langues activées par le site.
+ * Sert uniquement à **suggérer** un changement de langue, jamais à choisir celle du rendu.
  * @returns {string | null}
  */
 export function localeFromNavigator() {
@@ -112,11 +114,7 @@ export function getActiveLocale() {
     cachedLocale = i18n.defaultLocale
     return cachedLocale
   }
-  cachedLocale =
-    localeFromUrl() ||
-    getStoredLocale() ||
-    (i18n.detect.navigator !== 'off' ? localeFromNavigator() : null) ||
-    i18n.defaultLocale
+  cachedLocale = localeFromUrl() || getStoredLocale() || i18n.defaultLocale
   return cachedLocale
 }
 

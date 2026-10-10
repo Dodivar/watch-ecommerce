@@ -12,15 +12,18 @@ const { buildOrdersRouter } = require('./routes/orders')
 const n8nRoutes = require('./routes/n8n')
 const { buildAdminRouter } = require('./admin/adminRoutes')
 const { buildNewsletterRouter } = require('./routes/newsletter')
-const { buildWatchMatchAlertsRouter } = require('./routes/watchMatchAlerts')
+const {
+  buildWatchMatchAlertsRouter,
+  buildSiteAlertUnsubscribeRouter,
+  buildLegacyAlertUnsubscribeRouter,
+} = require('./routes/watchMatchAlerts')
 const { buildHealthRouter } = require('./routes/health')
 const { buildReviewsRouter } = require('./routes/reviews')
 const { startNewsletterScheduler } = require('./newsletter/scheduler')
 const { startWatchMatchAlertScheduler } = require('./watchMatchAlerts/scheduler')
 const { startAbandonedCheckoutScheduler } = require('./orders/recovery')
 
-const isProductionBoot =
-  process.env.NODE_ENV === 'production' || process.env.RENDER === 'true'
+const isProductionBoot = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true'
 
 function logBootWarnings(registry) {
   if (!isProductionBoot) return
@@ -57,19 +60,13 @@ function logBootWarnings(registry) {
   }
 }
 
-async function main() {
-  const registry = await buildRegistry()
-  if (registry.byId.size === 0) {
-    console.error('❌ Aucun site chargé dans `sites/`. Arrêt.')
-    process.exit(1)
-  }
-
-  console.log(
-    `🌐 Sites chargés (${registry.byId.size}) :`,
-    Array.from(registry.byId.keys()).join(', '),
-  )
-  logBootWarnings(registry)
-
+/**
+ * Application Express, routes montées, sans écoute ni planificateurs : `main` l'utilise, et les
+ * tests y jouent des requêtes réelles — l'ordre des montages compte (voir `/api` ci-dessous),
+ * et seul un test sur l'application entière le voit.
+ * @param {*} registry
+ */
+function createApp(registry) {
   const app = express()
 
   // Render (et la plupart des PaaS) passent par un reverse proxy qui envoie X-Forwarded-For.
@@ -86,7 +83,9 @@ async function main() {
   })
 
   app.use(corsMiddleware)
-  app.options('*', corsMiddleware)
+  // Regex plutôt que `'*'` : même sens sous Express 4 (prod, `backend/package.json`) et sous
+  // l'Express 5 de la racine, que résolvent les tests en CI — où `'*'` lève à la construction.
+  app.options(/.*/, corsMiddleware)
 
   if (isProductionBoot) {
     app.use((req, res, next) => {
@@ -124,8 +123,26 @@ async function main() {
   // Supervision (jeton HEALTH_CHECK_TOKEN) : /api/health/deep et /api/health/payments.
   app.use('/api/health', buildHealthRouter(registry))
 
-  // Routes nécessitant un site (Mailjet + n8n) — site résolu via Origin/header.
-  app.use('/api', resolveSite(registry), mailjetRoutes)
+  // Liens d'e-mail « coup de foudre » : ouverts hors du navigateur de la vitrine (messagerie,
+  // POST one-click de Gmail), ils n'ont ni Origin ni X-Site-Id. Montés AVANT le routeur
+  // `/api/watch-match-alerts` ci-dessous, dont le `resolveSite` répondrait « Unknown site ».
+  app.use('/api/watch-match-alerts', buildLegacyAlertUnsubscribeRouter(registry))
+  app.use(
+    '/api/sites/:siteId/watch-match-alerts',
+    resolveSite(registry),
+    buildSiteAlertUnsubscribeRouter(),
+  )
+
+  // Routes nécessitant un site — site résolu via Origin/header.
+  // Mailjet est monté à la racine de `/api` : son `resolveSite` ne garde que ses propres
+  // chemins. Posé sur tout `/api`, il répondait « Unknown site » à tout appelant sans Origin
+  // ni X-Site-Id monté plus bas — dont Stripe, dont aucun webhook n'atteignait son routeur.
+  // Chemins lus sur le routeur : une route Mailjet ajoutée est gardée sans y penser.
+  const mailjetPaths = mailjetRoutes.stack
+    .filter((layer) => layer.route)
+    .map((layer) => `/api${layer.route.path}`)
+  app.use(mailjetPaths, resolveSite(registry))
+  app.use('/api', mailjetRoutes)
   app.use('/api/n8n', resolveSite(registry), n8nRoutes)
   app.use('/api/admin', resolveSite(registry), buildAdminRouter(registry))
   app.use('/api/newsletter', resolveSite(registry), buildNewsletterRouter(registry))
@@ -148,6 +165,24 @@ async function main() {
     return next(err)
   })
 
+  return app
+}
+
+async function main() {
+  const registry = await buildRegistry()
+  if (registry.byId.size === 0) {
+    console.error('❌ Aucun site chargé dans `sites/`. Arrêt.')
+    process.exit(1)
+  }
+
+  console.log(
+    `🌐 Sites chargés (${registry.byId.size}) :`,
+    Array.from(registry.byId.keys()).join(', '),
+  )
+  logBootWarnings(registry)
+
+  const app = createApp(registry)
+
   const PORT = process.env.PORT || 3000
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
@@ -165,7 +200,11 @@ async function main() {
   startWatchMatchAlertScheduler(registry)
 }
 
-main().catch((err) => {
-  console.error('❌ Échec du démarrage du serveur :', err)
-  process.exit(1)
-})
+if (require.main === module) {
+  main().catch((err) => {
+    console.error('❌ Échec du démarrage du serveur :', err)
+    process.exit(1)
+  })
+}
+
+module.exports = { createApp }

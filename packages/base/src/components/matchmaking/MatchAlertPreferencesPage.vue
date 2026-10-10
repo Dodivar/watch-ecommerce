@@ -115,12 +115,13 @@
           <RotateCcw class="h-4 w-4" :stroke-width="2" />
           {{ t('matchmaking.alertPrefs.restart') }}
         </RouterLink>
-        <a
-          :href="unsubscribeUrl"
+        <!-- Le jeton est déjà en session : la page de désinscription le reprend. -->
+        <RouterLink
+          :to="MATCH_ALERT_UNSUBSCRIBE_PATH"
           class="text-gray-500 underline-offset-4 hover:text-text-main hover:underline"
         >
           {{ t('matchmaking.alertPrefs.unsubscribe') }}
-        </a>
+        </RouterLink>
       </nav>
 
       <!--
@@ -191,8 +192,8 @@ import { t } from '@/i18n'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getAllWatchesForListing } from '@/services/watchService'
 import { getActiveCampaignWatchPricingPublic } from '@/services/watchPromotionCampaignService.js'
-import { getBackendApiUrl } from '@/services/backendApiUrl.js'
 import {
+  MATCH_ALERT_UNSUBSCRIBE_PATH,
   fetchMatchAlertPreferences,
   recallAlertToken,
   updateMatchAlertPreferences,
@@ -266,11 +267,6 @@ function setCriterion(id, value) {
 function clearCriterion(id) {
   setCriterion(id, id === 'budget' ? null : [])
 }
-
-const unsubscribeUrl = computed(
-  () =>
-    `${getBackendApiUrl()}/api/watch-match-alerts/unsubscribe?token=${encodeURIComponent(token.value)}`,
-)
 
 const message = computed(() => {
   if (state.value === 'invalid') {

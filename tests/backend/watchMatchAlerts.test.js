@@ -29,12 +29,17 @@ siteClients.getSupabaseClient = () => {
 // Chargé APRÈS le remplacement ci-dessus.
 const {
   buildWatchMatchAlertsRouter,
+  buildSiteAlertUnsubscribeRouter,
+  buildLegacyAlertUnsubscribeRouter,
+  buildAlertUnsubscribeUrl,
   maskEmail,
   ALERT_PREFERENCES_PATH,
+  ALERT_UNSUBSCRIBE_PATH,
 } = require('../../backend/routes/watchMatchAlerts.js')
 const { recordMatchAlertOptIn } = require('../../backend/watchMatchAlerts/optIn.js')
 const {
   runMatchAlerts,
+  sendMatchAlertEmail,
   isMatchAlertsEnabled,
   alertLocalePrefix,
   ALERT_WINDOW_HOURS,
@@ -221,6 +226,12 @@ function makeRes() {
     },
     send(payload) {
       this.body = payload
+      this.settle()
+      return this
+    },
+    redirect(code, url) {
+      this.statusCode = code
+      this.location = url
       this.settle()
       return this
     },
@@ -451,12 +462,13 @@ describe('POST /subscribe', () => {
   })
 })
 
-describe('désinscription par jeton', () => {
+describe('désinscription par lien (site dans le chemin)', () => {
+  const TOKEN = '6f1c2a4e-8b3d-4c5e-9f10-a1b2c3d4e5f6'
   let router
   let site
 
   beforeEach(() => {
-    router = buildWatchMatchAlertsRouter({ list: () => [] })
+    router = buildSiteAlertUnsubscribeRouter()
     site = makeSite()
     currentSupabase = makeSupabase({
       watch_match_alerts: [
@@ -467,29 +479,67 @@ describe('désinscription par jeton', () => {
           status: 'active',
           locale: 'fr',
           criteria: { brand: ['rolex'] },
-          unsubscribe_token: 'tok-1',
+          unsubscribe_token: TOKEN,
         },
       ],
     })
   })
 
-  it("le GET n'a AUCUN effet de bord : il ne fait qu'afficher la confirmation", async () => {
+  function get(token = TOKEN, target = site) {
+    return call(
+      router,
+      makeReq({ method: 'GET', url: '/unsubscribe', query: { token }, site: target }),
+    )
+  }
+
+  function post(token = TOKEN) {
+    return call(router, makeReq({ method: 'POST', url: '/unsubscribe', query: { token }, site }))
+  }
+
+  it('construit un lien qui porte le site : sans lui, le backend mutualisé ne sait pas qui', () => {
+    expect(buildAlertUnsubscribeUrl('https://api.demo.fr', 'demo', TOKEN)).toBe(
+      `https://api.demo.fr/api/sites/demo/watch-match-alerts/unsubscribe?token=${TOKEN}`,
+    )
+  })
+
+  it('le GET renvoie vers la page de la vitrine, sans AUCUN effet de bord', async () => {
     // Les scanners de liens des messageries suivent les GET. Si celui-ci désinscrivait,
     // un abonné serait retiré sans avoir rien cliqué.
-    const res = await call(
-      router,
-      makeReq({ method: 'GET', url: '/unsubscribe', query: { token: 'tok-1' }, site }),
-    )
+    const res = await get()
+    expect(res.statusCode).toBe(302)
+    expect(res.location).toBe(`https://demo.fr${ALERT_UNSUBSCRIBE_PATH}#token=${TOKEN}`)
+    expect(currentSupabase.db.watch_match_alerts[0].status).toBe('active')
+    expect(currentSupabase.writes).toHaveLength(0)
+  })
+
+  it('renvoie vers la vitrine dans la langue de l’alerte', async () => {
+    site.config.raw.i18n = { defaultLocale: 'fr', locales: ['fr', 'en', 'de'] }
+    currentSupabase.db.watch_match_alerts[0].locale = 'en'
+    const res = await get()
+    expect(res.location).toBe(`https://demo.fr/en${ALERT_UNSUBSCRIBE_PATH}#token=${TOKEN}`)
+  })
+
+  it('le site étant connu, même un jeton inconnu ou une base muette mènent à la vitrine', async () => {
+    const unknown = await get('00000000-0000-4000-8000-000000000000')
+    expect(unknown.statusCode).toBe(302)
+    currentSupabase = null
+    const down = await get()
+    expect(down.statusCode).toBe(302)
+  })
+
+  it('sans URL de vitrine, sert la confirmation du backend, dans la langue de l’alerte', async () => {
+    site.config.urls = {}
+    currentSupabase.db.watch_match_alerts[0].locale = 'de'
+    const res = await get()
     expect(res.statusCode).toBe(200)
     expect(res.body).toContain('<form method="post"')
+    expect(res.body).toContain('lang="de"')
+    expect(res.body).toContain('Abmeldung best')
     expect(currentSupabase.db.watch_match_alerts[0].status).toBe('active')
   })
 
-  it('le POST désinscrit et efface les préférences devenues sans objet', async () => {
-    const res = await call(
-      router,
-      makeReq({ method: 'POST', url: '/unsubscribe', query: { token: 'tok-1' }, site }),
-    )
+  it('le POST (one-click RFC 8058) désinscrit et efface les préférences devenues sans objet', async () => {
+    const res = await post()
     expect(res.statusCode).toBe(200)
     const [row] = currentSupabase.db.watch_match_alerts
     expect(row.status).toBe('unsubscribed')
@@ -497,10 +547,9 @@ describe('désinscription par jeton', () => {
     expect(row.criteria).toEqual({})
   })
 
-  it('rejoué (one-click RFC 8058), le POST ne casse pas', async () => {
-    const query = { token: 'tok-1' }
-    await call(router, makeReq({ method: 'POST', url: '/unsubscribe', query, site }))
-    const again = await call(router, makeReq({ method: 'POST', url: '/unsubscribe', query, site }))
+  it('rejoué, le POST ne casse pas', async () => {
+    await post()
+    const again = await post()
     expect(again.statusCode).toBe(200)
   })
 
@@ -509,10 +558,7 @@ describe('désinscription par jeton', () => {
     // et s'être réinscrite. Un update non filtré effacerait des préférences toutes fraîches.
     // Une doublure mono-thread ne peut pas provoquer cette course : on vérifie donc que
     // l'écriture porte bien le garde qui la rend impossible.
-    await call(
-      router,
-      makeReq({ method: 'POST', url: '/unsubscribe', query: { token: 'tok-1' }, site }),
-    )
+    await post()
     const update = currentSupabase.writes.find(
       (w) => w.op === 'update' && w.table === 'watch_match_alerts',
     )
@@ -521,27 +567,142 @@ describe('désinscription par jeton', () => {
     expect(currentSupabase.db.watch_match_alerts[0].status).toBe('unsubscribed')
   })
 
-  it('répond 404 sur un jeton inconnu, 400 sans jeton', async () => {
-    const unknown = await call(
-      router,
-      makeReq({ method: 'GET', url: '/unsubscribe', query: { token: 'nope' }, site }),
-    )
-    expect(unknown.statusCode).toBe(404)
-    const missing = await call(
-      router,
-      makeReq({ method: 'GET', url: '/unsubscribe', query: {}, site }),
-    )
-    expect(missing.statusCode).toBe(400)
+  it('répond 404 sur un jeton inconnu, 400 sur un jeton absent ou mal formé', async () => {
+    expect((await post('00000000-0000-4000-8000-000000000000')).statusCode).toBe(404)
+    expect((await post('')).statusCode).toBe(400)
+    expect((await post('tok-1')).statusCode).toBe(400)
+  })
+})
+
+describe('liens déjà envoyés (sans le site dans le chemin)', () => {
+  const TOKEN = '6f1c2a4e-8b3d-4c5e-9f10-a1b2c3d4e5f6'
+  let router
+  let other
+  let demo
+
+  beforeEach(() => {
+    other = { ...makeSite({ features: { watchMatchAlerts: false } }), id: 'other' }
+    demo = makeSite()
+    router = buildLegacyAlertUnsubscribeRouter({ list: () => [other, demo] })
+    currentSupabase = makeSupabase({
+      watch_match_alerts: [
+        {
+          id: 'a1',
+          site_id: 'demo',
+          email: 'client@example.fr',
+          status: 'active',
+          locale: 'fr',
+          criteria: { brand: ['rolex'] },
+          unsubscribe_token: TOKEN,
+        },
+      ],
+    })
   })
 
-  it('sert la page dans la langue enregistrée sur l’alerte', async () => {
-    currentSupabase.db.watch_match_alerts[0].locale = 'de'
+  it('retrouve le site par le jeton et renvoie vers SA vitrine', async () => {
     const res = await call(
       router,
-      makeReq({ method: 'GET', url: '/unsubscribe', query: { token: 'tok-1' }, site }),
+      makeReq({ method: 'GET', url: '/unsubscribe', query: { token: TOKEN }, ip: '10.0.0.2' }),
     )
-    expect(res.body).toContain('lang="de"')
-    expect(res.body).toContain('Abmeldung best')
+    expect(res.statusCode).toBe(302)
+    expect(res.location).toBe(`https://demo.fr${ALERT_UNSUBSCRIBE_PATH}#token=${TOKEN}`)
+    expect(currentSupabase.writes).toHaveLength(0)
+  })
+
+  it('honore le one-click des anciens en-têtes', async () => {
+    const res = await call(
+      router,
+      makeReq({ method: 'POST', url: '/unsubscribe', query: { token: TOKEN }, ip: '10.0.0.3' }),
+    )
+    expect(res.statusCode).toBe(200)
+    expect(currentSupabase.db.watch_match_alerts[0].status).toBe('unsubscribed')
+  })
+
+  it('ne trouve pas un jeton inconnu, et ne touche pas aux autres chemins', async () => {
+    const unknown = await call(
+      router,
+      makeReq({
+        method: 'GET',
+        url: '/unsubscribe',
+        query: { token: '00000000-0000-4000-8000-000000000000' },
+        ip: '10.0.0.4',
+      }),
+    )
+    expect(unknown.statusCode).toBe(404)
+    const passthrough = await call(router, makeReq({ method: 'POST', url: '/subscribe' }))
+    expect(passthrough.body).toBe('not found') // laissé au montage suivant
+  })
+})
+
+/* ------------------------------------------------------- Page vitrine de désinscription */
+
+describe('désinscription depuis la vitrine (jeton en en-tête)', () => {
+  const TOKEN = '6f1c2a4e-8b3d-4c5e-9f10-a1b2c3d4e5f6'
+  let router
+  let site
+
+  beforeEach(() => {
+    router = buildWatchMatchAlertsRouter()
+    site = makeSite()
+    currentSupabase = makeSupabase({
+      watch_match_alerts: [
+        {
+          id: 'a1',
+          site_id: 'demo',
+          email: 'client@example.fr',
+          status: 'active',
+          locale: 'fr',
+          criteria: { brand: ['rolex'] },
+          unsubscribe_token: TOKEN,
+        },
+      ],
+    })
+  })
+
+  function unsubscribe(token = TOKEN, target = site) {
+    return call(
+      router,
+      makeReq({
+        method: 'POST',
+        url: '/preferences/unsubscribe',
+        headers: { 'x-alert-token': token },
+        site: target,
+        ip: '10.0.0.9',
+      }),
+    )
+  }
+
+  it('désinscrit et le dit ; rejouée, la demande répond « déjà fait »', async () => {
+    const first = await unsubscribe()
+    expect(first.body).toMatchObject({ success: true, alreadyUnsubscribed: false })
+    expect(currentSupabase.db.watch_match_alerts[0]).toMatchObject({
+      status: 'unsubscribed',
+      criteria: {},
+    })
+    const again = await unsubscribe()
+    expect(again.body).toMatchObject({ success: true, alreadyUnsubscribed: true })
+  })
+
+  it('reste possible quand la fonctionnalité a été éteinte depuis l’envoi', async () => {
+    const res = await unsubscribe(TOKEN, makeSite({ features: { watchMatchAlerts: false } }))
+    expect(res.statusCode).toBe(200)
+    expect(currentSupabase.db.watch_match_alerts[0].status).toBe('unsubscribed')
+  })
+
+  it('refuse un jeton mal formé avant la base, 404 sur un inconnu', async () => {
+    expect((await unsubscribe('tok-1')).statusCode).toBe(400)
+    const unknown = await unsubscribe('00000000-0000-4000-8000-000000000000')
+    expect(unknown.statusCode).toBe(404)
+    expect(unknown.body.code).toBe('UNKNOWN_TOKEN')
+  })
+
+  it('pointe vers la même page que la vitrine déclare', async () => {
+    const { MATCH_ALERT_UNSUBSCRIBE_PATH } = await import(
+      '../../packages/base/src/services/watchMatchAlertService.js'
+    )
+    const { APP_ROUTE_META } = await import('../../packages/base/src/site/appRouteMeta.js')
+    expect(ALERT_UNSUBSCRIBE_PATH).toBe(MATCH_ALERT_UNSUBSCRIBE_PATH)
+    expect(APP_ROUTE_META.map((r) => r.path)).toContain(ALERT_UNSUBSCRIBE_PATH)
   })
 })
 
@@ -706,8 +867,13 @@ describe('runMatchAlerts', () => {
     expect(await run(supabase, sender)).toBe(1)
     expect(sender.calls).toHaveLength(1)
     expect(sender.calls[0].alert.email).toBe('client@example.fr')
+    // En-tête one-click : sur le backend, site dans le chemin (aucun Origin à attendre de Gmail).
     expect(sender.calls[0].unsubscribeUrl).toBe(
-      'https://api.demo.fr/api/watch-match-alerts/unsubscribe?token=tok-1',
+      'https://api.demo.fr/api/sites/demo/watch-match-alerts/unsubscribe?token=tok-1',
+    )
+    // Lien visible de l'e-mail : la page de la vitrine.
+    expect(sender.calls[0].unsubscribePageUrl).toBe(
+      `https://demo.fr${ALERT_UNSUBSCRIBE_PATH}#token=tok-1`,
     )
     const [journal] = supabase.db.watch_match_alert_notifications
     expect(journal).toMatchObject({ alert_id: 'alert-1', watch_id: 'watch-1', status: 'sent' })
@@ -898,6 +1064,36 @@ describe("e-mail d'alerte", () => {
     expect(html).toContain('unsubscribe?token=tok-1')
     expect(html).toContain('Ne plus recevoir ces alertes')
     expect(html).toContain('https://demo.fr/montre/rolex-submariner')
+  })
+
+  it('mène le lecteur à la vitrine, et le one-click de la messagerie au backend', async () => {
+    let sent = null
+    const mailjet = {
+      post: () => ({
+        request: async (payload) => {
+          sent = payload.Messages[0]
+          return { body: { Messages: [{ Status: 'success' }] } }
+        },
+      }),
+    }
+    const pageUrl = `https://demo.fr${ALERT_UNSUBSCRIBE_PATH}#token=tok-1`
+    const oneClickUrl =
+      'https://api.demo.fr/api/sites/demo/watch-match-alerts/unsubscribe?token=tok-1'
+    const result = await sendMatchAlertEmail({
+      site,
+      mailjet,
+      alert: makeAlert(),
+      watches: [makeWatch()],
+      matchedCount: 1,
+      unsubscribeUrl: oneClickUrl,
+      unsubscribePageUrl: pageUrl,
+      storefrontBase: 'https://demo.fr',
+    })
+    expect(result.sent).toBe(true)
+    expect(sent.HTMLPart).toContain(`href="${pageUrl}"`)
+    expect(sent.HTMLPart).not.toContain('/api/')
+    expect(sent.Headers['List-Unsubscribe']).toBe(`<${oneClickUrl}>`)
+    expect(sent.Headers['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click')
   })
 
   it('part dans la langue enregistrée sur l’alerte, pas celle du site', async () => {

@@ -3,9 +3,14 @@
  *
  * Calquées sur `routes/newsletter.js` : pot de miel `website`, limiteur de débit par IP et par
  * site, consentement horodaté, et surtout la même précaution sur la désinscription — le GET
- * n'affiche qu'une page de confirmation, le POST seul désinscrit. Les scanners de liens des
- * messageries suivent les GET : sans cette séparation, ils désinscriraient tout le monde en
- * silence.
+ * ne désinscrit jamais (il mène à la page de confirmation de la vitrine), le POST seul le fait.
+ * Les scanners de liens des messageries suivent les GET : sans cette séparation, ils
+ * désinscriraient tout le monde en silence.
+ *
+ * Trois montages (voir `server.js`) :
+ * - `buildWatchMatchAlertsRouter` — routes appelées par la vitrine, site par `X-Site-Id` ;
+ * - `buildSiteAlertUnsubscribeRouter` — liens d'e-mail et one-click, site dans le chemin ;
+ * - `buildLegacyAlertUnsubscribeRouter` — liens déjà envoyés, site retrouvé par le jeton.
  *
  * Migration requise : `watch_match_alerts` + `watch_match_alert_notifications`
  * (voir supabase/migrations/README.md — « Alertes coup de foudre »).
@@ -16,15 +21,35 @@ const express = require('express')
 const { getSupabaseClient, MissingSecretsError } = require('../utils/siteClients')
 const { isOptInTruthy } = require('../newsletter/optIn')
 const { createRateLimiter } = require('../utils/simpleRateLimit')
-const { loadMatchCore, isMatchAlertsEnabled } = require('../watchMatchAlerts/core')
+const {
+  loadMatchCore,
+  isMatchAlertsEnabled,
+  alertLocalePrefix,
+} = require('../watchMatchAlerts/core')
 const { recordMatchAlertOptIn } = require('../watchMatchAlerts/optIn')
+const { resolveStorefrontBase } = require('../orders/orderLinks')
 
 /**
+ * Préfixe des routes qui portent le site **dans le chemin**. Un lien d'e-mail, ouvert depuis la
+ * messagerie, n'envoie ni `Origin` ni `X-Site-Id`, et le backend est mutualisé : sans le site
+ * dans l'URL, `resolveSite` répond « Unknown site ». Même raison pour le POST « one-click »
+ * (RFC 8058), émis par les serveurs de Gmail ou Yahoo.
+ * @param {string} siteId
+ */
+function siteScopedAlertsBase(siteId) {
+  return `/api/sites/${encodeURIComponent(siteId)}/watch-match-alerts`
+}
+
+/**
+ * URL de désinscription des en-têtes `List-Unsubscribe` : la seule qui reste sur le backend,
+ * parce qu'elle doit accepter le POST one-click. Un GET dessus redirige vers la vitrine.
+ *
  * @param {string} apiBase
+ * @param {string} siteId
  * @param {string} token
  */
-function buildAlertUnsubscribeUrl(apiBase, token) {
-  return `${apiBase}/api/watch-match-alerts/unsubscribe?token=${encodeURIComponent(token)}`
+function buildAlertUnsubscribeUrl(apiBase, siteId, token) {
+  return `${apiBase}${siteScopedAlertsBase(siteId)}/unsubscribe?token=${encodeURIComponent(token)}`
 }
 
 /** `watch_match_alerts.unsubscribe_token` est un `uuid` (`gen_random_uuid()`). */
@@ -61,8 +86,27 @@ function buildAlertPreferencesUrl(storefrontBase, token, localePrefix = '') {
 }
 
 /**
+ * Page vitrine de désinscription. Alignée sur `MATCH_ALERT_UNSUBSCRIBE_PATH` côté socle — un
+ * test y veille, comme pour `ALERT_PREFERENCES_PATH`.
+ */
+const ALERT_UNSUBSCRIBE_PATH = '/coup-de-foudre/desabonnement'
+
+/**
+ * Lien « Ne plus recevoir ces alertes » de l'e-mail : la page de la vitrine, jeton en ancre
+ * (mêmes raisons que `buildAlertPreferencesUrl`). La personne confirme sur le site du client,
+ * qui lui dit que sa décision est prise en compte.
+ *
+ * @param {string} storefrontBase Origine de la vitrine, sans slash final
+ * @param {string} token
+ * @param {string} [localePrefix] `''` pour la langue par défaut, `/en` sinon
+ */
+function buildAlertUnsubscribePageUrl(storefrontBase, token, localePrefix = '') {
+  return `${storefrontBase}${localePrefix}${ALERT_UNSUBSCRIBE_PATH}#token=${encodeURIComponent(token)}`
+}
+
+/**
  * En-têtes de désinscription un clic (RFC 8058) exigés par Gmail/Yahoo. Le POST « one-click »
- * est servi par `POST /unsubscribe`.
+ * est servi par `buildSiteAlertUnsubscribeRouter` (`POST …/unsubscribe`).
  * @param {string} unsubscribeUrl
  */
 function alertUnsubscribeHeaders(unsubscribeUrl) {
@@ -85,6 +129,222 @@ function unsubscribePage(lang, title, message, extraHtml = '') {
     <body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:48px 16px;text-align:center;color:#333;">
     <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:8px;padding:32px;">
     <h1 style="font-size:20px;">${title}</h1><p style="color:#555;">${message}</p>${extraHtml}</div></body></html>`
+}
+
+/* ------------------------------------------------------- Désinscription par jeton (RGPD) */
+
+/**
+ * Alerte visée par un jeton sur un site, ou `null`. Le jeton doit avoir passé `UUID_RE` : la
+ * colonne est un `uuid`, une valeur mal formée y ferait une erreur Postgres.
+ *
+ * @param {object} supabase
+ * @param {string} siteId
+ * @param {string} token
+ */
+async function findAlertByToken(supabase, siteId, token) {
+  const { data, error } = await supabase
+    .from('watch_match_alerts')
+    .select('id, email, status, locale')
+    .eq('site_id', siteId)
+    .eq('unsubscribe_token', token)
+    .maybeSingle()
+  if (error) throw error
+  return data || null
+}
+
+/**
+ * Éteint une alerte. Rejouer n'est pas une erreur (le one-click RFC 8058 peut répéter).
+ *
+ * @param {object} supabase
+ * @param {{ id: string, status: string }} alert
+ * @returns {Promise<'done' | 'already'>}
+ */
+async function unsubscribeAlert(supabase, alert) {
+  if (alert.status === 'unsubscribed') return 'already'
+  const nowIso = new Date().toISOString()
+  const { error } = await supabase
+    .from('watch_match_alerts')
+    .update({
+      status: 'unsubscribed',
+      unsubscribed_at: nowIso,
+      updated_at: nowIso,
+      // Les préférences n'ont plus d'objet une fois l'alerte éteinte : les garder serait
+      // conserver un profil de goûts sans finalité. La ligne survit pour prouver la
+      // désinscription, pas pour décrire quelqu'un.
+      criteria: {},
+    })
+    .eq('id', alert.id)
+    // Réclamation conditionnelle : entre la lecture et cette écriture, la personne a pu
+    // refaire le parcours et se réinscrire. Sans ce garde, la désinscription en vol
+    // effacerait des préférences toutes fraîches et rendrait muette une alerte voulue.
+    .eq('status', 'active')
+  if (error) throw error
+  return 'done'
+}
+
+/**
+ * Page vitrine de désinscription pour ce site et cette alerte, ou `''` si le manifest ne
+ * déclare aucune URL publique.
+ *
+ * @param {object} site
+ * @param {string} token
+ * @param {string | null | undefined} locale
+ */
+function storefrontUnsubscribeUrl(site, token, locale) {
+  const base = resolveStorefrontBase(site)
+  if (!base) return ''
+  return buildAlertUnsubscribePageUrl(base, token, alertLocalePrefix(site, locale))
+}
+
+/**
+ * Répond une page d'état (`done`, `already`, `unknown`…) dans la langue de l'alerte.
+ * @param {import('express').Response} res
+ * @param {number} status
+ * @param {string | null | undefined} locale
+ * @param {string} state Clé de `buildMatchAlertUnsubscribeCopy`
+ * @param {string} [extraHtml]
+ */
+async function sendUnsubscribeState(res, status, locale, state, extraHtml = '') {
+  const { buildMatchAlertUnsubscribeCopy } = await loadMatchCore()
+  const copy = buildMatchAlertUnsubscribeCopy(locale)
+  return res
+    .status(status)
+    .send(unsubscribePage(copy.lang, copy[state].title, copy[state].text, extraHtml))
+}
+
+/**
+ * Câble GET et POST `/unsubscribe` sur un routeur, autour d'une fonction qui retrouve l'alerte.
+ *
+ * - **GET** n'a aucun effet de bord (les scanners de liens des messageries suivent les GET) :
+ *   il redirige vers la page de la vitrine, qui fait confirmer. Faute d'URL vitrine, il sert
+ *   la confirmation minimale du backend.
+ * - **POST** désinscrit : c'est le « one-click » RFC 8058 des en-têtes `List-Unsubscribe`,
+ *   envoyé par les serveurs de la messagerie, sans navigateur.
+ *
+ * @param {import('express').Router} router
+ * @param {(req: import('express').Request, token: string) =>
+ *   Promise<{ site: object | null, supabase: object | null, alert: object | null }>} locate
+ *   Lève `MissingSecretsError` quand la base du site est injoignable.
+ * @param {{ siteKnown?: boolean }} [opts] `siteKnown` : le site vient du chemin, pas de
+ *   l'alerte. Le GET part alors vers la vitrine même si l'alerte est introuvable ou la base
+ *   injoignable — la page y dira la même chose, sur le site du client.
+ */
+function mountTokenUnsubscribe(router, locate, { siteKnown = false } = {}) {
+  router.get('/unsubscribe', async (req, res) => {
+    const token = String(req.query?.token || '').trim()
+    if (!UUID_RE.test(token)) return sendUnsubscribeState(res, 400, null, 'invalid')
+
+    let found
+    try {
+      found = await locate(req, token)
+    } catch (e) {
+      if (!(e instanceof MissingSecretsError)) {
+        console.error('watch match alert unsubscribe (lien):', e.message)
+      }
+      if (!siteKnown) return sendUnsubscribeState(res, 503, null, 'unavailable')
+      found = { site: req.site, alert: null }
+    }
+
+    const { site, alert } = found
+    if (site && (alert || siteKnown)) {
+      const target = storefrontUnsubscribeUrl(site, token, alert?.locale)
+      if (target) return res.redirect(302, target)
+    }
+
+    if (!alert) return sendUnsubscribeState(res, 404, null, 'unknown')
+    if (alert.status === 'unsubscribed') {
+      return sendUnsubscribeState(res, 200, alert.locale, 'already')
+    }
+    const { buildMatchAlertUnsubscribeCopy } = await loadMatchCore()
+    const confirmForm = `<form method="post" action="?token=${encodeURIComponent(token)}" style="margin-top:16px;">
+        <button type="submit" style="background:#333;color:#fff;border:none;border-radius:6px;padding:12px 24px;font-size:15px;cursor:pointer;">
+          ${buildMatchAlertUnsubscribeCopy(alert.locale).confirmButton}
+        </button></form>`
+    return sendUnsubscribeState(res, 200, alert.locale, 'confirm', confirmForm)
+  })
+
+  router.post('/unsubscribe', async (req, res) => {
+    const token = String(req.query?.token || '').trim()
+    if (!UUID_RE.test(token)) return sendUnsubscribeState(res, 400, null, 'invalid')
+
+    try {
+      const { supabase, alert } = await locate(req, token)
+      if (!alert) return sendUnsubscribeState(res, 404, null, 'unknown')
+      const outcome = await unsubscribeAlert(supabase, alert)
+      return sendUnsubscribeState(res, 200, alert.locale, outcome)
+    } catch (e) {
+      if (e instanceof MissingSecretsError) {
+        return sendUnsubscribeState(res, 503, null, 'unavailable')
+      }
+      console.error('watch match alert unsubscribe:', e.message)
+      return sendUnsubscribeState(res, 500, null, 'error')
+    }
+  })
+}
+
+/**
+ * Désinscription par lien, site **dans le chemin** : à monter sur
+ * `/api/sites/:siteId/watch-match-alerts` derrière `resolveSite` (voir `siteScopedAlertsBase`),
+ * et **avant** le `resolveSite` générique de `/api`, qui sinon répond « Unknown site » le
+ * premier. N'expose que `/unsubscribe` : les autres routes gardent `X-Site-Id`.
+ */
+function buildSiteAlertUnsubscribeRouter() {
+  const router = express.Router()
+  mountTokenUnsubscribe(
+    router,
+    async (req, token) => {
+      const supabase = getSupabaseClient(req.site)
+      const alert = await findAlertByToken(supabase, req.site.id, token)
+      return { site: req.site, supabase, alert }
+    },
+    { siteKnown: true },
+  )
+  return router
+}
+
+/**
+ * Liens des e-mails partis avant que le site n'entre dans le chemin
+ * (`/api/watch-match-alerts/unsubscribe?token=…`) : ils restent dans les boîtes, en-têtes
+ * one-click compris. Le jeton est un `uuid` aléatoire propre à une alerte : on le cherche sur
+ * chaque site où l'alerte est active, et c'est lui qui désigne le site.
+ *
+ * À monter sur `/api/watch-match-alerts` **avant** tout `resolveSite` qui couvre ce chemin.
+ * Les autres chemins passent au montage suivant.
+ *
+ * @param {{ list(): object[] }} registry
+ */
+function buildLegacyAlertUnsubscribeRouter(registry) {
+  const router = express.Router()
+  // Chaque appel peut interroger la base de plusieurs sites : on borne, par IP.
+  const limiter = createRateLimiter({ windowMs: 10 * 60 * 1000, max: 30 })
+  router.use('/unsubscribe', (req, res, next) => {
+    const clientIp = req.ip || req.socket?.remoteAddress || 'inconnue'
+    if (!limiter.check(`legacy-unsubscribe:${clientIp}`)) {
+      return res.status(429).send('Too many requests')
+    }
+    return next()
+  })
+
+  mountTokenUnsubscribe(router, async (req, token) => {
+    let unavailable = null
+    for (const site of registry.list()) {
+      if (!isMatchAlertsEnabled(site)) continue
+      let supabase
+      try {
+        supabase = getSupabaseClient(site)
+      } catch (e) {
+        if (!(e instanceof MissingSecretsError)) throw e
+        unavailable = e
+        continue
+      }
+      const alert = await findAlertByToken(supabase, site.id, token)
+      if (alert) return { site, supabase, alert }
+    }
+    // Introuvable alors qu'une base n'a pas pu être lue : c'était peut-être la sienne.
+    if (unavailable) throw unavailable
+    return { site: null, supabase: null, alert: null }
+  })
+  return router
 }
 
 /**
@@ -155,133 +415,6 @@ function buildWatchMatchAlertsRouter() {
   })
 
   // -------------------------------------------------------------------------
-  // Public — désinscription via jeton (RGPD)
-  //
-  // GET : page de confirmation SANS effet de bord. POST : désinscription effective — sert le
-  // bouton de la page comme le « one-click » RFC 8058.
-  // -------------------------------------------------------------------------
-
-  /**
-   * Charge l'alerte visée par un jeton et les textes dans sa langue. Les textes sont résolus
-   * même quand l'alerte est introuvable (repli sur la langue par défaut du socle) : une page
-   * d'erreur reste une page à afficher.
-   *
-   * @param {object} site
-   * @param {string} token
-   */
-  async function resolveAlertByToken(site, token) {
-    const { buildMatchAlertUnsubscribeCopy } = await loadMatchCore()
-    const supabase = getSupabaseClient(site)
-    const { data, error } = await supabase
-      .from('watch_match_alerts')
-      .select('id, email, status, locale')
-      .eq('site_id', site.id)
-      .eq('unsubscribe_token', token)
-      .maybeSingle()
-    if (error) throw error
-    return { alert: data || null, copy: buildMatchAlertUnsubscribeCopy(data?.locale) }
-  }
-
-  /** Textes de repli quand on ne sait pas (encore) de quelle alerte il s'agit. */
-  async function defaultCopy() {
-    const { buildMatchAlertUnsubscribeCopy } = await loadMatchCore()
-    return buildMatchAlertUnsubscribeCopy(null)
-  }
-
-  router.get('/unsubscribe', async (req, res) => {
-    const site = req.site
-    const token = String(req.query?.token || '').trim()
-
-    if (!token) {
-      const copy = await defaultCopy()
-      return res.status(400).send(unsubscribePage(copy.lang, copy.invalid.title, copy.invalid.text))
-    }
-
-    try {
-      const { alert, copy } = await resolveAlertByToken(site, token)
-      if (!alert) {
-        return res
-          .status(404)
-          .send(unsubscribePage(copy.lang, copy.unknown.title, copy.unknown.text))
-      }
-      if (alert.status === 'unsubscribed') {
-        return res.send(unsubscribePage(copy.lang, copy.already.title, copy.already.text))
-      }
-
-      const confirmForm = `<form method="post" action="?token=${encodeURIComponent(token)}" style="margin-top:16px;">
-        <button type="submit" style="background:#333;color:#fff;border:none;border-radius:6px;padding:12px 24px;font-size:15px;cursor:pointer;">
-          ${copy.confirmButton}
-        </button></form>`
-      return res.send(
-        unsubscribePage(copy.lang, copy.confirm.title, copy.confirm.text, confirmForm),
-      )
-    } catch (e) {
-      const copy = await defaultCopy()
-      if (e instanceof MissingSecretsError) {
-        return res
-          .status(503)
-          .send(unsubscribePage(copy.lang, copy.unavailable.title, copy.unavailable.text))
-      }
-      console.error(`[${site.id}] watch match alert unsubscribe (page):`, e.message)
-      return res.status(500).send(unsubscribePage(copy.lang, copy.error.title, copy.error.text))
-    }
-  })
-
-  router.post('/unsubscribe', async (req, res) => {
-    const site = req.site
-    const token = String(req.query?.token || '').trim()
-
-    if (!token) {
-      const copy = await defaultCopy()
-      return res.status(400).send(unsubscribePage(copy.lang, copy.invalid.title, copy.invalid.text))
-    }
-
-    try {
-      const { alert, copy } = await resolveAlertByToken(site, token)
-      if (!alert) {
-        return res
-          .status(404)
-          .send(unsubscribePage(copy.lang, copy.unknown.title, copy.unknown.text))
-      }
-      if (alert.status === 'unsubscribed') {
-        // Le one-click RFC 8058 peut rejouer : on ne traite pas une répétition en erreur.
-        return res.send(unsubscribePage(copy.lang, copy.already.title, copy.already.text))
-      }
-
-      const supabase = getSupabaseClient(site)
-      const nowIso = new Date().toISOString()
-      const { error } = await supabase
-        .from('watch_match_alerts')
-        .update({
-          status: 'unsubscribed',
-          unsubscribed_at: nowIso,
-          updated_at: nowIso,
-          // Les préférences n'ont plus d'objet une fois l'alerte éteinte : les garder serait
-          // conserver un profil de goûts sans finalité. La ligne survit pour prouver la
-          // désinscription, pas pour décrire quelqu'un.
-          criteria: {},
-        })
-        .eq('id', alert.id)
-        // Réclamation conditionnelle : entre la lecture et cette écriture, la personne a pu
-        // refaire le parcours et se réinscrire. Sans ce garde, la désinscription en vol
-        // effacerait des préférences toutes fraîches et rendrait muette une alerte voulue.
-        .eq('status', 'active')
-      if (error) throw error
-
-      return res.send(unsubscribePage(copy.lang, copy.done.title, copy.done.text))
-    } catch (e) {
-      const copy = await defaultCopy()
-      if (e instanceof MissingSecretsError) {
-        return res
-          .status(503)
-          .send(unsubscribePage(copy.lang, copy.unavailable.title, copy.unavailable.text))
-      }
-      console.error(`[${site.id}] watch match alert unsubscribe:`, e.message)
-      return res.status(500).send(unsubscribePage(copy.lang, copy.error.title, copy.error.text))
-    }
-  })
-
-  // -------------------------------------------------------------------------
   // Public — page vitrine « mes préférences » (lien de chaque e-mail d'alerte)
   //
   // Le jeton arrive par l'en-tête `X-Alert-Token`, jamais dans l'URL : la page le lit dans
@@ -293,15 +426,15 @@ function buildWatchMatchAlertsRouter() {
   const preferencesLimiter = createRateLimiter({ windowMs: 10 * 60 * 1000, max: 30 })
 
   /**
-   * Garde commune aux deux routes. Renvoie le client Supabase et le jeton, ou `null` après
+   * Garde commune aux routes à jeton. Renvoie le client Supabase et le jeton, ou `null` après
    * avoir répondu. Le format est vérifié **avant** la base : la colonne est un `uuid`, et une
    * valeur mal formée y ferait une erreur Postgres — un 500 là où il faut un 400.
    *
    * @returns {Promise<{ supabase: object, token: string } | null>}
    */
-  async function guardPreferencesRequest(req, res) {
+  async function guardPreferencesRequest(req, res, { requireEnabled = true } = {}) {
     const site = req.site
-    if (!isMatchAlertsEnabled(site)) {
+    if (requireEnabled && !isMatchAlertsEnabled(site)) {
       res.status(404).json({ success: false, code: 'DISABLED' })
       return null
     }
@@ -400,14 +533,43 @@ function buildWatchMatchAlertsRouter() {
     }
   })
 
+  /**
+   * Désinscription depuis la page vitrine (`/coup-de-foudre/desabonnement`), après un clic de
+   * confirmation. Même jeton en en-tête que les préférences. La fonctionnalité éteinte ne bloque
+   * pas : se désinscrire doit rester possible tant qu'un e-mail a pu partir.
+   */
+  router.post('/preferences/unsubscribe', async (req, res) => {
+    const site = req.site
+    try {
+      const guard = await guardPreferencesRequest(req, res, { requireEnabled: false })
+      if (!guard) return
+      const alert = await findAlertByToken(guard.supabase, site.id, guard.token)
+      if (!alert) return res.status(404).json({ success: false, code: 'UNKNOWN_TOKEN' })
+      const outcome = await unsubscribeAlert(guard.supabase, alert)
+      return res.json({
+        success: true,
+        status: 'unsubscribed',
+        alreadyUnsubscribed: outcome === 'already',
+        locale: alert.locale,
+      })
+    } catch (e) {
+      console.error(`[${site.id}] watch match alert unsubscribe (vitrine):`, e.message)
+      return res.status(500).json({ success: false, code: 'SERVER_ERROR' })
+    }
+  })
+
   return router
 }
 
 module.exports = {
   buildWatchMatchAlertsRouter,
+  buildSiteAlertUnsubscribeRouter,
+  buildLegacyAlertUnsubscribeRouter,
   buildAlertUnsubscribeUrl,
+  buildAlertUnsubscribePageUrl,
   buildAlertPreferencesUrl,
   ALERT_PREFERENCES_PATH,
+  ALERT_UNSUBSCRIBE_PATH,
   maskEmail,
   alertUnsubscribeHeaders,
 }

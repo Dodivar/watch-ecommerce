@@ -22,6 +22,7 @@ import logoHeaderIconWhite from '@site/assets/logos/Logos RVB (web)/Icône RVB/
 import logoFooterHorizontalWhite from '@site/assets/logos/Logos RVB (web)/Logos RVB horizontal/Logo SW blanc horizontal RVB.png'
 import { isAdminAuthenticated } from '@/services/admin/adminAuthService'
 import AppUpdateBanner from '@/components/layout/AppUpdateBanner.vue'
+import LocaleSuggestionBanner from '@/components/layout/LocaleSuggestionBanner.vue'
 import CookieBanner from '@/components/CookieBanner.vue'
 import LegalPageLinks from '@/components/legal/LegalPageLinks.vue'
 import CartDrawer from '@/components/cart/CartDrawer.vue'
@@ -472,6 +473,7 @@ function displayMobileMenu() {
 
   <CartDrawer v-if="cartAccessible && !isMaintenancePage && !isAdminPage" />
   <CookieBanner />
+  <LocaleSuggestionBanner v-if="!isMaintenancePage && !isAdminPage" />
   <AppUpdateBanner />
 </template>
 

@@ -1069,11 +1069,12 @@ export default {
   'matchmaking.alertUnsubscribe.confirmText':
     'Bestätigen Sie, um keine Hinweise auf passende Uhren mehr zu erhalten.',
   'matchmaking.alertUnsubscribe.confirmButton': 'Abmeldung bestätigen',
-  'matchmaking.alertUnsubscribe.doneTitle': 'Abmeldung bestätigt',
+  'matchmaking.alertUnsubscribe.doneTitle': 'Erledigt',
   'matchmaking.alertUnsubscribe.doneText':
-    'Sie erhalten diese Benachrichtigungen nicht mehr. Ihre Vorlieben wurden gelöscht. Bis bald!',
+    'Ihre Entscheidung wurde berücksichtigt: Sie erhalten diese Benachrichtigungen nicht mehr, und Ihre Vorlieben wurden gelöscht.',
   'matchmaking.alertUnsubscribe.alreadyTitle': 'Bereits abgemeldet',
-  'matchmaking.alertUnsubscribe.alreadyText': 'Sie erhalten diese Benachrichtigungen nicht mehr.',
+  'matchmaking.alertUnsubscribe.alreadyText':
+    'Ihre Entscheidung wurde bereits berücksichtigt: Sie erhalten diese Benachrichtigungen nicht mehr.',
   'matchmaking.alertUnsubscribe.invalidTitle': 'Ungültiger Link',
   'matchmaking.alertUnsubscribe.invalidText': 'Dieser Abmeldelink ist unvollständig.',
   'matchmaking.alertUnsubscribe.unknownTitle': 'Unbekannter Link',
@@ -1084,6 +1085,12 @@ export default {
   'matchmaking.alertUnsubscribe.unavailableTitle': 'Dienst nicht verfügbar',
   'matchmaking.alertUnsubscribe.unavailableText':
     'Die Abmeldung ist vorübergehend nicht möglich.',
+  // — Page vitrine de désinscription (`/coup-de-foudre/desabonnement`)
+  'matchmaking.alertUnsubscribe.pageTitle': 'Benachrichtigungen abbestellen',
+  'matchmaking.alertUnsubscribe.checking': 'Link wird geprüft…',
+  'matchmaking.alertUnsubscribe.working': 'Abmeldung läuft…',
+  'matchmaking.alertUnsubscribe.managePrefs': 'Lieber meine Vorlieben anpassen',
+  'matchmaking.alertUnsubscribe.browse': 'Zur Kollektion',
   // — Alerte coup de foudre : montre hors des choix proposés, et page « mes préférences »
   'matchmaking.alertEmail.introNew': {
     one: 'Sie ist gerade eingetroffen und geht über das hinaus, was wir Ihnen bei der Wahl Ihrer Vorlieben anbieten konnten – sehen Sie selbst, ob sie Sie anspricht.',
@@ -1124,4 +1131,8 @@ export default {
   'update.available': 'Eine neue Version der Website ist verfügbar.',
   'update.reload': 'Neu laden',
   'update.dismiss': 'Schließen',
+  // — Suggestion de langue (affichée dans la langue proposée, pas dans celle de la page)
+  'localeSuggestion.message': 'Diese Website ist auch auf Deutsch verfügbar.',
+  'localeSuggestion.accept': 'Auf Deutsch ansehen',
+  'localeSuggestion.dismiss': 'Schließen',
 }
