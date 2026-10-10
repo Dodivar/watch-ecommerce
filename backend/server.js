@@ -124,8 +124,8 @@ function createApp(registry) {
   app.use('/api/health', buildHealthRouter(registry))
 
   // Liens d'e-mail « coup de foudre » : ouverts hors du navigateur de la vitrine (messagerie,
-  // POST one-click de Gmail), ils n'ont ni Origin ni X-Site-Id. Montés AVANT `/api` ci-dessous,
-  // dont le `resolveSite` couvre tout `/api/*` et répondrait « Unknown site » le premier.
+  // POST one-click de Gmail), ils n'ont ni Origin ni X-Site-Id. Montés AVANT le routeur
+  // `/api/watch-match-alerts` ci-dessous, dont le `resolveSite` répondrait « Unknown site ».
   app.use('/api/watch-match-alerts', buildLegacyAlertUnsubscribeRouter(registry))
   app.use(
     '/api/sites/:siteId/watch-match-alerts',
@@ -133,8 +133,16 @@ function createApp(registry) {
     buildSiteAlertUnsubscribeRouter(),
   )
 
-  // Routes nécessitant un site (Mailjet + n8n) — site résolu via Origin/header.
-  app.use('/api', resolveSite(registry), mailjetRoutes)
+  // Routes nécessitant un site — site résolu via Origin/header.
+  // Mailjet est monté à la racine de `/api` : son `resolveSite` ne garde que ses propres
+  // chemins. Posé sur tout `/api`, il répondait « Unknown site » à tout appelant sans Origin
+  // ni X-Site-Id monté plus bas — dont Stripe, dont aucun webhook n'atteignait son routeur.
+  // Chemins lus sur le routeur : une route Mailjet ajoutée est gardée sans y penser.
+  const mailjetPaths = mailjetRoutes.stack
+    .filter((layer) => layer.route)
+    .map((layer) => `/api${layer.route.path}`)
+  app.use(mailjetPaths, resolveSite(registry))
+  app.use('/api', mailjetRoutes)
   app.use('/api/n8n', resolveSite(registry), n8nRoutes)
   app.use('/api/admin', resolveSite(registry), buildAdminRouter(registry))
   app.use('/api/newsletter', resolveSite(registry), buildNewsletterRouter(registry))
