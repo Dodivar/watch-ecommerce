@@ -126,4 +126,17 @@ describe('liens de désinscription contre l’application montée', () => {
     const res = await request('GET', '/api/watch-match-alerts/preferences')
     expect(res.status).toBe(400)
   })
+
+  it('le preflight CORS répond toujours (route OPTIONS en regex, Express 4 comme 5)', async () => {
+    const res = await fetch(`${baseUrl}/api/watch-match-alerts/preferences`, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'https://www.sauvage-watches.fr',
+        'Access-Control-Request-Method': 'PUT',
+        'Access-Control-Request-Headers': 'x-alert-token,x-site-id,content-type',
+      },
+    })
+    expect(res.status).toBeLessThan(300)
+    expect(res.headers.get('access-control-allow-origin')).toBe('https://www.sauvage-watches.fr')
+  })
 })
