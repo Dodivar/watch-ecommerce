@@ -378,9 +378,9 @@ export default {
 
   copy: {
     footerTagline: t({
-      fr: "Sauvage Watches, votre partenaire pour l'achat, la vente et le rachat de montres de luxe authentifiées. Recherche personnalisée, rachat rapide, transparence garantie.",
-      en: 'Sauvage Watches, your partner for buying, selling and sourcing authenticated luxury watches. Personalised sourcing, fast buy-back, guaranteed transparency.',
-      de: 'Sauvage Watches, Ihr Partner für Kauf, Verkauf und Ankauf authentifizierter Luxusuhren. Persönliche Suche, schneller Ankauf, garantierte Transparenz.',
+      fr: "Votre partenaire pour l'achat et la mise à disposition de montres de luxe authentifiées. Recherche personnalisée, rachat rapide, transparence garantie.",
+      en: 'Your partner for buying and sourcing authenticated luxury watches. Personalised sourcing, fast buy-back, guaranteed transparency.',
+      de: 'Ihr Partner für den Kauf und die Beschaffung authentifizierter Luxusuhren. Persönliche Suche, schneller Ankauf, garantierte Transparenz.',
     }),
     /** Footer legal line (verbatim for template parity). */
     copyrightLine: t({
