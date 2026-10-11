@@ -239,6 +239,11 @@ export default {
     displayName: 'Sauvage',
     /** Short name for JSON-LD Organization / seller */
     schemaOrgName: 'Sauvage',
+    /**
+     * Nom du site dans les résultats Google (`WebSite.name` du JSON-LD). « Sauvage » seul est
+     * trop générique pour que Google le retienne : il affichait le domaine à la place.
+     */
+    searchSiteName: 'Sauvage Watches',
     logoAlt: 'Sauvage Watches',
     loginLogoAlt: 'Sauvage',
   },
@@ -373,9 +378,9 @@ export default {
 
   copy: {
     footerTagline: t({
-      fr: "Votre partenaire pour l'achat et la mise à disposition de montres de luxe authentifiées. Recherche personnalisée, rachat rapide, transparence garantie.",
-      en: 'Your partner for buying and sourcing authenticated luxury watches. Personalised sourcing, fast buy-back, guaranteed transparency.',
-      de: 'Ihr Partner für den Kauf und die Beschaffung authentifizierter Luxusuhren. Persönliche Suche, schneller Ankauf, garantierte Transparenz.',
+      fr: "Sauvage Watches, votre partenaire pour l'achat, la vente et le rachat de montres de luxe authentifiées. Recherche personnalisée, rachat rapide, transparence garantie.",
+      en: 'Sauvage Watches, your partner for buying, selling and sourcing authenticated luxury watches. Personalised sourcing, fast buy-back, guaranteed transparency.',
+      de: 'Sauvage Watches, Ihr Partner für Kauf, Verkauf und Ankauf authentifizierter Luxusuhren. Persönliche Suche, schneller Ankauf, garantierte Transparenz.',
     }),
     /** Footer legal line (verbatim for template parity). */
     copyrightLine: t({
@@ -786,14 +791,14 @@ export default {
     /** Static shell before Vue hydrates @vueuse/head (fallback / crawlers). */
     indexHtml: {
       title: t({
-        fr: 'Sauvage - Montres de luxe',
-        en: 'Sauvage - Luxury watches',
-        de: 'Sauvage - Luxusuhren',
+        fr: 'Sauvage Watches – Achat, vente et rachat de montres de luxe',
+        en: 'Sauvage Watches – Buy, sell and trade in luxury watches',
+        de: 'Sauvage Watches – Kauf, Verkauf und Ankauf von Luxusuhren',
       }),
       metaDescription: t({
-        fr: 'Sauvage - Expert en services de montres de luxe. Collection de montres garanties 1 an, rachat de votre montre. Rolex, Breitling, Tag Heuer, Cartier et plus.',
-        en: 'Sauvage - Luxury watch specialists. A collection of watches with a 1-year warranty, we buy your watch. Rolex, Breitling, Tag Heuer, Cartier and more.',
-        de: 'Sauvage - Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, Ankauf Ihrer Uhr. Rolex, Breitling, Tag Heuer, Cartier und mehr.',
+        fr: "Sauvage Watches : montres de luxe d'occasion authentifiées et garanties 1 an, rachat de votre montre, recherche sur mesure. Strasbourg, Alsace et Grand Est.",
+        en: 'Sauvage Watches: authenticated pre-owned luxury watches with a 1-year warranty, we buy your watch, bespoke watch sourcing. Strasbourg, Alsace and Grand Est.',
+        de: 'Sauvage Watches: geprüfte gebrauchte Luxusuhren mit 1 Jahr Garantie, Ankauf Ihrer Uhr, individuelle Uhrensuche. Straßburg, Elsass und Grand Est.',
       }),
       keywords: t({
         fr: 'recherche personnalisée de montre, rachat montre, montre de luxe, montre occasion, Rolex, Breitling, Tag Heuer, Cartier, montre garantie',
@@ -802,63 +807,63 @@ export default {
       }),
       author: 'Sauvage',
       ogTitle: t({
-        fr: 'Sauvage - Montres de luxe',
-        en: 'Sauvage - Luxury watches',
-        de: 'Sauvage - Luxusuhren',
+        fr: 'Sauvage Watches – Achat, vente et rachat de montres de luxe',
+        en: 'Sauvage Watches – Buy, sell and trade in luxury watches',
+        de: 'Sauvage Watches – Kauf, Verkauf und Ankauf von Luxusuhren',
       }),
       ogDescription: t({
-        fr: 'Expert en services de montres de luxe. Collection de montres garanties 1 an, rachat de votre montre.',
-        en: 'Luxury watch specialists. A collection of watches with a 1-year warranty, we buy your watch.',
-        de: 'Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, Ankauf Ihrer Uhr.',
+        fr: "Montres de luxe d'occasion authentifiées, garanties 1 an et assurées. Rachat de votre montre, recherche personnalisée et Coup de foudre, sur rendez-vous en Alsace et dans le Grand Est.",
+        en: 'Authenticated pre-owned luxury watches, insured and with a 1-year warranty. We buy your watch, personalised sourcing and Find your match, by appointment in Alsace and Grand Est.',
+        de: 'Geprüfte gebrauchte Luxusuhren, versichert und mit 1 Jahr Garantie. Ankauf Ihrer Uhr, persönliche Uhrensuche und Ihre Traumuhr, nach Vereinbarung im Elsass und in der Region Grand Est.',
       }),
       twitterCard: 'summary_large_image',
       twitterTitle: t({
-        fr: 'Sauvage - Montres de luxe',
-        en: 'Sauvage - Luxury watches',
-        de: 'Sauvage - Luxusuhren',
+        fr: 'Sauvage Watches – Achat, vente et rachat de montres de luxe',
+        en: 'Sauvage Watches – Buy, sell and trade in luxury watches',
+        de: 'Sauvage Watches – Kauf, Verkauf und Ankauf von Luxusuhren',
       }),
       twitterDescription: t({
-        fr: 'Expert en services de montres de luxe. Collection de montres garanties 1 an, rachat de votre montre.',
-        en: 'Luxury watch specialists. A collection of watches with a 1-year warranty, we buy your watch.',
-        de: 'Spezialist für Luxusuhren. Uhrenkollektion mit 1 Jahr Garantie, Ankauf Ihrer Uhr.',
+        fr: "Montres de luxe d'occasion authentifiées, garanties 1 an et assurées. Rachat de votre montre, recherche personnalisée et Coup de foudre, sur rendez-vous en Alsace et dans le Grand Est.",
+        en: 'Authenticated pre-owned luxury watches, insured and with a 1-year warranty. We buy your watch, personalised sourcing and Find your match, by appointment in Alsace and Grand Est.',
+        de: 'Geprüfte gebrauchte Luxusuhren, versichert und mit 1 Jahr Garantie. Ankauf Ihrer Uhr, persönliche Uhrensuche und Ihre Traumuhr, nach Vereinbarung im Elsass und in der Region Grand Est.',
       }),
       /** Repli : `og:locale` réel est dérivé de la langue active (voir `i18n/locales.js`). */
       ogLocale: 'fr_FR',
-      ogSiteName: 'Sauvage',
+      ogSiteName: 'Sauvage Watches',
       appleMobileWebAppTitle: 'Sauvage Watches',
       /** Icône applicative, à remplacer par une bannière 1200×630 dédiée au partage. */
       ogImagePath: '/web-app-manifest-512x512.png',
     },
     home: {
       title: t({
-        fr: 'Sauvage - Rachat de Montres de Luxe | Collection Garantie',
-        en: 'Sauvage - Luxury Watch Buy-Back | Warranted Collection',
-        de: 'Sauvage - Ankauf von Luxusuhren | Kollektion mit Garantie',
+        fr: 'Sauvage Watches – Achat, vente et rachat de montres de luxe',
+        en: 'Sauvage Watches – Buy, sell and trade in luxury watches',
+        de: 'Sauvage Watches – Kauf, Verkauf und Ankauf von Luxusuhren',
       }),
       metaDescription: t({
-        fr: 'Montres de luxe garanties 1 an : Rolex, Breitling, Tag Heuer, Cartier. Rachat de votre montre, recherche personnalisée et accompagnement expert.',
-        en: 'Luxury watches with a 1-year warranty: Rolex, Breitling, Tag Heuer, Cartier. We buy your watch, personalised sourcing and expert guidance.',
-        de: 'Luxusuhren mit 1 Jahr Garantie: Rolex, Breitling, Tag Heuer, Cartier. Ankauf Ihrer Uhr, persönliche Suche und fachkundige Beratung.',
+        fr: "Sauvage Watches : montres de luxe d'occasion authentifiées et garanties 1 an, rachat de votre montre, recherche sur mesure. Strasbourg, Alsace et Grand Est.",
+        en: 'Sauvage Watches: authenticated pre-owned luxury watches with a 1-year warranty, we buy your watch, bespoke watch sourcing. Strasbourg, Alsace and Grand Est.',
+        de: 'Sauvage Watches: geprüfte gebrauchte Luxusuhren mit 1 Jahr Garantie, Ankauf Ihrer Uhr, individuelle Uhrensuche. Straßburg, Elsass und Grand Est.',
       }),
       ogTitle: t({
-        fr: 'Sauvage - Rachat de Montres de Luxe | Collection Garantie',
-        en: 'Sauvage - Luxury Watch Buy-Back | Warranted Collection',
-        de: 'Sauvage - Ankauf von Luxusuhren | Kollektion mit Garantie',
+        fr: 'Sauvage Watches – Achat, vente et rachat de montres de luxe',
+        en: 'Sauvage Watches – Buy, sell and trade in luxury watches',
+        de: 'Sauvage Watches – Kauf, Verkauf und Ankauf von Luxusuhren',
       }),
       ogDescription: t({
-        fr: 'Découvrez notre collection de montres de luxe garanties 1 an. Rachat de votre montre, recherche personnalisée et accompagnement expert.',
-        en: 'Discover our collection of luxury watches with a 1-year warranty. We buy your watch, personalised sourcing and expert guidance.',
-        de: 'Entdecken Sie unsere Kollektion von Luxusuhren mit 1 Jahr Garantie. Ankauf Ihrer Uhr, persönliche Suche und fachkundige Beratung.',
+        fr: "Montres de luxe d'occasion authentifiées, garanties 1 an et assurées. Rachat de votre montre, recherche personnalisée et Coup de foudre, sur rendez-vous en Alsace et dans le Grand Est.",
+        en: 'Authenticated pre-owned luxury watches, insured and with a 1-year warranty. We buy your watch, personalised sourcing and Find your match, by appointment in Alsace and Grand Est.',
+        de: 'Geprüfte gebrauchte Luxusuhren, versichert und mit 1 Jahr Garantie. Ankauf Ihrer Uhr, persönliche Uhrensuche und Ihre Traumuhr, nach Vereinbarung im Elsass und in der Region Grand Est.',
       }),
       twitterTitle: t({
-        fr: 'Sauvage - Rachat de Montres de Luxe',
-        en: 'Sauvage - Luxury Watch Buy-Back',
-        de: 'Sauvage - Ankauf von Luxusuhren',
+        fr: 'Sauvage Watches – Achat, vente et rachat de montres de luxe',
+        en: 'Sauvage Watches – Buy, sell and trade in luxury watches',
+        de: 'Sauvage Watches – Kauf, Verkauf und Ankauf von Luxusuhren',
       }),
       twitterDescription: t({
-        fr: 'Découvrez notre collection de montres de luxe garanties 1 an. Rachat de votre montre, recherche personnalisée.',
-        en: 'Discover our collection of luxury watches with a 1-year warranty. We buy your watch, personalised sourcing.',
-        de: 'Entdecken Sie unsere Kollektion von Luxusuhren mit 1 Jahr Garantie. Ankauf Ihrer Uhr, persönliche Suche.',
+        fr: "Montres de luxe d'occasion authentifiées, garanties 1 an et assurées. Rachat de votre montre, recherche personnalisée et Coup de foudre, sur rendez-vous en Alsace et dans le Grand Est.",
+        en: 'Authenticated pre-owned luxury watches, insured and with a 1-year warranty. We buy your watch, personalised sourcing and Find your match, by appointment in Alsace and Grand Est.',
+        de: 'Geprüfte gebrauchte Luxusuhren, versichert und mit 1 Jahr Garantie. Ankauf Ihrer Uhr, persönliche Uhrensuche und Ihre Traumuhr, nach Vereinbarung im Elsass und in der Region Grand Est.',
       }),
     },
     blog: {
