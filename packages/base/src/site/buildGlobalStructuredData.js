@@ -81,19 +81,23 @@ export function buildGlobalStructuredData(siteConfig, baseUrl) {
   const social = siteConfig?.social ?? {}
   const nap = resolveSiteNap(siteConfig)
   const siteName = brand.displayName || brand.legalName || nap.name
+  // Nom que Google affiche au-dessus du résultat. Un nom court et générique (« Sauvage ») se
+  // corrobore mal : le manifest peut déclarer la forme complète, l'autre devient un alias.
+  const searchSiteName = brand.searchSiteName || siteName
+  const alternateNames = [...new Set([siteName, brand.legalName].filter(Boolean))].filter(
+    (name) => name !== searchSiteName,
+  )
   const logoUrl = resolveLogoUrl(siteConfig, baseUrl)
   const areaServed = buildAreaServed(siteConfig?.serviceArea)
 
   const organization = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: siteName,
+    name: searchSiteName,
     url: baseUrl,
   }
 
-  if (brand.legalName && brand.displayName && brand.legalName !== brand.displayName) {
-    organization.alternateName = brand.displayName
-  }
+  if (alternateNames.length) organization.alternateName = alternateNames[0]
   // `logo` : ce que Google lit pour le panneau de connaissance. Même visuel que la balise de
   // partage, déclaré une seule fois dans le manifest.
   if (logoUrl) organization.logo = logoUrl
@@ -116,11 +120,12 @@ export function buildGlobalStructuredData(siteConfig, baseUrl) {
   const website = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: siteName,
+    name: searchSiteName,
+    ...(alternateNames.length ? { alternateName: alternateNames } : {}),
     url: baseUrl,
     publisher: {
       '@type': 'Organization',
-      name: siteName,
+      name: searchSiteName,
       url: baseUrl,
     },
   }
