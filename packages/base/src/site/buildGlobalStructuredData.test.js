@@ -29,6 +29,26 @@ describe('buildGlobalStructuredData', () => {
     expect(org.logo).toBe('https://exemple.fr/logo.png')
   })
 
+  /** Google prend le nom du site dans `WebSite.name` ; l'enseigne courte reste un alias. */
+  it('nomme le site avec la forme complète déclarée par le manifest', () => {
+    const config = siteConfig({
+      brand: { displayName: 'Sauvage', legalName: 'Sauvage Watches', searchSiteName: 'Sauvage Watches' },
+    })
+    const schemas = buildGlobalStructuredData(config, BASE)
+
+    expect(typeOf(schemas, 'WebSite').name).toBe('Sauvage Watches')
+    expect(typeOf(schemas, 'WebSite').alternateName).toEqual(['Sauvage'])
+    expect(typeOf(schemas, 'Organization').name).toBe('Sauvage Watches')
+    expect(typeOf(schemas, 'Organization').alternateName).toBe('Sauvage')
+  })
+
+  it('garde l’enseigne comme nom de site faute de forme complète déclarée', () => {
+    const schemas = buildGlobalStructuredData(siteConfig(), BASE)
+
+    expect(typeOf(schemas, 'WebSite').name).toBe('Boutique')
+    expect(typeOf(schemas, 'Organization').alternateName).toBe('Boutique SARL')
+  })
+
   it('n’invente pas de logo quand le manifest n’en déclare pas', () => {
     const config = siteConfig({ seo: { indexHtml: {} } })
     const org = typeOf(buildGlobalStructuredData(config, BASE), 'Organization')

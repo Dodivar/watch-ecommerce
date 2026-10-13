@@ -16,7 +16,7 @@ const router = useRouter()
 const features = getSiteConfig().features
 const isSubmitting = ref(false)
 const errorMessage = ref('')
-const budgetRange = ref([0, 15000])
+const budgetRange = ref([0, 50000])
 const loadingDots = ref('')
 let loadingInterval = null
 
