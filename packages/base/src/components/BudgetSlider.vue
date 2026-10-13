@@ -5,8 +5,8 @@ import '@vueform/slider/themes/default.css'
 
 const props = defineProps({
   min: { type: Number, default: 0 },
-  max: { type: Number, default: 15000 },
-  modelValue: { type: Array, default: () => [0, 15000] },
+  max: { type: Number, default: 50000 },
+  modelValue: { type: Array, default: () => [0, 50000] },
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -76,7 +76,7 @@ const updateRangeFromInput = () => {
       </div>
       <div class="flex justify-between text-xs text-gray-500">
         <span>{{ min.toLocaleString() }} €</span>
-        <span>{{ max.toLocaleString() }} €</span>
+        <span>{{ max.toLocaleString() }} € +</span>
       </div>
     </div>
 
