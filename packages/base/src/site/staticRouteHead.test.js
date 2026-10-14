@@ -6,7 +6,9 @@ import { describe, expect, it } from 'vitest'
 import {
   STATIC_ROUTES_WITHOUT_OWN_COPY,
   STATIC_ROUTE_SEO_SECTIONS,
+  applyStaticRouteAlternates,
   applyStaticRouteHead,
+  buildStaticRouteAlternates,
   buildStaticRouteHead,
   buildStaticRouteUrl,
 } from './staticRouteHead.js'
@@ -166,6 +168,68 @@ describe('applyStaticRouteHead', () => {
     const minimal = '<html><head><title>Coquille</title></head><body></body></html>'
     const out = applyStaticRouteHead(minimal, head('/faq'))
     expect(out).toBe('<html><head><title>FAQ | Boutique</title></head><body></body></html>')
+  })
+})
+
+describe('buildStaticRouteAlternates', () => {
+  const avecRoutesNonTraduites = { ...TRILINGUE, untranslatedRoutes: ['/montre/', '/blog/'] }
+
+  it('déclare chaque langue et x-default sur la langue par défaut', () => {
+    expect(buildStaticRouteAlternates('https://exemple.fr', '/faq', TRILINGUE)).toEqual([
+      { hreflang: 'fr', href: 'https://exemple.fr/faq' },
+      { hreflang: 'en', href: 'https://exemple.fr/en/faq' },
+      { hreflang: 'de', href: 'https://exemple.fr/de/faq' },
+      { hreflang: 'x-default', href: 'https://exemple.fr/faq' },
+    ])
+  })
+
+  it('rend les accueils sans slash final, comme leurs canoniques', () => {
+    expect(buildStaticRouteAlternates('https://exemple.fr', '', TRILINGUE)).toEqual([
+      { hreflang: 'fr', href: 'https://exemple.fr' },
+      { hreflang: 'en', href: 'https://exemple.fr/en' },
+      { hreflang: 'de', href: 'https://exemple.fr/de' },
+      { hreflang: 'x-default', href: 'https://exemple.fr' },
+    ])
+  })
+
+  it('n’en déclare aucun hors multilingue ni sur une route non traduite', () => {
+    expect(buildStaticRouteAlternates('https://exemple.fr', '/faq', MONOLINGUE)).toEqual([])
+    expect(
+      buildStaticRouteAlternates('https://exemple.fr', '/blog/un-article', avecRoutesNonTraduites),
+    ).toEqual([])
+    // `/blog` (la liste) est traduite : seul le préfixe `/blog/` est exclu.
+    expect(buildStaticRouteAlternates('https://exemple.fr', '/blog', avecRoutesNonTraduites)).toHaveLength(4)
+  })
+})
+
+describe('applyStaticRouteAlternates', () => {
+  const shell = [
+    '<head>',
+    '    <title>Coquille</title>',
+    '    <link rel="canonical" href="https://exemple.fr" />',
+    '    <meta property="og:url" content="https://exemple.fr" />',
+    '</head>',
+  ].join('\n')
+  const alternates = buildStaticRouteAlternates('https://exemple.fr', '', TRILINGUE)
+
+  it('écrit les alternates juste après la canonique, à la même indentation', () => {
+    const out = applyStaticRouteAlternates(shell, alternates)
+    expect(out).toContain(
+      [
+        '    <link rel="canonical" href="https://exemple.fr" />',
+        '    <link rel="alternate" hreflang="fr" href="https://exemple.fr" />',
+        '    <link rel="alternate" hreflang="en" href="https://exemple.fr/en" />',
+        '    <link rel="alternate" hreflang="de" href="https://exemple.fr/de" />',
+        '    <link rel="alternate" hreflang="x-default" href="https://exemple.fr" />',
+        '    <meta property="og:url" content="https://exemple.fr" />',
+      ].join('\n'),
+    )
+  })
+
+  it('remplace les alternates d’une passe précédente au lieu de les doubler', () => {
+    const twice = applyStaticRouteAlternates(applyStaticRouteAlternates(shell, alternates), alternates)
+    expect(twice).toBe(applyStaticRouteAlternates(shell, alternates))
+    expect(applyStaticRouteAlternates(twice, [])).toBe(shell)
   })
 })
 
