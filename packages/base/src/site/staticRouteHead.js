@@ -71,6 +71,57 @@ export function buildStaticRouteUrl(baseUrl, routePath, locale, i18n) {
 }
 
 /**
+ * Alternates `hreflang` d'une route statique : une entrée par langue, plus `x-default` sur la
+ * langue par défaut. Mêmes URL que `useLocaleHead()` au rendu et que le sitemap.
+ *
+ * Les écrire dans le HTML servi évite que Google ne les découvre qu'après exécution du JS.
+ * Vide hors multilingue et sur les routes dont le contenu reste en français
+ * (`i18n.untranslatedRoutes`), qui n'en déclarent pas non plus au rendu.
+ *
+ * @param {string} baseUrl Origine, sans slash final.
+ * @param {string} routePath Chemin dépréfixé (`''` pour l'accueil).
+ * @param {{ enabled: boolean, locales: string[], defaultLocale: string,
+ *   untranslatedRoutes?: string[] }} i18n
+ * @returns {{ hreflang: string, href: string }[]}
+ */
+export function buildStaticRouteAlternates(baseUrl, routePath, i18n) {
+  if (!i18n?.enabled || !baseUrl) return []
+  const path = routePath || '/'
+  if ((i18n.untranslatedRoutes ?? []).some((prefix) => path.startsWith(prefix))) return []
+
+  const alternates = i18n.locales.map((code) => ({
+    hreflang: code,
+    href: buildStaticRouteUrl(baseUrl, routePath, code, i18n),
+  }))
+  alternates.push({
+    hreflang: 'x-default',
+    href: buildStaticRouteUrl(baseUrl, routePath, i18n.defaultLocale, i18n),
+  })
+  return alternates
+}
+
+/**
+ * Écrit les alternates juste après la canonique, en remplaçant ceux qu'une passe précédente
+ * aurait déjà posés. Une coquille sans canonique est laissée telle quelle.
+ *
+ * @param {string} html
+ * @param {{ hreflang: string, href: string }[]} alternates
+ * @returns {string}
+ */
+export function applyStaticRouteAlternates(html, alternates) {
+  const cleaned = html.replace(/[ \t]*<link\s+rel="alternate"\s+hreflang="[^"]*"[^>]*>\r?\n?/gi, '')
+  if (!alternates.length) return cleaned
+
+  return cleaned.replace(/^([ \t]*)(<link\s+rel="canonical"[^>]*>)/im, (match, indent) => {
+    const links = alternates.map(
+      ({ hreflang, href }) =>
+        `${indent}<link rel="alternate" hreflang="${escapeHtmlAttr(hreflang)}" href="${escapeHtmlAttr(href)}" />`,
+    )
+    return [match, ...links].join('\n')
+  })
+}
+
+/**
  * @param {object} input
  * @param {Record<string, any>} input.siteConfig Manifest **déjà aplati** dans la langue voulue.
  * @param {string} input.routePath
