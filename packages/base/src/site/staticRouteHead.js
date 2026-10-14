@@ -31,7 +31,11 @@ export const STATIC_ROUTE_SEO_SECTIONS = {
   '/ventes': 'soldArchive',
   '/blog': 'blog',
   '/coup-de-foudre': 'matchmaking',
+  '/recherche': 'recherche',
+  '/rachat': 'estimation',
+  '/rachat/processus': 'estimationProcess',
   '/a-propos': 'aPropos',
+  '/contact': 'contact',
   '/faq': 'faq',
   '/services': 'servicesPage',
   '/guide-horloger': 'guidePage',
@@ -41,17 +45,19 @@ export const STATIC_ROUTE_SEO_SECTIONS = {
 }
 
 /**
- * Routes statiques listées au sitemap dont aucun composant ne pose de `useHead`, et qu'aucun
- * bloc `seo` ne décrit : elles héritent donc de la copie de l'accueil, au pré-rendu **comme**
- * au rendu. Leur canonique est corrigée ici, mais leur titre reste à écrire côté manifest.
+ * Routes dont le bloc `seo` reste facultatif. Sans lui, le composant se rabat sur un titre
+ * générique propre à la page (`useStaticPageHead`, libellé de l'interface + marque) ; le
+ * pré-rendu, qui n'a pas accès au catalogue d'interface, garde alors la copie de la coquille.
  *
- * Documenté plutôt que corrigé en silence : rédiger ces textes relève du client.
+ * Rédiger ces textes relève du client : une vitrine sans bloc n'est pas en défaut, mais ses
+ * pages ne peuvent pas prétendre aux liens annexes (sitelinks) tant que le HTML servi double
+ * le titre de l'accueil.
  */
-export const STATIC_ROUTES_WITHOUT_OWN_COPY = [
-  '/contact',
+export const OPTIONAL_STATIC_ROUTE_SEO_ROUTES = [
   '/recherche',
   '/rachat',
   '/rachat/processus',
+  '/contact',
 ]
 
 /**

@@ -12,7 +12,7 @@ import {
 import { KNOWN_HOME_SECTION_IDS } from '@/site/homeSections.js'
 import { buildSitemapStaticRoutes } from '@/site/buildSitemapStaticRoutes.js'
 import {
-  STATIC_ROUTES_WITHOUT_OWN_COPY,
+  OPTIONAL_STATIC_ROUTE_SEO_ROUTES,
   STATIC_ROUTE_SEO_SECTIONS,
 } from '@/site/staticRouteHead.js'
 import {
@@ -199,15 +199,10 @@ describe.each(siteIds)('site contract: %s', (siteId) => {
       .map((route) => route.path)
       .filter(
         (routePath) =>
-          !(routePath in STATIC_ROUTE_SEO_SECTIONS) &&
-          !STATIC_ROUTES_WITHOUT_OWN_COPY.includes(routePath) &&
-          !routePath.startsWith('/services/'),
+          !(routePath in STATIC_ROUTE_SEO_SECTIONS) && !routePath.startsWith('/services/'),
       )
 
-    expect(
-      unaccounted,
-      'ajouter ces routes à STATIC_ROUTE_SEO_SECTIONS ou à STATIC_ROUTES_WITHOUT_OWN_COPY',
-    ).toEqual([])
+    expect(unaccounted, 'ajouter ces routes à STATIC_ROUTE_SEO_SECTIONS').toEqual([])
   })
 
   /** Une section pointée par la table mais absente du manifest retomberait sur la coquille. */
@@ -218,6 +213,7 @@ describe.each(siteIds)('site contract: %s', (siteId) => {
 
     const missing = Object.entries(STATIC_ROUTE_SEO_SECTIONS)
       .filter(([routePath]) => routes.has(routePath))
+      .filter(([routePath]) => !OPTIONAL_STATIC_ROUTE_SEO_ROUTES.includes(routePath))
       .filter(([, section]) => !seo[section])
       .map(([routePath, section]) => `${routePath} → seo.${section}`)
 

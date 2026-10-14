@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  STATIC_ROUTES_WITHOUT_OWN_COPY,
+  OPTIONAL_STATIC_ROUTE_SEO_ROUTES,
   STATIC_ROUTE_SEO_SECTIONS,
   applyStaticRouteAlternates,
   applyStaticRouteHead,
@@ -239,9 +239,9 @@ describe('couverture de la table des sections', () => {
     expect(new Set(sections).size).toBe(sections.length)
   })
 
-  it('ne fait pas se recouper la table et la liste des routes sans copie', () => {
-    for (const route of STATIC_ROUTES_WITHOUT_OWN_COPY) {
-      expect(STATIC_ROUTE_SEO_SECTIONS[route], route).toBeUndefined()
+  it('déclare dans la table chaque route au bloc facultatif', () => {
+    for (const route of OPTIONAL_STATIC_ROUTE_SEO_ROUTES) {
+      expect(STATIC_ROUTE_SEO_SECTIONS[route], route).toBeDefined()
     }
   })
 })

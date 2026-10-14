@@ -71,7 +71,8 @@ function closeMegaMenu() {
       </Transition>
     </Teleport>
 
-    <div class="ml-10 flex items-baseline space-x-8">
+    <!-- Espacements resserrés entre md et lg : à 7 entrées, la tablette débordait. -->
+    <div class="ml-4 lg:ml-10 flex items-baseline space-x-4 lg:space-x-8">
       <template v-for="(item, idx) in navItems" :key="'nav-' + idx + '-' + item.type">
         <RouterLink
           v-if="item.type === 'link'"
