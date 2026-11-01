@@ -228,9 +228,16 @@ import { RouterLink, useRouter } from 'vue-router'
 import { ArrowLeft, CheckCircle2, ChevronRight, CircleCheck } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { useStaticPageHead } from '@/composables/useStaticPageHead.js'
 import { t } from '@/i18n'
 
 const estimationProcessLead = getSiteConfig().copy.estimationProcessLead
+
+useStaticPageHead({
+  path: '/rachat/processus',
+  section: 'estimationProcess',
+  fallbackTitle: t('process.pageTitle'),
+})
 
 const router = useRouter()
 const previousRoute = ref(null)

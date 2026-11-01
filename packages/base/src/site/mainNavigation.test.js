@@ -112,6 +112,19 @@ describe('resolveMainNavigation', () => {
     const nav = resolveMainNavigation(site)
     expect(nav).toEqual([{ type: 'link', label: 'FAQ', to: '/faq' }])
   })
+
+  it('conserve /faq avec homeAnchor: false, même si la section est sur l’accueil', () => {
+    const site = {
+      features: { ...DEFAULT_SITE_FEATURES, faq: true },
+      home: { sections: ['hero', 'faq'] },
+      navigation: {
+        main: [{ type: 'link', label: 'FAQ', to: '/faq', feature: 'faq', homeAnchor: false }],
+        footer: [{ label: 'FAQ', to: '/faq', feature: 'faq', homeAnchor: false }],
+      },
+    }
+    expect(resolveMainNavigation(site)).toEqual([{ type: 'link', label: 'FAQ', to: '/faq' }])
+    expect(resolveFooterNavigation(site)).toEqual([{ label: 'FAQ', to: '/faq' }])
+  })
 })
 
 describe('isFaqOnHomepage', () => {

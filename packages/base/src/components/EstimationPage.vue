@@ -364,7 +364,16 @@ import { getSiteConfig } from '@/site/getSiteConfig.js'
 import TooltipInfo from './TooltipInfo.vue'
 import ContactCTA from './ContactCTA.vue'
 import ServiceAreaNote from './ServiceAreaNote.vue'
+import { useStaticPageHead } from '@/composables/useStaticPageHead.js'
 import { t } from '@/i18n'
+
+useStaticPageHead({
+  path: '/rachat',
+  section: 'estimation',
+  fallbackTitle: t('valuation.pageTitle'),
+  fallbackDescription: t('valuation.pageLead'),
+})
+
 const router = useRouter()
 const features = getSiteConfig().features
 

@@ -8,9 +8,17 @@ import BudgetSlider from './BudgetSlider.vue'
 import ContactCTA from './ContactCTA.vue'
 import ServiceAreaNote from './ServiceAreaNote.vue'
 import NewsletterOptInField from '@/components/NewsletterOptInField.vue'
+import { useStaticPageHead } from '@/composables/useStaticPageHead.js'
 import { t } from '@/i18n'
 
 defineOptions({ name: 'RechercheMontre' })
+
+useStaticPageHead({
+  path: '/recherche',
+  section: 'recherche',
+  fallbackTitle: t('crossSell.sourcing'),
+  fallbackDescription: t('sourcing.intro'),
+})
 
 const router = useRouter()
 const features = getSiteConfig().features

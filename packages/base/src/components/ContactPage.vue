@@ -217,8 +217,8 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { Mail, MapPin, Phone } from '@lucide/vue'
 import { useRouter } from 'vue-router'
-import { useHead } from '@vueuse/head'
-import { EMAIL_CONTACT, WHATSAPP_NUMBER, CANONICAL_BASE_URL } from '@/config'
+import { EMAIL_CONTACT, WHATSAPP_NUMBER } from '@/config'
+import { useStaticPageHead } from '@/composables/useStaticPageHead.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import StoreLocationMap from '@/components/StoreLocationMap.vue'
 import GoogleReviewsBlock from '@/components/reviews/GoogleReviewsBlock.vue'
@@ -282,22 +282,11 @@ const form = reactive({
   message: '',
 })
 
-const pageTitle = `${t('contact.title')} — ${brandDisplayName}`
-const pageDescription = t('contact.metaDescription', { brand: brandDisplayName })
-
-useHead({
-  title: pageTitle,
-  meta: [
-    { name: 'description', content: pageDescription },
-    { property: 'og:title', content: pageTitle },
-    { property: 'og:description', content: pageDescription },
-    { property: 'og:url', content: `${CANONICAL_BASE_URL}/contact` },
-    { property: 'og:type', content: 'website' },
-    { name: 'twitter:card', content: 'summary_large_image' },
-    { name: 'twitter:title', content: pageTitle },
-    { name: 'twitter:description', content: pageDescription },
-  ],
-  link: [{ rel: 'canonical', href: `${CANONICAL_BASE_URL}/contact` }],
+useStaticPageHead({
+  path: '/contact',
+  section: 'contact',
+  fallbackTitle: t('contact.title'),
+  fallbackDescription: t('contact.metaDescription', { brand: brandDisplayName }),
 })
 
 async function submitContactForm(event) {

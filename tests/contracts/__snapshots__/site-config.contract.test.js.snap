@@ -336,11 +336,15 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
   "footerNav": [
     {
       "label": "Accueil",
-      "to": "/#accueil",
+      "to": "/",
     },
     {
       "label": "Nos montres",
       "to": "/collection",
+    },
+    {
+      "label": "Toutes les marques",
+      "to": "/collection/marques",
     },
     {
       "label": "Nos ventes",
@@ -361,6 +365,10 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     {
       "label": "Blog",
       "to": "/blog",
+    },
+    {
+      "label": "FAQ",
+      "to": "/faq",
     },
     {
       "label": "Contact",
@@ -384,6 +392,11 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
       "type": "link",
     },
     {
+      "label": "Vendre ma montre",
+      "to": "/rachat",
+      "type": "link",
+    },
+    {
       "label": "Nos ventes",
       "to": "/ventes",
       "type": "link",
@@ -400,7 +413,7 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     },
     {
       "label": "FAQ",
-      "to": "/#faq",
+      "to": "/faq",
       "type": "link",
     },
     {

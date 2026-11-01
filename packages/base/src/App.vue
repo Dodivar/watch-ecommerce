@@ -150,10 +150,12 @@ function displayMobileMenu() {
         <MainNavDesktop :nav-items="mainNavItems" />
         <div class="flex items-center gap-1 shrink-0">
           <!-- Réseaux sociaux en en-tête : opt-in par vitrine (`social.show.header`).
-               `text-text-main` suffit — le thème sombre le repeint en blanc. -->
+               `text-text-main` suffit — le thème sombre le repeint en blanc.
+               Dès `lg` seulement : sur tablette, ils poussaient le menu hors de l'écran
+               (toujours présents dans le pied de page). -->
           <SocialIconLinks
             v-if="site.social?.show?.header"
-            class="hidden md:flex"
+            class="hidden lg:flex"
             link-class="p-2 rounded-lg text-text-main hover:bg-cream-100 transition-colors"
           />
           <LanguageSwitcher class="hidden md:block" />
