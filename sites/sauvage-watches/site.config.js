@@ -436,6 +436,12 @@ export default {
     /** Archive publique des montres vendues (`/ventes`) — preuve sociale + SEO. */
     soldArchive: true,
     /**
+     * Montres « Arrive bientôt » : visibles avec leur prix avant réception, achat remplacé par
+     * un contact vendeur. Nécessite la colonne `watches.is_incoming`
+     * (`supabase/migrations/20261101120000_watch_incoming.sql`).
+     */
+    incomingWatches: true,
+    /**
      * « Coup de foudre » (`/coup-de-foudre`) : préférences guidées puis montres à faire
      * glisser, shortlist locale au navigateur. Exclusif à Sauvage.
      */

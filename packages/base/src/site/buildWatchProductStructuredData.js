@@ -16,6 +16,10 @@ import { resolveConditionSchemaValue } from '@/i18n/watchSpecs'
  * @param {string} input.baseUrl Origine du site, pour le vendeur.
  * @param {string} input.sellerName `seo.watchDetail.structuredDataSellerName` du manifest.
  * @param {string} input.unknownBrandLabel Libellé de repli pour une montre sans marque.
+ * @param {import('./watchCatalogDisplay.js').WatchSaleState} [input.saleState] État de vente
+ *   (`resolveWatchSaleState`). Seul `available` vaut `InStock` : une montre en arrivage ou en
+ *   rupture n'est pas commandable, et l'annoncer en stock à Google serait faux. À défaut, repli
+ *   sur `isAvailable && !isSold`.
  * @returns {Record<string, any> | null}
  */
 export function buildWatchProductStructuredData({
@@ -25,6 +29,7 @@ export function buildWatchProductStructuredData({
   baseUrl,
   sellerName,
   unknownBrandLabel,
+  saleState,
 }) {
   if (!watch) return null
 
@@ -57,10 +62,9 @@ export function buildWatchProductStructuredData({
       '@type': 'Offer',
       price,
       priceCurrency: 'EUR',
-      availability:
-        watch.isAvailable && !watch.isSold
-          ? 'https://schema.org/InStock'
-          : 'https://schema.org/OutOfStock',
+      availability: (saleState ? saleState === 'available' : watch.isAvailable && !watch.isSold)
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
       url: canonicalUrl,
       seller: {
         '@type': 'Organization',

@@ -11,7 +11,13 @@
       class="relative aspect-square w-24 shrink-0 overflow-hidden rounded bg-white sm:w-32 lg:w-40"
     >
       <span
-        v-if="showNewBadge"
+        v-if="isIncoming"
+        class="absolute top-1 left-1 z-10 rounded-full bg-gray-900 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm"
+      >
+        {{ t('watch.incoming') }}
+      </span>
+      <span
+        v-else-if="showNewBadge"
         class="absolute top-1 left-1 z-10 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm"
       >
         {{ t('watch.new') }}
@@ -115,7 +121,7 @@ import { RouterLink } from 'vue-router'
 
 import { watchCardImageUrl, buildWatchCardSrcSet } from '@/utils/watchImageUrl.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
-import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
+import { resolveWatchSaleState } from '@/site/watchCatalogDisplay.js'
 import { formatPrice } from '@/utils/formatters.js'
 import { buildWatchPath } from '@/utils/watchSlug.js'
 import { formatCaseSizeDisplay, normalizeCaseSizeValue } from '@/utils/caseSize'
@@ -179,7 +185,9 @@ const effectiveShowSoldBadge = computed(
   () => props.showSoldBadge && catalogDisplay.showSoldBadge,
 )
 
-const isOutOfStock = computed(() => isWatchOutOfStock(site, watchItem.value))
+const saleState = computed(() => resolveWatchSaleState(site, watchItem.value))
+const isOutOfStock = computed(() => saleState.value === 'outOfStock')
+const isIncoming = computed(() => saleState.value === 'incoming')
 
 /** L'année ne concerne que les catalogues de revente, comme sur la carte. */
 const showListYear = computed(

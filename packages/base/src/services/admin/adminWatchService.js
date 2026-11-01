@@ -14,6 +14,14 @@ function isRetailCatalog() {
 }
 
 /**
+ * `watches.is_incoming` n'existe que sur les projets migrés pour `features.incomingWatches` :
+ * hors de ces sites, ni l'écrire ni la lire, sinon PostgREST rejette la requête entière.
+ */
+function hasIncomingWatches() {
+  return getSiteConfig().features?.incomingWatches === true
+}
+
+/**
  * Transforme les données du formulaire en format base de données
  */
 function transformWatchToDB(watchData) {
@@ -57,6 +65,11 @@ function transformWatchToDB(watchData) {
     // catalogue : elle reste visible avec un badge "Hors stock".
     row.is_sold = false
     row.is_available = watchData.isAvailable !== undefined ? watchData.isAvailable : true
+  }
+
+  if (hasIncomingWatches()) {
+    // Décoché à la main par l'admin à la réception : aucun passage automatique.
+    row.is_incoming = watchData.isIncoming === true
   }
 
   return row
@@ -860,6 +873,7 @@ export async function getWatchByIdForAdmin(watchId) {
       descriptionTranslations,
       isAvailable: watch.is_available !== undefined ? watch.is_available : true,
       isSold: watch.is_sold !== undefined ? watch.is_sold : false,
+      isIncoming: watch.is_incoming === true,
       saleDate: watch.sale_date || null,
       stockQuantity: watch.stock_quantity ?? 1,
       displayOrder: watch.display_order || 0,
@@ -1042,6 +1056,11 @@ async function attachFirstImagesToWatches(watches) {
 const ADMIN_LIST_COLUMNS =
   'id, ad_code, name, brand, model, reference, price, promotion_price, discount_percent, created_at, display_order, is_available, is_sold, stock_quantity'
 
+/** Colonnes de la liste, `is_incoming` en plus là où l'arrivage est géré. */
+function adminListColumns() {
+  return hasIncomingWatches() ? `${ADMIN_LIST_COLUMNS}, is_incoming` : ADMIN_LIST_COLUMNS
+}
+
 /** Colonnes triables depuis l'en-tête du tableau, indexées par la clé utilisée côté UI. */
 const ADMIN_LIST_SORT_COLUMNS = {
   order: 'display_order',
@@ -1110,7 +1129,7 @@ export async function listWatchesForAdmin({
   const size = Math.min(100, Math.max(1, pageSize))
   const offset = (pageNum - 1) * size
 
-  let query = supabase.from('watches').select(ADMIN_LIST_COLUMNS, { count: 'exact' })
+  let query = supabase.from('watches').select(adminListColumns(), { count: 'exact' })
   query = applyAdminStatusFilter(query, status)
 
   const term = String(search || '').trim()
