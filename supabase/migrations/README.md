@@ -932,3 +932,11 @@ order by tablename;
 ```
 
 Puis, connecté avec un compte `visitor` depuis la console du panel : `supabase.from('admin_users').update(...)`, `supabase.from('watches').update(...)` et `supabase.storage.from('watch-images').upload(...)` doivent tous les trois échouer. Avant la migration, les trois réussissent.
+
+## Montres en arrivage
+
+`20261101120000_watch_incoming.sql` — requis pour les clients avec `features.incomingWatches` (Sauvage Watches à ce jour) :
+
+- Colonne `watches.is_incoming` (`boolean not null default false`) : montre annoncée, pas encore reçue, visible avec son prix mais non achetable
+
+À appliquer **avant** de déployer un manifest qui active le drapeau : sans la colonne, la liste admin et la vérification du panier, qui la demandent nommément, échouent. Le blocage de l'achat est fait par le backend (création de commande et `/pay`) ; les fonctions `create_draft_order` et `reserve_watches_for_order` ne sont pas modifiées.

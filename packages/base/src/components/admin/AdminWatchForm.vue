@@ -27,6 +27,7 @@ const isEditMode = computed(() => !!route.params.id)
 const watchId = computed(() => route.params.id)
 const isResaleCatalog = computed(() => getSiteConfig().watchCatalog?.mode === 'resale')
 const isBlogEnabled = computed(() => !!getSiteConfig().features?.blog)
+const isIncomingWatchesEnabled = computed(() => getSiteConfig().features?.incomingWatches === true)
 
 // Form state
 const formData = ref({
@@ -45,6 +46,7 @@ const formData = ref({
   descriptionTranslations: {},
   isAvailable: true,
   isSold: false,
+  isIncoming: false,
   saleDate: null,
   stockQuantity: 1,
   audience: 'unisexe',
@@ -162,6 +164,7 @@ const loadWatch = async () => {
       descriptionTranslations: { ...(watch.descriptionTranslations || {}) },
       isAvailable: watch.isAvailable !== undefined ? watch.isAvailable : true,
       isSold: isSoldValue,
+      isIncoming: watch.isIncoming === true,
       saleDate: watch.saleDate || null,
       stockQuantity: watch.stockQuantity ?? 1,
       audience: watch.audience || 'unisexe',
@@ -784,6 +787,22 @@ onMounted(async () => {
                 />
                 <span class="text-sm font-medium text-gray-700">En vente / Disponible</span>
               </label>
+            </div>
+            <div v-if="isIncomingWatchesEnabled" class="md:col-span-2">
+              <label class="flex items-center">
+                <input
+                  v-model="formData.isIncoming"
+                  type="checkbox"
+                  aria-describedby="watch-incoming-help"
+                  class="mr-2 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <span class="text-sm font-medium text-gray-700">Arrive bientôt</span>
+              </label>
+              <p id="watch-incoming-help" class="mt-1 ml-6 text-xs text-gray-500">
+                Montre pas encore reçue : visible dans la collection avec son prix et un badge
+                « Arrive bientôt », mais l'achat en ligne est remplacé par un contact vendeur.
+                Décochez à la réception pour l'ouvrir à la vente.
+              </p>
             </div>
             <template v-if="isResaleCatalog">
               <div>

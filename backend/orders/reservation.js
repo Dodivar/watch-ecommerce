@@ -32,17 +32,23 @@ const RESERVATION_REFRESH_THRESHOLD_MS = 5 * 60 * 1000
  * silence sur `stock_quantity`, que le SQL ne regarde pas : refuser ici sur le
  * stock bloquerait des paniers que la réservation, elle, accepte.
  *
- * @param {{ is_sold?: boolean, is_available?: boolean, order_id?: string|null,
- *   checkout_reserved_until?: string|null } | undefined} row
+ * Seule exception, voulue : `is_incoming` (montre annoncée, pas encore reçue). Le SQL
+ * l'ignore — la fonction n'est pas versionnée et la colonne n'existe que sur les projets
+ * qui gèrent l'arrivage —, donc ce contrôle-ci est le seul rempart côté paiement. Il ne
+ * refuse que ce que la vitrine n'a de toute façon jamais proposé à l'achat.
+ *
+ * @param {{ is_sold?: boolean, is_available?: boolean, is_incoming?: boolean,
+ *   order_id?: string|null, checkout_reserved_until?: string|null } | undefined} row
  * @param {string} orderId
  * @param {number} nowMs
- * @returns {'missing' | 'sold' | 'withdrawn' | 'reserved' | null}
+ * @returns {'missing' | 'sold' | 'withdrawn' | 'incoming' | 'reserved' | null}
  */
 function blockingReason(row, orderId, nowMs) {
   // Absente de la réponse : fiche supprimée du catalogue.
   if (!row) return 'missing'
   if (row.is_sold === true) return 'sold'
   if (row.is_available === false) return 'withdrawn'
+  if (row.is_incoming === true) return 'incoming'
 
   const until = row.checkout_reserved_until ? Date.parse(row.checkout_reserved_until) : NaN
   if (Number.isFinite(until) && until > nowMs && row.order_id !== orderId) {
@@ -90,6 +96,11 @@ function describeBlockedWatches(blocked) {
         ? `${names} sont en cours d'achat par d'autres clients. Réessayez dans quelques minutes, ou retirez-les de votre panier.`
         : `${names} est en cours d'achat par un autre client. Réessayez dans quelques minutes, ou retirez-la de votre panier.`
     }
+    if (reason === 'incoming') {
+      return plural
+        ? `${names} ne sont pas encore arrivées et pas encore disponibles à l'achat. Retirez-les de votre panier pour continuer.`
+        : `${names} n'est pas encore arrivée et pas encore disponible à l'achat. Retirez-la de votre panier pour continuer.`
+    }
     if (reason === 'sold') {
       return plural
         ? `${names} viennent d'être vendues. Retirez-les de votre panier pour continuer.`
@@ -106,12 +117,46 @@ function describeBlockedWatches(blocked) {
 }
 
 /**
+ * Le site gère-t-il les montres « en arrivage » ? Lu dans le manifest brut, comme les autres
+ * drapeaux côté backend : `normalizeSiteConfig` ne remonte pas `features`.
+ * @param {object} site
+ * @returns {boolean}
+ */
+function isIncomingWatchesEnabled(site) {
+  return site?.config?.raw?.features?.incomingWatches === true
+}
+
+/**
+ * Montres du panier encore « en arrivage », pour refuser la commande avant
+ * `create_draft_order` — qui ne regarde pas cette colonne.
+ *
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @param {string[]} watchIds
+ * @returns {Promise<{ watchId: string, name: string|null, reason: 'incoming' }[]>}
+ */
+async function findIncomingWatches(supabase, watchIds) {
+  const ids = [...new Set((watchIds ?? []).filter(Boolean))]
+  if (ids.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('watches')
+    .select('id, name')
+    .in('id', ids)
+    .eq('is_incoming', true)
+
+  if (error) throw error
+  return (data ?? []).map((row) => ({ watchId: row.id, name: row.name ?? null, reason: 'incoming' }))
+}
+
+/**
  * Lit les lignes de la commande et l'état courant des montres correspondantes.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {string} orderId
+ * @param {boolean} [incomingWatches] Le site gère l'arrivage : lire aussi `is_incoming`,
+ *   colonne absente des projets qui n'ont pas passé la migration.
  * @returns {Promise<{ lines: {watch_id: string, quantity: number}[], watchIds: string[], byId: Map<string, object> }>}
  */
-async function loadOrderWatchStates(supabase, orderId) {
+async function loadOrderWatchStates(supabase, orderId, incomingWatches = false) {
   const { data: lines, error: linesError } = await supabase
     .from('order_lines')
     .select('watch_id, quantity')
@@ -127,7 +172,11 @@ async function loadOrderWatchStates(supabase, orderId) {
 
   const { data: watches, error: watchesError } = await supabase
     .from('watches')
-    .select('id, name, is_available, is_sold, order_id, checkout_reserved_until')
+    .select(
+      incomingWatches
+        ? 'id, name, is_available, is_sold, is_incoming, order_id, checkout_reserved_until'
+        : 'id, name, is_available, is_sold, order_id, checkout_reserved_until',
+    )
     .in('id', watchIds)
 
   if (watchesError) throw watchesError
@@ -162,12 +211,16 @@ function collectBlocked(byId, watchIds, orderId, nowMs) {
  * Revérifie qu'une commande est payable, et reprend sa réservation si besoin.
  *
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
- * @param {{ orderId: string, reserveMinutes: number }} params
+ * @param {{ orderId: string, reserveMinutes: number, incomingWatches?: boolean }} params
+ *   `incomingWatches` : `features.incomingWatches` du site (voir `isIncomingWatchesEnabled`).
  * @returns {Promise<{ ok: true, refreshed: boolean } | { ok: false, blocked: {watchId: string|null, name: string|null, reason: string}[], error: string }>}
  */
-async function reacquireOrderReservation(supabase, { orderId, reserveMinutes }) {
+async function reacquireOrderReservation(
+  supabase,
+  { orderId, reserveMinutes, incomingWatches = false },
+) {
   const nowMs = Date.now()
-  const { lines, watchIds, byId } = await loadOrderWatchStates(supabase, orderId)
+  const { lines, watchIds, byId } = await loadOrderWatchStates(supabase, orderId, incomingWatches)
 
   if (watchIds.length === 0) {
     return {
@@ -206,7 +259,7 @@ async function reacquireOrderReservation(supabase, { orderId, reserveMinutes }) 
     // la boucle SQL restent attachées à cette commande : elles étaient libres,
     // le client les garde le temps de retirer la ligne fautive, et elles
     // expireront d'elles-mêmes s'il abandonne.
-    const raced = await loadOrderWatchStates(supabase, orderId)
+    const raced = await loadOrderWatchStates(supabase, orderId, incomingWatches)
     const racedBlocked = collectBlocked(raced.byId, raced.watchIds, orderId, Date.now())
 
     if (racedBlocked.length === 0) {
@@ -243,5 +296,7 @@ module.exports = {
   blockingReason,
   holdsFreshReservation,
   describeBlockedWatches,
+  isIncomingWatchesEnabled,
+  findIncomingWatches,
   reacquireOrderReservation,
 }

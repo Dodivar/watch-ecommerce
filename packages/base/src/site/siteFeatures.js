@@ -82,6 +82,14 @@ export const DEFAULT_SITE_FEATURES = {
    */
   soldArchive: false,
   /**
+   * Montres « en arrivage » : l'admin coche « Arrive bientôt » sur une montre pas encore
+   * reçue. Elle reste visible (catalogue, nouveautés, alertes) avec son prix, mais l'achat
+   * est remplacé par un encart qui oriente vers le vendeur. Nécessite la migration
+   * `20261101120000_watch_incoming.sql` (colonne `watches.is_incoming`) : tant que le drapeau
+   * est faux, le socle ne lit ni n'écrit cette colonne.
+   */
+  incomingWatches: false,
+  /**
    * Newsletter : gestion des abonnés, composition et envoi de campagnes email
    * depuis l'admin (+ formulaire d'inscription vitrine). Nécessite la migration
    * `20260701120000_newsletter.sql` et Mailjet configuré.

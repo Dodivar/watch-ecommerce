@@ -4,10 +4,12 @@ import {
   DEFAULT_WATCH_GUARANTEES,
   MAX_WATCH_GUARANTEES,
   MIN_WATCH_GUARANTEES,
+  isWatchIncoming,
   isWatchOutOfStock,
   resolveRetailTrustHighlights,
   resolveWatchCatalogConfig,
   resolveWatchGuarantees,
+  resolveWatchSaleState,
 } from './watchCatalogDisplay.js'
 import { resolveSiteConfig } from './resolveSiteConfig.js'
 
@@ -166,5 +168,55 @@ describe('isWatchOutOfStock', () => {
 
   it('gère un watchItem absent', () => {
     expect(isWatchOutOfStock({}, null)).toBe(false)
+  })
+})
+
+describe('resolveWatchSaleState', () => {
+  const retail = { watchCatalog: { mode: 'retail' }, features: { incomingWatches: true } }
+  const resale = { watchCatalog: { mode: 'resale' }, features: { incomingWatches: true } }
+  const montre = (overrides = {}) => ({
+    isAvailable: true,
+    isSold: false,
+    isIncoming: false,
+    stockQuantity: 1,
+    ...overrides,
+  })
+
+  it('rend « available » pour une montre en vente', () => {
+    expect(resolveWatchSaleState(retail, montre())).toBe('available')
+  })
+
+  it('rend « incoming » pour une montre en arrivage', () => {
+    expect(resolveWatchSaleState(resale, montre({ isIncoming: true }))).toBe('incoming')
+    expect(isWatchIncoming(resale, montre({ isIncoming: true }))).toBe(true)
+  })
+
+  it('ignore le drapeau d’arrivage sur un site qui ne le gère pas', () => {
+    const site = { watchCatalog: { mode: 'resale' }, features: {} }
+    expect(resolveWatchSaleState(site, montre({ isIncoming: true }))).toBe('available')
+  })
+
+  it('fait primer la vente sur l’arrivage', () => {
+    expect(resolveWatchSaleState(resale, montre({ isIncoming: true, isSold: true }))).toBe('sold')
+  })
+
+  it('fait primer le retrait sur l’arrivage', () => {
+    expect(
+      resolveWatchSaleState(resale, montre({ isIncoming: true, isAvailable: false })),
+    ).toBe('withdrawn')
+  })
+
+  it('fait primer l’arrivage sur la rupture de stock', () => {
+    expect(
+      resolveWatchSaleState(retail, montre({ isIncoming: true, stockQuantity: 0 })),
+    ).toBe('incoming')
+  })
+
+  it('rend « outOfStock » pour un stock épuisé en retail', () => {
+    expect(resolveWatchSaleState(retail, montre({ stockQuantity: 0 }))).toBe('outOfStock')
+  })
+
+  it('traite une montre absente comme non achetable', () => {
+    expect(resolveWatchSaleState(retail, null)).toBe('withdrawn')
   })
 })

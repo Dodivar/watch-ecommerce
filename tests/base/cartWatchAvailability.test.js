@@ -12,6 +12,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 /** Requêtes vues par le faux client Supabase, dans l'ordre. */
 let queries = []
 
+/** Colonnes demandées à chaque `select`, dans l'ordre. */
+let selects = []
+
 /** @type {Array<object>} lignes de la table `watches` */
 let watchRows = []
 
@@ -22,7 +25,10 @@ function createQueryBuilder(table) {
   const state = { table, ids: null }
 
   const builder = {
-    select: () => builder,
+    select: (columns) => {
+      selects.push(columns)
+      return builder
+    },
     in: (column, values) => {
       state.ids = { column, values }
       return builder
@@ -69,6 +75,7 @@ function watchRow(overrides) {
 describe('getUnpurchasableWatchIds', () => {
   beforeEach(() => {
     queries = []
+    selects = []
     watchRows = []
     siteConfig = { watchCatalog: { mode: 'resale' } }
   })
@@ -129,5 +136,22 @@ describe('getUnpurchasableWatchIds', () => {
     await expect(getUnpurchasableWatchIds(undefined)).resolves.toEqual([])
 
     expect(queries).toEqual([])
+  })
+
+  describe('montres en arrivage (features.incomingWatches)', () => {
+    it('signale une montre en arrivage quand le site gère l’arrivage', async () => {
+      siteConfig = { watchCatalog: { mode: 'resale' }, features: { incomingWatches: true } }
+      watchRows = [watchRow({ id: 'incoming', is_incoming: true }), watchRow({ id: 'ok' })]
+
+      await expect(getUnpurchasableWatchIds(['incoming', 'ok'])).resolves.toEqual(['incoming'])
+      expect(selects[0]).toContain('is_incoming')
+    })
+
+    it('ne lit pas la colonne ailleurs, où elle peut ne pas exister', async () => {
+      watchRows = [watchRow({ id: 'w1', is_incoming: true })]
+
+      await expect(getUnpurchasableWatchIds(['w1'])).resolves.toEqual([])
+      expect(selects[0]).not.toContain('is_incoming')
+    })
   })
 })

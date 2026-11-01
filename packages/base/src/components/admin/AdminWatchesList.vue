@@ -31,6 +31,11 @@ const hasCampaigns = computed(() => getSiteConfig().features?.adminWatchPromotio
 // pas sur "Vendue" (reserve au mode resale / pieces uniques).
 const isRetailCatalog = computed(() => getSiteConfig().watchCatalog?.mode !== 'resale')
 
+// Montre annoncée, pas encore reçue (`features.incomingWatches`) — une vente l'emporte.
+const isIncomingWatchesEnabled = computed(() => getSiteConfig().features?.incomingWatches === true)
+const isListedIncoming = (watch) =>
+  isIncomingWatchesEnabled.value && watch.is_incoming === true && watch.is_sold !== true
+
 // State
 // `watches` ne contient que la page affichée : filtres, tri et pagination sont résolus par
 // la base. Charger le catalogue entier pour en découper 25 lignes tronquait silencieusement
@@ -1035,6 +1040,12 @@ onMounted(async () => {
                     ]"
                   >
                   {{ watch.is_sold === true ? 'Vendue' : 'En vente' }}
+                  </span>
+                  <span
+                    v-if="isListedIncoming(watch)"
+                    class="ml-1 px-2 py-1 text-xs font-semibold rounded-full bg-gray-900 text-white"
+                  >
+                    Arrive bientôt
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

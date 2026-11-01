@@ -16,7 +16,7 @@ import {
 } from '@/constants/watchAudiences'
 import { getActiveLocale } from '@/i18n'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
-import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
+import { isIncomingWatchesEnabled, resolveWatchSaleState } from '@/site/watchCatalogDisplay.js'
 import { buildWatchSlug } from '@/utils/watchSlug.js'
 
 /** Images par montre en listing collection / recherche (navigation jusqu'à WATCH_CARD_MAX_IMAGES). */
@@ -146,6 +146,8 @@ function transformWatchData(
     descriptionLocale,
     isAvailable: watchData.is_available !== undefined ? watchData.is_available : true,
     isSold: watchData.is_sold !== undefined ? watchData.is_sold : false,
+    // Brut : `resolveWatchSaleState` ne le lit que si `features.incomingWatches` est actif.
+    isIncoming: watchData.is_incoming === true,
     stockQuantity: watchData.stock_quantity ?? null,
     saleDate: watchData.sale_date || null,
     displayOrder: watchData.display_order || 0,
@@ -847,24 +849,32 @@ export async function getUnpurchasableWatchIds(watchIds) {
   ]
   if (ids.length === 0) return []
 
-  const { data, error } = await supabase
-    .from('watches')
-    .select('id, is_available, is_sold, stock_quantity')
-    .in('id', ids)
+  const siteConfig = getSiteConfig()
+  // La colonne n'existe que sur les projets qui ont passé la migration : ne la demander
+  // qu'aux sites qui gèrent l'arrivage, sinon PostgREST rejette toute la requête.
+  const columns = isIncomingWatchesEnabled(siteConfig)
+    ? 'id, is_available, is_sold, is_incoming, stock_quantity'
+    : 'id, is_available, is_sold, stock_quantity'
+
+  const { data, error } = await supabase.from('watches').select(columns).in('id', ids)
 
   if (error) {
     throw new Error(`Erreur lors de la vérification des montres du panier: ${error.message}`)
   }
 
-  const siteConfig = getSiteConfig()
   const rows = new Map((data ?? []).map((row) => [row.id, row]))
 
   return ids.filter((id) => {
     const row = rows.get(id)
     // Absente de la réponse : fiche supprimée, ou masquée par une policy RLS.
     if (!row) return true
-    if (row.is_sold === true || row.is_available === false) return true
-    return isWatchOutOfStock(siteConfig, { stockQuantity: row.stock_quantity })
+    const state = resolveWatchSaleState(siteConfig, {
+      isSold: row.is_sold,
+      isAvailable: row.is_available,
+      isIncoming: row.is_incoming,
+      stockQuantity: row.stock_quantity,
+    })
+    return state !== 'available'
   })
 }
 
