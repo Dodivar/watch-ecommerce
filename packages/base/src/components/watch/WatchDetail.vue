@@ -106,8 +106,16 @@
                 </template>
 
                 <template #overlay>
+                  <!-- Même règle que WatchCard : « Arrive bientôt » prend la place de « Nouveau ».
+                       Beige en valeurs arbitraires : theme-dark.css repeint `bg-cream*` et `text-primary`. -->
                   <span
-                    v-if="showNouveauBadge"
+                    v-if="isIncoming"
+                    class="absolute top-2 left-2 lg:top-4 lg:left-4 z-10 px-2 py-0.5 lg:px-3 lg:py-1 text-xs lg:text-sm font-semibold rounded-full bg-[var(--color-cream-300)] text-[color:var(--color-primary)] shadow-sm pointer-events-none"
+                  >
+                    {{ t('watch.incoming') }}
+                  </span>
+                  <span
+                    v-else-if="showNouveauBadge"
                     class="absolute top-2 left-2 lg:top-4 lg:left-4 z-10 px-2 py-0.5 lg:px-3 lg:py-1 text-xs lg:text-sm font-semibold rounded-full bg-primary text-white shadow-sm pointer-events-none"
                   >
                     {{ t('watch.new') }}
@@ -225,12 +233,6 @@
                 {{ watchItem.name }}
               </h1>
               <div class="flex items-center space-x-2">
-                <span
-                  v-if="isIncoming"
-                  class="ml-4 px-3 py-1 text-sm font-semibold rounded-full bg-gray-900 text-white whitespace-nowrap"
-                >
-                  {{ t('watch.incoming') }}
-                </span>
                 <span
                   v-if="isOutOfStock"
                   class="ml-4 px-3 py-1 text-sm font-semibold rounded-full bg-orange-100 text-orange-800 whitespace-nowrap"

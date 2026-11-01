@@ -11,7 +11,7 @@
            forcément récente, et deux pastilles empilées diraient deux fois la même chose. -->
       <span
         v-if="isIncoming"
-        class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-gray-900 text-white shadow-sm"
+        class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-[var(--color-cream-300)] text-[color:var(--color-primary)] shadow-sm"
       >
         {{ t('watch.incoming') }}
       </span>

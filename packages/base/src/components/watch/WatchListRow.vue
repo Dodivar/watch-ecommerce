@@ -12,7 +12,7 @@
     >
       <span
         v-if="isIncoming"
-        class="absolute top-1 left-1 z-10 rounded-full bg-gray-900 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm"
+        class="absolute top-1 left-1 z-10 rounded-full bg-[var(--color-cream-300)] px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--color-primary)] shadow-sm"
       >
         {{ t('watch.incoming') }}
       </span>
