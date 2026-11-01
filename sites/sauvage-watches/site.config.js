@@ -791,6 +791,42 @@ export default {
       static: [
         { source: '/estimation', destination: '/rachat' },
         { source: '/estimation/processus', destination: '/rachat/processus' },
+        /**
+         * Montres autrefois signalées « [EN ARRIVAGE] » dans leur nom : le préfixe a été retiré
+         * au profit du badge « Arrive bientôt » (`scripts/sauvage-flag-incoming-watches.sql`), et le
+         * trigger `watches_set_slug` a recalculé leur slug. Les anciennes URL, déjà partagées et
+         * indexées, restent servies en 301 — avec ou sans préfixe de langue.
+         */
+        { source: '/montre/breitling-en-arrivage-breitling-superocean-heritage-2026-full-set-ub3112161c1s1', destination: '/montre/breitling-breitling-superocean-heritage-2026-full-set-ub3112161c1s1' },
+        {
+          source: '/:locale(en|de)/montre/breitling-en-arrivage-breitling-superocean-heritage-2026-full-set-ub3112161c1s1',
+          destination: '/:locale/montre/breitling-breitling-superocean-heritage-2026-full-set-ub3112161c1s1',
+        },
+        { source: '/montre/cartier-en-arrivage-cartier-santos-medium-2025-full-set-wssa0029', destination: '/montre/cartier-cartier-santos-medium-2025-full-set-wssa0029' },
+        {
+          source: '/:locale(en|de)/montre/cartier-en-arrivage-cartier-santos-medium-2025-full-set-wssa0029',
+          destination: '/:locale/montre/cartier-cartier-santos-medium-2025-full-set-wssa0029',
+        },
+        { source: '/montre/omega-en-arrivage-omega-speedmaster-moonwatch-profesionnal-1998-full-set-3570-50-00', destination: '/montre/omega-omega-speedmaster-moonwatch-profesionnal-1998-full-set-3570-50-00' },
+        {
+          source: '/:locale(en|de)/montre/omega-en-arrivage-omega-speedmaster-moonwatch-profesionnal-1998-full-set-3570-50-00',
+          destination: '/:locale/montre/omega-omega-speedmaster-moonwatch-profesionnal-1998-full-set-3570-50-00',
+        },
+        { source: '/montre/rolex-en-arrivage-rolex-submariner-hulk-2018-full-set-mint-condition-116610lv', destination: '/montre/rolex-rolex-submariner-hulk-2018-full-set-mint-condition-116610lv' },
+        {
+          source: '/:locale(en|de)/montre/rolex-en-arrivage-rolex-submariner-hulk-2018-full-set-mint-condition-116610lv',
+          destination: '/:locale/montre/rolex-rolex-submariner-hulk-2018-full-set-mint-condition-116610lv',
+        },
+        { source: '/montre/rolex-en-arrivage-rolex-submariner-starbucks-2023-full-set-126610lv', destination: '/montre/rolex-rolex-submariner-starbucks-2023-full-set-126610lv' },
+        {
+          source: '/:locale(en|de)/montre/rolex-en-arrivage-rolex-submariner-starbucks-2023-full-set-126610lv',
+          destination: '/:locale/montre/rolex-rolex-submariner-starbucks-2023-full-set-126610lv',
+        },
+        { source: '/montre/rolex-en-arrivage-rolex-submariner-no-date-2023-full-set-124060', destination: '/montre/rolex-rolex-submariner-no-date-2023-full-set-124060' },
+        {
+          source: '/:locale(en|de)/montre/rolex-en-arrivage-rolex-submariner-no-date-2023-full-set-124060',
+          destination: '/:locale/montre/rolex-rolex-submariner-no-date-2023-full-set-124060',
+        },
       ],
     },
 
