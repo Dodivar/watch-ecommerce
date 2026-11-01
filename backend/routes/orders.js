@@ -24,7 +24,12 @@ const {
 } = require('../orders/paymentIntentSync')
 const { fulfillOrderPayment, releaseOrderReservation, applyRetailStockDecrement } = require('../orders/fulfillment')
 const { createDraftOrderViaRpc } = require('../orders/createDraftOrder')
-const { reacquireOrderReservation } = require('../orders/reservation')
+const {
+  reacquireOrderReservation,
+  isIncomingWatchesEnabled,
+  findIncomingWatches,
+  describeBlockedWatches,
+} = require('../orders/reservation')
 const { buildOrderFollowUpUrl } = require('../orders/orderLinks')
 const {
   sendOrderConfirmationEmails,
@@ -252,6 +257,21 @@ function buildOrdersRouter(registry) {
       const expiresAt = new Date(Date.now() + reserveMinutes * 60 * 1000).toISOString()
       const checkoutConfig = getCheckoutConfig(site)
       const currency = (checkoutConfig.currency || 'EUR').toUpperCase()
+
+      // `create_draft_order` ignore `is_incoming` : une montre annoncée mais pas encore reçue
+      // serait réservée comme les autres. La vitrine ne la propose pas à l'achat ; ce refus
+      // couvre un panier rempli avant que la fiche ne passe en arrivage, ou un appel direct.
+      if (isIncomingWatchesEnabled(site)) {
+        const incoming = await findIncomingWatches(
+          supabase,
+          lines.map((line) => line.watchId),
+        )
+        if (incoming.length > 0) {
+          return res
+            .status(409)
+            .json({ success: false, error: describeBlockedWatches(incoming) })
+        }
+      }
 
       let draftResult
       try {
@@ -666,6 +686,7 @@ function buildOrdersRouter(registry) {
       const reservation = await reacquireOrderReservation(supabase, {
         orderId,
         reserveMinutes,
+        incomingWatches: isIncomingWatchesEnabled(site),
       })
       if (!reservation.ok) {
         console.warn(

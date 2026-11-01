@@ -226,6 +226,12 @@
               </h1>
               <div class="flex items-center space-x-2">
                 <span
+                  v-if="isIncoming"
+                  class="ml-4 px-3 py-1 text-sm font-semibold rounded-full bg-gray-900 text-white whitespace-nowrap"
+                >
+                  {{ t('watch.incoming') }}
+                </span>
+                <span
                   v-if="isOutOfStock"
                   class="ml-4 px-3 py-1 text-sm font-semibold rounded-full bg-orange-100 text-orange-800 whitespace-nowrap"
                 >
@@ -322,6 +328,47 @@
                 >
                   {{ t('watch.seeCollection') }}
                 </router-link>
+              </div>
+            </div>
+
+          <!--
+            Montre en arrivage (features.incomingWatches) : pas de bouton d'achat grisé ni de
+            bouton « Ajouter au panier » qui refuserait ensuite — l'encart dit pourquoi on ne
+            peut pas commander et propose une action qui aboutit (contacter le vendeur).
+          -->
+            <div
+              v-else-if="isIncoming"
+              class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+            >
+              <p class="text-base font-semibold text-gray-900 mb-1">
+                {{ t('watch.incomingTitle') }}
+              </p>
+              <p class="text-sm text-gray-600 mb-4">
+                {{ t('watch.incomingText') }}
+              </p>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <a
+                  v-if="WHATSAPP_NUMBER"
+                  :href="incomingWhatsappHref"
+                  target="_blank"
+                  rel="noopener"
+                  class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-normal rounded-lg text-white bg-primary hover:bg-primary-hover transition-colors duration-200"
+                >
+                  {{ t('watch.incomingContactWhatsapp') }}
+                </a>
+                <a
+                  v-if="EMAIL_CONTACT"
+                  :href="incomingEmailHref"
+                  class="inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-lg transition-colors duration-200"
+                  :class="
+                    WHATSAPP_NUMBER
+                      ? 'border border-primary/30 text-primary bg-white hover:bg-primary/5'
+                      : 'border border-transparent text-white bg-primary hover:bg-primary-hover'
+                  "
+                >
+                  <Mail class="w-5 h-5 mr-2 shrink-0" :stroke-width="2" />
+                  {{ t('watch.incomingContactEmail') }}
+                </a>
               </div>
             </div>
 
@@ -867,7 +914,11 @@ import {
 } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { getBrowsePath } from '@/site/siteFeatures.js'
-import { resolveRetailTrustHighlights, resolveWatchGuarantees, isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
+import {
+  resolveRetailTrustHighlights,
+  resolveWatchGuarantees,
+  resolveWatchSaleState,
+} from '@/site/watchCatalogDisplay.js'
 import { getWatchById, getWatchBySlug } from '@/services/watchService'
 import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
 import { buildWatchProductStructuredData } from '@/site/buildWatchProductStructuredData.js'
@@ -1017,14 +1068,31 @@ const retailTrustHighlights = computed(() =>
 const watchGuarantees = computed(() =>
   resolveWatchGuarantees(site, watchItem.value),
 )
-const isOutOfStock = computed(() => isWatchOutOfStock(site, watchItem.value))
+/** Un seul état de vente (vendue > retirée > en arrivage > hors stock > disponible). */
+const saleState = computed(() => resolveWatchSaleState(site, watchItem.value))
+const isOutOfStock = computed(() => saleState.value === 'outOfStock')
+const isIncoming = computed(() => saleState.value === 'incoming')
 const showAddToCartButton = computed(
+  () => PURCHASE_ENABLED && saleState.value === 'available',
+)
+
+/** Paramètres communs aux messages pré-remplis « montre en arrivage ». */
+const incomingMessageParams = computed(() => ({
+  name: watchItem.value?.name ?? '',
+  reference: watchReferenceSuffix.value,
+  price: formatPrice(watchItem.value?.effectivePrice ?? watchItem.value?.price),
+}))
+const incomingWhatsappHref = computed(
   () =>
-    PURCHASE_ENABLED &&
-    watchItem.value &&
-    watchItem.value.isAvailable &&
-    !watchItem.value.isSold &&
-    !isOutOfStock.value,
+    `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+      t('watch.whatsappIncoming', incomingMessageParams.value),
+    )}`,
+)
+const incomingEmailHref = computed(
+  () =>
+    `mailto:${EMAIL_CONTACT}?subject=${encodeURIComponent(
+      t('watch.emailIncomingSubject', { name: incomingMessageParams.value.name }),
+    )}&body=${encodeURIComponent(t('watch.emailIncomingBody', incomingMessageParams.value))}`,
 )
 const { add: addToCart, openDrawer: openCartDrawer } = useCart()
 const { isNouvelle } = useNouvellesWatchIds()
@@ -1468,6 +1536,7 @@ const structuredData = computed(() =>
     baseUrl: BASE_URL,
     sellerName: seoWatch.structuredDataSellerName,
     unknownBrandLabel: t('watch.unknownBrand'),
+    saleState: saleState.value,
   }),
 )
 

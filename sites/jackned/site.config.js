@@ -252,6 +252,8 @@ export default {
    * `faq` n'est pas déclaré ici : `resolveSiteConfig` le dérive de `faq.enabled` + `faq.items`.
    */
   features: {
+    /** Montres « Arrive bientôt » (voir siteFeatures.js) : réservé à Sauvage pour l’instant. */
+    incomingWatches: false,
     collection: true,
     blog: false,
     recherche: false,

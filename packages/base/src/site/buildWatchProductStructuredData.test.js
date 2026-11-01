@@ -7,10 +7,11 @@ import { buildWatchProductStructuredData } from './buildWatchProductStructuredDa
 
 const CANONIQUE = 'https://exemple.fr/montre/rolex-submariner-116610ln'
 
-const build = (watch, price = 8500) =>
+const build = (watch, price = 8500, saleState) =>
   buildWatchProductStructuredData({
     watch,
     price,
+    saleState,
     canonicalUrl: CANONIQUE,
     baseUrl: 'https://exemple.fr',
     sellerName: 'Boutique',
@@ -117,5 +118,22 @@ describe('buildWatchProductStructuredData', () => {
   it('compose une description de repli sans espace parasite', () => {
     expect(build(montre({ description: '' })).description).toBe('Rolex 116610LN')
     expect(build(montre({ description: '', brand: '', reference: '' })).description).toBe('')
+  })
+
+  describe('disponibilité selon l’état de vente', () => {
+    it('déclare InStock une montre disponible', () => {
+      expect(build(montre(), 8500, 'available').offers.availability).toBe(
+        'https://schema.org/InStock',
+      )
+    })
+
+    it.each(['incoming', 'outOfStock', 'sold', 'withdrawn'])(
+      'ne déclare jamais en stock une montre « %s »',
+      (state) => {
+        expect(build(montre(), 8500, state).offers.availability).toBe(
+          'https://schema.org/OutOfStock',
+        )
+      },
+    )
   })
 })
