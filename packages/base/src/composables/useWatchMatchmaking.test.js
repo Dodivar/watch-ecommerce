@@ -167,3 +167,47 @@ describe('useWatchMatchmaking — chargement par pages', () => {
     expect(mm.phase).toBe('empty')
   })
 })
+
+describe('useWatchMatchmaking — coup de foudre', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    getAllWatchesForListing.mockReset()
+  })
+
+  it('célèbre un coup de cœur assez proche des préférences, puis se fait attendre', async () => {
+    storeSession({ preferences: { brand: ['rolex'] } })
+    servePages([['a', 'b', 'c', 'd', 'e'].map((id) => makeWatch(id))])
+
+    const mm = useWatchMatchmaking()
+    await mm.load()
+
+    expect(mm.like('a')).toBe(true)
+    expect(mm.sparkWatch?.id).toBe('a')
+    expect(mm.activeSpark).toMatchObject({ ordinal: 1, seenCount: 1 })
+    expect(mm.sparkAffinity).toBe(100)
+    expect(mm.sparkReasons.map((r) => r.value)).toEqual(['rolex'])
+    mm.dismissSpark()
+    expect(mm.sparkWatch).toBeNull()
+
+    // Délai : trois coups de cœur ordinaires avant le suivant.
+    expect([mm.like('b'), mm.like('c'), mm.like('d')]).toEqual([false, false, false])
+    expect(mm.like('e')).toBe(true)
+    expect(mm.activeSpark).toMatchObject({ ordinal: 2, seenCount: 5 })
+    expect(mm.session.sparks).toEqual(['a', 'e'])
+
+    await nextTick()
+    const stored = JSON.parse(localStorage.getItem(getMatchSessionStorageKey()))
+    expect(stored.sparks).toEqual(['a', 'e'])
+  })
+
+  it('retirer un coup de cœur efface aussi son coup de foudre', async () => {
+    storeSession({ preferences: { brand: ['rolex'] } })
+    servePages([[makeWatch('a')]])
+
+    const mm = useWatchMatchmaking()
+    await mm.load()
+    mm.like('a')
+    mm.removeLiked('a')
+    expect(mm.session.sparks).toEqual([])
+  })
+})
