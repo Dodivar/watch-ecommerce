@@ -75,7 +75,7 @@
           <div
             v-else
             key="reveal"
-            class="relative mx-auto flex min-h-full w-full max-w-sm flex-col items-center justify-center px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-10 text-center"
+            class="relative mx-auto flex min-h-full w-full max-w-sm flex-col items-center justify-center px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-6 text-center sm:max-w-md"
           >
             <div class="spark-dial relative shrink-0" aria-hidden="true">
               <svg class="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 196 196">
@@ -129,22 +129,21 @@
             </div>
 
             <p
-              class="spark-step spark-step--1 spark-eyebrow mt-6 text-[10px] font-semibold uppercase tracking-[0.26em]"
+              class="spark-step spark-step--1 spark-eyebrow mt-5 text-[10px] font-semibold uppercase tracking-[0.26em]"
             >
               {{ ordinalLabel }}
             </p>
+            <!-- « Coup de foudre » n'est dit qu'une fois ici, dans le surtitre : l'éclair vient
+                 de l'écrire en grand, le titre parle donc du moment plutôt que de le nommer. -->
             <h2
               class="spark-step spark-step--2 spark-title mt-1.5 font-heading text-3xl font-bold leading-tight"
             >
-              {{ t('matchmaking.spark.title') }}
-            </h2>
-            <p class="spark-step spark-step--3 spark-tagline mt-1 text-sm italic">
               {{ t('matchmaking.spark.tagline') }}
-            </p>
+            </h2>
 
             <!-- La carte de la montre : ce qui reste à lire une fois la trotteuse arrêtée. -->
             <div
-              class="spark-step spark-step--4 mt-5 w-full rounded-2xl bg-white p-4 text-left text-black shadow-2xl"
+              class="spark-step spark-step--4 mt-4 w-full rounded-2xl bg-white p-4 text-left text-black shadow-2xl"
             >
               <p
                 class="truncate text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500"
@@ -273,7 +272,7 @@ const BOLT_PATH = 'M28 2 8 36h14l-4 26 22-36H26l4-24z'
 const TICKS = Array.from({ length: 60 }, (_, index) => {
   const hour = index % 5 === 0
   const angle = (index / 60) * Math.PI * 2
-  const inner = hour ? 88 : 92
+  const inner = hour ? 90 : 93
   const round = (value) => Math.round(value * 100) / 100
   return {
     index,
@@ -458,7 +457,7 @@ onBeforeUnmount(() => {
   --spark-ink: var(--color-cream, #f7ede0);
   --spark-ink-soft: var(--color-cream-200, #e3d9cc);
   --spark-ink-muted: var(--color-cream-300, #d9cec0);
-  --spark-dial: clamp(9.5rem, min(52vw, 24vh), 12.25rem);
+  --spark-dial: clamp(12rem, min(72vw, 33vh), 20rem);
   color: var(--spark-ink);
 }
 
@@ -481,7 +480,6 @@ onBeforeUnmount(() => {
   color: var(--spark-ink);
 }
 
-.spark-tagline,
 .spark-link {
   color: var(--spark-ink-soft);
 }
@@ -493,13 +491,13 @@ onBeforeUnmount(() => {
 }
 
 .spark-cta {
-  background: var(--spark-ink);
+  background: #fff;
   color: var(--color-primary, #0f2a1d);
   transition: background-color 150ms ease;
 }
 
 .spark-cta:hover {
-  background: #fff;
+  background: var(--spark-ink);
 }
 
 /* ------------------------------------------------------------ 1. L'éclair */
@@ -629,7 +627,8 @@ onBeforeUnmount(() => {
 }
 
 .spark-medallion {
-  inset: 11.2%;
+  /* Au plus près des index : la photo prend la place, l'anneau ne fait que l'encadrer. */
+  inset: 8%;
   box-shadow:
     0 0 0 3px var(--color-primary, #0f2a1d),
     0 0 0 4px var(--spark-ink-muted),
@@ -651,9 +650,6 @@ onBeforeUnmount(() => {
 }
 .spark-step--2 {
   animation-delay: 1600ms;
-}
-.spark-step--3 {
-  animation-delay: 1700ms;
 }
 .spark-step--4 {
   animation-delay: 1850ms;
