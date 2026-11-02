@@ -55,6 +55,10 @@ test.describe('Coup de foudre', () => {
   test('parcours complet et session conservée au rechargement', async ({ page }) => {
     await seedBrowser(page, { cartLines: [] })
     await stubSupabaseCatalog(page, { watches: [SAMPLE_WATCH, SECOND_WATCH, THIRD_WATCH] })
+    // Horloge pilotée : l'éclair s'efface seul au bout d'une seconde et demie, et une machine
+    // lente le laisserait filer avant qu'on ait pu le voir. Le temps s'écoule normalement
+    // jusqu'à ce qu'on le suspende, juste avant le coup de cœur.
+    await page.clock.install()
 
     await page.goto('/coup-de-foudre')
 
@@ -71,7 +75,10 @@ test.describe('Coup de foudre', () => {
     // Les cartes suivantes sont montées derrière la courante : on vise la carte active.
     const currentCard = page.getByTestId('match-current-card')
     await expect(currentCard).toContainText('Héritage')
+    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 10))
     await page.getByRole('button', { name: 'Coup de cœur', exact: true }).click()
+    // Sortie de la carte (420 ms) : le coup de cœur est enregistré, l'éclair s'ouvre et reste.
+    await page.clock.runFor(600)
 
     // Premier coup de cœur sans critère exprimé : c'est l'accueil, il est célébré. Le suivant
     // ne le sera pas (voir `watchMatchSpark.js`).
@@ -81,6 +88,7 @@ test.describe('Coup de foudre', () => {
     const intro = page.getByTestId('match-spark-intro')
     await expect(intro).toBeVisible()
     await intro.click()
+    await page.clock.resume()
     await expect(intro).toBeHidden()
     await expect(spark).toContainText('Votre premier coup de foudre')
     await expect(spark).toContainText('Héritage')
