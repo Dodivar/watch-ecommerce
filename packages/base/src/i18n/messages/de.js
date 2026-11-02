@@ -1172,8 +1172,7 @@ export default {
   'matchmaking.spark.title': 'Volltreffer',
   'matchmaking.spark.first': 'Ihre erste Liebe auf den ersten Blick',
   'matchmaking.spark.ordinal': 'Liebe auf den ersten Blick Nr. {count}',
-  'matchmaking.spark.tagline':
-    'Manche Begegnungen lassen sich nicht erklären. Diese hat auf Sie gewartet.',
+  'matchmaking.spark.tagline': 'Die Zeit stand still.',
   'matchmaking.spark.uniquePiece': 'Einzelstück',
   'matchmaking.spark.reasons': 'Was Sie überzeugt hat',
   'matchmaking.spark.affinity': 'Übereinstimmung',
@@ -1182,7 +1181,7 @@ export default {
     other: 'Nur eine von {count} entdeckten Uhren hat das bei Ihnen ausgelöst.',
   },
   'matchmaking.spark.rarityMany': 'Nur {sparks} Volltreffer bei {count} entdeckten Uhren.',
-  'matchmaking.spark.viewPage': 'Kennenlernen',
+  'matchmaking.spark.viewPage': 'Uhr ansehen',
   'matchmaking.spark.continue': 'Weiter entdecken',
   'matchmaking.spark.announce': 'Volltreffer: {name}! Zu Ihren Favoriten hinzugefügt.',
   'matchmaking.end.roundTitle': 'So weit die Uhren, die Ihnen am nächsten kommen.',

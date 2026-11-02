@@ -1198,7 +1198,7 @@ export default {
   'matchmaking.spark.title': 'Coup de foudre',
   'matchmaking.spark.first': 'Votre premier coup de foudre',
   'matchmaking.spark.ordinal': 'Coup de foudre n° {count}',
-  'matchmaking.spark.tagline': 'Certaines rencontres ne s’expliquent pas. Celle-ci vous attendait.',
+  'matchmaking.spark.tagline': 'Le temps s’est arrêté.',
   'matchmaking.spark.uniquePiece': 'Pièce unique',
   'matchmaking.spark.reasons': 'Ce qui vous a fait craquer',
   'matchmaking.spark.affinity': 'Affinité',
@@ -1208,7 +1208,7 @@ export default {
   },
   'matchmaking.spark.rarityMany':
     '{sparks} coups de foudre seulement, sur {count} montres découvertes.',
-  'matchmaking.spark.viewPage': 'Faire sa connaissance',
+  'matchmaking.spark.viewPage': 'Voir la montre',
   'matchmaking.spark.continue': 'Continuer la découverte',
   'matchmaking.spark.announce': 'Coup de foudre pour {name} ! Ajoutée à vos coups de cœur.',
   'matchmaking.end.roundTitle': 'Voilà pour les plus proches de vous.',

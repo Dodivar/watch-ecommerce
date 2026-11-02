@@ -77,6 +77,11 @@ test.describe('Coup de foudre', () => {
     // ne le sera pas (voir `watchMatchSpark.js`).
     const spark = page.getByRole('dialog', { name: /Coup de foudre/ })
     await expect(spark).toBeVisible()
+    // D'abord l'éclair ; un appui passe directement au cadran et à la fiche.
+    const intro = page.getByTestId('match-spark-intro')
+    await expect(intro).toBeVisible()
+    await intro.click()
+    await expect(intro).toBeHidden()
     await expect(spark).toContainText('Votre premier coup de foudre')
     await expect(spark).toContainText('Héritage')
     await spark.getByRole('button', { name: 'Continuer la découverte' }).click()
