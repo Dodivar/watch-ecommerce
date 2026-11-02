@@ -50,7 +50,8 @@ export default {
 
   // — Section « Suivez-nous »
   'social.title': 'Suivez-nous sur les réseaux sociaux',
-  'social.subtitle': 'Rejoignez notre communauté et découvrez nos dernières actualités, vidéos exclusives et conseils horlogers',
+  'social.subtitle':
+    'Rejoignez notre communauté et découvrez nos dernières actualités, vidéos exclusives et conseils horlogers',
   'social.contactCta': 'Nous contacter',
   'social.whatsappMessage': 'Bonjour ! Je souhaite en savoir plus sur vos montres.',
 
@@ -64,7 +65,8 @@ export default {
   'home.servicesTitle': 'Nos services exclusifs',
   'home.servicesSubtitle': 'Une expertise complète pour répondre à tous vos besoins horlogers',
   'home.trustTitle': 'Achetez ou recherchez votre montre en toute confiance',
-  'home.trustSubtitle': "Profitez d'un accompagnement personnalisé, d'une sécurité totale et de tous les avantages de notre réseau international, pour un achat serein ou la quête du modèle qui vous fait rêver.",
+  'home.trustSubtitle':
+    "Profitez d'un accompagnement personnalisé, d'une sécurité totale et de tous les avantages de notre réseau international, pour un achat serein ou la quête du modèle qui vous fait rêver.",
   'home.heroTitleLead': 'Découvrez nos',
   'home.heroTitleTail': 'dès maintenant',
   'home.heroSubtitle': 'Consultez notre sélection de montres en stock garanties 1 an.',
@@ -73,24 +75,31 @@ export default {
   'home.vitrineShowcase': 'Pièce en vitrine',
   'home.vitrineInStock': 'En stock',
   'home.sourcingTitle': 'Recherche personnalisée',
-  'home.sourcingText': "Dites-nous ce que vous cherchez, nous le trouvons pour vous. Rareté, budget, état : on s'occupe de tout.",
+  'home.sourcingText':
+    "Dites-nous ce que vous cherchez, nous le trouvons pour vous. Rareté, budget, état : on s'occupe de tout.",
   'home.sourcingCta': 'Demander une recherche',
   'home.collectionTitle': 'Collection de montres',
   'home.collectionText': 'Découvrez notre sélection de montres disponibles en stock.',
   'home.collectionCta': 'Voir nos montres en stock',
   'home.valuationTitle': 'Estimation gratuite',
-  'home.valuationText': 'Obtenez une évaluation fiable de votre montre en moins de 24h, sans engagement.',
+  'home.valuationText':
+    'Obtenez une évaluation fiable de votre montre en moins de 24h, sans engagement.',
   'home.valuationCta': 'Faire estimer ma montre',
   'home.trustSupportTitle': 'Accompagnement personnalisé',
-  'home.trustSupportText': "Conseils, sourcing sur-mesure et suivi tout au long de votre projet d'achat ou de recherche de montre.",
+  'home.trustSupportText':
+    "Conseils, sourcing sur-mesure et suivi tout au long de votre projet d'achat ou de recherche de montre.",
   'home.trustAuthenticityTitle': 'Authenticité & sécurité',
-  'home.trustAuthenticityText': 'Chaque montre est minutieusement vérifiée : authenticité certifiée, paiement sécurisé, transaction protégée.',
+  'home.trustAuthenticityText':
+    'Chaque montre est minutieusement vérifiée : authenticité certifiée, paiement sécurisé, transaction protégée.',
   'home.trustNetworkTitle': 'Sourcing & réseau international',
-  'home.trustNetworkText': 'Profitez de notre réseau français et européen pour accéder à des modèles rares, exclusifs ou au meilleur rapport qualité/prix.',
+  'home.trustNetworkText':
+    'Profitez de notre réseau français et européen pour accéder à des modèles rares, exclusifs ou au meilleur rapport qualité/prix.',
   'home.trustTransparencyTitle': 'Transparence & satisfaction',
-  'home.trustTransparencyText': 'Processus limpide, aucune commission cachée, votre tranquillité est notre priorité.',
+  'home.trustTransparencyText':
+    'Processus limpide, aucune commission cachée, votre tranquillité est notre priorité.',
   'home.carouselLoading': 'Chargement du carrousel',
-  'home.carouselAutoplayOff': "Défilement automatique désactivé car vous avez demandé moins d'animations.",
+  'home.carouselAutoplayOff':
+    "Défilement automatique désactivé car vous avez demandé moins d'animations.",
   'home.discoverOurStory': 'Découvrir notre histoire',
   'home.collectionGlimpse': 'Un aperçu de la collection',
   'home.carouselChooseImage': 'Choisir une image du carrousel',
@@ -100,122 +109,180 @@ export default {
   // — Mentions légales
   'legal.lastUpdated': 'Dernière mise à jour : {date}',
   'legal.updateDate': '31 mars 2026',
-  'legal.mentionsIntro': 'Les présentes mentions légales s’appliquent au site édité par <strong>{company}</strong>, conformément aux obligations en vigueur en France, notamment la loi pour la confiance dans l’économie numérique (LCEN).',
+  'legal.mentionsIntro':
+    'Les présentes mentions légales s’appliquent au site édité par <strong>{company}</strong>, conformément aux obligations en vigueur en France, notamment la loi pour la confiance dans l’économie numérique (LCEN).',
   'legal.publisherTitle': '1. Éditeur du site',
   'legal.publisherText': 'Le site est édité par <strong>{company}</strong>.',
   'legal.siretLabel': 'SIRET : {siret}',
-  'legal.registrationFallback': 'Les informations détaillées d’immatriculation (adresse du siège, SIRET) peuvent être complétées via les variables d’environnement décrites dans la documentation interne du projet, afin d’assurer la conformité lorsque ces données sont publiquement exigées.',
+  'legal.registrationFallback':
+    'Les informations détaillées d’immatriculation (adresse du siège, SIRET) peuvent être complétées via les variables d’environnement décrites dans la documentation interne du projet, afin d’assurer la conformité lorsque ces données sont publiquement exigées.',
   'legal.contactLabel': 'Contact :',
   'legal.publicationDirectorTitle': '2. Directeur de la publication',
-  'legal.publicationDirectorText': 'Le directeur de la publication est le <strong>représentant légal</strong> de {company}, tel que désigné dans les statuts de la société (ou, à défaut de personne morale, la personne physique responsable de l’édition du site). Toute demande relative à cette mention peut être adressée à l’adresse',
+  'legal.publicationDirectorText':
+    'Le directeur de la publication est le <strong>représentant légal</strong> de {company}, tel que désigné dans les statuts de la société (ou, à défaut de personne morale, la personne physique responsable de l’édition du site). Toute demande relative à cette mention peut être adressée à l’adresse',
   'legal.hostingTitle': '3. Hébergement',
-  'legal.hostingText': 'Le site est hébergé par <strong>Vercel Inc.</strong>, 340 South Lemon Avenue, bureau 4133, Walnut, CA 91789, États-Unis.',
+  'legal.hostingText':
+    'Le site est hébergé par <strong>Vercel Inc.</strong>, 340 South Lemon Avenue, bureau 4133, Walnut, CA 91789, États-Unis.',
   'legal.providerSite': 'Site du prestataire :',
   'legal.ipTitle': '4. Propriété intellectuelle',
-  'legal.ipText': 'L’ensemble des éléments composant le site (structure, textes, visuels, logo, bases de données le cas échéant) est la propriété de {company} ou de ses partenaires, sauf mention contraire. Toute reproduction, représentation, modification ou exploitation non autorisée est interdite et peut constituer une contrefaçon au sens du Code de la propriété intellectuelle.',
-  'legal.ipBrandsText': 'Les dénominations, marques et signes distinctifs des fabricants de montres cités ou illustrés le sont à titre d’information ; ils demeurent la propriété exclusive de leurs titulaires.',
+  'legal.ipText':
+    'L’ensemble des éléments composant le site (structure, textes, visuels, logo, bases de données le cas échéant) est la propriété de {company} ou de ses partenaires, sauf mention contraire. Toute reproduction, représentation, modification ou exploitation non autorisée est interdite et peut constituer une contrefaçon au sens du Code de la propriété intellectuelle.',
+  'legal.ipBrandsText':
+    'Les dénominations, marques et signes distinctifs des fabricants de montres cités ou illustrés le sont à titre d’information ; ils demeurent la propriété exclusive de leurs titulaires.',
   'legal.personalDataTitle': '5. Données personnelles',
-  'legal.personalDataBefore': 'Le traitement des données personnelles collectées via le site est décrit dans notre',
+  'legal.personalDataBefore':
+    'Le traitement des données personnelles collectées via le site est décrit dans notre',
   'legal.privacyPolicyLink': 'politique de confidentialité',
   'legal.mediationTitle': '6. Médiation et règlement des litiges',
-  'legal.mediationContactText': 'Pour toute difficulté liée à une commande ou à un service, contactez-nous en priorité à',
-  'legal.mediationText': 'Conformément aux articles L.612-1 et suivants du Code de la consommation, vous pouvez recourir gratuitement à un médiateur de la consommation en vue de la résolution amiable d’un litige qui vous oppose à un professionnel, dans un délai d’un an à compter de votre réclamation écrite auprès de {company}. Les coordonnées du médiateur désigné, le cas échéant, vous sont communiquées sur demande ou figurent sur les documents contractuels qui vous sont remis. À défaut de désignation spécifique, les modalités applicables sont celles prévues par la réglementation en vigueur.',
+  'legal.mediationContactText':
+    'Pour toute difficulté liée à une commande ou à un service, contactez-nous en priorité à',
+  'legal.mediationText':
+    'Conformément aux articles L.612-1 et suivants du Code de la consommation, vous pouvez recourir gratuitement à un médiateur de la consommation en vue de la résolution amiable d’un litige qui vous oppose à un professionnel, dans un délai d’un an à compter de votre réclamation écrite auprès de {company}. Les coordonnées du médiateur désigné, le cas échéant, vous sont communiquées sur demande ou figurent sur les documents contractuels qui vous sont remis. À défaut de désignation spécifique, les modalités applicables sont celles prévues par la réglementation en vigueur.',
 
   // — Conditions générales d'utilisation
   'legal.cguTitle': 'Conditions générales d’utilisation',
-  'legal.cguIntro': 'Les présentes conditions générales d’utilisation (ci-après les « CGU ») encadrent l’accès et l’usage du site exploité par <strong>{company}</strong>. En naviguant sur le site, vous acceptez sans réserve les CGU en vigueur.',
+  'legal.cguIntro':
+    'Les présentes conditions générales d’utilisation (ci-après les « CGU ») encadrent l’accès et l’usage du site exploité par <strong>{company}</strong>. En naviguant sur le site, vous acceptez sans réserve les CGU en vigueur.',
   'legal.cguPurposeTitle': '1. Objet',
-  'legal.cguPurposeText': 'Les CGU définissent les règles applicables à la consultation du site et, le cas échéant, à l’utilisation des services proposés (informations sur la sélection de montres, blog, formulaires de contact ou d’estimation, et paiement en ligne lorsque activé). Elles complètent toute condition particulière ou document contractuel qui vous serait communiqué lors d’une transaction.',
+  'legal.cguPurposeText':
+    'Les CGU définissent les règles applicables à la consultation du site et, le cas échéant, à l’utilisation des services proposés (informations sur la sélection de montres, blog, formulaires de contact ou d’estimation, et paiement en ligne lorsque activé). Elles complètent toute condition particulière ou document contractuel qui vous serait communiqué lors d’une transaction.',
   'legal.cguAccessTitle': '2. Accès au site',
-  'legal.cguAccessText': 'Le site est accessible en continu, sous réserve des opérations de maintenance, des contraintes techniques ou des cas de force majeure. {company} met en œuvre les moyens raisonnables pour en assurer la disponibilité sans garantir une absence totale d’interruption.',
-  'legal.cguAccessText2': 'Vous vous engagez à disposer des moyens et des compétences nécessaires pour accéder au site et à ne pas utiliser le site à des fins illicites ou de nature à porter atteinte aux droits de tiers.',
+  'legal.cguAccessText':
+    'Le site est accessible en continu, sous réserve des opérations de maintenance, des contraintes techniques ou des cas de force majeure. {company} met en œuvre les moyens raisonnables pour en assurer la disponibilité sans garantir une absence totale d’interruption.',
+  'legal.cguAccessText2':
+    'Vous vous engagez à disposer des moyens et des compétences nécessaires pour accéder au site et à ne pas utiliser le site à des fins illicites ou de nature à porter atteinte aux droits de tiers.',
   'legal.cguServicesTitle': '3. Services et contenus',
-  'legal.cguServicesText': 'Le site présente l’activité de {company}, sa sélection de montres, des contenus éditoriaux (notamment le blog) et des moyens de prise de contact ou de demande d’estimation. Les descriptions, photographies et informations ont une vocation informative. Elles ne constituent pas une offre contractuelle ferme tant qu’un accord commercial distinct ne vous a pas été confirmé selon les modalités habituelles de {company}.',
+  'legal.cguServicesText':
+    'Le site présente l’activité de {company}, sa sélection de montres, des contenus éditoriaux (notamment le blog) et des moyens de prise de contact ou de demande d’estimation. Les descriptions, photographies et informations ont une vocation informative. Elles ne constituent pas une offre contractuelle ferme tant qu’un accord commercial distinct ne vous a pas été confirmé selon les modalités habituelles de {company}.',
   'legal.cguOrderTitle': '4. Commande et paiement en ligne',
-  'legal.cguOrderEnabled': 'Lorsque l’achat en ligne est proposé sur le site, le parcours de commande et de paiement peut s’effectuer via notre prestataire <strong>Stripe</strong>. Les conditions financières, de livraison et d’exercice de vos droits (y compris le droit de rétractation lorsqu’il s’applique) vous sont communiquées avant la validation de la commande. L’exécution du contrat de vente est soumise aux conditions qui vous sont alors précisées et, le cas échéant, aux conditions générales de vente applicables.',
-  'legal.cguOrderDisabled': 'À la date des présentes CGU, la fonctionnalité d’achat en ligne peut être désactivée sur le site. Toute commande ou règlement s’effectue alors selon les modalités qui vous sont communiquées directement par {company}. Lorsque le paiement en ligne est de nouveau proposé, les règles applicables pourront notamment inclure le recours à notre prestataire <strong>Stripe</strong>, dans le respect des informations précontractuelles qui vous seront alors fournies.',
+  'legal.cguOrderEnabled':
+    'Lorsque l’achat en ligne est proposé sur le site, le parcours de commande et de paiement peut s’effectuer via notre prestataire <strong>Stripe</strong>. Les conditions financières, de livraison et d’exercice de vos droits (y compris le droit de rétractation lorsqu’il s’applique) vous sont communiquées avant la validation de la commande. L’exécution du contrat de vente est soumise aux conditions qui vous sont alors précisées et, le cas échéant, aux conditions générales de vente applicables.',
+  'legal.cguOrderDisabled':
+    'À la date des présentes CGU, la fonctionnalité d’achat en ligne peut être désactivée sur le site. Toute commande ou règlement s’effectue alors selon les modalités qui vous sont communiquées directement par {company}. Lorsque le paiement en ligne est de nouveau proposé, les règles applicables pourront notamment inclure le recours à notre prestataire <strong>Stripe</strong>, dans le respect des informations précontractuelles qui vous seront alors fournies.',
   'legal.cguConductTitle': '5. Comportement des utilisateurs',
-  'legal.cguConductText': 'Il est interdit notamment : de porter atteinte à la sécurité ou au bon fonctionnement du site ; de tenter d’accéder de manière non autorisée aux systèmes ou données ; de diffuser des contenus illicites, diffamatoires ou trompeurs ; d’usurper l’identité d’un tiers. {company} se réserve le droit de suspendre ou de limiter l’accès en cas de manquement grave ou répété.',
+  'legal.cguConductText':
+    'Il est interdit notamment : de porter atteinte à la sécurité ou au bon fonctionnement du site ; de tenter d’accéder de manière non autorisée aux systèmes ou données ; de diffuser des contenus illicites, diffamatoires ou trompeurs ; d’usurper l’identité d’un tiers. {company} se réserve le droit de suspendre ou de limiter l’accès en cas de manquement grave ou répété.',
   'legal.cguIpTitle': '6. Propriété intellectuelle',
-  'legal.cguIpText': 'Les contenus du site (textes, images, structure, marques et logos de {company}) sont protégés. Toute utilisation non autorisée est interdite. Les marques des fabricants mentionnées ou illustrées appartiennent à leurs titulaires respectifs.',
+  'legal.cguIpText':
+    'Les contenus du site (textes, images, structure, marques et logos de {company}) sont protégés. Toute utilisation non autorisée est interdite. Les marques des fabricants mentionnées ou illustrées appartiennent à leurs titulaires respectifs.',
   'legal.cguLiabilityTitle': '7. Responsabilité',
-  'legal.cguLiabilityText': 'Les informations publiées le sont en l’état. {company} ne saurait être tenue responsable des imprécisions ponctuelles, de l’indisponibilité temporaire du site ou des dommages indirects liés à l’usage du site, dans les limites prévues par la loi.',
+  'legal.cguLiabilityText':
+    'Les informations publiées le sont en l’état. {company} ne saurait être tenue responsable des imprécisions ponctuelles, de l’indisponibilité temporaire du site ou des dommages indirects liés à l’usage du site, dans les limites prévues par la loi.',
   'legal.cguLinksTitle': '8. Liens hypertextes',
-  'legal.cguLinksText': 'Le site peut contenir des liens vers des sites tiers. {company} n’exerce pas de contrôle sur ces sites et décline toute responsabilité quant à leur contenu ou leurs pratiques.',
+  'legal.cguLinksText':
+    'Le site peut contenir des liens vers des sites tiers. {company} n’exerce pas de contrôle sur ces sites et décline toute responsabilité quant à leur contenu ou leurs pratiques.',
   'legal.cguChangesTitle': '9. Modification des CGU',
-  'legal.cguChangesText': '{company} peut adapter les CGU pour refléter l’évolution du site ou des obligations légales. La date de « dernière mise à jour » en tête de page est modifiée en conséquence. La poursuite de la navigation après la mise en ligne des CGU révisées vaut acceptation des nouvelles modalités, sauf disposition impérative contraire.',
+  'legal.cguChangesText':
+    '{company} peut adapter les CGU pour refléter l’évolution du site ou des obligations légales. La date de « dernière mise à jour » en tête de page est modifiée en conséquence. La poursuite de la navigation après la mise en ligne des CGU révisées vaut acceptation des nouvelles modalités, sauf disposition impérative contraire.',
   'legal.cguDataTitle': '10. Données personnelles et droit applicable',
   'legal.cguDataBefore': 'Le traitement des données collectées sur le site est détaillé dans notre',
-  'legal.cguLawText': 'Les CGU sont régies par le <strong>droit français</strong>. En l’absence de règlement amiable, et sous réserve des règles d’ordre public et des attributions de compétence spécifiques (notamment en matière de consommation), les tribunaux français seront seuls compétents.',
+  'legal.cguLawText':
+    'Les CGU sont régies par le <strong>droit français</strong>. En l’absence de règlement amiable, et sous réserve des règles d’ordre public et des attributions de compétence spécifiques (notamment en matière de consommation), les tribunaux français seront seuls compétents.',
   'legal.cguQuestionsText': 'Pour toute question relative aux présentes CGU :',
 
   // — Politique de confidentialité
   'legal.privacyUpdateDate': '1 juillet 2026',
-  'legal.privacyIntro': 'La présente politique explique comment {company} traite les données personnelles lorsque vous utilisez le site, dans le respect du Règlement général sur la protection des données (RGPD) et de la loi française « Informatique et Libertés ».',
+  'legal.privacyIntro':
+    'La présente politique explique comment {company} traite les données personnelles lorsque vous utilisez le site, dans le respect du Règlement général sur la protection des données (RGPD) et de la loi française « Informatique et Libertés ».',
   'legal.controllerTitle': '1. Responsable du traitement',
   'legal.controllerText': 'Le responsable du traitement est <strong>{company}</strong>.',
   'legal.privacyContactText': 'Pour toute question relative à vos données personnelles :',
   'legal.dataCollectedTitle': '2. Données collectées et finalités',
   'legal.analyticsTitle': '2.1 Navigation et mesure d’audience',
-  'legal.analyticsText': 'Nous pouvons utiliser <strong>Google Analytics</strong> pour mesurer la fréquentation et comprendre l’usage du site (pages vues, parcours, type d’appareil, etc.). Ces traceurs ne sont déposés et le script n’est chargé <strong>qu’après votre consentement</strong>, via le bandeau cookies. Vous pouvez retirer ou modifier votre choix à tout moment depuis le lien « Préférences cookies » en pied de page.',
-  'legal.legalBasisConsent': 'Base juridique : <strong>consentement</strong> (article 6-1-a du RGPD).',
+  'legal.analyticsText':
+    'Nous pouvons utiliser <strong>Google Analytics</strong> pour mesurer la fréquentation et comprendre l’usage du site (pages vues, parcours, type d’appareil, etc.). Ces traceurs ne sont déposés et le script n’est chargé <strong>qu’après votre consentement</strong>, via le bandeau cookies. Vous pouvez retirer ou modifier votre choix à tout moment depuis le lien « Préférences cookies » en pied de page.',
+  'legal.legalBasisConsent':
+    'Base juridique : <strong>consentement</strong> (article 6-1-a du RGPD).',
   'legal.advertisingTitle': '2.2 Publicité et mesure des campagnes',
-  'legal.advertisingText': 'Si vous y consentez, nous utilisons <strong>Google Ads</strong> et le <strong>pixel Meta</strong> (Facebook, Instagram) pour rattacher un achat à la campagne publicitaire qui vous a amené sur le site, mesurer le rendement de nos dépenses publicitaires et adapter les publicités qui vous sont présentées. Les événements transmis décrivent votre parcours d’achat (page produit consultée, ajout au panier, commande, montant). Ces traceurs ne sont déposés et les scripts ne sont chargés <strong>qu’après votre consentement</strong> à la finalité « Publicité », distincte de la mesure d’audience ; refuser n’empêche ni la navigation ni l’achat.',
+  'legal.advertisingText':
+    'Si vous y consentez, nous utilisons <strong>Google Ads</strong> et le <strong>pixel Meta</strong> (Facebook, Instagram) pour rattacher un achat à la campagne publicitaire qui vous a amené sur le site, mesurer le rendement de nos dépenses publicitaires et adapter les publicités qui vous sont présentées. Les événements transmis décrivent votre parcours d’achat (page produit consultée, ajout au panier, commande, montant). Ces traceurs ne sont déposés et les scripts ne sont chargés <strong>qu’après votre consentement</strong> à la finalité « Publicité », distincte de la mesure d’audience ; refuser n’empêche ni la navigation ni l’achat.',
   'legal.formsTitle': '2.3 Formulaires (estimation, recherche personnalisée, contact)',
-  'legal.formsText': 'Lorsque vous nous adressez une demande via un formulaire, nous traitons les informations que vous saisissez : coordonnées (nom, e-mail, téléphone le cas échéant), contenu du message, et pièces jointes si vous en téléchargez. Ces données nous permettent de <strong>traiter votre demande</strong>, de vous recontacter et de faire avancer votre projet (conseil, estimation, mise en relation commerciale).',
-  'legal.formsLegalBasis': 'Base juridique : <strong>exécution de mesures précontractuelles</strong> ou <strong>exécution du contrat</strong> lorsque la demande aboutit à une relation commerciale (article 6-1-b du RGPD), et le cas échéant <strong>intérêt légitime</strong> pour le suivi de la relation (article 6-1-f).',
+  'legal.formsText':
+    'Lorsque vous nous adressez une demande via un formulaire, nous traitons les informations que vous saisissez : coordonnées (nom, e-mail, téléphone le cas échéant), contenu du message, et pièces jointes si vous en téléchargez. Ces données nous permettent de <strong>traiter votre demande</strong>, de vous recontacter et de faire avancer votre projet (conseil, estimation, mise en relation commerciale).',
+  'legal.formsLegalBasis':
+    'Base juridique : <strong>exécution de mesures précontractuelles</strong> ou <strong>exécution du contrat</strong> lorsque la demande aboutit à une relation commerciale (article 6-1-b du RGPD), et le cas échéant <strong>intérêt légitime</strong> pour le suivi de la relation (article 6-1-f).',
   'legal.paymentTitle': '2.4 Commande et paiement en ligne',
-  'legal.paymentText': 'Si vous réglez un achat en ligne, les données nécessaires au paiement sont traitées par notre prestataire <strong>Stripe</strong>. Nous ne conservons pas sur notre site l’intégralité de vos données bancaires (numéro de carte complet) : elles sont gérées par Stripe selon ses propres règles de sécurité.',
-  'legal.legalBasisContract': 'Base juridique : <strong>exécution du contrat</strong> (article 6-1-b du RGPD).',
+  'legal.paymentText':
+    'Si vous réglez un achat en ligne, les données nécessaires au paiement sont traitées par notre prestataire <strong>Stripe</strong>. Nous ne conservons pas sur notre site l’intégralité de vos données bancaires (numéro de carte complet) : elles sont gérées par Stripe selon ses propres règles de sécurité.',
+  'legal.legalBasisContract':
+    'Base juridique : <strong>exécution du contrat</strong> (article 6-1-b du RGPD).',
   'legal.mapTitle': '2.5 Carte de localisation',
-  'legal.mapText': 'Sur les pages Contact et À propos, une carte interactive peut afficher l’emplacement indiqué par le site. Selon la configuration, cette carte est fournie par <strong>Google Maps</strong> (chargement du script Maps JavaScript API) ou par un fond de carte OpenStreetMap. L’affichage Google peut transmettre à Google des données techniques liées à l’affichage de la carte (adresse IP, requêtes de tuiles).',
-  'legal.mapLegalBasis': 'Base juridique : <strong>intérêt légitime</strong> (informer sur notre localisation, article 6-1-f du RGPD).',
+  'legal.mapText':
+    'Sur les pages Contact et À propos, une carte interactive peut afficher l’emplacement indiqué par le site. Selon la configuration, cette carte est fournie par <strong>Google Maps</strong> (chargement du script Maps JavaScript API) ou par un fond de carte OpenStreetMap. L’affichage Google peut transmettre à Google des données techniques liées à l’affichage de la carte (adresse IP, requêtes de tuiles).',
+  'legal.mapLegalBasis':
+    'Base juridique : <strong>intérêt légitime</strong> (informer sur notre localisation, article 6-1-f du RGPD).',
   'legal.newsletterTitle': '2.6 Newsletter et communications commerciales',
-  'legal.newsletterText': 'Vous recevez notre newsletter uniquement si vous y avez <strong>explicitement consenti</strong> : via le formulaire d’inscription du site, ou en cochant la case dédiée lors d’une prise de contact (contact, rendez-vous, estimation, recherche) ou d’un achat. Nous traitons alors votre adresse e-mail (et, le cas échéant, votre nom) pour vous adresser nos actualités, nouveautés et offres. L’envoi est assuré par notre prestataire d’emailing <strong>Mailjet (Sinch)</strong>. Chaque message contient un lien de <strong>désinscription</strong> vous permettant de retirer votre consentement à tout moment ; la désinscription est prise en compte sur l’ensemble de nos envois.',
-  'legal.newsletterLegalBasis': 'Base juridique : <strong>consentement</strong> (article 6-1-a du RGPD). Le retrait du consentement (désinscription) est possible à tout moment et sans frais, et n’affecte pas la licéité des envois effectués avant ce retrait.',
+  'legal.newsletterText':
+    'Vous recevez notre newsletter uniquement si vous y avez <strong>explicitement consenti</strong> : via le formulaire d’inscription du site, ou en cochant la case dédiée lors d’une prise de contact (contact, rendez-vous, estimation, recherche) ou d’un achat. Nous traitons alors votre adresse e-mail (et, le cas échéant, votre nom) pour vous adresser nos actualités, nouveautés et offres. L’envoi est assuré par notre prestataire d’emailing <strong>Mailjet (Sinch)</strong>. Chaque message contient un lien de <strong>désinscription</strong> vous permettant de retirer votre consentement à tout moment ; la désinscription est prise en compte sur l’ensemble de nos envois.',
+  'legal.newsletterLegalBasis':
+    'Base juridique : <strong>consentement</strong> (article 6-1-a du RGPD). Le retrait du consentement (désinscription) est possible à tout moment et sans frais, et n’affecte pas la licéité des envois effectués avant ce retrait.',
   'legal.recipientsTitle': '3. Destinataires et sous-traitants',
-  'legal.recipientsIntro': 'Les données peuvent être communiquées aux catégories de destinataires suivantes :',
-  'legal.recipientGoogle': '<strong>Google Ireland Limited</strong> (Google Analytics, Google Ads si vous avez consenti à la finalité publicitaire, carte Google Maps le cas échéant, autocomplétion d’adresse au checkout si activée) —',
+  'legal.recipientsIntro':
+    'Les données peuvent être communiquées aux catégories de destinataires suivantes :',
+  'legal.recipientGoogle':
+    '<strong>Google Ireland Limited</strong> (Google Analytics, Google Ads si vous avez consenti à la finalité publicitaire, carte Google Maps le cas échéant, autocomplétion d’adresse au checkout si activée) —',
   'legal.googlePrivacyLink': 'Politique de confidentialité Google',
-  'legal.recipientMeta': '<strong>Meta Platforms Ireland Limited</strong> (pixel Meta pour Facebook et Instagram), si vous avez consenti à la finalité publicitaire —',
+  'legal.recipientMeta':
+    '<strong>Meta Platforms Ireland Limited</strong> (pixel Meta pour Facebook et Instagram), si vous avez consenti à la finalité publicitaire —',
   'legal.metaPrivacyLink': 'Politique de confidentialité Meta',
   'legal.recipientStripe': '<strong>Stripe</strong>, pour le traitement des paiements —',
   'legal.stripePrivacyLink': 'Politique de confidentialité Stripe',
-  'legal.recipientMailjet': '<strong>Mailjet (Sinch)</strong>, pour l’envoi de nos emails (newsletter et messages transactionnels) —',
+  'legal.recipientMailjet':
+    '<strong>Mailjet (Sinch)</strong>, pour l’envoi de nos emails (newsletter et messages transactionnels) —',
   'legal.mailjetPrivacyLink': 'Politique de confidentialité Mailjet',
-  'legal.recipientHosting': 'nos <strong>prestataires d’hébergement</strong> (site et API) et <strong>d’infrastructure messagerie</strong>, dans la stricte mesure nécessaire au fonctionnement technique du service ;',
-  'legal.recipientStaff': 'le personnel habilité de <strong>{company}</strong>, sur la base d’un besoin d’en connaître.',
+  'legal.recipientHosting':
+    'nos <strong>prestataires d’hébergement</strong> (site et API) et <strong>d’infrastructure messagerie</strong>, dans la stricte mesure nécessaire au fonctionnement technique du service ;',
+  'legal.recipientStaff':
+    'le personnel habilité de <strong>{company}</strong>, sur la base d’un besoin d’en connaître.',
   'legal.transfersTitle': '4. Transferts hors de l’Espace économique européen',
-  'legal.transfersText': 'Certains sous-traitants (dont Google et Stripe) peuvent être établis dans des pays situés hors de l’EEE. Le cas échéant, des garanties appropriées sont mises en place, telles que les <strong>clauses contractuelles types</strong> approuvées par la Commission européenne ou d’autres mécanismes reconnus par la réglementation applicable.',
+  'legal.transfersText':
+    'Certains sous-traitants (dont Google et Stripe) peuvent être établis dans des pays situés hors de l’EEE. Le cas échéant, des garanties appropriées sont mises en place, telles que les <strong>clauses contractuelles types</strong> approuvées par la Commission européenne ou d’autres mécanismes reconnus par la réglementation applicable.',
   'legal.retentionTitle': '5. Durées de conservation',
-  'legal.retentionForms': 'Données liées aux <strong>formulaires</strong> : conservées le temps utile au traitement de votre demande et au suivi de la relation commerciale, puis archivées ou supprimées selon nos obligations légales (comptabilité, litiges) ;',
-  'legal.retentionPayment': 'Données liées au <strong>paiement</strong> : selon les durées définies par Stripe et la loi ;',
-  'legal.retentionAnalytics': 'Données issues de <strong>Google Analytics</strong> : selon la configuration du service et la durée de validité de votre consentement ; sans consentement renouvelé, les traceurs concernés ne sont pas utilisés.',
-  'legal.retentionMarketing': 'Données issues de <strong>Google Ads</strong> et du <strong>pixel Meta</strong> : selon la configuration de ces services et la durée de validité de votre consentement ; sans consentement à la finalité publicitaire, ces traceurs ne sont pas chargés.',
-  'legal.retentionNewsletter': 'Données d’<strong>abonnement à la newsletter</strong> : conservées jusqu’à votre désinscription, puis supprimées ou anonymisées.',
+  'legal.retentionForms':
+    'Données liées aux <strong>formulaires</strong> : conservées le temps utile au traitement de votre demande et au suivi de la relation commerciale, puis archivées ou supprimées selon nos obligations légales (comptabilité, litiges) ;',
+  'legal.retentionPayment':
+    'Données liées au <strong>paiement</strong> : selon les durées définies par Stripe et la loi ;',
+  'legal.retentionAnalytics':
+    'Données issues de <strong>Google Analytics</strong> : selon la configuration du service et la durée de validité de votre consentement ; sans consentement renouvelé, les traceurs concernés ne sont pas utilisés.',
+  'legal.retentionMarketing':
+    'Données issues de <strong>Google Ads</strong> et du <strong>pixel Meta</strong> : selon la configuration de ces services et la durée de validité de votre consentement ; sans consentement à la finalité publicitaire, ces traceurs ne sont pas chargés.',
+  'legal.retentionNewsletter':
+    'Données d’<strong>abonnement à la newsletter</strong> : conservées jusqu’à votre désinscription, puis supprimées ou anonymisées.',
   'legal.rightsTitle': '6. Vos droits',
   'legal.rightsIntro': 'Conformément au RGPD, vous disposez des droits suivants :',
   'legal.rightAccess': 'droit d’<strong>accès</strong> et de <strong>rectification</strong> ;',
-  'legal.rightErasure': 'droit à l’<strong>effacement</strong> et à la <strong>limitation</strong> du traitement ;',
+  'legal.rightErasure':
+    'droit à l’<strong>effacement</strong> et à la <strong>limitation</strong> du traitement ;',
   'legal.rightObject': 'droit d’<strong>opposition</strong> pour motifs légitimes ;',
-  'legal.rightPortability': 'droit à la <strong>portabilité</strong> lorsque le traitement est fondé sur le consentement ou le contrat et mis en œuvre par voie automatisée ;',
-  'legal.rightPostMortem': 'droit de définir des <strong>directives post-mortem</strong> relatives à vos données.',
+  'legal.rightPortability':
+    'droit à la <strong>portabilité</strong> lorsque le traitement est fondé sur le consentement ou le contrat et mis en œuvre par voie automatisée ;',
+  'legal.rightPostMortem':
+    'droit de définir des <strong>directives post-mortem</strong> relatives à vos données.',
   'legal.rightsExerciseBefore': 'Pour exercer ces droits, adressez-nous une demande à',
-  'legal.rightsExerciseAfter': 'Nous pourrons vous demander de justifier votre identité si nécessaire.',
+  'legal.rightsExerciseAfter':
+    'Nous pourrons vous demander de justifier votre identité si nécessaire.',
   'legal.complaintBefore': 'Vous pouvez également introduire une réclamation auprès de la',
   'legal.complaintAfter': '(Commission nationale de l’informatique et des libertés).',
   'legal.securityTitle': '7. Sécurité',
-  'legal.securityText': 'Nous mettons en œuvre des mesures techniques et organisationnelles appropriées (communication sécurisée, hébergement professionnel, contrôle des accès) pour protéger vos données contre l’accès non autorisé, la perte ou l’altération.',
+  'legal.securityText':
+    'Nous mettons en œuvre des mesures techniques et organisationnelles appropriées (communication sécurisée, hébergement professionnel, contrôle des accès) pour protéger vos données contre l’accès non autorisé, la perte ou l’altération.',
   'legal.privacyChangesTitle': '8. Modifications',
-  'legal.privacyChangesText': 'Nous pouvons adapter la présente politique pour refléter l’évolution du site ou des obligations légales. La date de « dernière mise à jour » en tête de page sera modifiée en conséquence.',
+  'legal.privacyChangesText':
+    'Nous pouvons adapter la présente politique pour refléter l’évolution du site ou des obligations légales. La date de « dernière mise à jour » en tête de page sera modifiée en conséquence.',
 
   // — Catalogue
   'collection.title': 'Toutes nos montres',
   'collection.applyFilters': 'Appliquer',
   'collection.resultCount': { one: '{count} montre', other: '{count} montres' },
-  'collection.resultCountOfTotal': { one: '{count} montre sur {total}', other: '{count} montres sur {total}' },
+  'collection.resultCountOfTotal': {
+    one: '{count} montre sur {total}',
+    other: '{count} montres sur {total}',
+  },
   'collection.loadingMore': '(chargement du reste du catalogue…)',
-  'collection.resultFoundCount': { one: '{count} montre trouvée', other: '{count} montres trouvées' },
+  'collection.resultFoundCount': {
+    one: '{count} montre trouvée',
+    other: '{count} montres trouvées',
+  },
   'collection.campaignUnavailable': 'Événement promotionnel indisponible',
   'collection.brandNoMatch': 'Aucune marque ne correspond à « {query} ».',
   'collection.sortNewest': 'Nouveautés',
@@ -232,14 +299,19 @@ export default {
   'collection.noBraceletColor': 'Aucune couleur de bracelet renseignée sur les montres en stock.',
   'collection.dialColor': 'Couleur du cadran',
   'collection.noDialColor': 'Aucune couleur de cadran renseignée sur les montres en stock.',
-  'collection.noBraceletMaterial': 'Aucune matière de bracelet renseignée sur les montres en stock.',
+  'collection.noBraceletMaterial':
+    'Aucune matière de bracelet renseignée sur les montres en stock.',
   'collection.allFemale': 'Toutes',
   'collection.allMale': 'Tous',
   'collection.seeAll': 'Voir toute la collection',
-  'collection.eventOver': "Cet événement est terminé ou n'existe pas. Consultez nos autres promotions.",
+  'collection.eventOver':
+    "Cet événement est terminé ou n'existe pas. Consultez nos autres promotions.",
 
   'collection.filter': 'Filtrer',
-  'collection.filterWithCount': { one: 'Filtrer ({count} filtre actif)', other: 'Filtrer ({count} filtres actifs)' },
+  'collection.filterWithCount': {
+    one: 'Filtrer ({count} filtre actif)',
+    other: 'Filtrer ({count} filtres actifs)',
+  },
   'collection.activeFilters': 'Filtres actifs',
   'collection.removeFilter': 'Retirer le filtre {label}',
   'collection.closeFilters': 'Fermer les filtres',
@@ -251,7 +323,8 @@ export default {
   'collection.interestedInPiece': 'Une pièce vous intéresse ?',
   'collection.noWatchFound': 'Aucune montre trouvée',
   'search.resultsFor': 'Résultats pour « {query} »',
-  'search.noResultFor': 'Aucun résultat pour « {query} ». Essayez un autre terme (marque, modèle ou référence).',
+  'search.noResultFor':
+    'Aucun résultat pour « {query} ». Essayez un autre terme (marque, modèle ou référence).',
   'archive.loadError': 'Impossible de charger les montres vendues pour le moment.',
   'collection.minimum': 'Minimum',
   'collection.maximum': 'Maximum',
@@ -281,7 +354,8 @@ export default {
   'blog.categories': 'Catégories :',
   'contact.title': 'Contact',
   'faq.headingFallback': 'Questions fréquentes',
-  'faq.descriptionFallback': 'Retrouvez les réponses aux questions les plus fréquentes sur {brand}.',
+  'faq.descriptionFallback':
+    'Retrouvez les réponses aux questions les plus fréquentes sur {brand}.',
   'contact.sendMessage': 'Envoyer un message',
   'contact.orVisitUs': 'ou prenez rendez-vous',
   'contact.lead': "Une question, un projet de montre ou besoin d'un conseil ? Écrivez-nous",
@@ -290,7 +364,8 @@ export default {
   'contact.byEmail': 'Contact e-mail',
   'contact.socialNetworks': 'Réseaux sociaux',
   'contact.ctaText': 'Notre équipe est là pour vous accompagner dans tous vos projets de montres.',
-  'contact.formIntro': 'Renseignez le formulaire ci-dessous : votre message sera transmis directement à {brand}.',
+  'contact.formIntro':
+    'Renseignez le formulaire ci-dessous : votre message sera transmis directement à {brand}.',
   'contact.submit': 'Envoyer le message',
   'contact.metaDescription': 'Contacter {brand} : formulaire, e-mail, téléphone et adresse.',
 
@@ -317,27 +392,33 @@ export default {
   'watch.referenceShort': 'Réf. {reference}',
 
   // — Fiche montre — indisponibilité, archive, onglets
-  'watch.unavailableText': "Cette pièce n'est plus en stock ou n'est plus disponible dans notre sélection.",
+  'watch.unavailableText':
+    "Cette pièce n'est plus en stock ou n'est plus disponible dans notre sélection.",
   'watch.seeOurCollection': 'Voir notre collection',
   'watch.backHome': "Retour à l'accueil",
   'watch.soldTitle': 'Cette montre a trouvé preneur',
-  'watch.soldText': "Sa fiche reste consultable à titre d'archive. Vous cherchez un modèle identique ou similaire ? Nous pouvons le trouver pour vous.",
+  'watch.soldText':
+    "Sa fiche reste consultable à titre d'archive. Vous cherchez un modèle identique ou similaire ? Nous pouvons le trouver pour vous.",
   'watch.startSourcing': 'Lancer une recherche personnalisée',
   'watch.seeCollection': 'Voir la collection',
   'watch.outOfStock': 'Hors stock',
   'watch.incoming': 'Arrive bientôt',
   'watch.incomingTitle': 'Cette montre arrive bientôt',
-  'watch.incomingText': "Elle est en cours d'acheminement et n'est pas encore disponible à l'achat en ligne. Contactez-nous pour la réserver ou être prévenu dès son arrivée.",
+  'watch.incomingText':
+    "Elle est en cours d'acheminement et n'est pas encore disponible à l'achat en ligne. Contactez-nous pour la réserver ou être prévenu dès son arrivée.",
   'watch.incomingContactWhatsapp': 'La réserver via WhatsApp',
   'watch.incomingContactEmail': 'Nous écrire',
-  'watch.whatsappIncoming': "Bonjour, la montre {name}{reference} annoncée en arrivage au prix de {price} m'intéresse. Pouvez-vous me la réserver ou me prévenir de son arrivée ?",
+  'watch.whatsappIncoming':
+    "Bonjour, la montre {name}{reference} annoncée en arrivage au prix de {price} m'intéresse. Pouvez-vous me la réserver ou me prévenir de son arrivée ?",
   'watch.emailIncomingSubject': 'Montre en arrivage - {name}',
-  'watch.emailIncomingBody': "Bonjour,\n\nLa montre {name}{reference} annoncée en arrivage au prix de {price} m'intéresse. Pouvez-vous me la réserver ou me prévenir de son arrivée ?\n\nCordialement",
+  'watch.emailIncomingBody':
+    "Bonjour,\n\nLa montre {name}{reference} annoncée en arrivage au prix de {price} m'intéresse. Pouvez-vous me la réserver ou me prévenir de son arrivée ?\n\nCordialement",
   'watch.detailsTab': 'Détails',
   'watch.guaranteesTab': 'Garanties',
   'watch.noDescription': 'Aucune description disponible.',
   'watch.contactForInfo': "Contactez-nous par WhatsApp ou email pour plus d'informations",
-  'watch.soldArchiveIntro': "Ces montres ont trouvé preneur. Chaque fiche reste consultable à titre d'archive — et si un modèle vous fait de l'œil, nous pouvons rechercher le même pour vous.",
+  'watch.soldArchiveIntro':
+    "Ces montres ont trouvé preneur. Chaque fiche reste consultable à titre d'archive — et si un modèle vous fait de l'œil, nous pouvons rechercher le même pour vous.",
   'watch.soldArchiveLoading': 'Chargement des montres vendues',
   'watch.soldArchiveEmpty': 'Aucune vente à afficher pour le moment.',
   'watch.soldArchiveHeading': 'Nos dernières ventes',
@@ -349,7 +430,8 @@ export default {
   'watch.genericDescription': 'Montre {brand} {reference}',
   'watch.pricePrefix': 'Prix :',
   'watch.noBrandsAvailable': 'Aucune marque disponible pour le moment.',
-  'watch.contactInPerson': "Contactez-nous pour plus d'informations ou pour organiser une visite sur rendez-vous",
+  'watch.contactInPerson':
+    "Contactez-nous pour plus d'informations ou pour organiser une visite sur rendez-vous",
   'watch.listingCode': 'Code annonce',
   'watch.movement': 'Mouvement',
   'watch.case': 'Boîtier',
@@ -449,11 +531,14 @@ export default {
   'checkout.removePromoCode': 'Retirer le code',
   'checkout.securePaymentByCard': 'Paiement sécurisé par carte bancaire.',
   'checkout.ship': 'Expédier',
-  'checkout.enterShippingAddress': 'Saisissez votre adresse d’expédition pour voir les modes d’expédition disponibles.',
-  'checkout.completeBillingForPickup': 'Complétez votre adresse de facturation pour finaliser le retrait.',
+  'checkout.enterShippingAddress':
+    'Saisissez votre adresse d’expédition pour voir les modes d’expédition disponibles.',
+  'checkout.completeBillingForPickup':
+    'Complétez votre adresse de facturation pour finaliser le retrait.',
   'checkout.noShippingMethod': 'Aucun mode de livraison disponible pour cette destination.',
   'checkout.transactionsSecured': 'Toutes les transactions sont sécurisées et chiffrées.',
-  'checkout.completeShippingForTotal': 'Complétez vos informations de livraison pour afficher le montant final.',
+  'checkout.completeShippingForTotal':
+    'Complétez vos informations de livraison pour afficher le montant final.',
   'checkout.completeMyDetails': 'Compléter mes informations',
   'checkout.preparingPayment': 'Préparation du paiement sécurisé…',
   'checkout.cancelAndReturn': 'Annuler et continuer mes achats',
@@ -478,18 +563,23 @@ export default {
   'checkout.statusReadyForPickup': 'Prête pour le retrait',
   'checkout.statusCompleted': 'Commande terminée',
   'checkout.returnTitle': 'Retour et remboursement',
-  'checkout.returnLegal': 'Vous disposez de 14 jours après réception pour vous rétracter (art. L221-18). La montre doit être complète, non portée et dans son emballage d’origine.',
+  'checkout.returnLegal':
+    'Vous disposez de 14 jours après réception pour vous rétracter (art. L221-18). La montre doit être complète, non portée et dans son emballage d’origine.',
   'checkout.returnCta': 'Demander un retour',
   'checkout.returnReasonLabel': 'Motif (facultatif)',
   'checkout.returnReasonPlaceholder': 'Changement d’avis, taille, article non conforme…',
   'checkout.returnSubmit': 'Envoyer ma demande',
   'checkout.returnCancel': 'Annuler',
   'checkout.returnSending': 'Envoi…',
-  'checkout.returnRequested': 'Votre demande de rétractation est enregistrée depuis le {date}. Nous revenons vers vous pour organiser le retour.',
+  'checkout.returnRequested':
+    'Votre demande de rétractation est enregistrée depuis le {date}. Nous revenons vers vous pour organiser le retour.',
   'checkout.returnRefundDeadline': 'Remboursement au plus tard le {date}.',
-  'checkout.returnReceived': 'Nous avons bien reçu votre colis. Votre remboursement est en cours de traitement.',
-  'checkout.returnRefunded': 'Remboursement de {amount} émis le {date}. Selon votre banque, il apparaît sur votre relevé sous 5 à 10 jours ouvrés.',
-  'checkout.returnRejected': 'Votre demande de retour n’a pas été acceptée. Contactez-nous pour en savoir plus.',
+  'checkout.returnReceived':
+    'Nous avons bien reçu votre colis. Votre remboursement est en cours de traitement.',
+  'checkout.returnRefunded':
+    'Remboursement de {amount} émis le {date}. Selon votre banque, il apparaît sur votre relevé sous 5 à 10 jours ouvrés.',
+  'checkout.returnRejected':
+    'Votre demande de retour n’a pas été acceptée. Contactez-nous pour en savoir plus.',
   'checkout.returnError': 'Votre demande n’a pas pu être envoyée.',
   'form.addressPlaceholder': '12 rue de la Paix',
   'form.emailPlaceholder': 'Adresse e-mail',
@@ -501,18 +591,25 @@ export default {
   'payment.successTitle': 'Paiement réussi !',
   'payment.successText': 'Merci pour votre achat. Votre commande a été confirmée avec succès.',
   'payment.yourWatches': 'Vos montres',
-  'payment.watchLoadError': 'Impossible de charger les détails de la montre. Les informations de commande restent valides.',
-  'payment.confirmationEmail': 'Vous recevrez un email de confirmation avec tous les détails de votre commande. Notre équipe finalisera sous peu la livraison.',
+  'payment.watchLoadError':
+    'Impossible de charger les détails de la montre. Les informations de commande restent valides.',
+  'payment.confirmationEmail':
+    'Vous recevrez un email de confirmation avec tous les détails de votre commande. Notre équipe finalisera sous peu la livraison.',
   'payment.cancelText': "Votre paiement a été annulé. Aucun montant n'a été débité.",
   'payment.invalidSession': 'Session invalide',
-  'payment.cancelHelp': "Si vous avez rencontré un problème lors du paiement ou si vous souhaitez finaliser votre achat, n'hésitez pas à nous contacter.",
+  'payment.cancelHelp':
+    "Si vous avez rencontré un problème lors du paiement ou si vous souhaitez finaliser votre achat, n'hésitez pas à nous contacter.",
   'payment.contactWhatsApp': 'Nous contacter sur WhatsApp',
-  'watch.whatsappInterest': 'Bonjour, je suis intéressé par la montre {name}{reference} au prix de {price}',
+  'watch.whatsappInterest':
+    'Bonjour, je suis intéressé par la montre {name}{reference} au prix de {price}',
   'watch.emailInterestSubject': "Demande d'information - {name}",
   'watch.shareEmailSubject': 'Découvrez cette montre : {name}',
-  'watch.shareEmailBody': 'Je vous partage cette montre : {name}{reference}\n\nPrix : {price}\n\n{url}',
-  'watch.emailInterestBody': "Bonjour,\n\nJe souhaiterais avoir plus d'informations concernant la montre {name}{reference} proposée au prix de {price}.\n\nCordialement",
-  'payment.whatsappCompletePurchase': "Bonjour, je souhaite finaliser l'achat de la montre (ID: {id})",
+  'watch.shareEmailBody':
+    'Je vous partage cette montre : {name}{reference}\n\nPrix : {price}\n\n{url}',
+  'watch.emailInterestBody':
+    "Bonjour,\n\nJe souhaiterais avoir plus d'informations concernant la montre {name}{reference} proposée au prix de {price}.\n\nCordialement",
+  'payment.whatsappCompletePurchase':
+    "Bonjour, je souhaite finaliser l'achat de la montre (ID: {id})",
   'payment.cancelTitle': 'Paiement annulé',
   'payment.orderDetails': 'Détails de la commande',
   'payment.nextSteps': 'Prochaines étapes :',
@@ -539,7 +636,8 @@ export default {
   'appointment.preferredDate': 'Date souhaitée',
   'appointment.selectSlot': 'Veuillez sélectionner un créneau.',
   'appointment.successMessage': 'Votre demande de rendez-vous a bien été envoyée.',
-  'appointment.confirmationSent': 'Un email de confirmation vous a été envoyé. Notre équipe vous recontactera si nécessaire.',
+  'appointment.confirmationSent':
+    'Un email de confirmation vous a été envoyé. Notre équipe vous recontactera si nécessaire.',
   'appointment.submitError': "Une erreur s'est produite lors de l'envoi de votre demande.",
   'appointment.directions': 'Itinéraire GPS',
   'appointment.locationAgreed':
@@ -601,11 +699,14 @@ export default {
   'crossSell.sourcing': 'Recherche personnalisée de montre',
   'crossSell.valuation': 'Estimation de montre',
   'crossSell.servicesLead': "Découvrez nos autres services spécialisés dans l'univers des montres",
-  'crossSell.collectionText': 'Parcourez notre sélection de montres de prestige actuellement disponibles.',
+  'crossSell.collectionText':
+    'Parcourez notre sélection de montres de prestige actuellement disponibles.',
   'crossSell.collectionCta': 'Découvrir la collection',
-  'crossSell.sourcingText': 'Trouvez la montre de vos rêves grâce à notre service de recherche personnalisée. Notre équipe spécialisée vous aidera à trouver votre montre de rêve.',
+  'crossSell.sourcingText':
+    'Trouvez la montre de vos rêves grâce à notre service de recherche personnalisée. Notre équipe spécialisée vous aidera à trouver votre montre de rêve.',
   'crossSell.sourcingCta': 'Lancer ma recherche',
-  'crossSell.valuationText': 'Obtenez une estimation précise et gratuite de votre montre. Notre expertise vous garantit une évaluation juste de la valeur de votre pièce.',
+  'crossSell.valuationText':
+    'Obtenez une estimation précise et gratuite de votre montre. Notre expertise vous garantit une évaluation juste de la valeur de votre pièce.',
   'crossSell.valuationCta': 'Estimer ma montre',
   'sourcing.lead': 'Trouvez la montre de vos rêves',
   'sourcing.brandWanted': 'Marque souhaitée',
@@ -617,8 +718,10 @@ export default {
   'sourcing.brandPlaceholder': 'Ex : Rolex, Patek Philippe...',
   'sourcing.modelPlaceholder': 'Ex : Daytona, Nautilus...',
   'sourcing.timeframePlaceholder': 'Ex : 1 mois, dès que possible...',
-  'sourcing.commentsPlaceholder': 'Boîte et papiers souhaités ? Préférence pour un vendeur local ?...',
-  'sourcing.intro': "Notre équipe spécialisée vous aide à trouver des montres rares, discontinuées ou très demandées. Grâce à notre réseau de confiance, nous sécurisons pour vous l'achat d'une pièce d'exception, au prix du marché et en toute sérénité.",
+  'sourcing.commentsPlaceholder':
+    'Boîte et papiers souhaités ? Préférence pour un vendeur local ?...',
+  'sourcing.intro':
+    "Notre équipe spécialisée vous aide à trouver des montres rares, discontinuées ou très demandées. Grâce à notre réseau de confiance, nous sécurisons pour vous l'achat d'une pièce d'exception, au prix du marché et en toute sérénité.",
   'sourcing.submit': 'Envoyer ma demande de recherche',
   'valuation.brand': 'Marque',
   'valuation.model': 'Modèle',
@@ -637,14 +740,19 @@ export default {
   'valuation.optionalMessage': 'Message (optionnel)',
   'valuation.brandPlaceholder': 'Ex: Rolex, Patek Philippe...',
   'valuation.modelPlaceholder': 'Ex: Submariner, Nautilus...',
-  'valuation.messagePlaceholder': 'Précisez si vous êtes le premier propriétaire de la montre, son histoire...',
+  'valuation.messagePlaceholder':
+    'Précisez si vous êtes le premier propriétaire de la montre, son histoire...',
   'valuation.pageTitle': 'Estimation gratuite de votre montre',
   'valuation.pageLead': 'Remplissez ce formulaire pour recevoir une estimation personnalisée',
   'valuation.howWeEstimate': 'Comment estimons-nous votre montre ?',
-  'valuation.serialTitle': "Le numéro de série sera examiné pour garantir l'authenticité de la montre",
-  'valuation.serialTooltip': "Le numéro de série permet de garantir l'authenticité de la montre. Il se trouve généralement sur le boîtier ou les papiers d'origine.",
-  'valuation.photosTooltip': 'Ajoutez des photos nettes de la montre (face, dos, bracelet, papiers, boîte, etc.). Cela aide à une estimation plus précise.',
-  'valuation.proofOfPurchaseNotice': "Merci d'ajouter {highlight} de la montre (facture, reçu, etc.).",
+  'valuation.serialTitle':
+    "Le numéro de série sera examiné pour garantir l'authenticité de la montre",
+  'valuation.serialTooltip':
+    "Le numéro de série permet de garantir l'authenticité de la montre. Il se trouve généralement sur le boîtier ou les papiers d'origine.",
+  'valuation.photosTooltip':
+    'Ajoutez des photos nettes de la montre (face, dos, bracelet, papiers, boîte, etc.). Cela aide à une estimation plus précise.',
+  'valuation.proofOfPurchaseNotice':
+    "Merci d'ajouter {highlight} de la montre (facture, reçu, etc.).",
   'valuation.submit': 'Faire estimer ma montre',
 
   'process.fiveSteps': 'Notre processus en 5 étapes',
@@ -652,103 +760,148 @@ export default {
   // — Page « Notre processus d'estimation »
   'process.pageTitle': 'Comment estimons-nous votre montre ?',
   'process.pageSubtitle': 'Transparence et expertise au service de votre confiance',
-  'process.introTail': "C'est pourquoi nous vous expliquons en détail comment nous procédons pour estimer votre montre de manière précise et équitable.",
+  'process.introTail':
+    "C'est pourquoi nous vous expliquons en détail comment nous procédons pour estimer votre montre de manière précise et équitable.",
   'process.step1Title': 'Analyse de votre demande',
-  'process.step1Text': 'Dès réception de votre formulaire, notre équipe examine toutes les informations fournies : marque, modèle, année, numéro de série, état général et accessoires (boîte, papiers). Chaque détail compte pour une estimation précise.',
+  'process.step1Text':
+    'Dès réception de votre formulaire, notre équipe examine toutes les informations fournies : marque, modèle, année, numéro de série, état général et accessoires (boîte, papiers). Chaque détail compte pour une estimation précise.',
   'process.step2Title': "Vérification d'authenticité",
-  'process.step2Text': "Le numéro de série que vous nous communiquez est vérifié dans nos bases de données et comparé avec les références officielles des marques. Cette étape cruciale garantit l'authenticité de votre montre et protège votre investissement.",
+  'process.step2Text':
+    "Le numéro de série que vous nous communiquez est vérifié dans nos bases de données et comparé avec les références officielles des marques. Cette étape cruciale garantit l'authenticité de votre montre et protège votre investissement.",
   'process.step3Title': 'Évaluation du marché',
-  'process.step3Text': 'Nous analysons les prix du marché en temps réel en consultant plusieurs sources fiables : ventes aux enchères récentes, plateformes spécialisées, et notre propre expérience de transaction. Nous prenons en compte la rareté, la demande actuelle et les tendances du marché horloger.',
+  'process.step3Text':
+    'Nous analysons les prix du marché en temps réel en consultant plusieurs sources fiables : ventes aux enchères récentes, plateformes spécialisées, et notre propre expérience de transaction. Nous prenons en compte la rareté, la demande actuelle et les tendances du marché horloger.',
   'process.step4Title': "Ajustement selon l'état et les accessoires",
-  'process.step4Text': "L'état de votre montre et la présence d'accessoires d'origine (boîte, papiers, étiquettes) influencent significativement la valeur. Une montre en excellent état avec tous ses accessoires peut valoir jusqu'à 30% de plus qu'une montre seule en état moyen.",
+  'process.step4Text':
+    "L'état de votre montre et la présence d'accessoires d'origine (boîte, papiers, étiquettes) influencent significativement la valeur. Une montre en excellent état avec tous ses accessoires peut valoir jusqu'à 30% de plus qu'une montre seule en état moyen.",
   'process.step5Title': 'Estimation finale et proposition',
-  'process.step5Text': 'Après avoir croisé toutes ces informations, nous vous proposons une estimation détaillée et transparente. Cette estimation est valable pendant 30 jours et peut être ajustée après un examen physique de la montre si vous souhaitez procéder à une transaction.',
+  'process.step5Text':
+    'Après avoir croisé toutes ces informations, nous vous proposons une estimation détaillée et transparente. Cette estimation est valable pendant 30 jours et peut être ajustée après un examen physique de la montre si vous souhaitez procéder à une transaction.',
   'process.factorsTitle': "Les facteurs qui influencent l'estimation",
-  'process.ownershipHistoryText': 'Un historique documenté peut ajouter de la valeur à certaines pièces.',
+  'process.ownershipHistoryText':
+    'Un historique documenté peut ajouter de la valeur à certaines pièces.',
   'process.whyTrustUs': 'Pourquoi nous faire confiance ?',
   'process.ctaTitle': 'Prêt à faire estimer votre montre ?',
-  'process.ctaText': 'Remplissez notre formulaire gratuit et recevez une estimation détaillée sous 24-48h.',
+  'process.ctaText':
+    'Remplissez notre formulaire gratuit et recevez une estimation détaillée sous 24-48h.',
   'process.ctaButton': 'Faire une estimation gratuite',
   'process.brandModel': 'Marque et modèle',
-  'process.brandModelText': 'Certaines marques et modèles emblématiques conservent mieux leur valeur.',
+  'process.brandModelText':
+    'Certaines marques et modèles emblématiques conservent mieux leur valeur.',
   'process.yearRarity': 'Année et rareté',
-  'process.yearRarityText': 'Les éditions limitées et les modèles anciens peuvent avoir une valeur supérieure.',
+  'process.yearRarityText':
+    'Les éditions limitées et les modèles anciens peuvent avoir une valeur supérieure.',
   'process.condition': 'État général',
   'process.conditionText': "L'usure, les rayures et l'entretien régulier impactent la valeur.",
   'process.accessories': "Accessoires d'origine",
-  'process.accessoriesText': 'Boîte, papiers, étiquettes et certificats augmentent significativement la valeur.',
+  'process.accessoriesText':
+    'Boîte, papiers, étiquettes et certificats augmentent significativement la valeur.',
   'process.marketConditions': 'Conjoncture du marché',
   'process.marketConditionsText': 'Les tendances actuelles et la demande influencent les prix.',
   'process.ownershipHistory': 'Historique de propriété',
   'process.marketPrices': 'Prix du marché',
-  'process.marketPricesText': 'Nos estimations sont basées sur les prix réels du marché, pas sur des prix gonflés.',
+  'process.marketPricesText':
+    'Nos estimations sont basées sur les prix réels du marché, pas sur des prix gonflés.',
   'process.recognisedExpertise': 'Expertise reconnue',
-  'process.recognisedExpertiseText': "Notre équipe possède des années d'expérience dans l'horlogerie de luxe.",
+  'process.recognisedExpertiseText':
+    "Notre équipe possède des années d'expérience dans l'horlogerie de luxe.",
   'process.freeValuation': 'Estimation gratuite',
   'process.freeValuationText': "Aucun engagement de votre part, l'estimation est 100% gratuite.",
   'process.transparency': 'Transparence totale',
-  'process.transparencyText': "Nous vous expliquons clairement notre méthode et nos critères d'évaluation.",
+  'process.transparencyText':
+    "Nous vous expliquons clairement notre méthode et nos critères d'évaluation.",
   'process.personalSupport': 'Accompagnement personnalisé',
-  'process.personalSupportText': 'Nous restons à votre disposition pour répondre à toutes vos questions.',
+  'process.personalSupportText':
+    'Nous restons à votre disposition pour répondre à toutes vos questions.',
   'about.ourMission': 'Notre mission',
 
   // — Page « À propos » — titres et corps de texte
   'about.pageTitle': 'À propos de {brand}',
-  'about.pageSubtitle': "Votre partenaire de confiance pour l'achat et la vente de montres de prestige",
+  'about.pageSubtitle':
+    "Votre partenaire de confiance pour l'achat et la vente de montres de prestige",
   'about.whoWeAre': 'Qui sommes-nous ?',
-  'about.whoWeAreText': '{brand} est une entreprise spécialisée dans le rachat et la vente de montres de luxe. Contrairement aux plateformes tierces qui mettent simplement en relation acheteurs et vendeurs, nous possédons directement notre propre stock de montres authentifiées et vérifiées.',
-  'about.ourMissionText': "Offrir aux collectionneurs une expérience d'achat et de vente de montres de prestige transparente, sécurisée et personnalisée. Nous nous engageons à garantir l'authenticité de chaque pièce et à proposer un service d'excellence.",
-  'about.ourCommitmentText': "Chaque montre que nous proposons est en notre possession, soigneusement sélectionnée et vérifiée avant la mise en vente. Cette approche directe nous permet de garantir la qualité, l'authenticité et la disponibilité immédiate de nos pièces.",
-  'about.ourDifferenceText': 'Contrairement aux plateformes tierces qui agissent comme intermédiaires, nous possédons directement notre stock. Cette différence fondamentale se traduit par de nombreux avantages pour vous.',
-  'about.fullQualityControlText': "Chaque montre est vérifiée avant d'entrer dans notre stock. Nous maîtrisons l'ensemble de la chaîne, de la sélection à la vente.",
-  'about.immediateAvailabilityText': "Les montres que vous voyez sur notre site sont disponibles immédiatement. Pas d'attente, pas de négociation avec un tiers : vous achetez directement auprès de nous.",
-  'about.directCommunicationText': 'Vous communiquez directement avec notre équipe, sans intermédiaire. Réponses rapides, conseils personnalisés et suivi de votre commande en temps réel.',
-  'about.authenticityText': "Chaque montre est authentifiée et vérifiée avant d'être proposée à la vente.",
+  'about.whoWeAreText':
+    '{brand} est une entreprise spécialisée dans le rachat et la vente de montres de luxe. Contrairement aux plateformes tierces qui mettent simplement en relation acheteurs et vendeurs, nous possédons directement notre propre stock de montres authentifiées et vérifiées.',
+  'about.ourMissionText':
+    "Offrir aux collectionneurs une expérience d'achat et de vente de montres de prestige transparente, sécurisée et personnalisée. Nous nous engageons à garantir l'authenticité de chaque pièce et à proposer un service d'excellence.",
+  'about.ourCommitmentText':
+    "Chaque montre que nous proposons est en notre possession, soigneusement sélectionnée et vérifiée avant la mise en vente. Cette approche directe nous permet de garantir la qualité, l'authenticité et la disponibilité immédiate de nos pièces.",
+  'about.ourDifferenceText':
+    'Contrairement aux plateformes tierces qui agissent comme intermédiaires, nous possédons directement notre stock. Cette différence fondamentale se traduit par de nombreux avantages pour vous.',
+  'about.fullQualityControlText':
+    "Chaque montre est vérifiée avant d'entrer dans notre stock. Nous maîtrisons l'ensemble de la chaîne, de la sélection à la vente.",
+  'about.immediateAvailabilityText':
+    "Les montres que vous voyez sur notre site sont disponibles immédiatement. Pas d'attente, pas de négociation avec un tiers : vous achetez directement auprès de nous.",
+  'about.directCommunicationText':
+    'Vous communiquez directement avec notre équipe, sans intermédiaire. Réponses rapides, conseils personnalisés et suivi de votre commande en temps réel.',
+  'about.authenticityText':
+    "Chaque montre est authentifiée et vérifiée avant d'être proposée à la vente.",
   'about.transparency': 'Transparence',
-  'about.transparencyText': 'Processus clairs, prix transparents, aucune commission cachée. Vous savez exactement ce que vous payez.',
-  'about.expertiseText': "Une équipe de spécialistes passionnés par l'horlogerie, toujours à votre écoute pour vous conseiller.",
+  'about.transparencyText':
+    'Processus clairs, prix transparents, aucune commission cachée. Vous savez exactement ce que vous payez.',
+  'about.expertiseText':
+    "Une équipe de spécialistes passionnés par l'horlogerie, toujours à votre écoute pour vous conseiller.",
   'about.satisfaction': 'Satisfaction',
-  'about.satisfactionText': 'Votre satisfaction est notre priorité. Nous nous engageons à vous offrir une expérience de qualité.',
-  'about.guaranteesSecurityText': 'Nous mettons tout en œuvre pour garantir la sécurité de vos transactions et la qualité de nos montres.',
-  'about.guaranteedAuthenticationText': "Toutes nos montres sont minutieusement vérifiées avant d'être mises en vente. Nous vérifions l'authenticité, l'état, et l'historique de chaque pièce.",
+  'about.satisfactionText':
+    'Votre satisfaction est notre priorité. Nous nous engageons à vous offrir une expérience de qualité.',
+  'about.guaranteesSecurityText':
+    'Nous mettons tout en œuvre pour garantir la sécurité de vos transactions et la qualité de nos montres.',
+  'about.guaranteedAuthenticationText':
+    "Toutes nos montres sont minutieusement vérifiées avant d'être mises en vente. Nous vérifions l'authenticité, l'état, et l'historique de chaque pièce.",
   'about.checkAuthenticity': "Vérification de l'authenticité",
   'about.checkCondition': "Contrôle de l'état et du fonctionnement",
   'about.checkPapers': 'Vérification des papiers et de la boîte',
   'about.transactionWarranty': 'Garantie sur nos transactions',
   'about.luxuryWatchExpertise': 'Expertise en horlogerie de luxe',
-  'about.securePaymentText': 'Toutes nos transactions sont sécurisées. Nous utilisons des moyens de paiement fiables et protégés pour garantir la sécurité de vos achats.',
+  'about.securePaymentText':
+    'Toutes nos transactions sont sécurisées. Nous utilisons des moyens de paiement fiables et protégés pour garantir la sécurité de vos achats.',
   'about.secureTransactions': 'Transactions sécurisées',
   'about.dataProtection': 'Protection des données',
   'about.realTimeOrderTracking': 'Suivi de commande en temps réel',
-  'about.secureInsuredDeliveryText': "Votre montre est précieuse, nous le savons. C'est pourquoi nous mettons tout en œuvre pour garantir un transport sécurisé et assuré jusqu'à chez vous.",
-  'about.securePackageText': 'Emballage renforcé et adapté pour protéger votre montre pendant le transport.',
-  'about.declaredValueInsuranceText': "Chaque colis est assuré à la valeur déclarée de la montre pour votre tranquillité d'esprit.",
+  'about.secureInsuredDeliveryText':
+    "Votre montre est précieuse, nous le savons. C'est pourquoi nous mettons tout en œuvre pour garantir un transport sécurisé et assuré jusqu'à chez vous.",
+  'about.securePackageText':
+    'Emballage renforcé et adapté pour protéger votre montre pendant le transport.',
+  'about.declaredValueInsuranceText':
+    "Chaque colis est assuré à la valeur déclarée de la montre pour votre tranquillité d'esprit.",
   'about.realTimeTracking': 'Suivi en temps réel',
-  'about.realTimeTrackingText': "Suivez votre colis à chaque étape de son parcours jusqu'à la livraison.",
+  'about.realTimeTrackingText':
+    "Suivez votre colis à chaque étape de son parcours jusqu'à la livraison.",
   'about.goodHandsTitle': 'Votre montre est entre de bonnes mains.',
-  'about.goodHandsText': "Nous utilisons des transporteurs de confiance et chaque envoi est soigneusement préparé et suivi pour garantir l'arrivée en parfait état de votre acquisition.",
-  'about.ourExpertiseText': 'Une équipe passionnée et un réseau solide pour vous offrir un service de qualité',
+  'about.goodHandsText':
+    "Nous utilisons des transporteurs de confiance et chaque envoi est soigneusement préparé et suivi pour garantir l'arrivée en parfait état de votre acquisition.",
+  'about.ourExpertiseText':
+    'Une équipe passionnée et un réseau solide pour vous offrir un service de qualité',
   'about.specialisedTeam': 'Équipe spécialisée',
-  'about.specialisedTeamText': "Notre équipe est composée de passionnés d'horlogerie. Chaque membre possède une connaissance approfondie des montres de prestige et est formé pour vous conseiller et vous accompagner dans vos projets.",
+  'about.specialisedTeamText':
+    "Notre équipe est composée de passionnés d'horlogerie. Chaque membre possède une connaissance approfondie des montres de prestige et est formé pour vous conseiller et vous accompagner dans vos projets.",
   'about.marketKnowledge': 'Connaissance du marché et des cotes',
   'about.personalSupport': 'Accompagnement personnalisé',
   'about.networkSourcing': 'Réseau et sourcing',
-  'about.networkSourcingText': 'Grâce à notre réseau français et européen, nous avons accès à des montres rares, exclusives ou au meilleur rapport qualité/prix. Que ce soit pour notre stock ou pour votre recherche personnalisée, nous savons où chercher.',
+  'about.networkSourcingText':
+    'Grâce à notre réseau français et européen, nous avons accès à des montres rares, exclusives ou au meilleur rapport qualité/prix. Que ce soit pour notre stock ou pour votre recherche personnalisée, nous savons où chercher.',
   'about.professionalNetwork': 'Réseau de professionnels et collectionneurs',
   'about.accessRarePieces': 'Accès à des pièces rares et exclusives',
   'about.constantMarketWatch': 'Veille constante du marché',
   'about.whyChooseUs': 'Pourquoi nous choisir ?',
-  'about.whyChooseUsText': "Les avantages de notre modèle direct pour une expérience d'achat optimale",
-  'about.shorterLeadTimesText': "Pas d'attente liée à un intermédiaire. Les montres sont disponibles immédiatement et l'envoi est rapide une fois la commande validée.",
+  'about.whyChooseUsText':
+    "Les avantages de notre modèle direct pour une expérience d'achat optimale",
+  'about.shorterLeadTimesText':
+    "Pas d'attente liée à un intermédiaire. Les montres sont disponibles immédiatement et l'envoi est rapide une fois la commande validée.",
   'about.transparentPrices': 'Prix transparents',
-  'about.transparentPricesText': 'Pas de commission cachée, pas de frais supplémentaires. Le prix affiché est le prix final, clair et transparent.',
+  'about.transparentPricesText':
+    'Pas de commission cachée, pas de frais supplémentaires. Le prix affiché est le prix final, clair et transparent.',
   'about.directRelationship': 'Relation directe',
   'about.guaranteedQuality': 'Qualité garantie',
-  'about.guaranteedQualityText': "Chaque montre est vérifiée avant d'entrer dans notre stock. Nous garantissons l'authenticité et la qualité de chaque pièce.",
-  'about.secureDeliveryText': "Colis sécurisé avec assurance à valeur déclarée. Votre montre est protégée pendant tout le transport jusqu'à chez vous.",
-  'about.warrantyServiceText': "Garantie sur nos ventes et service après-vente réactif. Nous sommes là pour vous accompagner même après l'achat.",
+  'about.guaranteedQualityText':
+    "Chaque montre est vérifiée avant d'entrer dans notre stock. Nous garantissons l'authenticité et la qualité de chaque pièce.",
+  'about.secureDeliveryText':
+    "Colis sécurisé avec assurance à valeur déclarée. Votre montre est protégée pendant tout le transport jusqu'à chez vous.",
+  'about.warrantyServiceText':
+    "Garantie sur nos ventes et service après-vente réactif. Nous sommes là pour vous accompagner même après l'achat.",
   'about.ctaTitle': 'Prêt à découvrir notre collection ?',
-  'about.ctaText': 'Parcourez nos montres en stock ou contactez-nous pour une recherche personnalisée',
+  'about.ctaText':
+    'Parcourez nos montres en stock ou contactez-nous pour une recherche personnalisée',
   'about.ourExpertise': 'Notre expertise',
   'about.ourValues': 'Nos valeurs',
   'about.ourDifference': 'Notre différence',
@@ -774,7 +927,8 @@ export default {
   'about.retailSpecialist': 'Spécialiste de la montre',
   'about.retailSpecialistDetail': 'Une expertise forgée au fil des décennies',
   'about.retailStylesTitle': 'Un style pour chaque moment',
-  'about.retailStylesLead': "Que vous rêviez d'une montre sport, d'une montre élégante ou d'une mécanique à contempler, nous saurons vous guider.",
+  'about.retailStylesLead':
+    "Que vous rêviez d'une montre sport, d'une montre élégante ou d'une mécanique à contempler, nous saurons vous guider.",
   'about.visitUs': 'Venez nous rencontrer',
   'about.readGuide': 'Consulter le guide',
   'services.ourServices': 'Nos services',
@@ -782,7 +936,8 @@ export default {
 
   // — Atelier : demande de prise en charge et pages prestation (`/services/:slug`)
   'repair.formTitle': 'Demander une prise en charge',
-  'repair.formLead': "Décrivez votre montre et le problème rencontré : nous vous répondons avec un délai et un ordre de prix, sans engagement.",
+  'repair.formLead':
+    'Décrivez votre montre et le problème rencontré : nous vous répondons avec un délai et un ordre de prix, sans engagement.',
   'repair.service': 'Prestation souhaitée',
   'repair.servicePlaceholder': 'Choisissez une prestation',
   'repair.serviceOther': 'Autre / je ne sais pas',
@@ -791,7 +946,8 @@ export default {
   'repair.model': 'Modèle ou référence',
   'repair.modelPlaceholder': 'Ex : Prospex SRPD, T-Classic…',
   'repair.problem': 'Que se passe-t-il avec votre montre ?',
-  'repair.problemPlaceholder': "Elle retarde, elle s'est arrêtée, elle a pris l'eau, le bracelet est cassé…",
+  'repair.problemPlaceholder':
+    "Elle retarde, elle s'est arrêtée, elle a pris l'eau, le bracelet est cassé…",
   'repair.photos': 'Photos de la montre (optionnel)',
   'repair.photosHint': 'Une photo du cadran et une du fond de boîtier suffisent le plus souvent.',
   'repair.addPhotos': 'Cliquez pour ajouter des photos',
@@ -801,7 +957,8 @@ export default {
   'repair.handlingShip': "Je préfère l'envoyer par la poste",
   'repair.handlingUnsure': 'Je ne sais pas encore',
   'repair.submit': 'Envoyer ma demande',
-  'repair.reassurance': "Réponse sous 48 h ouvrées. Aucune intervention n'est lancée sans votre accord.",
+  'repair.reassurance':
+    "Réponse sous 48 h ouvrées. Aucune intervention n'est lancée sans votre accord.",
   'repair.serviceRequired': 'Choisissez la prestation souhaitée.',
   'repair.cta': 'Demander un devis',
   'serviceLanding.pricingTitle': 'Tarifs',
@@ -816,8 +973,10 @@ export default {
   'newsletter.description': 'Recevez nos nouveautés et actualités par email.',
   'newsletter.emailLabel': 'Adresse email',
   'newsletter.error': 'Une erreur est survenue, veuillez réessayer.',
-  'newsletter.consent': 'En vous inscrivant, vous acceptez de recevoir nos communications par email. Désinscription possible à tout moment via le lien présent dans chaque message. Pour en savoir plus, consultez notre',
-  'newsletter.optIn': 'Je souhaite recevoir la newsletter (nouveautés et offres par email). Désinscription possible à tout moment.',
+  'newsletter.consent':
+    'En vous inscrivant, vous acceptez de recevoir nos communications par email. Désinscription possible à tout moment via le lien présent dans chaque message. Pour en savoir plus, consultez notre',
+  'newsletter.optIn':
+    'Je souhaite recevoir la newsletter (nouveautés et offres par email). Désinscription possible à tout moment.',
   'cookies.title': 'Cookies, mesure d’audience et publicité',
   'cookies.body':
     'Nous utilisons des cookies et traceurs pour mesurer l’audience du site, améliorer votre navigation et mesurer l’efficacité de nos campagnes publicitaires. Vous décidez, finalité par finalité : accepter, refuser ou personnaliser. L’enregistrement de votre choix sur cet appareil est nécessaire au fonctionnement de cette bannière. Pour plus de détails, consultez notre',
@@ -838,14 +997,22 @@ export default {
   'notFound.backHome': "Retour à l'accueil",
   'notFound.code': 'Oups… 404',
   'notFound.headline': 'On dirait que même nos montres les plus précises ont perdu cette page.',
-  'notFound.reassure': "Pas de panique ! Profitons-en pour revenir à l'essentiel et retrouver notre collection depuis l'accueil.",
+  'notFound.reassure':
+    "Pas de panique ! Profitons-en pour revenir à l'essentiel et retrouver notre collection depuis l'accueil.",
   'notFound.goBack': 'Revenir en arrière',
   'thanks.title': 'Merci pour votre demande !',
-  'thanks.estimation': "Nous avons bien reçu votre demande d'estimation. Un membre de notre équipe vous contactera sous 24h pour répondre à votre demande.",
-  'thanks.contact': 'Nous avons bien reçu votre message. Un membre de notre équipe vous répondra dans les meilleurs délais.',
-  'thanks.repair': "Nous avons bien reçu votre demande de prise en charge. Notre horloger revient vers vous sous 48 h ouvrées avec un délai et un ordre de prix.",
-  'thanks.sourcing': 'Nous avons bien reçu votre recherche personnalisée. Un membre de notre équipe vous contactera sous 24h pour discuter de vos critères et commencer les recherches.',
-  'thanks.redirect': { one: 'Redirection dans {count} seconde…', other: 'Redirection dans {count} secondes…' },
+  'thanks.estimation':
+    "Nous avons bien reçu votre demande d'estimation. Un membre de notre équipe vous contactera sous 24h pour répondre à votre demande.",
+  'thanks.contact':
+    'Nous avons bien reçu votre message. Un membre de notre équipe vous répondra dans les meilleurs délais.',
+  'thanks.repair':
+    'Nous avons bien reçu votre demande de prise en charge. Notre horloger revient vers vous sous 48 h ouvrées avec un délai et un ordre de prix.',
+  'thanks.sourcing':
+    'Nous avons bien reçu votre recherche personnalisée. Un membre de notre équipe vous contactera sous 24h pour discuter de vos critères et commencer les recherches.',
+  'thanks.redirect': {
+    one: 'Redirection dans {count} seconde…',
+    other: 'Redirection dans {count} secondes…',
+  },
   // — Valeurs de fiche montre venant de Supabase (voir i18n/watchSpecs.js).
   //    Le texte saisi en base reste français : ces clés le traduisent à l'affichage.
   'watch.promotionBadge': 'Promotion · -{percent} %',
@@ -973,12 +1140,14 @@ export default {
   'reviews.mapSeeReviews': 'Voir sur Google',
   // — Coup de foudre (`/coup-de-foudre`, feature `watchMatchmaking`)
   'matchmaking.pageTitle': 'Coup de foudre',
-  'matchmaking.metaDescription': 'Dites-nous ce que vous cherchez, nous vous présentons nos montres disponibles une par une. Un geste pour passer, un autre pour garder.',
+  'matchmaking.metaDescription':
+    'Dites-nous ce que vous cherchez, nous vous présentons nos montres disponibles une par une. Un geste pour passer, un autre pour garder.',
   'matchmaking.eyebrow': 'Trouvez votre montre',
   'matchmaking.loading': 'On prépare les présentations…',
   'matchmaking.loadError': 'Impossible de charger les montres pour le moment.',
   'matchmaking.empty.title': 'Personne dans la salle pour l’instant.',
-  'matchmaking.empty.text': 'Aucune montre n’est disponible aujourd’hui. Dites-nous ce que vous cherchez, nous la trouverons.',
+  'matchmaking.empty.text':
+    'Aucune montre n’est disponible aujourd’hui. Dites-nous ce que vous cherchez, nous la trouverons.',
   'matchmaking.progress': 'Étape {current} sur {total}',
   'matchmaking.onboarding.title': 'Dites-nous ce que vous cherchez.',
   'matchmaking.onboarding.subtitle': 'Quelques questions, puis on fait les présentations.',
@@ -986,7 +1155,10 @@ export default {
   'matchmaking.onboarding.next': 'Continuer',
   'matchmaking.onboarding.start': 'Voir les montres',
   'matchmaking.onboarding.skip': 'Peu importe',
-  'matchmaking.onboarding.poolCount': { one: '{count} montre vous attend', other: '{count} montres vous attendent' },
+  'matchmaking.onboarding.poolCount': {
+    one: '{count} montre vous attend',
+    other: '{count} montres vous attendent',
+  },
   'matchmaking.onboarding.poolEmpty': 'Aucune montre dans ce budget — élargissez-le un peu.',
   'matchmaking.step.budget.title': 'Quel budget avez-vous en tête ?',
   'matchmaking.step.budget.hint': 'Le seul critère que nous prenons au pied de la lettre.',
@@ -1007,7 +1179,8 @@ export default {
   'matchmaking.step.color.title': 'Une couleur qui vous attire ?',
   'matchmaking.step.color.hint': 'Cadran ou bracelet, nous regardons les deux.',
   'matchmaking.step.movement.title': 'Et côté mécanique ?',
-  'matchmaking.step.movement.hint': 'Automatique, manuel ou quartz : il n’y a pas de mauvaise réponse.',
+  'matchmaking.step.movement.hint':
+    'Automatique, manuel ou quartz : il n’y a pas de mauvaise réponse.',
   'matchmaking.deck.instruction': 'Glissez à droite si le cœur y est, à gauche sinon.',
   'matchmaking.deck.counter': '{seen} sur {total}',
   'matchmaking.deck.like': 'Coup de cœur',
@@ -1021,13 +1194,37 @@ export default {
   'matchmaking.deck.cardLabel': '{brand} {name}, {price}',
   'matchmaking.deck.viewMatches': 'Mes coups de cœur',
   'matchmaking.deck.editPreferences': 'Modifier mes préférences',
+  'matchmaking.spark.dialogLabel': 'Coup de foudre : {name}',
+  'matchmaking.spark.title': 'Coup de foudre',
+  'matchmaking.spark.first': 'Votre premier coup de foudre',
+  'matchmaking.spark.ordinal': 'Coup de foudre n° {count}',
+  'matchmaking.spark.tagline': 'Certaines rencontres ne s’expliquent pas. Celle-ci vous attendait.',
+  'matchmaking.spark.uniquePiece': 'Pièce unique',
+  'matchmaking.spark.reasons': 'Ce qui vous a fait craquer',
+  'matchmaking.spark.affinity': 'Affinité',
+  'matchmaking.spark.rarityFirst': {
+    one: 'La toute première montre découverte. Ça ne s’invente pas.',
+    other: 'Une seule montre sur les {count} découvertes vous a fait cet effet.',
+  },
+  'matchmaking.spark.rarityMany':
+    '{sparks} coups de foudre seulement, sur {count} montres découvertes.',
+  'matchmaking.spark.viewPage': 'Faire sa connaissance',
+  'matchmaking.spark.continue': 'Continuer la découverte',
+  'matchmaking.spark.announce': 'Coup de foudre pour {name} ! Ajoutée à vos coups de cœur.',
   'matchmaking.end.roundTitle': 'Voilà pour les plus proches de vous.',
-  'matchmaking.end.roundText': { one: 'Une autre montre de votre budget attend son tour.', other: '{count} autres montres de votre budget attendent leur tour.' },
+  'matchmaking.end.roundText': {
+    one: 'Une autre montre de votre budget attend son tour.',
+    other: '{count} autres montres de votre budget attendent leur tour.',
+  },
   'matchmaking.end.showMore': 'Voir {count} montres de plus',
   'matchmaking.end.title': 'Vous avez vu tout le monde.',
-  'matchmaking.end.likedText': { one: 'Une montre a retenu votre attention. Il est temps de la revoir.', other: '{count} montres ont retenu votre attention. Il est temps de choisir.' },
+  'matchmaking.end.likedText': {
+    one: 'Une montre a retenu votre attention. Il est temps de la revoir.',
+    other: '{count} montres ont retenu votre attention. Il est temps de choisir.',
+  },
   'matchmaking.end.noLikesTitle': 'Personne ne vous a fait tourner la tête.',
-  'matchmaking.end.noLikesText': 'La bonne est peut-être encore en chemin. Élargissez vos critères, ou dites-nous ce que vous cherchez.',
+  'matchmaking.end.noLikesText':
+    'La bonne est peut-être encore en chemin. Élargissez vos critères, ou dites-nous ce que vous cherchez.',
   'matchmaking.end.noBudgetTitle': 'Personne dans ce budget.',
   'matchmaking.end.noBudgetText': 'Aucune montre disponible n’entre dans la fourchette choisie.',
   'matchmaking.end.widenBudget': 'Élargir mon budget',
@@ -1046,18 +1243,24 @@ export default {
   'matchmaking.shortlist.details': 'Revoir',
   'matchmaking.shortlist.detailsLabel': 'Revoir {name} en détail',
   'matchmaking.shortlist.viewPage': 'Voir la fiche',
+  'matchmaking.shortlist.sparkBadge': 'Coup de foudre',
   'matchmaking.shortlist.resume': 'Reprendre la découverte',
   'matchmaking.shortlist.unavailable': 'Plus disponible',
-  'matchmaking.shortlist.unavailableText': 'Cette montre a trouvé preneur. Nous pouvons en chercher une semblable pour vous.',
+  'matchmaking.shortlist.unavailableText':
+    'Cette montre a trouvé preneur. Nous pouvons en chercher une semblable pour vous.',
   'matchmaking.cta.alert.title': 'Votre montre n’est peut-être pas encore arrivée.',
-  'matchmaking.cta.alert.text': 'Enregistrez vos préférences et nous vous préviendrons dès qu’une montre y répond.',
+  'matchmaking.cta.alert.text':
+    'Enregistrez vos préférences et nous vous préviendrons dès qu’une montre y répond.',
   'matchmaking.cta.alert.emailLabel': 'Votre e-mail',
   'matchmaking.cta.alert.button': 'Me prévenir',
   'matchmaking.cta.alert.unavailable': 'Cette option arrive bientôt.',
-  'matchmaking.cta.alert.consent': 'J’accepte de recevoir un e-mail lorsqu’une montre correspond à mes préférences. Je peux me désinscrire à tout moment.',
-  'matchmaking.cta.alert.success': 'C’est noté. Nous vous écrivons dès qu’une montre vous ressemble.',
+  'matchmaking.cta.alert.consent':
+    'J’accepte de recevoir un e-mail lorsqu’une montre correspond à mes préférences. Je peux me désinscrire à tout moment.',
+  'matchmaking.cta.alert.success':
+    'C’est noté. Nous vous écrivons dès qu’une montre vous ressemble.',
   'matchmaking.cta.sourcing.title': 'Des exigences précises ? Nous les prenons au sérieux.',
-  'matchmaking.cta.sourcing.text': 'Notre service de recherche personnalisée part de vos critères, aussi précis soient-ils.',
+  'matchmaking.cta.sourcing.text':
+    'Notre service de recherche personnalisée part de vos critères, aussi précis soient-ils.',
   'matchmaking.cta.sourcing.button': 'Lancer une recherche personnalisée',
 
   // — Alerte « coup de foudre » : e-mail de nouveauté et pages de désinscription.

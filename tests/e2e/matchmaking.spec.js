@@ -72,6 +72,15 @@ test.describe('Coup de foudre', () => {
     const currentCard = page.getByTestId('match-current-card')
     await expect(currentCard).toContainText('Héritage')
     await page.getByRole('button', { name: 'Coup de cœur', exact: true }).click()
+
+    // Premier coup de cœur sans critère exprimé : c'est l'accueil, il est célébré. Le suivant
+    // ne le sera pas (voir `watchMatchSpark.js`).
+    const spark = page.getByRole('dialog', { name: /Coup de foudre/ })
+    await expect(spark).toBeVisible()
+    await expect(spark).toContainText('Votre premier coup de foudre')
+    await expect(spark).toContainText('Héritage')
+    await spark.getByRole('button', { name: 'Continuer la découverte' }).click()
+    await expect(spark).toBeHidden()
     await expect(page.getByText('2 sur 3')).toBeVisible()
 
     // Détail : la décision prise dans la lightbox fait avancer le deck.
@@ -101,6 +110,7 @@ test.describe('Coup de foudre', () => {
     expect(stored.step).toBe('shortlist')
     expect(stored.liked).toEqual([SAMPLE_WATCH.watchId, THIRD_WATCH.watchId])
     expect(stored.passed).toEqual([SECOND_WATCH.watchId])
+    expect(stored.sparks).toEqual([SAMPLE_WATCH.watchId])
     expect(JSON.stringify(stored)).not.toContain('Héritage')
 
     // Rechargement : la shortlist revient telle quelle.
@@ -309,8 +319,17 @@ test.describe('Coup de foudre', () => {
     // Deux montres dans le budget, puis l'écran de fin et son formulaire d'alerte.
     await expect(page.getByText('1 sur 2')).toBeVisible()
     await page.keyboard.press('ArrowRight')
+    // Une Sauvage pour qui a coché Sauvage : coup de foudre. Le clavier du deck se tait tant
+    // que l'écran est ouvert ; Échap le referme.
+    const spark = page.getByRole('dialog', { name: /Coup de foudre/ })
+    await expect(spark).toBeVisible()
+    await expect(spark).toContainText('Ce qui vous a fait craquer')
+    await page.keyboard.press('Escape')
+    await expect(spark).toBeHidden()
     await expect(page.getByText('2 sur 2')).toBeVisible()
     await page.keyboard.press('ArrowRight')
+    // Trop tôt pour un second coup de foudre : le délai entre deux célébrations s'applique.
+    await expect(spark).toBeHidden()
 
     await page.getByPlaceholder('Votre e-mail').fill('alerte@example.fr')
     await page.getByRole('checkbox', { name: /J’accepte de recevoir/ }).check()

@@ -125,6 +125,14 @@ describe('matchSessionStorage', () => {
     expect(parseMatchSession({ ...base, deckLimit: 'beaucoup' }).deckLimit).toBe(MATCH_ROUND_SIZE)
   })
 
+  it('garde les coups de foudre parmi les coups de cœur, et reprend une session sans eux', () => {
+    const base = { version: MATCH_SESSION_VERSION, savedAt: new Date().toISOString() }
+    expect(parseMatchSession(base).sparks).toEqual([])
+    expect(parseMatchSession({ ...base, liked: ['a', 'b'], sparks: ['b', 'z'] }).sparks).toEqual([
+      'b',
+    ])
+  })
+
   it('reste inerte sans localStorage', () => {
     delete globalThis.localStorage
     expect(loadMatchSession()).toBeNull()

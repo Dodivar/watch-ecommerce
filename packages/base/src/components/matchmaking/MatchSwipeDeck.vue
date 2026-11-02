@@ -211,8 +211,10 @@ function commit(direction) {
   if (!watch) return
   const name = watch.model || watch.name || ''
   if (direction > 0) {
-    props.mm.like(watch.id)
-    announcement.value = t('matchmaking.deck.announceLiked', { name })
+    const sparked = props.mm.like(watch.id)
+    announcement.value = sparked
+      ? t('matchmaking.spark.announce', { name })
+      : t('matchmaking.deck.announceLiked', { name })
   } else {
     props.mm.pass(watch.id)
     announcement.value = t('matchmaking.deck.announcePassed', { name })

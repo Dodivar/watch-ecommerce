@@ -38,6 +38,7 @@ export const MATCH_STEPS = ['onboarding', 'swipe', 'end', 'shortlist']
  * @property {string[]} seen           Ids déjà présentés, dans l'ordre
  * @property {string[]} liked          Ids aimés, dans l'ordre du coup de cœur
  * @property {string[]} passed         Ids passés
+ * @property {string[]} sparks         Ids des coups de foudre (sous-ensemble de `liked`), dans l'ordre
  * @property {number} deckLimit        Montres présentables au total, manches cumulées
  */
 
@@ -58,6 +59,7 @@ export function createEmptyMatchSession() {
     seen: [],
     liked: [],
     passed: [],
+    sparks: [],
     deckLimit: MATCH_ROUND_SIZE,
   }
 }
@@ -76,6 +78,19 @@ function idList(value) {
     out.push(id)
   }
   return out
+}
+
+/**
+ * Coups de foudre : toujours un sous-ensemble des coups de cœur. Un coup de cœur retiré
+ * emporte son coup de foudre ; un identifiant orphelin ne survit donc pas à une relecture.
+ *
+ * @param {unknown} sparks
+ * @param {string[]} liked
+ * @returns {string[]}
+ */
+function sparkList(sparks, liked) {
+  const likedSet = new Set(liked)
+  return idList(sparks).filter((id) => likedSet.has(id))
 }
 
 /**
@@ -109,6 +124,7 @@ export function parseMatchSession(raw, now = Date.now()) {
 
   const step = MATCH_STEPS.includes(data.step) ? data.step : 'onboarding'
   const stepIndex = Number.isInteger(data.stepIndex) && data.stepIndex >= 0 ? data.stepIndex : 0
+  const liked = idList(data.liked)
 
   return {
     version: MATCH_SESSION_VERSION,
@@ -117,8 +133,11 @@ export function parseMatchSession(raw, now = Date.now()) {
     step,
     stepIndex,
     seen: idList(data.seen),
-    liked: idList(data.liked),
+    liked,
     passed: idList(data.passed),
+    // Champs ajoutés après coup (`sparks`, `deckLimit`) : une session écrite avant eux reprend
+    // le défaut plutôt que d'être jetée.
+    sparks: sparkList(data.sparks, liked),
     // Champ ajouté après coup : une session écrite avant lui reprend le défaut plutôt que
     // d'être jetée. Pas de bump de version, la reprise est exactement celle qu'on veut.
     deckLimit: deckLimit(data.deckLimit),
@@ -147,6 +166,7 @@ export function loadMatchSession() {
  * @returns {MatchSession} La session telle qu'écrite (avec `savedAt`).
  */
 export function saveMatchSession(session) {
+  const liked = idList(session?.liked)
   const payload = {
     version: MATCH_SESSION_VERSION,
     savedAt: new Date().toISOString(),
@@ -154,8 +174,9 @@ export function saveMatchSession(session) {
     step: MATCH_STEPS.includes(session?.step) ? session.step : 'onboarding',
     stepIndex: Number.isInteger(session?.stepIndex) ? Math.max(0, session.stepIndex) : 0,
     seen: idList(session?.seen),
-    liked: idList(session?.liked),
+    liked,
     passed: idList(session?.passed),
+    sparks: sparkList(session?.sparks, liked),
     deckLimit: deckLimit(session?.deckLimit),
   }
   if (typeof localStorage !== 'undefined') {
@@ -197,6 +218,7 @@ export function reconcileMatchSession(session, pool) {
       seen: idList(session?.seen).filter((id) => available.has(id)),
       passed: idList(session?.passed).filter((id) => available.has(id)),
       liked,
+      sparks: sparkList(session?.sparks, liked),
     },
     unavailableLikedIds: liked.filter((id) => !available.has(id)),
   }
