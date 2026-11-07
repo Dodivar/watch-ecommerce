@@ -12,6 +12,8 @@ import {
   sanitizePreferences,
   selectMatchRound,
 } from '@/utils/watchMatchmaking.js'
+import { affinityRatio } from '@/utils/watchMatchCore.js'
+import { isCoupDeFoudre, sparkTraits } from '@/utils/watchMatchSpark.js'
 import {
   clearMatchSession,
   createEmptyMatchSession,
@@ -50,6 +52,12 @@ export function useWatchMatchmaking() {
   const session = reactive(createEmptyMatchSession())
   /** Coups de cœur d'une visite précédente qui ne sont plus au catalogue. */
   const unavailableLikedIds = ref([])
+  /**
+   * Coup de foudre en cours de célébration (`watchMatchSpark.js`). Jamais persisté : recharger
+   * la page ne rejoue pas l'écran, le coup de foudre reste seulement marqué dans `sparks`.
+   * @type {import('vue').Ref<{ watchId: string, ordinal: number, seenCount: number } | null>}
+   */
+  const activeSpark = ref(null)
   let hydrated = false
 
   const watchById = computed(() => new Map(pool.value.map((w) => [w.id, w])))
@@ -269,6 +277,7 @@ export function useWatchMatchmaking() {
     clearMatchSession()
     Object.assign(session, createEmptyMatchSession())
     unavailableLikedIds.value = []
+    activeSpark.value = null
   }
 
   /* --------------------------------------------------------------------- Deck */
@@ -277,18 +286,40 @@ export function useWatchMatchmaking() {
     if (!session.seen.includes(watchId)) session.seen = [...session.seen, watchId]
   }
 
+  /**
+   * @param {string} watchId
+   * @returns {boolean} Vrai quand ce coup de cœur est un coup de foudre.
+   */
   function like(watchId) {
-    if (!watchId) return
+    if (!watchId) return false
+    // Jugé sur l'historique d'avant la décision : le délai entre deux coups de foudre se
+    // compte en coups de cœur déjà donnés.
+    const sparked =
+      !session.liked.includes(watchId) &&
+      isCoupDeFoudre(watchById.value.get(watchId), session.preferences, {
+        liked: session.liked,
+        sparks: session.sparks,
+      })
     markSeen(watchId)
     session.passed = session.passed.filter((id) => id !== watchId)
     if (!session.liked.includes(watchId)) session.liked = [...session.liked, watchId]
+    if (sparked) {
+      session.sparks = [...session.sparks, watchId]
+      activeSpark.value = {
+        watchId,
+        ordinal: session.sparks.length,
+        seenCount: session.seen.length,
+      }
+    }
     settleAfterDecision()
+    return sparked
   }
 
   function pass(watchId) {
     if (!watchId) return
     markSeen(watchId)
     session.liked = session.liked.filter((id) => id !== watchId)
+    session.sparks = session.sparks.filter((id) => id !== watchId)
     if (!session.passed.includes(watchId)) session.passed = [...session.passed, watchId]
     settleAfterDecision()
   }
@@ -297,6 +328,33 @@ export function useWatchMatchmaking() {
     if (session.step === 'swipe' && deck.value.length === 0) {
       session.step = 'end'
     }
+  }
+
+  /* ----------------------------------------------------------- Coup de foudre */
+
+  const sparkSet = computed(() => new Set(session.sparks))
+  const sparkWatch = computed(() =>
+    activeSpark.value ? (watchById.value.get(activeSpark.value.watchId) ?? null) : null,
+  )
+  /** Part du poids exprimé que la montre coche, en pourcentage ; `null` sans critère exprimé. */
+  const sparkAffinity = computed(() => {
+    if (!sparkWatch.value) return null
+    const ratio = affinityRatio(sparkWatch.value, session.preferences)
+    return ratio === null ? null : Math.round(Math.max(0, ratio) * 100)
+  })
+  /** « Ce qui vous a fait craquer », résolu en options affichables via les facettes. */
+  const sparkReasons = computed(() => {
+    if (!sparkWatch.value) return []
+    return sparkTraits(sparkWatch.value, session.preferences).flatMap(({ criterionId, values }) =>
+      values.map((value) => {
+        const option = facets.value[criterionId]?.options?.find((o) => o.value === value)
+        return { criterionId, value, ...(option ?? { label: value }) }
+      }),
+    )
+  })
+
+  function dismissSpark() {
+    activeSpark.value = null
   }
 
   /* ---------------------------------------------------------------- Shortlist */
@@ -311,6 +369,7 @@ export function useWatchMatchmaking() {
 
   function removeLiked(watchId) {
     session.liked = session.liked.filter((id) => id !== watchId)
+    session.sparks = session.sparks.filter((id) => id !== watchId)
     unavailableLikedIds.value = unavailableLikedIds.value.filter((id) => id !== watchId)
   }
 
@@ -324,6 +383,7 @@ export function useWatchMatchmaking() {
       seen: session.seen,
       liked: session.liked,
       passed: session.passed,
+      sparks: session.sparks,
       deckLimit: session.deckLimit,
     }),
     (snapshot) => {
@@ -358,6 +418,11 @@ export function useWatchMatchmaking() {
     likedEntries,
     likedWatches,
     unavailableLikedIds,
+    sparkSet,
+    activeSpark,
+    sparkWatch,
+    sparkAffinity,
+    sparkReasons,
     // actions
     load,
     setPreference,
@@ -374,6 +439,7 @@ export function useWatchMatchmaking() {
     showShortlist,
     resumeDiscovery,
     removeLiked,
+    dismissSpark,
     // utilitaires
     getWatch: (id) => watchById.value.get(id) ?? null,
     emptyPreferences: createEmptyPreferences,
