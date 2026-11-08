@@ -925,6 +925,7 @@ import { getWatchById, getWatchBySlug } from '@/services/watchService'
 import SeoStructuredData from '@/components/seo/SeoStructuredData.vue'
 import { buildWatchProductStructuredData } from '@/site/buildWatchProductStructuredData.js'
 import { buildBreadcrumbStructuredData } from '@/site/buildBreadcrumbStructuredData.js'
+import { buildWatchMetaDescription } from '@/site/dynamicPageHtml.js'
 import { buildBrandCollectionPath } from '@/utils/collectionRoutes.js'
 import { buildWatchPath, isLegacyWatchIdParam } from '@/utils/watchSlug.js'
 import { formatCaseSizeDisplay } from '@/utils/caseSize'
@@ -970,6 +971,7 @@ import {
   getBraceletColorLabel,
   getDialColorLabel,
   getBraceletMaterialLabel,
+  resolveConditionSchemaValue,
   translateAccessory,
   translateDuration,
   translateGuarantee,
@@ -1482,17 +1484,19 @@ const pageTitle = computed(() => {
 
 const pageDescription = computed(() => {
   if (!watchItem.value) return seoWatch.descriptionFallback
-  const desc = watchItem.value.description || ''
-  const brand = watchItem.value.brand || ''
-  const ref = watchItem.value.reference || ''
-  const base = desc || t('watch.genericDescription', { brand, reference: ref }).trim()
   // Argument commercial propre au client : il vient du manifest. Codé en dur dans le socle, il
   // annonçait la garantie d'une vitrine sur les fiches de toutes les autres.
-  const claim = seoWatch.descriptionSuffix ? ` ${seoWatch.descriptionSuffix}` : ''
-  const price = hasDisplayPrice.value
-    ? ` ${t('watch.pricePrefix')} ${formatPrice(displayPrice.value)}`
-    : ''
-  return `${base}.${claim}${price}`.trim()
+  return buildWatchMetaDescription({
+    watch: watchItem.value,
+    price: hasDisplayPrice.value ? displayPrice.value : 0,
+    descriptionSuffix: seoWatch.descriptionSuffix,
+    pricePrefix: t('watch.pricePrefix'),
+    genericDescription: t('watch.genericDescription', {
+      brand: watchItem.value.brand || '',
+      reference: watchItem.value.reference || '',
+    }).trim(),
+    formatPrice: (amount) => formatPrice(amount),
+  })
 })
 
 const ogImage = computed(() => {
@@ -1539,6 +1543,7 @@ const structuredData = computed(() =>
     sellerName: seoWatch.structuredDataSellerName,
     unknownBrandLabel: t('watch.unknownBrand'),
     saleState: saleState.value,
+    conditionSchema: resolveConditionSchemaValue(watchItem.value?.condition),
   }),
 )
 

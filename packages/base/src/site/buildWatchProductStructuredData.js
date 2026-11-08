@@ -4,9 +4,11 @@
  * Extrait de `WatchDetail.vue` pour rejoindre les autres constructeurs JSON-LD du dossier
  * (`buildGlobalStructuredData`, `buildFaqStructuredData`, `buildBreadcrumbStructuredData`…) :
  * ce sont des fonctions pures, donc testables sans monter le composant.
+ *
+ * Aucun import en `@/` : `api/render-page.js` charge ce module dans Node. L'état est donc reçu
+ * déjà traduit (`resolveConditionSchemaValue`, `i18n/watchSpecs.js`), dont la chaîne d'imports
+ * passe par les alias Vite.
  */
-
-import { resolveConditionSchemaValue } from '@/i18n/watchSpecs'
 
 /**
  * @param {object} input
@@ -20,6 +22,8 @@ import { resolveConditionSchemaValue } from '@/i18n/watchSpecs'
  *   (`resolveWatchSaleState`). Seul `available` vaut `InStock` : une montre en arrivage ou en
  *   rupture n'est pas commandable, et l'annoncer en stock à Google serait faux. À défaut, repli
  *   sur `isAvailable && !isSold`.
+ * @param {'new' | 'used' | null} [input.conditionSchema] État en vocabulaire schema.org,
+ *   tel que rendu par `resolveConditionSchemaValue(watch.condition)`.
  * @returns {Record<string, any> | null}
  */
 export function buildWatchProductStructuredData({
@@ -30,6 +34,7 @@ export function buildWatchProductStructuredData({
   sellerName,
   unknownBrandLabel,
   saleState,
+  conditionSchema = null,
 }) {
   if (!watch) return null
 
@@ -74,9 +79,8 @@ export function buildWatchProductStructuredData({
     }
   }
 
-  // État : passe par le vocabulaire, pour que « neuf » ou « Comme neuf » ne soient pas
+  // État : passé par le vocabulaire en amont, pour que « neuf » ou « Comme neuf » ne soient pas
   // silencieusement rangés en occasion par une comparaison de chaîne exacte.
-  const conditionSchema = resolveConditionSchemaValue(watch.condition)
   if (conditionSchema) {
     product.itemCondition =
       conditionSchema === 'new'
