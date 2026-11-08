@@ -279,8 +279,12 @@ export function buildWatchMetaDescription({
   const claim = descriptionSuffix ? ` ${descriptionSuffix}` : ''
   const priceText = hasPrice ? ` ${pricePrefix} ${formatPrice(price)}` : ''
   const room = Math.max(70, 160 - claim.length - priceText.length)
-  const base = (summarize(watch?.description, room) || genericDescription).replace(/[.…\s]+$/, '')
-  return `${base}.${claim}${priceText}`.trim()
+  const summary = summarize(watch?.description, room)
+  // Texte coupé : les points de suspension le disent, un point final ferait lire « … est un. ».
+  const base = summary.endsWith('…')
+    ? summary
+    : `${(summary || genericDescription).replace(/[.\s]+$/, '')}.`
+  return `${base}${claim}${priceText}`.trim()
 }
 
 /**

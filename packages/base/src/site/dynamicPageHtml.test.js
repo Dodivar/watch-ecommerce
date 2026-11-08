@@ -219,7 +219,8 @@ describe('buildWatchMetaDescription', () => {
 ${'Une icône de la plongée. '.repeat(20)}`)
     expect(out).not.toContain('**')
     expect(out.length).toBeLessThanOrEqual(165)
-    expect(out.endsWith('Garantie 1 an. Prix : 12500 €')).toBe(true)
+    expect(out.endsWith('… Garantie 1 an. Prix : 12500 €')).toBe(true)
+    expect(out).not.toMatch(/\.\s*Garantie/)
   })
 
   it('se rabat sur le libellé générique sans description, et omet un prix nul', () => {
