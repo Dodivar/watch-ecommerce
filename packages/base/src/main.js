@@ -23,6 +23,10 @@ initAnalytics()
 // moteurs de recherche lisent cet attribut.
 document.documentElement.lang = getActiveLocale()
 
+// JSON-LD écrit par `api/render-page.js` pour les robots sans JavaScript : les pages posent le
+// leur au rendu, le garder doublerait chaque schéma (deux `Product` pour une même fiche).
+document.querySelectorAll('[data-ssr-head]').forEach((node) => node.remove())
+
 const head = createHead()
 const app = createApp(App)
 

@@ -15,6 +15,7 @@ import {
   applyStaticRouteHead,
   buildStaticRouteAlternates,
   buildStaticRouteHead,
+  stripPageIdentity,
 } from '../packages/base/src/site/staticRouteHead.js'
 import { localePrefix } from '../packages/base/src/i18n/localePaths.js'
 import { resolveSitePaths } from '../vite/resolve-site.mjs'
@@ -47,7 +48,14 @@ async function main() {
   // `dist/index.html` est à la fois l'accueil français et la page de repli de toutes les routes
   // sans fichier (fiches montre, articles…), via la réécriture de `vercel.json`. Ses alternates
   // `hreflang` ne valent que pour l'accueil : le repli en garde une copie qui n'en porte pas.
-  fs.copyFileSync(indexPath, path.join(distDir, SPA_FALLBACK_FILE))
+  // Sa canonique et son URL de partage désignaient aussi l'accueil : toute fiche servie sans
+  // JavaScript se déclarait copie de la page d'accueil. Le repli n'en porte plus ;
+  // `api/render-page.js` les écrit pour les pages qu'il connaît, le client pour les autres.
+  fs.writeFileSync(
+    path.join(distDir, SPA_FALLBACK_FILE),
+    stripPageIdentity(fs.readFileSync(indexPath, 'utf8')),
+    'utf8',
+  )
 
   // Chaque langue part de sa propre coquille (`dist/en/index.html`), écrite au build par
   // `vite/site-from-config.mjs` : c'est elle qui porte le bon `lang`, le bon titre et la
