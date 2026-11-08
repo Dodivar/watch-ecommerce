@@ -1,6 +1,9 @@
 {
     "buildCommand": "npm run build:vercel",
     "outputDirectory": "dist",
+    "regions": [
+        "dub1"
+    ],
     "redirects": [
         {
             "source": "/fr/:path*",
@@ -12,6 +15,38 @@
         {
             "source": "/sitemap.xml",
             "destination": "/api/sitemap"
+        },
+        {
+            "source": "/montre/:key",
+            "destination": "/api/render-page?__route=montre&__key=:key"
+        },
+        {
+            "source": "/watch/:key",
+            "destination": "/api/render-page?__route=watch-legacy&__key=:key"
+        },
+        {
+            "source": "/collection/:key",
+            "destination": "/api/render-page?__route=collection&__key=:key"
+        },
+        {
+            "source": "/blog/:key",
+            "destination": "/api/render-page?__route=blog&__key=:key"
+        },
+        {
+            "source": "/:lc([a-z]{2})/montre/:key",
+            "destination": "/api/render-page?__route=montre&__key=:key&__lc=:lc"
+        },
+        {
+            "source": "/:lc([a-z]{2})/watch/:key",
+            "destination": "/api/render-page?__route=watch-legacy&__key=:key&__lc=:lc"
+        },
+        {
+            "source": "/:lc([a-z]{2})/collection/:key",
+            "destination": "/api/render-page?__route=collection&__key=:key&__lc=:lc"
+        },
+        {
+            "source": "/:lc([a-z]{2})/blog/:key",
+            "destination": "/api/render-page?__route=blog&__key=:key&__lc=:lc"
         },
         {
             "source": "/(.*)",
@@ -41,6 +76,10 @@
     "functions": {
         "api/sitemap.js": {
             "maxDuration": 10
+        },
+        "api/render-page.js": {
+            "maxDuration": 10,
+            "includeFiles": "dist/spa-fallback.html"
         }
     }
 }

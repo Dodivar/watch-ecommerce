@@ -207,6 +207,21 @@ export function replaceMetaContent(html, attr, key, value) {
 }
 
 /**
+ * Retire d'une coquille ce qui la rattache à une URL précise : canonique, `hreflang`,
+ * `og:url` et `twitter:url`. Sert au repli SPA, qui répond pour des routes qu'il ne connaît pas.
+ *
+ * @param {string} html
+ * @returns {string}
+ */
+export function stripPageIdentity(html) {
+  return html
+    .replace(/[ \t]*<link\s+rel="canonical"[^>]*>\r?\n?/gi, '')
+    .replace(/[ \t]*<link\s+rel="alternate"\s+hreflang="[^"]*"[^>]*>\r?\n?/gi, '')
+    .replace(/[ \t]*<meta\s+property="og:url"[^>]*>\r?\n?/gi, '')
+    .replace(/[ \t]*<meta\s+name="twitter:url"[^>]*>\r?\n?/gi, '')
+}
+
+/**
  * Applique à une coquille les métadonnées d'une route.
  *
  * @param {string} html Coquille de la langue, telle que sortie du build.

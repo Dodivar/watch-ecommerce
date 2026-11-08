@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { buildWatchProductStructuredData } from './buildWatchProductStructuredData.js'
+import { resolveConditionSchemaValue } from '../i18n/watchSpecs.js'
 
 const CANONIQUE = 'https://exemple.fr/montre/rolex-submariner-116610ln'
 
@@ -12,6 +13,7 @@ const build = (watch, price = 8500, saleState) =>
     watch,
     price,
     saleState,
+    conditionSchema: resolveConditionSchemaValue(watch?.condition),
     canonicalUrl: CANONIQUE,
     baseUrl: 'https://exemple.fr',
     sellerName: 'Boutique',
