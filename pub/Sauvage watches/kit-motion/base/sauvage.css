@@ -1,0 +1,90 @@
+/*
+ * Kit motion Sauvage Watches — styles communs à toutes les compositions.
+ * Règles détaillées et usage : ../CHARTE.md
+ *
+ * Une composition charge ce fichier, puis ajoute seulement le CSS de ses scènes.
+ * Les mesures sont en px dans le cadre logique 1080 × 1350 (classe .safe),
+ * mis à l'échelle et centré par base/motion.js selon le format (story / post).
+ */
+
+/* ---------- Polices (fichiers du site, sites/sauvage-watches/public/fonts) ---------- */
+@font-face{font-family:'Poppins';font-weight:700;src:url('../assets/fonts/Poppins Bold.woff2') format('woff2')}
+@font-face{font-family:'HK Grotesk';font-weight:400;src:url('../assets/fonts/HK Grotesk Regular.woff2') format('woff2')}
+@font-face{font-family:'HK Grotesk';font-weight:800;src:url('../assets/fonts/HK Grotesk ExtraBold.woff2') format('woff2')}
+
+/* ---------- Couleurs (mêmes valeurs que theme.colors / theme.surfaces du site) ---------- */
+:root{
+  --green:#0f2a1d;   /* fond principal, texte sur crème */
+  --green2:#163d2a;  /* surfaces posées sur le fond (chips, bouton ✕) */
+  --green3:#234c38;  /* état actif d'une surface verte */
+  --line:#315d47;    /* filets, contours, texte secondaire sur crème */
+  --glow:#1b4532;    /* centre lumineux du dégradé de fond */
+  --cream:#f7ede0;   /* texte sur vert, cartes, boutons pleins */
+  --cream2:#ede4d8;  /* bas du dégradé des photos */
+  --cream3:#e3d9cc;  /* texte secondaire sur vert, contours sur crème */
+  --flash:#fffaf2;   /* éclair blanc des transitions */
+}
+
+/* ---------- Socle ---------- */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#000;overflow:hidden}
+#stage{position:relative;overflow:hidden;background:var(--green);font-family:'HK Grotesk',sans-serif;color:var(--cream)}
+.full{position:absolute;inset:0}
+.abs{position:absolute}
+/* Zone utile 1080 × 1350 : seule zone garantie visible en story (hors en-tête et barre de réponse). */
+.safe{position:absolute;left:50%;top:50%;width:1080px;height:1350px;transform-origin:50% 50%}
+
+/* ---------- Fonds ---------- */
+.bg-green{background:radial-gradient(120% 80% at 50% 38%, var(--glow) 0%, var(--green2) 35%, var(--green) 75%)}
+.bg-cream{background:var(--cream);color:var(--green)}
+/* Monogramme SW en filigrane : animé par Motion.background(t) */
+.bg-icon{position:absolute;width:1500px;left:50%;top:50%;opacity:.045;transform:translate(-50%,-50%)}
+.grain{opacity:.07;mix-blend-mode:overlay}
+.flash{background:var(--flash);opacity:0}
+
+/* ---------- Typographie ---------- */
+.h{font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:-.02em;line-height:1.02}
+.eyebrow{font-weight:800;text-transform:uppercase;letter-spacing:.22em;font-size:30px}
+.small-caps{font-weight:800;text-transform:uppercase;letter-spacing:.2em;font-size:27px;color:var(--cream3)}
+/* Apparition mot à mot : chaque .word sort d'un masque .line (voir words() dans motion.js) */
+.word{display:inline-block;will-change:transform,opacity}
+.line{display:block;overflow:hidden;padding:0 0 .12em}
+
+/* ---------- Boutons et pastilles ---------- */
+.btn{background:var(--cream);color:var(--green);font-weight:800;font-size:44px;padding:36px 68px;border-radius:99px;white-space:nowrap;display:flex;gap:18px;align-items:center}
+.btn.sm{font-size:40px;padding:30px 56px;gap:16px}
+.pill-outline{border:2px solid var(--line);border-radius:99px;padding:16px 30px;color:var(--cream3)}
+.chip{font-weight:800;font-size:42px;padding:26px 44px;border-radius:99px;border:2.5px solid var(--line);background:var(--green2);color:var(--cream);position:relative}
+.chip .fill{position:absolute;inset:-2.5px;border-radius:99px;background:var(--cream);opacity:0}
+.chip span{position:relative}
+.rb{width:128px;height:128px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.rb.x{border:3px solid var(--line);background:var(--green2)}
+.rb.hrt{background:var(--cream)}
+
+/* ---------- Carte montre (format fiche du site) ---------- */
+.card{position:absolute;left:50%;top:300px;width:680px;height:820px;margin-left:-340px;border-radius:44px;background:var(--cream);color:var(--green);overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.2);transform-origin:50% 120%}
+.card .ph{position:absolute;left:24px;right:24px;top:24px;height:545px;border-radius:30px;background:linear-gradient(180deg,#fffaf3 0%,var(--cream2) 100%);display:flex;align-items:center;justify-content:center}
+.card .ph img{max-width:86%;max-height:95%;filter:drop-shadow(0 18px 22px rgba(15,42,29,.25))}
+.card .meta{position:absolute;left:44px;right:44px;top:592px}
+.card .brand{font-weight:800;text-transform:uppercase;letter-spacing:.2em;font-size:24px;color:var(--line)}
+.card .model{font-family:'Poppins';font-weight:700;font-size:50px;letter-spacing:-.02em;margin-top:4px;white-space:nowrap}
+.card .row{margin-top:16px;display:flex;align-items:center;gap:12px}
+.card .price{font-family:'Poppins';font-weight:700;font-size:44px;letter-spacing:-.01em;margin-right:8px;white-space:nowrap}
+.card .year{position:absolute;right:24px;top:24px;background:#fff;border:2px solid var(--cream3);color:var(--green);font-weight:800;font-size:24px;padding:8px 16px;border-radius:12px}
+.card .tag{font-size:24px;font-weight:800;border:2px solid var(--cream3);border-radius:99px;padding:8px 18px;color:var(--line);white-space:nowrap}
+/* Tampons « Passer » / « Coup de cœur » posés sur la carte pendant le glissement */
+.stamp{position:absolute;top:58px;font-family:'Poppins';font-weight:700;font-size:44px;padding:10px 26px;border-radius:16px;letter-spacing:.02em;white-space:nowrap;opacity:0}
+.stamp.pass{right:46px;border:5px solid var(--green);color:var(--green);background:rgba(247,237,224,.85);transform:rotate(12deg)}
+.stamp.like{left:46px;background:var(--green);color:var(--cream);border:5px solid var(--green);transform:rotate(-12deg);display:flex;gap:12px;align-items:center}
+
+/* ---------- Doigt (démonstration tactile) ---------- */
+.finger{width:104px;height:104px;margin:-52px 0 0 -52px;border-radius:50%;background:rgba(255,255,255,.28);border:4px solid rgba(255,255,255,.85);box-shadow:0 8px 24px rgba(0,0,0,.25);left:0;top:0;opacity:0}
+
+/* ---------- Carte de fin (signature) ---------- */
+.endcard{inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.endcard .logo{width:520px}
+.endcard .rule{width:120px;height:3px;background:var(--line);margin:62px 0 48px}
+.endcard .url{font-weight:800;font-size:44px;letter-spacing:.01em}
+.endcard .url b{color:var(--cream3);font-weight:400}
+.endcard .btn{margin-top:44px}
+.endcard .small-caps{margin-top:44px}
