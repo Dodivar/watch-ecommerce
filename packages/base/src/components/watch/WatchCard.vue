@@ -7,8 +7,16 @@
         imageAspectClass,
       ]"
     >
+      <!-- « Arrive bientôt » prend la place de « Nouveau » : une montre en arrivage est
+           forcément récente, et deux pastilles empilées diraient deux fois la même chose. -->
       <span
-        v-if="showNewBadge"
+        v-if="isIncoming"
+        class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-[var(--color-cream-300)] text-[color:var(--color-primary)] shadow-sm"
+      >
+        {{ t('watch.incoming') }}
+      </span>
+      <span
+        v-else-if="showNewBadge"
         class="absolute top-2 left-2 z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-primary text-white shadow-sm"
       >
         {{ t('watch.new') }}
@@ -16,7 +24,7 @@
       <span
         v-if="watchItem.isOnPromotion"
         class="absolute z-10 px-2 py-0.5 md:py-1 text-[10px] md:text-xs font-semibold rounded-full bg-red-600 text-white shadow-sm"
-        :class="showNewBadge ? 'top-9 left-2 md:top-10' : 'top-2 left-2'"
+        :class="hasStatusCornerBadge ? 'top-9 left-2 md:top-10' : 'top-2 left-2'"
       >
         -{{ watchItem.displayDiscountPercent }} %
       </span>
@@ -211,7 +219,7 @@ import {
   WATCH_CARD_IMAGE_SIZES,
 } from '@/utils/watchImageUrl.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
-import { isWatchOutOfStock } from '@/site/watchCatalogDisplay.js'
+import { resolveWatchSaleState } from '@/site/watchCatalogDisplay.js'
 import { formatPrice } from '@/utils/formatters.js'
 import { buildWatchPath } from '@/utils/watchSlug.js'
 import { t } from '@/i18n'
@@ -303,7 +311,11 @@ const priceSizeClass = computed(() =>
   isCompact.value ? 'text-xs md:text-sm lg:text-base' : 'text-base md:text-xl lg:text-2xl',
 )
 
-const isOutOfStock = computed(() => isWatchOutOfStock(site, watchItem.value))
+const saleState = computed(() => resolveWatchSaleState(site, watchItem.value))
+const isOutOfStock = computed(() => saleState.value === 'outOfStock')
+const isIncoming = computed(() => saleState.value === 'incoming')
+/** Pastille en haut à gauche (arrivage ou nouveauté) : la promo se range dessous. */
+const hasStatusCornerBadge = computed(() => isIncoming.value || props.showNewBadge)
 
 const showCornerYearBadge = computed(
   () =>

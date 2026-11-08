@@ -144,6 +144,51 @@ export function isWatchOutOfStock(siteConfig, watchItem) {
   return Number.isFinite(stock) && stock <= 0
 }
 
+/** @typedef {'sold' | 'withdrawn' | 'incoming' | 'outOfStock' | 'available'} WatchSaleState */
+
+/**
+ * Le site gère-t-il les montres « en arrivage » (`features.incomingWatches`) ?
+ * @param {Record<string, unknown>} siteConfig
+ * @returns {boolean}
+ */
+export function isIncomingWatchesEnabled(siteConfig) {
+  return siteConfig?.features?.incomingWatches === true
+}
+
+/**
+ * État de vente unique d'une montre, à consulter plutôt que de recombiner les booléens.
+ *
+ * Les drapeaux de la fiche ne sont pas exclusifs — une montre peut être vendue en restant
+ * cochée « Arrive bientôt », ou en arrivage avec un stock à 0. L'ordre tranche :
+ * vendue > retirée > en arrivage > hors stock > disponible. Le premier état qui s'applique
+ * l'emporte, de sorte que deux composants ne puissent pas afficher deux badges contradictoires.
+ *
+ * `isIncoming` n'est lu que si le site active `features.incomingWatches` : ailleurs, la
+ * colonne n'existe pas forcément et une valeur résiduelle n'a pas à bloquer l'achat.
+ *
+ * @param {Record<string, unknown>} siteConfig — manifest enrichi (`getSiteConfig()`)
+ * @param {Record<string, unknown> | null | undefined} watchItem
+ * @returns {WatchSaleState}
+ */
+export function resolveWatchSaleState(siteConfig, watchItem) {
+  if (!watchItem) return 'withdrawn'
+  if (watchItem.isSold === true) return 'sold'
+  if (watchItem.isAvailable === false) return 'withdrawn'
+  if (isIncomingWatchesEnabled(siteConfig) && watchItem.isIncoming === true) return 'incoming'
+  if (isWatchOutOfStock(siteConfig, watchItem)) return 'outOfStock'
+  return 'available'
+}
+
+/**
+ * Montre annoncée mais pas encore reçue : visible, achat remplacé par un contact vendeur.
+ * @param {Record<string, unknown>} siteConfig
+ * @param {Record<string, unknown> | null | undefined} watchItem
+ * @returns {boolean}
+ */
+export function isWatchIncoming(siteConfig, watchItem) {
+  return resolveWatchSaleState(siteConfig, watchItem) === 'incoming'
+}
+
 function stripHtml(value) {
   return String(value ?? '')
     .replace(/<br\s*\/?>/gi, ', ')

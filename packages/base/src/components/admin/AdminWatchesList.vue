@@ -31,6 +31,11 @@ const hasCampaigns = computed(() => getSiteConfig().features?.adminWatchPromotio
 // pas sur "Vendue" (reserve au mode resale / pieces uniques).
 const isRetailCatalog = computed(() => getSiteConfig().watchCatalog?.mode !== 'resale')
 
+// Montre annoncée, pas encore reçue (`features.incomingWatches`) — une vente l'emporte.
+const isIncomingWatchesEnabled = computed(() => getSiteConfig().features?.incomingWatches === true)
+const isListedIncoming = (watch) =>
+  isIncomingWatchesEnabled.value && watch.is_incoming === true && watch.is_sold !== true
+
 // State
 // `watches` ne contient que la page affichée : filtres, tri et pagination sont résolus par
 // la base. Charger le catalogue entier pour en découper 25 lignes tronquait silencieusement
@@ -51,6 +56,7 @@ const showDeleteConfirm = ref(false)
 const watchToDelete = ref(null)
 const activeTab = ref('available') // 'available', 'unavailable', 'sold', ou 'all'
 const onPromotionOnly = ref(false)
+const arrivalFilter = ref('all') // 'all', 'incoming' (arrive bientôt) ou 'received'
 
 // Campagne (en cours ou à venir) par montre : dit d'où vient la remise affichée sur une
 // ligne. Chargée une fois, en dehors de la pagination — le catalogue remisé tient dans
@@ -104,6 +110,7 @@ const loadWatches = async ({ silent = false } = {}) => {
       sortColumn: sortColumn.value,
       sortDirection: sortDirection.value,
       onPromotionOnly: onPromotionOnly.value,
+      arrival: arrivalFilter.value,
       page: currentPage.value,
       pageSize: pageSize.value,
     })
@@ -194,7 +201,16 @@ vueWatch(searchQuery, (value) => {
 })
 
 vueWatch(
-  [activeTab, debouncedSearch, selectedBrand, sortColumn, sortDirection, pageSize, onPromotionOnly],
+  [
+    activeTab,
+    debouncedSearch,
+    selectedBrand,
+    sortColumn,
+    sortDirection,
+    pageSize,
+    onPromotionOnly,
+    arrivalFilter,
+  ],
   () => {
     goToFirstPage()
   },
@@ -354,6 +370,8 @@ const fetchNeighbourAcrossPage = async (globalIndex) => {
     brand: selectedBrand.value,
     sortColumn: sortColumn.value,
     sortDirection: sortDirection.value,
+    onPromotionOnly: onPromotionOnly.value,
+    arrival: arrivalFilter.value,
     page: globalIndex + 1,
     pageSize: 1,
   })
@@ -617,6 +635,16 @@ onMounted(async () => {
               <option v-for="brand in brandOptions" :key="brand" :value="brand">
                 {{ brand }}
               </option>
+            </select>
+            <select
+              v-if="isIncomingWatchesEnabled"
+              v-model="arrivalFilter"
+              aria-label="Filtrer par arrivage"
+              class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="incoming">Arrive bientôt</option>
+              <option value="received">Déjà reçues</option>
             </select>
             <label
               class="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 cursor-pointer whitespace-nowrap hover:bg-cream"
@@ -1014,6 +1042,7 @@ onMounted(async () => {
                   </span>
                 </td> -->
                 <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex flex-col items-start gap-1">
                   <span
                     v-if="isRetailCatalog"
                     :class="[
@@ -1036,6 +1065,13 @@ onMounted(async () => {
                   >
                   {{ watch.is_sold === true ? 'Vendue' : 'En vente' }}
                   </span>
+                  <span
+                    v-if="isListedIncoming(watch)"
+                    class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-900 text-white"
+                  >
+                    Arrive bientôt
+                  </span>
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div class="flex justify-end space-x-2">
@@ -1219,11 +1255,11 @@ onMounted(async () => {
             Aucune montre remisée dans cette sélection.
           </template>
           <template v-else>
-            {{ searchQuery || selectedBrand ? 'Essayez de modifier vos critères de recherche' : 'Commencez par ajouter une montre' }}
+            {{ searchQuery || selectedBrand || arrivalFilter !== 'all' ? 'Essayez de modifier vos critères de recherche' : 'Commencez par ajouter une montre' }}
           </template>
         </p>
         <button
-          v-if="canWrite && !searchQuery && !selectedBrand && !onPromotionOnly"
+          v-if="canWrite && !searchQuery && !selectedBrand && !onPromotionOnly && arrivalFilter === 'all'"
           @click="router.push('/admin/watches/new')"
           class="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors"
         >

@@ -11,7 +11,9 @@ import { resolveSiteFeaturesForNode } from '../packages/base/src/site/resolveSit
 import { resolveI18nConfig } from '../packages/base/src/site/resolveI18nConfig.js'
 import { localizeTree } from '../packages/base/src/site/i18nValue.js'
 import {
+  applyStaticRouteAlternates,
   applyStaticRouteHead,
+  buildStaticRouteAlternates,
   buildStaticRouteHead,
 } from '../packages/base/src/site/staticRouteHead.js'
 import { localePrefix } from '../packages/base/src/i18n/localePaths.js'
@@ -19,6 +21,8 @@ import { resolveSitePaths } from '../vite/resolve-site.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.join(__dirname, '..', 'dist')
+/** Cible de la réécriture `/(.*)` de `vercel.json`. */
+const SPA_FALLBACK_FILE = 'spa-fallback.html'
 
 async function main() {
   const indexPath = path.join(distDir, 'index.html')
@@ -40,6 +44,11 @@ async function main() {
   let written = 0
   let withOwnCopy = 0
 
+  // `dist/index.html` est à la fois l'accueil français et la page de repli de toutes les routes
+  // sans fichier (fiches montre, articles…), via la réécriture de `vercel.json`. Ses alternates
+  // `hreflang` ne valent que pour l'accueil : le repli en garde une copie qui n'en porte pas.
+  fs.copyFileSync(indexPath, path.join(distDir, SPA_FALLBACK_FILE))
+
   // Chaque langue part de sa propre coquille (`dist/en/index.html`), écrite au build par
   // `vite/site-from-config.mjs` : c'est elle qui porte le bon `lang`, le bon titre et la
   // bonne canonique. Sans coquille de langue, la langue est simplement ignorée.
@@ -53,6 +62,15 @@ async function main() {
     const html = fs.readFileSync(shellPath, 'utf8')
     // Manifest aplati une fois par langue : `seo.<section>.title` peut être un `t({ fr, en, de })`.
     const localizedConfig = localizeTree(siteConfig, locale, i18n.defaultLocale)
+
+    // Accueil de la langue : la coquille elle-même, qui a déjà le bon titre et la bonne canonique.
+    if (baseUrl) {
+      fs.writeFileSync(
+        shellPath,
+        applyStaticRouteAlternates(html, buildStaticRouteAlternates(baseUrl, '', i18n)),
+        'utf8',
+      )
+    }
 
     for (const route of routes) {
       if (!route.path || route.path === '') continue
@@ -69,7 +87,12 @@ async function main() {
         i18n,
         baseUrl,
       })
-      const routeHtml = baseUrl ? applyStaticRouteHead(html, head) : html
+      const routeHtml = baseUrl
+        ? applyStaticRouteAlternates(
+            applyStaticRouteHead(html, head),
+            buildStaticRouteAlternates(baseUrl, route.path, i18n),
+          )
+        : html
       if (head.hasOwnCopy) withOwnCopy += 1
 
       fs.writeFileSync(path.join(targetDir, 'index.html'), routeHtml, 'utf8')

@@ -19,6 +19,7 @@ exports[`site contract: demo-store > charge et résout le manifest sans erreur 1
     "homeCollectionHighlight": false,
     "homeNouvelles": false,
     "homeVitrine": false,
+    "incomingWatches": false,
     "legal": true,
     "merci": true,
     "newsletter": true,
@@ -124,6 +125,7 @@ exports[`site contract: jackned > charge et résout le manifest sans erreur 1`] 
     "homeCollectionHighlight": true,
     "homeNouvelles": true,
     "homeVitrine": true,
+    "incomingWatches": false,
     "legal": true,
     "merci": true,
     "newsletter": false,
@@ -213,6 +215,7 @@ exports[`site contract: place-des-montres > charge et résout le manifest sans e
     "homeCollectionHighlight": true,
     "homeNouvelles": true,
     "homeVitrine": false,
+    "incomingWatches": false,
     "legal": true,
     "merci": true,
     "newsletter": true,
@@ -315,6 +318,7 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     "homeCollectionHighlight": false,
     "homeNouvelles": true,
     "homeVitrine": true,
+    "incomingWatches": true,
     "legal": true,
     "merci": true,
     "newsletter": false,
@@ -332,11 +336,15 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
   "footerNav": [
     {
       "label": "Accueil",
-      "to": "/#accueil",
+      "to": "/",
     },
     {
       "label": "Nos montres",
       "to": "/collection",
+    },
+    {
+      "label": "Toutes les marques",
+      "to": "/collection/marques",
     },
     {
       "label": "Nos ventes",
@@ -357,6 +365,10 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     {
       "label": "Blog",
       "to": "/blog",
+    },
+    {
+      "label": "FAQ",
+      "to": "/faq",
     },
     {
       "label": "Contact",
@@ -380,6 +392,11 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
       "type": "link",
     },
     {
+      "label": "Vendre ma montre",
+      "to": "/rachat",
+      "type": "link",
+    },
+    {
       "label": "Nos ventes",
       "to": "/ventes",
       "type": "link",
@@ -396,7 +413,7 @@ exports[`site contract: sauvage-watches > charge et résout le manifest sans err
     },
     {
       "label": "FAQ",
-      "to": "/#faq",
+      "to": "/faq",
       "type": "link",
     },
     {

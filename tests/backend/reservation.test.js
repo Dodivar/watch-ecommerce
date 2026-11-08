@@ -6,6 +6,8 @@ const {
   blockingReason,
   holdsFreshReservation,
   describeBlockedWatches,
+  isIncomingWatchesEnabled,
+  findIncomingWatches,
   reacquireOrderReservation,
 } = require('../../backend/orders/reservation.js')
 
@@ -24,7 +26,7 @@ function inMinutes(minutes) {
  * @param {object[]} [options.watchesAfterReserve] État relu après une prise échouée.
  */
 function createSupabaseMock(watches, options = {}) {
-  const calls = { rpc: [], watchSelects: 0 }
+  const calls = { rpc: [], watchSelects: 0, watchColumns: [] }
   let watchRows = watches
   let reserveCall = 0
 
@@ -43,8 +45,9 @@ function createSupabaseMock(watches, options = {}) {
       }
       if (table === 'watches') {
         return {
-          select: () => ({
+          select: (columns) => ({
             in: async () => {
+              calls.watchColumns.push(columns)
               calls.watchSelects += 1
               return { data: watchRows, error: null }
             },
@@ -98,6 +101,18 @@ describe('blockingReason', () => {
     expect(blockingReason({ ...freeWatch(), is_available: false }, ORDER_ID, now)).toBe(
       'withdrawn',
     )
+  })
+
+  it('flags a watch announced but not yet received', () => {
+    expect(blockingReason({ ...freeWatch(), is_incoming: true }, ORDER_ID, now)).toBe(
+      'incoming',
+    )
+  })
+
+  it('lets a sale win over the incoming flag', () => {
+    expect(
+      blockingReason({ ...freeWatch(), is_incoming: true, is_sold: true }, ORDER_ID, now),
+    ).toBe('sold')
   })
 
   it('flags a watch held by another order', () => {
@@ -181,6 +196,69 @@ describe('describeBlockedWatches', () => {
     expect(message).toContain('« A »')
     expect(message).toContain('« B »')
     expect(message).toContain('ne sont plus disponibles')
+  })
+})
+
+describe('montres en arrivage', () => {
+  it('names an incoming watch in the refusal', () => {
+    const message = describeBlockedWatches([{ name: 'Daytona', reason: 'incoming' }])
+    expect(message).toContain('« Daytona »')
+    expect(message).toContain('pas encore arrivée')
+  })
+
+  it('reads the flag from the raw manifest', () => {
+    expect(isIncomingWatchesEnabled({ config: { raw: { features: { incomingWatches: true } } } })).toBe(true)
+    expect(isIncomingWatchesEnabled({ config: { raw: { features: {} } } })).toBe(false)
+    expect(isIncomingWatchesEnabled(undefined)).toBe(false)
+  })
+
+  it('refuses /pay on an incoming watch without touching the reservation', async () => {
+    const supabase = createSupabaseMock([{ ...freeWatch(), is_incoming: true }])
+    const result = await reacquireOrderReservation(supabase, {
+      orderId: ORDER_ID,
+      reserveMinutes: 30,
+      incomingWatches: true,
+    })
+
+    expect(result.ok).toBe(false)
+    expect(result.blocked).toEqual([
+      { watchId: 'watch-1', name: 'Speedmaster', reason: 'incoming' },
+    ])
+    expect(supabase.calls.rpc).toHaveLength(0)
+    expect(supabase.calls.watchColumns[0]).toContain('is_incoming')
+  })
+
+  it('does not ask for the column on a site without the feature', async () => {
+    const supabase = createSupabaseMock([freeWatch()])
+    await reacquireOrderReservation(supabase, { orderId: ORDER_ID, reserveMinutes: 30 })
+
+    expect(supabase.calls.watchColumns[0]).not.toContain('is_incoming')
+  })
+
+  it('lists the incoming watches of a cart', async () => {
+    const seen = {}
+    const supabase = {
+      from: (table) => ({
+        select: (columns) => ({
+          in: (column, ids) => ({
+            eq: async (flag, value) => {
+              Object.assign(seen, { table, columns, column, ids, flag, value })
+              return { data: [{ id: 'w2', name: 'Daytona' }], error: null }
+            },
+          }),
+        }),
+      }),
+    }
+
+    await expect(findIncomingWatches(supabase, ['w1', 'w2', 'w2', ''])).resolves.toEqual([
+      { watchId: 'w2', name: 'Daytona', reason: 'incoming' },
+    ])
+    expect(seen).toMatchObject({ table: 'watches', ids: ['w1', 'w2'], flag: 'is_incoming', value: true })
+  })
+
+  it('skips the query on an empty cart', async () => {
+    const supabase = { from: () => { throw new Error('no query expected') } }
+    await expect(findIncomingWatches(supabase, [])).resolves.toEqual([])
   })
 })
 

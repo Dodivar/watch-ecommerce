@@ -31,7 +31,11 @@ export const STATIC_ROUTE_SEO_SECTIONS = {
   '/ventes': 'soldArchive',
   '/blog': 'blog',
   '/coup-de-foudre': 'matchmaking',
+  '/recherche': 'recherche',
+  '/rachat': 'estimation',
+  '/rachat/processus': 'estimationProcess',
   '/a-propos': 'aPropos',
+  '/contact': 'contact',
   '/faq': 'faq',
   '/services': 'servicesPage',
   '/guide-horloger': 'guidePage',
@@ -41,17 +45,19 @@ export const STATIC_ROUTE_SEO_SECTIONS = {
 }
 
 /**
- * Routes statiques listées au sitemap dont aucun composant ne pose de `useHead`, et qu'aucun
- * bloc `seo` ne décrit : elles héritent donc de la copie de l'accueil, au pré-rendu **comme**
- * au rendu. Leur canonique est corrigée ici, mais leur titre reste à écrire côté manifest.
+ * Routes dont le bloc `seo` reste facultatif. Sans lui, le composant se rabat sur un titre
+ * générique propre à la page (`useStaticPageHead`, libellé de l'interface + marque) ; le
+ * pré-rendu, qui n'a pas accès au catalogue d'interface, garde alors la copie de la coquille.
  *
- * Documenté plutôt que corrigé en silence : rédiger ces textes relève du client.
+ * Rédiger ces textes relève du client : une vitrine sans bloc n'est pas en défaut, mais ses
+ * pages ne peuvent pas prétendre aux liens annexes (sitelinks) tant que le HTML servi double
+ * le titre de l'accueil.
  */
-export const STATIC_ROUTES_WITHOUT_OWN_COPY = [
-  '/contact',
+export const OPTIONAL_STATIC_ROUTE_SEO_ROUTES = [
   '/recherche',
   '/rachat',
   '/rachat/processus',
+  '/contact',
 ]
 
 /**
@@ -68,6 +74,57 @@ export function buildStaticRouteUrl(baseUrl, routePath, locale, i18n) {
   // `withLocalePrefix` rend « / » pour la racine ; la canonique la veut sans slash final,
   // comme la coquille et le sitemap.
   return `${baseUrl}${localized === '/' ? '' : localized}`
+}
+
+/**
+ * Alternates `hreflang` d'une route statique : une entrée par langue, plus `x-default` sur la
+ * langue par défaut. Mêmes URL que `useLocaleHead()` au rendu et que le sitemap.
+ *
+ * Les écrire dans le HTML servi évite que Google ne les découvre qu'après exécution du JS.
+ * Vide hors multilingue et sur les routes dont le contenu reste en français
+ * (`i18n.untranslatedRoutes`), qui n'en déclarent pas non plus au rendu.
+ *
+ * @param {string} baseUrl Origine, sans slash final.
+ * @param {string} routePath Chemin dépréfixé (`''` pour l'accueil).
+ * @param {{ enabled: boolean, locales: string[], defaultLocale: string,
+ *   untranslatedRoutes?: string[] }} i18n
+ * @returns {{ hreflang: string, href: string }[]}
+ */
+export function buildStaticRouteAlternates(baseUrl, routePath, i18n) {
+  if (!i18n?.enabled || !baseUrl) return []
+  const path = routePath || '/'
+  if ((i18n.untranslatedRoutes ?? []).some((prefix) => path.startsWith(prefix))) return []
+
+  const alternates = i18n.locales.map((code) => ({
+    hreflang: code,
+    href: buildStaticRouteUrl(baseUrl, routePath, code, i18n),
+  }))
+  alternates.push({
+    hreflang: 'x-default',
+    href: buildStaticRouteUrl(baseUrl, routePath, i18n.defaultLocale, i18n),
+  })
+  return alternates
+}
+
+/**
+ * Écrit les alternates juste après la canonique, en remplaçant ceux qu'une passe précédente
+ * aurait déjà posés. Une coquille sans canonique est laissée telle quelle.
+ *
+ * @param {string} html
+ * @param {{ hreflang: string, href: string }[]} alternates
+ * @returns {string}
+ */
+export function applyStaticRouteAlternates(html, alternates) {
+  const cleaned = html.replace(/[ \t]*<link\s+rel="alternate"\s+hreflang="[^"]*"[^>]*>\r?\n?/gi, '')
+  if (!alternates.length) return cleaned
+
+  return cleaned.replace(/^([ \t]*)(<link\s+rel="canonical"[^>]*>)/im, (match, indent) => {
+    const links = alternates.map(
+      ({ hreflang, href }) =>
+        `${indent}<link rel="alternate" hreflang="${escapeHtmlAttr(hreflang)}" href="${escapeHtmlAttr(href)}" />`,
+    )
+    return [match, ...links].join('\n')
+  })
 }
 
 /**

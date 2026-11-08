@@ -28,9 +28,12 @@
                automatique vaut donc la hauteur de son contenu — la photo à ses proportions
                d'origine plus le bandeau — et l'emportait sur `aspect-[4/5]`. Les portraits
                débordaient alors la maille et décalaient toute la rangée. -->
+          <!-- Coup de foudre : la vignette garde la trace de l'éclair, pour que la shortlist
+               distingue ce qui a plu de ce qui a foudroyé. -->
           <button
             type="button"
-            class="block aspect-[4/5] w-full min-h-0 text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            class="relative block aspect-[4/5] w-full min-h-0 rounded-2xl text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            :class="{ 'match-spark-frame': mm.sparkSet.has(entry.id) }"
             :aria-label="
               t('matchmaking.shortlist.detailsLabel', {
                 name: entry.watch.model || entry.watch.name,
@@ -39,6 +42,13 @@
             @click="emit('open-details', entry.watch)"
           >
             <MatchWatchCard :watch="entry.watch" image-loading="lazy" />
+            <span
+              v-if="mm.sparkSet.has(entry.id)"
+              class="match-spark-badge absolute -top-2.5 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-900 shadow-md sm:text-[11px]"
+            >
+              <Zap class="h-3 w-3" fill="currentColor" :stroke-width="0" aria-hidden="true" />
+              {{ t('matchmaking.shortlist.sparkBadge') }}
+            </span>
           </button>
           <!-- Une seule rangée sous la vignette. « Revoir » n'y est plus : la vignette elle-même
                ouvre le détail, et les deux rangées qu'il fallait pour tenir trois boutons dans
@@ -160,7 +170,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { ArrowRight, HeartCrack, RotateCcw, SlidersHorizontal, Trash2 } from '@lucide/vue'
+import { ArrowRight, HeartCrack, RotateCcw, SlidersHorizontal, Trash2, Zap } from '@lucide/vue'
 
 import { t } from '@/i18n'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
@@ -182,3 +192,15 @@ const entries = computed(() => props.mm.likedEntries)
 /** Ce que la manche suivante montrerait vraiment ; `0` quand le catalogue est épuisé. */
 const nextRoundSize = computed(() => props.mm.nextRoundSize)
 </script>
+
+<style scoped>
+.match-spark-frame {
+  box-shadow:
+    0 0 0 2px #ffd166,
+    0 0 18px rgba(255, 209, 102, 0.55);
+}
+
+.match-spark-badge {
+  background: linear-gradient(135deg, #fff7d6 0%, #ffd166 55%, #f4a62a 100%);
+}
+</style>

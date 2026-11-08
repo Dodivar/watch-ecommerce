@@ -19,7 +19,7 @@ migration correspondante.
 
 | Table | Rôle | Colonnes clés observées |
 | --- | --- | --- |
-| `watches` | Fiche montre — table centrale | `id`, `watch_id`, `site_id`, `brand`, `name`, `reference`, `slug`, `price`, `promotion_price`, `discount_percent`, `year`, `condition`, `movement`, `audience`, `status`, `is_visible`, `is_available`, `is_sold`, `sale_date`, `stock_quantity`, `display_order`, `ad_code`, `prestashop_product_id`, `created_at`, `updated_at` |
+| `watches` | Fiche montre — table centrale | `id`, `watch_id`, `site_id`, `brand`, `name`, `reference`, `slug`, `price`, `promotion_price`, `discount_percent`, `year`, `condition`, `movement`, `audience`, `status`, `is_visible`, `is_available`, `is_sold`, `is_incoming`, `sale_date`, `stock_quantity`, `display_order`, `ad_code`, `prestashop_product_id`, `created_at`, `updated_at` |
 | `watch_details` | Caractéristiques détaillées (paires nom/valeur ordonnées) | `id`, `watch_id`, `name`, `case_size`, `display_order` |
 | `watch_images` | Visuels d'une montre (Supabase Storage) | `id`, `watch_id`, `image_path`, `image_url`, `display_order` |
 | `watch_translations` | Traductions par langue | `watch_id`, `locale`, `description`, `display_order` |
@@ -28,6 +28,10 @@ migration correspondante.
 
 `watches.status` / `is_visible` / `is_available` / `is_sold` pilotent la visibilité publique et
 l'archive `/ventes` (feature `soldArchive`). Le tri catalogue passe par `display_order`.
+`is_incoming` (feature `incomingWatches`) marque une montre annoncée, pas encore reçue : visible
+avec son prix, achat bloqué. L'état affiché est tranché par `resolveWatchSaleState`
+(`packages/base/src/site/watchCatalogDisplay.js`) : vendue > retirée > en arrivage > hors stock >
+disponible.
 
 ## Contenu éditorial
 

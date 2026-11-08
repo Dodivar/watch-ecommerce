@@ -14,6 +14,14 @@ function isRetailCatalog() {
 }
 
 /**
+ * `watches.is_incoming` n'existe que sur les projets migrés pour `features.incomingWatches` :
+ * hors de ces sites, ni l'écrire ni la lire, sinon PostgREST rejette la requête entière.
+ */
+function hasIncomingWatches() {
+  return getSiteConfig().features?.incomingWatches === true
+}
+
+/**
  * Transforme les données du formulaire en format base de données
  */
 function transformWatchToDB(watchData) {
@@ -57,6 +65,11 @@ function transformWatchToDB(watchData) {
     // catalogue : elle reste visible avec un badge "Hors stock".
     row.is_sold = false
     row.is_available = watchData.isAvailable !== undefined ? watchData.isAvailable : true
+  }
+
+  if (hasIncomingWatches()) {
+    // Décoché à la main par l'admin à la réception : aucun passage automatique.
+    row.is_incoming = watchData.isIncoming === true
   }
 
   return row
@@ -860,6 +873,7 @@ export async function getWatchByIdForAdmin(watchId) {
       descriptionTranslations,
       isAvailable: watch.is_available !== undefined ? watch.is_available : true,
       isSold: watch.is_sold !== undefined ? watch.is_sold : false,
+      isIncoming: watch.is_incoming === true,
       saleDate: watch.sale_date || null,
       stockQuantity: watch.stock_quantity ?? 1,
       displayOrder: watch.display_order || 0,
@@ -1042,6 +1056,11 @@ async function attachFirstImagesToWatches(watches) {
 const ADMIN_LIST_COLUMNS =
   'id, ad_code, name, brand, model, reference, price, promotion_price, discount_percent, created_at, display_order, is_available, is_sold, stock_quantity'
 
+/** Colonnes de la liste, `is_incoming` en plus là où l'arrivage est géré. */
+function adminListColumns() {
+  return hasIncomingWatches() ? `${ADMIN_LIST_COLUMNS}, is_incoming` : ADMIN_LIST_COLUMNS
+}
+
 /** Colonnes triables depuis l'en-tête du tableau, indexées par la clé utilisée côté UI. */
 const ADMIN_LIST_SORT_COLUMNS = {
   order: 'display_order',
@@ -1091,6 +1110,7 @@ function applyAdminStatusFilter(query, status) {
  *   sortColumn?: string|null,
  *   sortDirection?: 'asc'|'desc',
  *   onPromotionOnly?: boolean,
+ *   arrival?: 'all'|'incoming'|'received',
  *   page?: number,
  *   pageSize?: number,
  * }} [options]
@@ -1103,6 +1123,7 @@ export async function listWatchesForAdmin({
   sortColumn = null,
   sortDirection = 'desc',
   onPromotionOnly = false,
+  arrival = 'all',
   page = 1,
   pageSize = 25,
 } = {}) {
@@ -1110,7 +1131,7 @@ export async function listWatchesForAdmin({
   const size = Math.min(100, Math.max(1, pageSize))
   const offset = (pageNum - 1) * size
 
-  let query = supabase.from('watches').select(ADMIN_LIST_COLUMNS, { count: 'exact' })
+  let query = supabase.from('watches').select(adminListColumns(), { count: 'exact' })
   query = applyAdminStatusFilter(query, status)
 
   const term = String(search || '').trim()
@@ -1137,6 +1158,16 @@ export async function listWatchesForAdmin({
     // figurent donc pas — elles n'ont pas encore modifié le prix (voir l'écran
     // « Montres en promotion » pour la vue complète).
     query = query.not('promotion_price', 'is', null)
+  }
+
+  // `is_incoming` n'existe que sur les projets migrés : ailleurs le filtre est sans objet.
+  // Une vente l'emporte sur l'arrivage, comme pour le badge « Arrive bientôt » du tableau.
+  if (hasIncomingWatches()) {
+    if (arrival === 'incoming') {
+      query = query.is('is_incoming', true).not('is_sold', 'is', true)
+    } else if (arrival === 'received') {
+      query = query.or('is_incoming.is.null,is_incoming.eq.false,is_sold.eq.true')
+    }
   }
 
   const column = ADMIN_LIST_SORT_COLUMNS[sortColumn] || 'display_order'
@@ -1472,7 +1503,7 @@ export async function getWatchInventoryStats() {
     const { data, error } = await supabase
       .from('watches')
       .select(
-        'price, promotion_price, discount_percent, brand, audience, condition, is_available, is_sold, sale_date, created_at, stock_quantity',
+        `price, promotion_price, discount_percent, brand, audience, condition, is_available, is_sold, sale_date, created_at, stock_quantity${hasIncomingWatches() ? ', is_incoming' : ''}`,
       )
 
     if (error) {
@@ -1591,14 +1622,22 @@ export async function getWatchInventoryStats() {
     }
     const byAudience = Array.from(audienceMap.entries()).map(([label, count]) => ({ label, count }))
 
-    // Répartition par statut
+    // Répartition par statut. Là où l'arrivage est géré, les montres annoncées mais pas
+    // encore reçues sont sorties du « en stock » pour que l'anneau reste une partition
+    // (les KPI de stock ci-dessus restent calculés sur tout le catalogue en vente).
+    const incomingCount = hasIncomingWatches()
+      ? inStock.filter((w) => w.is_incoming === true).length
+      : 0
+    const receivedCount = stockCount - incomingCount
     const byStatus = retail
       ? [
-          { label: 'En stock', count: stockCount },
+          { label: 'En stock', count: receivedCount },
+          ...(hasIncomingWatches() ? [{ label: 'Arrive bientôt', count: incomingCount }] : []),
           { label: 'Hors stock', count: outOfStockCount },
         ]
       : [
-          { label: 'En vente', count: stockCount },
+          { label: 'En vente', count: receivedCount },
+          ...(hasIncomingWatches() ? [{ label: 'Arrive bientôt', count: incomingCount }] : []),
           { label: 'Hors stock', count: outOfStockCount },
           { label: 'Vendues', count: soldCount },
         ]
@@ -1607,6 +1646,7 @@ export async function getWatchInventoryStats() {
       stockCount,
       stockValue,
       outOfStockCount,
+      incomingCount,
       soldCount,
       soldValue,
       totalCount,

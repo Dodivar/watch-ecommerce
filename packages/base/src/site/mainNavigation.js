@@ -53,6 +53,8 @@ import { filterHomeSectionsByFeatures, resolveHomeSections } from './homeSection
  *
  * - `feature` (optionnel) sur un lien ou sur un groupe : masque l’entrée (ou tout le groupe) si `site.features[feature]` est faux.
  * - Les liens `to: '/faq'` deviennent `/#faq` automatiquement si `home.sections` contient `faq` (section visible après garde-fous features).
+ *   `homeAnchor: false` sur l’entrée garde la page `/faq` : c’est elle qui porte un titre propre et
+ *   peut sortir en lien annexe (sitelink), l’ancre n’étant que l’URL de l’accueil.
  * - Sur un `group`, `to` (optionnel) rend le libellé du groupe cliquable (`RouterLink`) en plus du sous-menu.
  * - Sur un `megaMenu`, `columns` décrit les colonnes du panneau pleine largeur (items statiques, `source: 'brands'` ou `dynamicCampaigns: true` pour les événements promo actifs). `titleLink` rend le titre de colonne cliquable.
  * - Si `navigation.main` est absent ou vide, un menu principal par défaut est utilisé.
@@ -85,13 +87,15 @@ export function isFaqOnHomepage(site) {
 }
 
 /**
- * Liens menu `/faq` → `/#faq` lorsque la FAQ est une section d’accueil.
+ * Liens menu `/faq` → `/#faq` lorsque la FAQ est une section d’accueil, sauf `homeAnchor: false`.
  *
  * @param {string} to
  * @param {Record<string, unknown>} site
+ * @param {{ homeAnchor?: boolean }} [entry]
  * @returns {string}
  */
-function resolveNavTo(to, site) {
+function resolveNavTo(to, site, entry) {
+  if (entry?.homeAnchor === false) return to
   if (to === '/faq' && isFaqOnHomepage(site)) {
     return '/#faq'
   }
@@ -134,8 +138,8 @@ export function navigationUsesMenuCampaigns(navItems) {
  */
 
 /**
- * @typedef {{ type?: 'link' | 'group' | 'megaMenu', label: string, to?: string, feature?: string, items?: Array<{ label: string, to: string, feature?: string }>, columns?: Array<{ title: string, titleLink?: string, items?: Array<{ label: string, to: string, feature?: string }>, source?: 'brands', dynamicCampaigns?: boolean, columns?: number, footerLink?: { label: string, to: string } }> }} RawNavEntry
- * @typedef {{ label: string, to: string, feature?: string }} RawFooterLink
+ * @typedef {{ type?: 'link' | 'group' | 'megaMenu', label: string, to?: string, feature?: string, homeAnchor?: boolean, items?: Array<{ label: string, to: string, feature?: string, homeAnchor?: boolean }>, columns?: Array<{ title: string, titleLink?: string, items?: Array<{ label: string, to: string, feature?: string }>, source?: 'brands', dynamicCampaigns?: boolean, columns?: number, footerLink?: { label: string, to: string } }> }} RawNavEntry
+ * @typedef {{ label: string, to: string, feature?: string, homeAnchor?: boolean }} RawFooterLink
  * @typedef {{ label: string, to: string }} FooterNavLinkResolved
  */
 
@@ -152,7 +156,7 @@ function filterConfiguredMainNav(items, features, site) {
     if (type === 'link') {
       if (raw.feature && !features[raw.feature]) continue
       if (!raw.to) continue
-      out.push({ type: 'link', label: raw.label, to: resolveNavTo(raw.to, site) })
+      out.push({ type: 'link', label: raw.label, to: resolveNavTo(raw.to, site, raw) })
     } else if (type === 'group' && Array.isArray(raw.items)) {
       if (raw.feature && !features[raw.feature]) continue
       const children = raw.items.filter((sub) => !sub.feature || features[sub.feature])
@@ -161,10 +165,10 @@ function filterConfiguredMainNav(items, features, site) {
       const group = {
         type: 'group',
         label: raw.label,
-        items: children.map(({ label, to }) => ({ label, to: resolveNavTo(to, site) })),
+        items: children.map((sub) => ({ label: sub.label, to: resolveNavTo(sub.to, site, sub) })),
       }
       if (raw.to) {
-        group.to = resolveNavTo(raw.to, site)
+        group.to = resolveNavTo(raw.to, site, raw)
       }
       out.push(group)
     } else if (type === 'megaMenu' && Array.isArray(raw.columns)) {
@@ -176,7 +180,7 @@ function filterConfiguredMainNav(items, features, site) {
       const megaMenu = {
         type: 'megaMenu',
         label: raw.label,
-        to: resolveNavTo(raw.to, site),
+        to: resolveNavTo(raw.to, site, raw),
         columns,
       }
       out.push(megaMenu)
@@ -219,7 +223,7 @@ function resolveMegaMenuColumns(rawColumns, features, site) {
     /** @type {MegaMenuColumnResolved} */
     const staticColumn = {
       title: column.title,
-      items: items.map(({ label, to }) => ({ label, to: resolveNavTo(to, site) })),
+      items: items.map((sub) => ({ label: sub.label, to: resolveNavTo(sub.to, site, sub) })),
     }
     if (titleLink) {
       staticColumn.titleLink = titleLink
@@ -315,7 +319,7 @@ function filterConfiguredFooterNav(items, features, site) {
   for (const entry of items) {
     if (entry.feature && !features[entry.feature]) continue
     if (!entry.label || !entry.to) continue
-    out.push({ label: entry.label, to: resolveNavTo(entry.to, site) })
+    out.push({ label: entry.label, to: resolveNavTo(entry.to, site, entry) })
   }
   return out
 }

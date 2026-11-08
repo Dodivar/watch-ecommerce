@@ -46,7 +46,7 @@
     <MatchSwipeDeck
       v-else-if="mm.phase === 'swipe'"
       :mm="mm"
-      :keyboard-disabled="detailWatch !== null"
+      :keyboard-disabled="detailWatch !== null || mm.sparkWatch !== null"
       @open-details="openDetails"
     />
 
@@ -62,6 +62,18 @@
       @pass="onLightboxPass"
       @remove="onLightboxRemove"
       @close="closeDetails"
+    />
+
+    <!-- Coup de foudre : au-dessus de tout, deck comme lightbox — un coup de cœur donné depuis
+         le détail peut, lui aussi, en être un. -->
+    <MatchSparkOverlay
+      :open="mm.sparkWatch !== null"
+      :watch="mm.sparkWatch"
+      :ordinal="mm.activeSpark?.ordinal ?? 1"
+      :seen-count="mm.activeSpark?.seenCount ?? 1"
+      :affinity="mm.sparkAffinity"
+      :reasons="mm.sparkReasons"
+      @close="mm.dismissSpark()"
     />
   </div>
 </template>
@@ -81,6 +93,7 @@ import MatchEndScreen from './MatchEndScreen.vue'
 import MatchShortlist from './MatchShortlist.vue'
 import MatchWatchLightbox from './MatchWatchLightbox.vue'
 import MatchCtaFooter from './MatchCtaFooter.vue'
+import MatchSparkOverlay from './MatchSparkOverlay.vue'
 
 defineOptions({ name: 'WatchMatchmakingPage' })
 

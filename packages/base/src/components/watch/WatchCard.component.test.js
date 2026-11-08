@@ -103,6 +103,49 @@ describe('WatchCard', () => {
     expect(wrapper.text()).not.toContain('Hors stock')
   })
 
+  describe('montre en arrivage', () => {
+    const incomingSite = (incomingWatches) => ({
+      watchCatalog: {
+        mode: 'retail',
+        display: { showReference: false, showSoldBadge: false, showStockStatus: true },
+      },
+      features: { incomingWatches },
+    })
+
+    it('remplace « Nouveau » par « Arrive bientôt » sans empiler les pastilles', () => {
+      getSiteConfigMock.mockReturnValue(incomingSite(true))
+
+      const wrapper = mount(WatchCard, {
+        props: {
+          watch: {
+            ...baseWatch,
+            isIncoming: true,
+            stockQuantity: 0,
+            isOnPromotion: true,
+            displayDiscountPercent: 10,
+          },
+          showNewBadge: true,
+        },
+      })
+
+      expect(wrapper.text()).toContain('Arrive bientôt')
+      expect(wrapper.text()).not.toContain('Nouveau')
+      // L'arrivage prime sur la rupture : pas de second badge contradictoire.
+      expect(wrapper.text()).not.toContain('Hors stock')
+      expect(wrapper.find('.bg-red-600').classes()).toContain('top-9')
+    })
+
+    it('ignore le drapeau sur un site qui ne gère pas l’arrivage', () => {
+      getSiteConfigMock.mockReturnValue(incomingSite(false))
+
+      const wrapper = mount(WatchCard, {
+        props: { watch: { ...baseWatch, isIncoming: true } },
+      })
+
+      expect(wrapper.text()).not.toContain('Arrive bientôt')
+    })
+  })
+
   it('affiche la promotion à gauche et l’année en haut à droite', () => {
     getSiteConfigMock.mockReturnValue({
       watchCatalog: {
