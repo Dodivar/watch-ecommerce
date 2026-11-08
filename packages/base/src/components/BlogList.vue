@@ -79,12 +79,12 @@
           v-for="article in articles"
           :key="article.id"
           class="bg-white rounded-md shadow-lg overflow-hidden hover:shadow-xl transition-shadow animate-fade-in cursor-pointer"
-          @click="handleViewArticle(article.id)"
+          @click="handleViewArticle(article)"
         >
             <div class="p-6">
               <h2 class="text-xl font-bold text-text-main mb-2 line-clamp-2">
                 <!-- Voir `WatchCard.vue` : le `@click` de la carte ne crée aucun lien suivable. -->
-                <RouterLink :to="`/blog/${article.id}`" @click.stop>
+                <RouterLink :to="buildArticlePath(article)" @click.stop>
                   {{ article.title }}
                 </RouterLink>
               </h2>
@@ -184,6 +184,7 @@
 </template>
 
 <script setup>
+import { buildArticlePath } from '@/utils/articleSlug.js'
 import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
@@ -281,8 +282,8 @@ const getExcerpt = (text) => {
   return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText
 }
 
-const handleViewArticle = (articleId) => {
-  router.push(`/blog/${articleId}`)
+const handleViewArticle = (article) => {
+  router.push(buildArticlePath(article))
 }
 
 const goToPage = (page) => {

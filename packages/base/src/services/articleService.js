@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { isArticleUuid } from '@/utils/articleSlug.js'
 
 /**
  * Récupère les articles paginés depuis Supabase
@@ -49,16 +50,17 @@ export async function getAllArticles(page = 1, limit = 10, category = null, isVi
 }
 
 /**
- * Récupère un article par son ID
- * @param {string|number} id - ID de l'article
+ * Récupère un article par son ID ou son slug (`/blog/<slug>`)
+ * @param {string|number} id - ID ou slug de l'article
  * @returns {Promise<Object>} Données de l'article
  */
 export async function getArticleById(id) {
   try {
+    const key = String(id)
     const { data: article, error } = await supabase
       .from('articles')
       .select('*')
-      .eq('id', id)
+      .eq(isArticleUuid(key) ? 'id' : 'slug', isArticleUuid(key) ? key : key.toLowerCase())
       .eq('is_visible', true)
       .single()
 

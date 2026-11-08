@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { isArticleUuid } from '@/utils/articleSlug.js'
 
 /**
  * Récupère tous les articles pour l'administration (sans pagination)
@@ -64,10 +65,12 @@ export async function getAllArticlesForAdmin() {
  */
 export async function getArticleByIdForAdmin(id) {
   try {
+    // ID (formulaire d'édition) ou slug (aperçu depuis `/blog/<slug>`).
+    const key = String(id)
     const { data: article, error } = await supabase
       .from('articles')
       .select('*')
-      .eq('id', id)
+      .eq(isArticleUuid(key) ? 'id' : 'slug', isArticleUuid(key) ? key : key.toLowerCase())
       .single()
 
     if (error) {

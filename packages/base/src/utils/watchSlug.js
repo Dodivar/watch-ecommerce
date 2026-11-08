@@ -21,8 +21,16 @@ export function slugifyWatchPart(str) {
 export function buildWatchSlug(watch) {
   if (watch?.slug) return String(watch.slug)
   const brand = slugifyWatchPart(watch?.brand)
-  const name = slugifyWatchPart(watch?.name)
-  const reference = slugifyWatchPart(watch?.reference)
+  let name = slugifyWatchPart(watch?.name)
+  let reference = slugifyWatchPart(watch?.reference)
+
+  // Mêmes règles que `build_watch_slug` en base : le nom saisi commence souvent par la marque et
+  // contient parfois la référence ; ni l'une ni l'autre n'est répétée.
+  if (brand && name) {
+    if (name === brand) name = ''
+    else if (name.startsWith(`${brand}-`)) name = name.slice(brand.length + 1)
+  }
+  if (reference && name && `-${name}-`.includes(`-${reference}-`)) reference = ''
 
   const segments = [brand, name].filter(Boolean)
   if (reference) segments.push(reference)

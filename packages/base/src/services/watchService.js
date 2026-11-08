@@ -597,12 +597,22 @@ export async function resolveWatchIdBySlug(slug, allowUnavailable = false, allow
   }
 
   const normalized = String(slug).toLowerCase().trim()
-  const match = (data ?? []).find((row) => {
+  const rows = data ?? []
+  const match = rows.find((row) => {
     const rowSlug = row.slug || buildWatchSlug(row)
     return rowSlug === normalized
   })
+  if (match) return match.id
 
-  return match?.id ?? null
+  // Slug abandonné (montre renommée, slugs réécrits) : `watch_slug_history` désigne la montre,
+  // soumise aux mêmes règles de visibilité. Table absente sur un projet non migré : pas de repli.
+  const { data: former, error: historyError } = await supabase
+    .from('watch_slug_history')
+    .select('watch_id')
+    .eq('old_slug', normalized)
+    .maybeSingle()
+  if (historyError || !former) return null
+  return rows.some((row) => row.id === former.watch_id) ? former.watch_id : null
 }
 
 /**

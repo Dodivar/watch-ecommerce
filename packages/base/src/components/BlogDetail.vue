@@ -227,7 +227,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { marked } from 'marked'
 import { getArticleById, incrementArticleViewCount } from '@/services/articleService'
@@ -238,8 +238,10 @@ import { BASE_URL, DEFAULT_OG_IMAGE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { formatDate } from '@/utils/formatters.js'
 import { t } from '@/i18n'
+import { buildArticlePath, isArticleUuid } from '@/utils/articleSlug.js'
 
 const route = useRoute()
+const router = useRouter()
 const seoBlog = getSiteConfig().seo.blog
 
 // State
@@ -328,22 +330,27 @@ const loadArticle = async () => {
     isLoading.value = true
     error.value = null
 
-    const articleId = route.params.id
+    const articleKey = String(route.params.id)
     
     // Vérifier si l'utilisateur est admin pour permettre l'affichage des articles non visibles
     const isAdmin = await isAdminAuthenticated()
     
     // Utiliser le service admin si l'utilisateur est admin, sinon le service public
     const data = isAdmin 
-      ? await getArticleByIdForAdmin(articleId)
-      : await getArticleById(articleId)
+      ? await getArticleByIdForAdmin(articleKey)
+      : await getArticleById(articleKey)
     
     article.value = data
+
+    // Ancienne adresse `/blog/<uuid>` : on passe sur le slug, sans recharger la page.
+    if (isArticleUuid(articleKey) && data?.slug) {
+      await router.replace({ path: buildArticlePath(data), query: route.query, hash: route.hash })
+    }
 
     // Incrémenter le compteur de vues uniquement si l'utilisateur n'est pas admin
     if (!isAdmin) {
       // Appeler de manière asynchrone sans bloquer l'affichage
-      incrementArticleViewCount(articleId).then((result) => {
+      incrementArticleViewCount(data.id).then((result) => {
         if (!result.success) {
           console.warn('Erreur lors de l\'incrémentation du compteur de vues:', result.error)
         }
@@ -383,7 +390,7 @@ const pageDescription = computed(() => {
  * `hreflang` sur ces routes (voir `i18n.untranslatedRoutes`).
  */
 const canonicalUrl = computed(() => {
-  return `${BASE_URL}/blog/${route.params.id}`
+  return `${BASE_URL}${article.value ? buildArticlePath(article.value) : `/blog/${route.params.id}`}`
 })
 
 const publishedDate = computed(() => {

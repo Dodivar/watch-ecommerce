@@ -27,6 +27,7 @@ import {
 } from '../packages/base/src/site/dynamicPageHtml.js'
 import { buildWatchPath, buildWatchSlug, isLegacyWatchIdParam } from '../packages/base/src/utils/watchSlug.js'
 import { slugifyBrand } from '../packages/base/src/utils/brandSlug.js'
+import { buildArticlePath } from '../packages/base/src/utils/articleSlug.js'
 import { resolveBaseUrl } from './sitemap.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -146,7 +147,18 @@ async function resolvePage({ route, key, locale, site, supabase, baseUrl, logoUr
     const normalized = String(key).toLowerCase().trim()
     // Le client compare aussi au slug recalculé quand la colonne est vide.
     const match = (data ?? []).find((row) => (row.slug || buildWatchSlug(row)) === normalized)
-    if (!match) return { status: 404 }
+    if (!match) {
+      // Slug abandonné : 301 vers le slug courant, si la montre reste consultable.
+      const { data: former, error: historyError } = await supabase
+        .from('watch_slug_history')
+        .select('watch_id')
+        .eq('old_slug', normalized)
+        .maybeSingle()
+      // Table absente (projet non migré) : même réponse qu'avant l'historique.
+      const current = !historyError && former && (data ?? []).find((row) => row.id === former.watch_id)
+      if (!current) return { status: 404 }
+      return { status: 301, location: withLocale(buildWatchPath(current), locale, site.i18n) }
+    }
 
     const [{ data: row, error: rowError }, imageUrls] = await Promise.all([
       supabase.from('watches').select('*').eq('id', match.id).maybeSingle(),
@@ -185,15 +197,22 @@ async function resolvePage({ route, key, locale, site, supabase, baseUrl, logoUr
   }
 
   if (route === 'blog') {
-    if (!features.blog || !UUID_RE.test(key)) return { status: 200 }
+    if (!features.blog) return { status: 200 }
+    const byId = UUID_RE.test(key)
+    // `*` : `articles.slug` n'existe que sur les projets migrés.
     const { data, error } = await supabase
       .from('articles')
-      .select('id, title, text, categories, created_at, updated_at, is_visible')
-      .eq('id', key)
+      .select('*')
+      .eq(byId ? 'id' : 'slug', byId ? key : String(key).toLowerCase().trim())
       .eq('is_visible', true)
       .maybeSingle()
+    // Recherche par slug sur un projet sans la colonne : erreur, la coquille décidera.
     if (error) return { status: 200 }
     if (!data) return { status: 404 }
+    // Ancienne adresse `/blog/<uuid>` : 301 vers le slug.
+    if (byId && data.slug) {
+      return { status: 301, location: withLocale(buildArticlePath(data), locale, site.i18n) }
+    }
     return {
       status: 200,
       page: buildArticlePage({ article: data, siteConfig: site, baseUrl, locale, logoUrl }),

@@ -267,6 +267,23 @@ describe('buildArticlePage', () => {
     expect(article.keywords).toBe('Conseils')
     expect(page.bodyHtml).toContain('<p>Une Rolex se revend bien.</p>')
   })
+
+  it('prend le slug pour canonique et fil d’Ariane quand l’article en a un', () => {
+    const page = buildArticlePage({
+      article: {
+        id: '181a281b-d439-4c4a-a28a-3575616a3ee7',
+        slug: 'estimer-sa-rolex',
+        title: 'Estimer sa Rolex',
+        text: 'Texte.',
+      },
+      siteConfig: SITE,
+      baseUrl: BASE,
+      locale: 'fr',
+    })
+    expect(page.canonicalUrl).toBe(`${BASE}/blog/estimer-sa-rolex`)
+    const crumbs = page.jsonLd.find((s) => s?.['@type'] === 'BreadcrumbList')
+    expect(crumbs.itemListElement.at(-1).item).toBe(`${BASE}/blog/estimer-sa-rolex`)
+  })
 })
 
 describe('stripPageIdentity', () => {

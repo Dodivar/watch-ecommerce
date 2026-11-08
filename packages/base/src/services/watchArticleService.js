@@ -11,17 +11,10 @@ export async function getWatchArticles(watchId) {
       .from('watch_articles')
       .select(`
         article_id,
-        articles (
-          id,
-          title,
-          text,
-          categories,
-          created_at,
-          updated_at,
-          is_visible
-        )
+        articles ( * )
       `)
       .eq('watch_id', watchId)
+    // `*` plutôt qu'une liste : `articles.slug` n'existe que sur les projets migrés.
 
     if (error) {
       throw new Error(`Erreur lors de la récupération des articles liés: ${error.message}`)
@@ -37,6 +30,7 @@ export async function getWatchArticles(watchId) {
       .filter((article) => article && article.is_visible === true)
       .map((article) => ({
         id: article.id,
+        slug: article.slug ?? null,
         title: article.title,
         text: article.text,
         categories: article.categories || [],

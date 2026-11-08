@@ -648,7 +648,7 @@
             v-for="article in watchItem.articles"
             :key="article.id"
             class="bg-white rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer shadow-sm"
-            @click="goToArticle(article.id)"
+            @click="goToArticle(article)"
           >
             <h3 class="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
               {{ article.title }}
@@ -965,6 +965,7 @@ import { watchLightboxImageUrl } from '@/utils/watchImageUrl.js'
 import PaymentIcons from '@/components/payment/PaymentIcons.vue'
 import TrustHighlightIcon from '@/components/watch/TrustHighlightIcon.vue'
 import { formatDate, formatPrice } from '@/utils/formatters.js'
+import { buildArticlePath } from '@/utils/articleSlug.js'
 import { t } from '@/i18n'
 import {
   formatWaterResistance,
@@ -1175,7 +1176,10 @@ const loadWatch = async ({ force = false } = {}) => {
     trackViewItem(data)
 
     const canonicalPath = buildWatchPath(data)
-    if (!isSlugRoute.value && isLegacyWatchIdParam(String(routeKey)) && canonicalPath.startsWith('/montre/')) {
+    const legacyId = !isSlugRoute.value && isLegacyWatchIdParam(String(routeKey))
+    // Slug abandonné (montre renommée), résolu par `watch_slug_history` : l'adresse suit le slug courant.
+    const formerSlug = isSlugRoute.value && canonicalPath !== `/montre/${routeKey}`
+    if ((legacyId || formerSlug) && canonicalPath.startsWith('/montre/')) {
       await router.replace({ path: canonicalPath, query: route.query, hash: route.hash })
     }
     // Reset image index when watch changes
@@ -1436,10 +1440,10 @@ const getArticleExcerpt = (text) => {
 const formatArticleDate = (dateString) => formatDate(dateString)
 
 // Navigate to article
-const goToArticle = (articleId) => {
+const goToArticle = (article) => {
   const watchId = route.params.id
   router.push({
-    path: `/blog/${articleId}`,
+    path: buildArticlePath(article),
     query: { fromWatch: watchId }
   })
 }

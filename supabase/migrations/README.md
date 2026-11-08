@@ -940,3 +940,15 @@ Puis, connecté avec un compte `visitor` depuis la console du panel : `supabase.
 - Colonne `watches.is_incoming` (`boolean not null default false`) : montre annoncée, pas encore reçue, visible avec son prix mais non achetable
 
 À appliquer **avant** de déployer un manifest qui active le drapeau : sans la colonne, la liste admin et la vérification du panier, qui la demandent nommément, échouent. Le blocage de l'achat est fait par le backend (création de commande et `/pay`) ; les fonctions `create_draft_order` et `reserve_watches_for_order` ne sont pas modifiées.
+
+## Slugs lisibles : montres sans doublon, historique, articles de blog
+
+`20261108120000_slugs_dedup_history_articles.sql` — sans effet visible sur le site en place, applicable à tout moment :
+
+- `build_watch_slug` ne répète plus la marque quand le nom la porte déjà (`rolex-rolex-…`), ni la référence quand le nom la contient. Ne touche que les montres créées ou renommées ensuite
+- Table `watch_slug_history` (lecture publique) alimentée par le trigger `watches_set_slug`, désormais `SECURITY DEFINER` : un slug abandonné redirige en 301 vers le slug courant (`api/render-page.js`, `resolveWatchIdBySlug`). Renommer une montre ne casse plus ses liens
+- Colonne `articles.slug` (unique), posée par le trigger `articles_set_slug` à la création, **jamais recalculée** quand le titre change. Reprise des articles existants incluse. `/blog/<uuid>` redirige vers `/blog/<slug>`
+
+Sur un projet non migré, le code retombe sur les adresses en UUID et ne lit pas l'historique.
+
+`20261108130000_watch_slugs_rewrite.sql` — réécrit les slugs des montres existantes. **À appliquer seulement une fois le code qui lit `watch_slug_history` en production**, sinon chaque ancien lien `/montre/…` répond 404. Rejouable.

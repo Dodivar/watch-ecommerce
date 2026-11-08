@@ -18,6 +18,27 @@ describe('watchSlug', () => {
     ).toBe('rolex-submariner-date-126610ln')
   })
 
+  it('ne répète ni la marque portée par le nom, ni la référence qu’il contient', () => {
+    expect(
+      buildWatchSlug({
+        brand: 'ROLEX',
+        name: 'Rolex Explorer I - 114270 - Montre seule',
+        reference: '114270',
+      }),
+    ).toBe('rolex-explorer-i-114270-montre-seule')
+    expect(buildWatchSlug({ brand: 'Oméga', name: 'Omega Seamaster', reference: '2254' })).toBe(
+      'omega-seamaster-2254',
+    )
+    // Une référence qui n'apparaît que comme fragment d'un autre segment est gardée.
+    expect(buildWatchSlug({ brand: 'Tudor', name: 'Tudor Black Bay 58', reference: '58' })).toBe(
+      'tudor-black-bay-58',
+    )
+    expect(buildWatchSlug({ brand: 'Tudor', name: 'Black Bay 5800', reference: '58' })).toBe(
+      'tudor-black-bay-5800-58',
+    )
+    expect(buildWatchSlug({ brand: 'Rolex', name: 'Rolex', reference: '5500' })).toBe('rolex-5500')
+  })
+
   it('utilise le slug stocké en base si présent', () => {
     expect(buildWatchSlug({ slug: 'omega-speedmaster-moonwatch' })).toBe(
       'omega-speedmaster-moonwatch',

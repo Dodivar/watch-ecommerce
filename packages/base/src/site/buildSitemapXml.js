@@ -18,6 +18,7 @@
 import { withLocalePrefix } from '../i18n/localePaths.js'
 import { slugifyBrand } from '../utils/brandSlug.js'
 import { buildWatchSlug } from '../utils/watchSlug.js'
+import { buildArticlePath } from '../utils/articleSlug.js'
 
 /** Visuels déclarés par fiche : au-delà, le sitemap grossit sans rien apporter au référencement. */
 export const MAX_SITEMAP_IMAGES_PER_WATCH = 5
@@ -184,7 +185,7 @@ export function buildSitemapXml({
 
   for (const article of articles) {
     xml += renderUrl({
-      loc: `${baseUrl}/blog/${article.id}`,
+      loc: `${baseUrl}${buildArticlePath(article)}`,
       lastmod: toLastmod(article.updated_at),
       changefreq: 'monthly',
       priority: '0.7',

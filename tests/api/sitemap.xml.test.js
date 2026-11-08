@@ -105,6 +105,14 @@ describe('buildSitemapXml', () => {
     expect(xml).toContain('<lastmod>2026-06-07</lastmod>')
   })
 
+  it('adresse un article par son slug quand il en a un', () => {
+    const xml = buildSitemapXml(
+      base({ articles: [{ id: 'a1', slug: 'estimer-sa-rolex', updated_at: '2026-06-07T10:00:00Z' }] }),
+    )
+    expect(xml).toContain('<loc>https://exemple.fr/blog/estimer-sa-rolex</loc>')
+    expect(xml).not.toContain('/blog/a1')
+  })
+
   it('date la page marque avec sa montre la plus récente', () => {
     const xml = buildSitemapXml(
       base({

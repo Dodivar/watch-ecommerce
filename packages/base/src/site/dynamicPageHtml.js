@@ -25,6 +25,7 @@ import { resolveWatchSaleState } from './watchCatalogDisplay.js'
 import { buildWatchPath } from '../utils/watchSlug.js'
 import { buildBrandCollectionPath } from '../utils/collectionRoutes.js'
 import { getEffectiveWatchPrice } from '../utils/watchPricing.js'
+import { buildArticlePath } from '../utils/articleSlug.js'
 
 /** Attribut posé sur tout ce que le serveur ajoute et que le client doit retirer au démarrage. */
 export const SSR_HEAD_ATTR = 'data-ssr-head'
@@ -472,7 +473,7 @@ export function buildBrandPage({ brand, watches, siteConfig, baseUrl, locale }) 
 export function buildArticlePage({ article, siteConfig, baseUrl, locale, logoUrl = '' }) {
   const seo = siteConfig?.seo?.blog ?? {}
   const labels = labelsFor(locale)
-  const path = `/blog/${article.id}`
+  const path = buildArticlePath(article)
   const canonicalUrl = `${baseUrl}${path}`
   const title = `${article.title} ${seo.articleTitleBlogSuffix ?? ''}`.trim()
   const firstParagraph = String(article.text ?? '').split('\n\n')[0]?.replace(/[#*]/g, '').trim() || ''

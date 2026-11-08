@@ -172,11 +172,17 @@ export default async function handler(req, res) {
 
     let articles = []
     if (features.blog) {
-      const { data, error: articlesError } = await supabase
-        .from('articles')
-        .select('id, updated_at')
-        .eq('is_visible', true)
-        .order('created_at', { ascending: false })
+      const queryArticles = (columns) =>
+        supabase
+          .from('articles')
+          .select(columns)
+          .eq('is_visible', true)
+          .order('created_at', { ascending: false })
+      let { data, error: articlesError } = await queryArticles('id, slug, updated_at')
+      // Projet sans `articles.slug` (migration 20261108120000 non appliquée) : adresses en UUID.
+      if (articlesError?.code === '42703') {
+        ;({ data, error: articlesError } = await queryArticles('id, updated_at'))
+      }
 
       if (articlesError) {
         console.error('Erreur lors de la récupération des articles:', articlesError)
