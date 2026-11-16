@@ -331,6 +331,11 @@ export default {
     enabled: true,
     /** Place ID `ChIJ…` de la fiche Google Business. Vide = section masquée. */
     placeId: 'ChIJ3Yd26nfJlkcR8t7VaQCaNxA',
+    /**
+     * Adresse stable de la fiche (`cid`, renvoyée par l'API Places en `googleMapsUri`). Déclarée
+     * dans le `sameAs` de l'organisation pour que Google rattache le site à sa fiche.
+     */
+    profileUrl: 'https://maps.google.com/?cid=1168571954892234482',
     /** Plafond dur de l'API Places : 5 avis maximum. */
     maxReviews: 5,
   },

@@ -1,3 +1,4 @@
+import { resolveGoogleBusinessProfileUrl } from './googleReviews.js'
 import { resolveSiteNap } from './siteNap.js'
 
 /**
@@ -107,11 +108,16 @@ export function buildGlobalStructuredData(siteConfig, baseUrl) {
   // (Sauvage) n'émet pas de `LocalBusiness`.
   if (areaServed) organization.areaServed = areaServed
 
+  // Fiche Google Business : portée par l'organisation, car une vitrine sans boutique publique
+  // (Sauvage) n'émet pas de `LocalBusiness` — c'est alors le seul endroit où la déclarer.
+  const googleBusinessUrl = resolveGoogleBusinessProfileUrl(siteConfig)
+
   const orgSameAs = [
     social?.suivezNous?.instagramUrl,
     social?.suivezNous?.facebookUrl,
     social?.suivezNous?.tiktokUrl,
     social?.footerTiktokUrl,
+    googleBusinessUrl,
   ].filter(Boolean)
   if (orgSameAs.length) organization.sameAs = orgSameAs
 
@@ -149,7 +155,7 @@ export function buildGlobalStructuredData(siteConfig, baseUrl) {
     social?.suivezNous?.facebookUrl,
     social?.suivezNous?.tiktokUrl,
     social?.footerTiktokUrl,
-    storeMap.googleMapsUrl,
+    googleBusinessUrl,
   ].filter(Boolean)
 
   const localBusiness = {

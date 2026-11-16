@@ -458,6 +458,32 @@ describe("photos des montres dans les e-mails de commande", () => {
     expect(html).toContain('Total')
   })
 
+  describe('demande d’avis Google', () => {
+    const reviewUrl = 'https://search.google.com/local/writereview?placeid=ChIJabc'
+    const withReviews = () => {
+      const site = mockSite()
+      site.config.googleReviews = { enabled: true, placeId: 'ChIJabc', reviewUrl }
+      return site
+    }
+
+    it('invite le client à laisser un avis sur la fiche', () => {
+      const html = createOrderConfirmationEmail(withReviews(), order, lines, false)
+      expect(html).toContain('Laisser un avis Google')
+      expect(html).toContain(reviewUrl)
+    })
+
+    it('ne la glisse pas dans l’exemplaire du commerçant', () => {
+      const html = createOrderConfirmationEmail(withReviews(), order, lines, true)
+      expect(html).not.toContain('Laisser un avis Google')
+      expect(html).not.toContain('writereview')
+    })
+
+    it('reste absente sans fiche Google configurée', () => {
+      const html = createOrderConfirmationEmail(mockSite(), order, lines, false)
+      expect(html).not.toContain('Laisser un avis Google')
+    })
+  })
+
   it("n'ouvre pas de panneau d'articles pour une commande sans ligne relue", () => {
     const html = createOrderConfirmationEmail(mockSite(), order, [], false)
 

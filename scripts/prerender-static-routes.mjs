@@ -17,7 +17,13 @@ import {
   buildStaticRouteHead,
   stripPageIdentity,
 } from '../packages/base/src/site/staticRouteHead.js'
+import {
+  applyStaticRouteHeading,
+  buildStaticRouteHeading,
+} from '../packages/base/src/site/pageHeadings.js'
 import { localePrefix } from '../packages/base/src/i18n/localePaths.js'
+import { MESSAGE_CATALOGS } from '../packages/base/src/i18n/messages/index.js'
+import { createTranslator } from '../packages/base/src/i18n/translator.js'
 import { resolveSitePaths } from '../vite/resolve-site.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -44,6 +50,7 @@ async function main() {
   }
   let written = 0
   let withOwnCopy = 0
+  let withHeading = 0
 
   // `dist/index.html` est à la fois l'accueil français et la page de repli de toutes les routes
   // sans fichier (fiches montre, articles…), via la réécriture de `vercel.json`. Ses alternates
@@ -70,15 +77,28 @@ async function main() {
     const html = fs.readFileSync(shellPath, 'utf8')
     // Manifest aplati une fois par langue : `seo.<section>.title` peut être un `t({ fr, en, de })`.
     const localizedConfig = localizeTree(siteConfig, locale, i18n.defaultLocale)
+    // Même catalogue que les composants au runtime (`@/i18n`) : le `<h1>` écrit ici est le texte
+    // que la page affiche ensuite.
+    const { t } = createTranslator({
+      locale,
+      fallbackLocale: i18n.defaultLocale,
+      catalogs: MESSAGE_CATALOGS,
+      overrides: i18n.messages,
+    })
+    const headingFor = (routePath) =>
+      buildStaticRouteHeading({ routePath, siteConfig: localizedConfig, t })
 
     // Accueil de la langue : la coquille elle-même, qui a déjà le bon titre et la bonne canonique.
-    if (baseUrl) {
-      fs.writeFileSync(
-        shellPath,
-        applyStaticRouteAlternates(html, buildStaticRouteAlternates(baseUrl, '', i18n)),
-        'utf8',
-      )
-    }
+    // Le `<h1>` est écrit ici et non dans `html`, dont partent les autres routes.
+    const homeHtml = applyStaticRouteHeading(html, headingFor(''))
+    fs.writeFileSync(
+      shellPath,
+      baseUrl
+        ? applyStaticRouteAlternates(homeHtml, buildStaticRouteAlternates(baseUrl, '', i18n))
+        : homeHtml,
+      'utf8',
+    )
+    withHeading += 1
 
     for (const route of routes) {
       if (!route.path || route.path === '') continue
@@ -95,13 +115,16 @@ async function main() {
         i18n,
         baseUrl,
       })
+      // Sans JavaScript, la page n'avait pas de `<h1>` : seul le corps vide de la coquille.
+      const withRouteHeading = applyStaticRouteHeading(html, headingFor(route.path))
       const routeHtml = baseUrl
         ? applyStaticRouteAlternates(
-            applyStaticRouteHead(html, head),
+            applyStaticRouteHead(withRouteHeading, head),
             buildStaticRouteAlternates(baseUrl, route.path, i18n),
           )
-        : html
+        : withRouteHeading
       if (head.hasOwnCopy) withOwnCopy += 1
+      if (/<h1>/.test(routeHtml)) withHeading += 1
 
       fs.writeFileSync(path.join(targetDir, 'index.html'), routeHtml, 'utf8')
       written += 1
@@ -110,7 +133,8 @@ async function main() {
 
   console.log(
     `[prerender] ${written} route(s) statique(s) pré-rendue(s) dans dist/ (${i18n.locales.join(', ')}) — ` +
-      `dont ${withOwnCopy} avec titre et description propres.`,
+      `dont ${withOwnCopy} avec titre et description propres ; ${withHeading} page(s) avec un <h1> ` +
+      `(accueils compris).`,
   )
 }
 
