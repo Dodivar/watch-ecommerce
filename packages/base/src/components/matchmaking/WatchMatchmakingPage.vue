@@ -2,6 +2,11 @@
   <!-- `pb` réduite sur téléphone : cette marge est retranchée de la hauteur laissée aux
        écrans qui remplissent l'écran (onboarding, deck), et 4 rem y coûtaient une photo. -->
   <div class="matchmaking-page mx-auto w-full max-w-5xl px-4 pb-10 pt-6 sm:px-6 sm:pb-16 lg:px-8">
+    <!-- Chaque phase affichée porte son propre `<h1>` ; chargement et erreur n'en ont pas de
+         visible, la page garde donc celui de l'accueil du jeu, masqué à l'écran. -->
+    <h1 v-if="mm.phase === 'loading' || mm.phase === 'error'" class="sr-only">
+      {{ t('matchmaking.onboarding.title') }}
+    </h1>
     <!-- Chargement -->
     <div
       v-if="mm.phase === 'loading'"

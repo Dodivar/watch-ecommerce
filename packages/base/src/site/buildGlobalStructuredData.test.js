@@ -144,4 +144,38 @@ describe('buildGlobalStructuredData', () => {
       expect(typeOf(schemas, 'LocalBusiness').areaServed).toBeUndefined()
     })
   })
+
+  describe('fiche Google Business', () => {
+    const profileUrl = 'https://maps.google.com/?cid=1168571954892234482'
+    const noStore = { enabled: false, directionsAddress: '14 Place, 67000 Strasbourg' }
+
+    /** Sauvage : sans boutique publique, l'organisation est le seul porteur possible. */
+    it('relie l’organisation à la fiche déclarée, même sans établissement', () => {
+      const config = siteConfig({
+        storeMap: noStore,
+        googleReviews: { placeId: 'ChIJabc', profileUrl },
+        social: { suivezNous: { instagramUrl: 'https://instagram.com/boutique' } },
+      })
+      const org = typeOf(buildGlobalStructuredData(config, BASE), 'Organization')
+      expect(org.sameAs).toEqual(['https://instagram.com/boutique', profileUrl])
+    })
+
+    it('la reprend sur l’établissement quand il existe', () => {
+      const config = siteConfig({ googleReviews: { placeId: 'ChIJabc', profileUrl } })
+      const business = typeOf(buildGlobalStructuredData(config, BASE), 'LocalBusiness')
+      expect(business.sameAs).toEqual([profileUrl])
+    })
+
+    it('ignore la recherche Maps de repli, qui n’est pas l’adresse de la fiche', () => {
+      const config = siteConfig({
+        storeMap: noStore,
+        googleReviews: {
+          placeId: 'ChIJabc',
+          profileUrl: 'https://www.google.com/maps/search/?api=1&query_place_id=ChIJabc',
+        },
+      })
+      const org = typeOf(buildGlobalStructuredData(config, BASE), 'Organization')
+      expect(org.sameAs).toBeUndefined()
+    })
+  })
 })

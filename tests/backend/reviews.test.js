@@ -312,6 +312,20 @@ describe('GET /api/reviews', () => {
 })
 
 describe('normalizeGoogleReviews', () => {
+  it('ouvre le formulaire d’avis de la fiche, sauf lien déclaré', () => {
+    expect(normalizeGoogleReviews({ placeId: 'ChIJ abc' }).reviewUrl).toBe(
+      'https://search.google.com/local/writereview?placeid=ChIJ%20abc',
+    )
+    expect(
+      normalizeGoogleReviews({ placeId: 'ChIJ', reviewUrl: ' https://g.page/r/xyz/review ' })
+        .reviewUrl,
+    ).toBe('https://g.page/r/xyz/review')
+  })
+
+  it('ne propose aucun lien d’avis quand la fiche est éteinte ou absente', () => {
+    expect(normalizeGoogleReviews({ enabled: false, placeId: 'ChIJ' }).reviewUrl).toBe('')
+    expect(normalizeGoogleReviews({}).reviewUrl).toBe('')
+  })
   it('reste éteint sans placeId', () => {
     expect(normalizeGoogleReviews({ enabled: true })).toMatchObject({ enabled: false, placeId: '' })
     expect(normalizeGoogleReviews(undefined).enabled).toBe(false)

@@ -180,8 +180,12 @@ const MAX_GOOGLE_REVIEWS = 5
  * `enabled` n'est vrai qu'avec un `placeId` renseigné : un manifest livré avec le placeholder
  * vide laisse la fonctionnalité éteinte.
  *
+ * `reviewUrl` — lien « Laisser un avis » des e-mails clients — n'existe que côté serveur : le
+ * front n'envoie pas d'e-mail. URL déclarée (`googleReviews.reviewUrl`, par exemple le lien
+ * court « Demander des avis » de la fiche), sinon le formulaire d'avis ouvert sur le placeId.
+ *
  * @param {unknown} raw
- * @returns {{ enabled: boolean, placeId: string, maxReviews: number, languageCode: string }}
+ * @returns {{ enabled: boolean, placeId: string, maxReviews: number, languageCode: string, reviewUrl: string }}
  */
 function normalizeGoogleReviews(raw) {
   const cfg = raw && typeof raw === 'object' ? raw : {}
@@ -196,11 +200,19 @@ function normalizeGoogleReviews(raw) {
       ? cfg.languageCode.trim()
       : ''
 
+  const enabled = cfg.enabled !== false && placeId.length > 0
+  const declaredReviewUrl = typeof cfg.reviewUrl === 'string' ? cfg.reviewUrl.trim() : ''
+  const reviewUrl = enabled
+    ? declaredReviewUrl ||
+      `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`
+    : ''
+
   return {
-    enabled: cfg.enabled !== false && placeId.length > 0,
+    enabled,
     placeId,
     maxReviews,
     languageCode,
+    reviewUrl,
   }
 }
 

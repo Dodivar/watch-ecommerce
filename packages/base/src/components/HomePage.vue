@@ -7,6 +7,7 @@ import { CANONICAL_BASE_URL } from '@/config'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
 import { filterHomeSectionsByFeatures } from '@/site/homeSections.js'
 import { homeBandClass, resolveHomeBands } from '@/site/homeBands.js'
+import { resolveHomeFallbackHeading } from '@/site/pageHeadings.js'
 
 import CarouselNouvelles from './CarouselNouvelles.vue'
 import CarouselVentes from './CarouselVentes.vue'
@@ -43,6 +44,15 @@ const seo = site.seo.home
 
 const resolvedSections = computed(() =>
   filterHomeSectionsByFeatures(site.home.sections, site.features, site),
+)
+
+/**
+ * Seul le hero porte le `<h1>` de l'accueil. Une vitrine qui n'en affiche pas (section absente,
+ * ou hero piloté par la config sans titre) garde un titre, masqué à l'écran mais lu par les
+ * moteurs et les lecteurs d'écran — le même que le HTML pré-rendu (`pageHeadings.js`).
+ */
+const fallbackHeading = computed(() =>
+  resolvedSections.value.includes('hero') ? '' : resolveHomeFallbackHeading(site),
 )
 
 /** Alternance vert de marque / blanc, une bande par section rendue. */
@@ -184,6 +194,7 @@ watch(() => route.hash, async () => {
 
 <template>
   <div>
+    <h1 v-if="fallbackHeading" class="sr-only">{{ fallbackHeading }}</h1>
     <component
       :is="SECTION_COMPONENTS[id]"
       v-for="(id, index) in resolvedSections"

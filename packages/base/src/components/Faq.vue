@@ -52,8 +52,9 @@ import { useRouter } from 'vue-router'
 import { getI18nConfig } from '@/i18n/activeLocale.js'
 import { stripLocalePrefix } from '@/i18n/localePaths.js'
 import { getSiteConfig } from '@/site/getSiteConfig.js'
+import { t } from '@/i18n'
 
-defineProps({
+const props = defineProps({
   asPage: {
     type: Boolean,
     default: false,
@@ -64,7 +65,9 @@ const router = useRouter()
 
 const site = getSiteConfig()
 const faqConfig = site.faq || {}
-const heading = faqConfig.heading
+// En page autonome, le titre est le `<h1>` de la page : un manifest sans `faq.heading` ne doit
+// pas la laisser sans titre. Même repli que `pageHeadings.js` pour le HTML pré-rendu.
+const heading = faqConfig.heading || (props.asPage ? t('faq.headingFallback') : '')
 const subheading = faqConfig.subheading
 const faqItems = computed(() => (Array.isArray(faqConfig.items) ? faqConfig.items : []))
 

@@ -212,6 +212,22 @@ function createOrderConfirmationEmail(site, order, lines, forMerchant = false, e
       )
     : ''
 
+  // Demande d'avis Google, réservée au client. Les avis pèsent lourd dans le classement local
+  // de la fiche : la confirmation est aujourd'hui le seul courrier qu'un acheteur reçoit, d'où
+  // une formulation tournée vers la remise de la montre plutôt que vers le paiement.
+  const reviewUrl = forMerchant ? '' : String(site.config?.googleReviews?.reviewUrl || '')
+  const reviewHtml = reviewUrl
+    ? section(
+        branding,
+        'Votre avis compte',
+        paragraph(
+          branding,
+          `Une fois votre montre entre vos mains, quelques mots sur Google nous aident beaucoup :
+           c'est ainsi que d'autres passionnés nous trouvent.`,
+        ) + buttonRow([button(branding, reviewUrl, 'Laisser un avis Google')]),
+      )
+    : ''
+
   const intro = forMerchant
     ? paragraph(branding, 'Une commande vient d\'être payée sur la boutique en ligne.')
     : paragraph(
@@ -234,6 +250,7 @@ function createOrderConfirmationEmail(site, order, lines, forMerchant = false, e
     ${shippingHtml}
     ${pickupWhatsappHtml}
     ${followUpHtml}
+    ${reviewHtml}
   `
 
   return emailShell(site, title, body, {
